@@ -9,14 +9,13 @@ scalaVersion := "2.13.1"
 
 val scalaCompilerOptions = List(
   "-deprecation",
-  "-feature",
-  "-unchecked",
-  "-Xfatal-warnings",
-  "-Xlint",
-  "-Ywarn-numeric-widen",
-  "-Ywarn-value-discard",
-  "-Yno-adapted-args",
-  "-Ywarn-dead-code"
+  "-feature"
+//  "-unchecked",
+  // "-Xfatal-warnings",
+//  "-Xlint",
+//  "-Ywarn-numeric-widen",
+//  "-Ywarn-value-discard"
+  //"-Ywarn-dead-code"
 )
 
 lazy val `shared` = crossProject(JSPlatform, JVMPlatform)
@@ -56,6 +55,8 @@ lazy val `frontend` = (project in file("./frontend"))
     stUseScalaJsDom := false
   )
   .dependsOn(shared.js)
+
+testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
 
 addCommandAlias("dev", ";frontend/fastOptJS::startWebpackDevServer;~frontend/fastOptJS")
 

@@ -7,11 +7,12 @@ object SharedSettings {
 
   val circeVersion = "0.13.0"
   val catsVersion  = "2.1.2"
+  val zioVersion   = "1.0.0-RC18-2"
 
   def apply(): Seq[Def.Setting[_]] = settings(
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.client" %%% "core" % "2.0.6", // http requests
-      "dev.zio" %%% "zio" % "1.0.0-RC18-2",
+      "dev.zio" %%% "zio" % zioVersion,
       "be.doeraene" %%% "url-dsl" % "0.1.4",
       "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-RC5"
     ) ++ Seq( // circe for json serialisation
@@ -23,6 +24,10 @@ object SharedSettings {
     ).map(_ % circeVersion) ++ Seq(
       "org.typelevel" %%% "cats-effect" % "2.1.2",
       "org.typelevel" %%% "cats-core" % "2.1.1"
+    ) ++ Seq(
+      "dev.zio" %%% "zio-test" % zioVersion % "test",
+      "dev.zio" %%% "zio-test-sbt" % zioVersion % "test",
+      "dev.zio" %%% "zio-test-magnolia" % zioVersion % "test" // optional
     )
   )
 

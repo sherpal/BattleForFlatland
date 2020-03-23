@@ -17,6 +17,15 @@ sealed trait ErrorADT extends Throwable {
 
 object ErrorADT {
 
+  case class MultipleErrors(errors: List[ErrorADT]) extends ErrorADT {
+    def httpErrorType: HTTPErrorType = errors.headOption.map(_.httpErrorType).getOrElse(Internal)
+  }
+
+  case class MultipleErrorsMap(errors: Map[String, List[ErrorADT]]) extends ErrorADT {
+    def httpErrorType: HTTPErrorType =
+      errors.toList.headOption.flatMap(_._2.headOption).map(_.httpErrorType).getOrElse(Internal)
+  }
+
   /** Errors that can be thrown in the backend. */
   sealed trait BackendError extends ErrorADT
 
@@ -44,7 +53,25 @@ object ErrorADT {
 
   private case class Wrapper(error: ErrorADT, name: String)
 
-  //trait FrontendError extends ErrorADT
+  sealed trait FrontendError extends ErrorADT
+  case object PasswordsMismatch extends FrontendError {
+    def httpErrorType: HTTPErrorType = BadRequest
+  }
+
+  sealed trait ValidatorError extends ErrorADT {
+    def httpErrorType: HTTPErrorType = BadRequest
+  }
+  sealed trait NumericValidatorError extends ValidatorError
+  case class NonZero(value: String) extends NumericValidatorError
+  case class NotBiggerThan(value: String, threshold: String) extends NumericValidatorError
+  case class NotSmallerThan(value: String, threshold: String) extends NumericValidatorError
+  case class Negative(value: String) extends NumericValidatorError
+  sealed trait StringValidatorError extends ValidatorError
+  case object StringIsEmpty extends StringValidatorError
+  case class StringIsTooShort(str: String, threshold: Int) extends StringValidatorError
+  case class ContainsNonLowercaseAlphabet(str: String) extends StringValidatorError
+  case class ShouldContain(substr: String, str: String) extends StringValidatorError
+  case class ShouldNotContain(substr: String, str: String) extends StringValidatorError
 
   import io.circe.generic.extras.semiauto._
   implicit val genDevConfig: Configuration =

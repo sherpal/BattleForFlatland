@@ -33,6 +33,9 @@ package object users {
   ): ZIO[Users with Crypto with Clock, Throwable, Int] =
     ZIO.accessM(_.get[Users.Service].addUser(userName: String, rawPassword: String, mailAddress: String))
 
+  final def userExists(userName: String): ZIO[Users, Throwable, Boolean] =
+    ZIO.accessM(_.get[Users.Service].userExists(userName))
+
   def selectUser(userName: String): ZIO[Users, Throwable, Option[User]] =
     ZIO.accessM(_.get[Users.Service].selectUser(userName))
 
