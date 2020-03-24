@@ -8,7 +8,11 @@ GET     /                               controllers.HomeController.index
 GET     /api/hello                      controllers.HomeController.hello
 POST    /api/hello                      controllers.HomeController.helloNbr(nbr: Int)
 
-GET     /api/am-i-super-user                 controllers.UsersController.amISuperUser
+
+# Users routes
+GET     /api/users/am-i-super-user      controllers.UsersController.amISuperUser
+POST    /api/users/register             controllers.UsersController.register
+POST    /api/users/confirm-registration controllers.UsersController.confirmRegistration
 
 
 

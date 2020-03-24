@@ -6,8 +6,8 @@ import errors.ErrorADT.UserDoesNotExist
 import models.{Role, User}
 import services.database.db.Database.runAsTask
 import slick.jdbc.JdbcProfile
-import utils.database.models.{CrossUserRole, DBRole, DBUser}
-import utils.database.tables.{CrossUsersRolesTable, RolesTable, UsersTable}
+import utils.database.models.{CrossUserRole, DBRole, DBUser, PendingRegistration}
+import utils.database.tables.{CrossUsersRolesTable, PendingRegistrationsTable, RolesTable, UsersTable}
 import zio.{Task, ZIO}
 
 private[users] final class UsersLive(
@@ -16,9 +16,10 @@ private[users] final class UsersLive(
     extends Users.Service {
   import api._
 
-  private val userQuery  = UsersTable.query
-  private val roleQuery  = RolesTable.query
-  private val crossQuery = CrossUsersRolesTable.query
+  private val userQuery     = UsersTable.query
+  private val roleQuery     = RolesTable.query
+  private val crossQuery    = CrossUsersRolesTable.query
+  private val pendingRQuery = PendingRegistrationsTable.query
 
   private val usersToRole = crossQuery
     .joinLeft(roleQuery)
@@ -92,4 +93,16 @@ private[users] final class UsersLive(
         crossQuery ++= newRolesIds.map(roleId => CrossUserRole(userId, roleId))
       )
     } yield true
+
+  def addRawPendingRegistration(pendingRegistration: PendingRegistration): Task[Int] =
+    runAsTask(pendingRQuery += pendingRegistration)
+
+  def removePendingRegistration(registrationKey: String): Task[Int] =
+    runAsTask(pendingRQuery.filter(_.registrationKey === registrationKey).delete)
+
+  def selectPendingRegistrationByUserName(userName: String): Task[Option[PendingRegistration]] =
+    runAsTask(pendingRQuery.filter(_.userName === userName).result.headOption)
+
+  def selectPendingRegistrationByKey(registrationKey: String): Task[Option[PendingRegistration]] =
+    runAsTask(pendingRQuery.filter(_.registrationKey === registrationKey).result.headOption)
 }

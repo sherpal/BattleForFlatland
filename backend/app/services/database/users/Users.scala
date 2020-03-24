@@ -1,15 +1,23 @@
 package services.database.users
 
-import errors.ErrorADT.{CantDeleteTheBoss, IncorrectPassword, UserExists}
+import errors.ErrorADT.{
+  CantDeleteTheBoss,
+  IncorrectPassword,
+  PendingRegistrationDoesNotExist,
+  PendingRegistrationNotAdded,
+  UserDoesNotExist,
+  UserExists
+}
 import models.{Role, User}
 import services.config._
 import services.crypto.{HashedPassword, _}
 import services.database.db.Database
 import services.database.db.Database.DBProvider
 import utils.database.DBProfile
-import utils.database.models.DBUser
+import utils.database.models.{DBUser, PendingRegistration}
 import zio.clock.{currentDateTime, Clock}
-import zio.{Task, ZIO, ZLayer}
+import zio.{Task, UIO, ZIO, ZLayer}
+import utils.ziohelpers._
 
 object Users {
 
@@ -49,9 +57,71 @@ object Users {
       } yield added
 
     /**
+      * Adds the raw pending registration to the database
+      * This is assuming that the password already have been hashed, the timestamp correctly set and the
+      * registration key already generated.
+      */
+    def addRawPendingRegistration(pendingRegistration: PendingRegistration): Task[Int]
+
+    /**
+      * Removes from the database the pending registration with the given key.
+      */
+    def removePendingRegistration(registrationKey: String): Task[Int]
+
+    /**
+      * Given the information sent by the user, adds a pending registration, to be confirmed later.
+      * Returns the registration key that have been used for the pending registration, to be notified to
+      * the user.
+      */
+    final def addPendingRegistration(
+        userName: String,
+        rawPassword: String,
+        mailAddress: String
+    ): ZIO[Crypto with Clock, Throwable, String] =
+      for {
+        time <- currentDateTime
+        id <- uuid
+        registrationKey = id.filterNot(_ != '-')
+        hashed <- hashPassword(rawPassword)
+        pendingRegistration = PendingRegistration(
+          registrationKey,
+          userName,
+          hashed.pw,
+          mailAddress,
+          time.toLocalDateTime
+        )
+        added <- addRawPendingRegistration(pendingRegistration)
+        _ <- failIfWith(added == 0, PendingRegistrationNotAdded(userName))
+      } yield registrationKey
+
+    final def confirmPendingRegistration(registrationKey: String): ZIO[Clock with Crypto, Throwable, (Int, Int)] =
+      for {
+        maybePendingRegistration <- selectPendingRegistrationByKey(registrationKey)
+        pendingRegistration <- maybePendingRegistration match {
+          case Some(e) => UIO.succeed(e)
+          case None    => ZIO.fail(PendingRegistrationDoesNotExist(registrationKey))
+        }
+        PendingRegistration(_, userName, hashed, email, _) = pendingRegistration
+        id <- uuid
+        now <- currentDateTime
+        dbUser = DBUser(id, userName, hashed, email, now.toLocalDateTime)
+        added <- addRawDBUser(dbUser)
+        removed <- removePendingRegistration(registrationKey)
+      } yield (added, removed)
+
+    /**
       * Gets the user from their name, if it exists.
       */
     def selectDBUser(userName: String): zio.Task[Option[DBUser]]
+
+    /**
+      * Gets the user from their email, if it exists.
+      */
+    def selectDBUserByEmail(email: String): Task[Option[DBUser]]
+
+    def selectPendingRegistrationByUserName(userName: String): Task[Option[PendingRegistration]]
+    def selectPendingRegistrationByKey(registrationKey: String): Task[Option[PendingRegistration]]
+    def selectPendingRegistrationByEmail(email: String): Task[Option[PendingRegistration]]
 
     /**
       * Deletes the user with the given name.
@@ -61,7 +131,20 @@ object Users {
     /**
       * Returns whether the user with the given userName exists.
       */
-    def userExists(userName: String): zio.Task[Boolean] = selectDBUser(userName).map(_.isDefined)
+    def userExists(userName: String): zio.Task[Boolean] =
+      for {
+        user <- selectDBUser(userName)
+        pending <- selectPendingRegistrationByUserName(userName)
+      } yield user.isDefined || pending.isDefined
+
+    /**
+      * Returns whether this mail already exists in DB.
+      */
+    def mailExists(email: String): Task[Boolean] =
+      for {
+        user <- selectDBUserByEmail(email)
+        pending <- selectPendingRegistrationByEmail(email)
+      } yield user.isDefined || pending.isDefined
 
     /**
       * If there is no user with the given userName, creates a new one to the database.
@@ -72,8 +155,11 @@ object Users {
         mailAddress: String
     ): ZIO[Crypto with Clock, Throwable, Boolean] =
       for {
+        mailExistsFiber <- mailExists(mailAddress).fork
         exists <- userExists(userName)
-        _ <- if (exists) ZIO.fail(UserExists(userName)) else ZIO.succeed(())
+        _ <- failIfWith(exists, UserExists(userName))
+        doesMailExists <- mailExistsFiber.join
+        _ <- failIfWith(doesMailExists, UserExists(userName))
         added <- addUser(userName, password, mailAddress).map(_ > 0)
       } yield added
 
@@ -93,7 +179,7 @@ object Users {
     final def deleteNonSuperUser(userName: String): ZIO[Configuration, Throwable, Int] =
       for {
         admin <- superUserName
-        _ <- if (userName == admin) ZIO.fail(CantDeleteTheBoss) else ZIO.succeed(())
+        _ <- failIfWith(userName == admin, CantDeleteTheBoss)
         deleted <- deleteUser(userName)
       } yield deleted
 

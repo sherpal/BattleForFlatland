@@ -30,14 +30,20 @@ object ErrorADT {
   sealed trait BackendError extends ErrorADT
 
   sealed trait DatabaseError extends BackendError
-  case class UserExists(userName: String) extends Exception(userName) with DatabaseError {
+  case class UserExists(userName: String) extends DatabaseError {
     def httpErrorType: HTTPErrorType = BadRequest
   }
-  case class UserDoesNotExist(userName: String) extends Exception(userName) with DatabaseError {
+  case class UserDoesNotExist(userName: String) extends DatabaseError {
     def httpErrorType: HTTPErrorType = BadRequest
   }
   case object CantDeleteTheBoss extends DatabaseError {
     def httpErrorType: HTTPErrorType = Forbidden
+  }
+  case class PendingRegistrationNotAdded(userName: String) extends DatabaseError {
+    def httpErrorType: HTTPErrorType = Internal
+  }
+  case class PendingRegistrationDoesNotExist(registrationKey: String) extends DatabaseError {
+    def httpErrorType: HTTPErrorType = BadRequest
   }
 
   sealed trait AuthenticationError extends ErrorADT

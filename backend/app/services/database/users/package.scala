@@ -2,7 +2,7 @@ package services.database
 
 import models.{Role, User}
 import services.crypto.Crypto
-import utils.database.models.DBUser
+import utils.database.models.{DBUser, PendingRegistration}
 import zio.clock.Clock
 import zio.{Has, ZIO}
 
@@ -47,5 +47,23 @@ package object users {
 
   final def correctPassword(userName: String, password: String): ZIO[Users with Crypto, Throwable, User] =
     ZIO.accessM(_.get[Users.Service].correctPassword(userName, password))
+
+  final def confirmPendingRegistration(
+      registrationKey: String
+  ): ZIO[Users with Clock with Crypto, Throwable, (Int, Int)] =
+    ZIO.accessM(_.get[Users.Service].confirmPendingRegistration(registrationKey))
+
+  def addPendingRegistration(
+      userName: String,
+      rawPassword: String,
+      mailAddress: String
+  ): ZIO[Users with Crypto with Clock, Throwable, String] =
+    ZIO.accessM(_.get[Users.Service].addPendingRegistration(userName, rawPassword, mailAddress))
+
+  def selectPendingRegistrationByEmail(email: String): ZIO[Users, Throwable, Option[PendingRegistration]] =
+    ZIO.accessM(_.get[Users.Service].selectPendingRegistrationByEmail(email))
+
+  def removePendingRegistration(registrationKey: String): ZIO[Users, Throwable, Int] =
+    ZIO.accessM(_.get[Users.Service].removePendingRegistration(registrationKey))
 
 }
