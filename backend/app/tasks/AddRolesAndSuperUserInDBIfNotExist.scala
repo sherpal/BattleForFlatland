@@ -29,6 +29,6 @@ final class AddRolesAndSuperUserInDBIfNotExist @Inject()(
   private val layer = (dbProvider(db) >>> Users.live) ++ Clock.live ++ Configuration.live ++ Crypto.live ++
     PlayLogging.live(logger)
 
-  Runtime.default.unsafeRun(TasksPrograms.addingRolesAndSuperUser.provideLayer(layer))
+  Runtime.default.unsafeRunToFuture(TasksPrograms.addingRolesAndSuperUser.provideLayer(layer))
 
 }

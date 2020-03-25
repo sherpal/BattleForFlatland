@@ -19,3 +19,5 @@ addSbtPlugin("com.heroku" % "sbt-heroku" % "2.1.3")
 
 resolvers += Resolver.bintrayRepo("oyvindberg", "converter")
 addSbtPlugin("org.scalablytyped.converter" % "sbt-converter06" % "1.0.0-beta6")
+
+addSbtPlugin("com.iheart" % "sbt-play-swagger" % "0.9.1-PLAY2.8")

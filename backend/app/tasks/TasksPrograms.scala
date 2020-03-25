@@ -15,7 +15,9 @@ object TasksPrograms {
 
   val addingRolesAndSuperUser: ZIO[Logging with Users with Crypto with Clock with Configuration, Throwable, Unit] =
     for {
-      _ <- sleep(zio.duration.Duration.fromScala(2.seconds))
+      _ <- log.info("Adding roles and super user in 10 seconds")
+      _ <- sleep(zio.duration.Duration.fromScala(10.seconds))
+      _ <- log.info("Going to insert role and super user now.")
       existingRoles <- allRoles
       rolesToAdd = Role.roles.filterNot(existingRoles.contains)
       _ <- insertRoles(rolesToAdd)

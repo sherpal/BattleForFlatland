@@ -105,4 +105,10 @@ private[users] final class UsersLive(
 
   def selectPendingRegistrationByKey(registrationKey: String): Task[Option[PendingRegistration]] =
     runAsTask(pendingRQuery.filter(_.registrationKey === registrationKey).result.headOption)
+
+  def selectDBUserByEmail(email: String): Task[Option[DBUser]] =
+    runAsTask(userQuery.filter(_.mailAddress === email).result.headOption)
+
+  def selectPendingRegistrationByEmail(email: String): Task[Option[PendingRegistration]] =
+    runAsTask(pendingRQuery.filter(_.mailAddress === email).result.headOption)
 }

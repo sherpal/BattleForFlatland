@@ -22,7 +22,8 @@ object BackendSettings {
       // BCrypt library for hashing password
       "org.mindrot" % "jbcrypt" % "0.3m",
       // Database driver
-      "org.postgresql" % "postgresql" % "42.2.5"
+      "org.postgresql" % "postgresql" % "42.2.5",
+      "org.webjars" % "swagger-ui" % "2.2.0"
     )
   )
 

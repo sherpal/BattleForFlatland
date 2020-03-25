@@ -27,6 +27,7 @@
   <logger name="play" level="INFO" />
   <logger name="application" level="DEBUG" />
   <logger name="AddAdminInDB" level="DEBUG" />
+  <logger name="UsersController" level="INFO" />
 
   <root level="WARN">
     <!--<appender-ref ref="ASYNCFILE" />-->

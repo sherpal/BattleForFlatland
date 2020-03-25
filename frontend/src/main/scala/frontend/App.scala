@@ -3,8 +3,6 @@ package frontend
 import assets.ScalaLogo
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import errors.ErrorADT
-import models.SharedModelClass
 import org.scalajs.dom
 import org.scalajs.dom.html
 import org.scalajs.dom.raw.Node
@@ -40,7 +38,7 @@ object App {
     .map(postNumber)
     .flatMap(EventStream.fromZIOEffect)
 
-  val amISuperUser = getStatus(root / "am-i-super-user")
+  val amISuperUser = getStatus(root / "users" / "am-i-super-user")
     .flatMap(x => ZIO.effect(println(x)))
     .provideLayer(FrontendHttpClient.live)
 
@@ -71,8 +69,6 @@ object App {
   } yield "Pixi animation loaded"
 
   zio.Runtime.default.unsafeRunAsync(addPixiAnimation.provideLayer(zio.clock.Clock.live))(println)
-
-  def randomSharedModel(): SharedModelClass = SharedModelClass(Random.nextString(5), Random.nextInt())
 
   def apply(): ReactiveHtmlElement[html.Div] = div(
     className := "App",

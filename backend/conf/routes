@@ -4,17 +4,33 @@
 # ~~~~
 
 # An example controller showing a sample home page
+### NoDocs ###
 GET     /                               controllers.HomeController.index
 GET     /api/hello                      controllers.HomeController.hello
 POST    /api/hello                      controllers.HomeController.helloNbr(nbr: Int)
 
 
 # Users routes
+###
+#  summary: Succeed only if client is a SuperUser
+#  tags:
+#    - Users Endpoints
+#  responses:
+#    200:
+#      description: success
+#      schema:
+#        type: "string"
+###
 GET     /api/users/am-i-super-user      controllers.UsersController.amISuperUser
 POST    /api/users/register             controllers.UsersController.register
-POST    /api/users/confirm-registration controllers.UsersController.confirmRegistration
+POST    /api/users/confirm-registration controllers.UsersController.confirmRegistration(registrationKey)
+POST    /api/users/login                controllers.UsersController.login
 
-
+### NoDocs ###
+GET   /docs/swagger-ui/*file        controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
+### NoDocs ###
+GET   /assets/*file                 controllers.Assets.versioned(path="/public", file: Asset)
 
 # Serve static assets under public directory. KEEP THIS ROUTE AT THE END OF THIS FILE.
+### NoDocs ###
 GET     /*file                      controllers.HomeController.assetOrDefault(file)
