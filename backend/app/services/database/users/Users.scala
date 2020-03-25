@@ -5,7 +5,6 @@ import errors.ErrorADT.{
   IncorrectPassword,
   PendingRegistrationDoesNotExist,
   PendingRegistrationNotAdded,
-  UserDoesNotExist,
   UserExists
 }
 import models.{Role, User}
@@ -15,9 +14,9 @@ import services.database.db.Database
 import services.database.db.Database.DBProvider
 import utils.database.DBProfile
 import utils.database.models.{DBUser, PendingRegistration}
+import utils.ziohelpers._
 import zio.clock.{currentDateTime, Clock}
 import zio.{Task, UIO, ZIO, ZLayer}
-import utils.ziohelpers._
 
 object Users {
 

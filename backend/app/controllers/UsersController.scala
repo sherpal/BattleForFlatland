@@ -1,24 +1,22 @@
 package controllers
 
 import dao.UserDAO
-import errors.ErrorADT
-import guards.Guards
+import io.circe.generic.auto._
 import javax.inject.Inject
 import models.users.{LoginUser, NewUser}
+import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.http.HttpErrorHandler
-import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, Request}
-import slick.jdbc.JdbcProfile
-import utils.playzio.PlayZIO._
-import utils.ReadsImplicits._
-import io.circe.generic.auto._
-import play.api.Logger
-import zio.clock.Clock
+import play.api.mvc._
 import services.config.Configuration
-import services.database.users.Users
-import services.database.db.Database.dbProvider
 import services.crypto.Crypto
+import services.database.db.Database.dbProvider
+import services.database.users.Users
 import services.logging.PlayLogging
+import slick.jdbc.JdbcProfile
+import utils.ReadsImplicits._
+import utils.playzio.PlayZIO._
+import zio.clock.Clock
 
 import scala.concurrent.ExecutionContext
 

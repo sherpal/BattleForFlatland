@@ -4,13 +4,14 @@ import java.util.concurrent.TimeUnit
 
 import errors.ErrorADT
 import errors.ErrorADT.{ForbiddenForYou, YouAreUnauthorized}
-import play.api.mvc.{Request, Result}
-import zio.{UIO, ZIO}
 import io.circe.generic.auto._
 import io.circe.parser.decode
-import services.config._
-import zio.clock.{currentTime, Clock}
+import models.Role.SuperUser
 import models.{Role, User}
+import play.api.mvc.{Request, Result}
+import services.config._
+import zio.ZIO
+import zio.clock.{currentTime, Clock}
 
 object Guards {
 
@@ -20,7 +21,7 @@ object Guards {
   def applySession(result: Result, userJson: String, nowAsString: String): Result =
     result.withSession(Guards.userSessionKey -> userJson, Guards.lastTimestampKey -> nowAsString)
 
-  def authenticated[A, R <: Request[A]](req: R): ZIO[Clock with Configuration, Throwable, SessionRequest[A]] =
+  def authenticated[A](req: Request[A]): ZIO[Clock with Configuration, Throwable, SessionRequest[A]] =
     for {
       maybeUserJson <- ZIO.succeed(req.session.get(userSessionKey))
       lastTimeStampStr <- ZIO.succeed(req.session.get(lastTimestampKey))
@@ -38,7 +39,10 @@ object Guards {
   def authorized[A, R <: SessionRequest[A]](req: R, roles: List[Role]): ZIO[Any, ErrorADT.YouAreUnauthorized.type, R] =
     ZIO.succeed(req).filterOrFail(_.user.roles.exists(roles.contains))(YouAreUnauthorized)
 
-  def authorizedAtLeast[A, R <: SessionRequest[A]](req: R, role: Role): ZIO[Any, ErrorADT.YouAreUnauthorized.type, R] =
+  def authorizedAtLeast[R <: SessionRequest[_]](req: R, role: Role): ZIO[Any, ErrorADT.YouAreUnauthorized.type, R] =
     ZIO.succeed(req).filterOrFail(_.user.roles.exists(_ >= role))(YouAreUnauthorized)
+
+  def onlySuperUser[R <: SessionRequest[_]](req: R): ZIO[Any, ErrorADT.YouAreUnauthorized.type, R] =
+    authorizedAtLeast[R](req, SuperUser)
 
 }

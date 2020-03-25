@@ -10,6 +10,11 @@ object PlayZIO {
   def zioRequest[R[_], A](implicit tagged: Tagged[HasRequest[R, A]]): ZIO[Has[HasRequest[R, A]], Nothing, R[A]] =
     ZIO.accessM(_.get.request)
 
+  def simpleZIORequest[A](
+      implicit tagged: Tagged[HasRequest[Request, A]]
+  ): ZIO[Has[HasRequest[Request, A]], Nothing, Request[A]] =
+    ZIO.accessM(_.get.request)
+
   final implicit class ZIOAction[R[_], B](actionBuilder: ActionBuilder[R, B]) {
 
     private def run[A](request: R[A], block: ZIO[Has[HasRequest[R, A]], ErrorADT, Result])(

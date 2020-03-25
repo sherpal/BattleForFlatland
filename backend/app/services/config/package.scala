@@ -1,6 +1,5 @@
 package services
 
-import services.config.ConfigRequester.FromConfig
 import zio.{Has, ZIO}
 
 package object config {
