@@ -17,6 +17,10 @@ sealed trait ErrorADT extends Throwable {
 
 object ErrorADT {
 
+  final val onlyErrorADT: PartialFunction[Throwable, ErrorADT] = {
+    case e: ErrorADT => e
+  }
+
   case class MultipleErrors(errors: List[ErrorADT]) extends ErrorADT {
     def httpErrorType: HTTPErrorType = errors.headOption.map(_.httpErrorType).getOrElse(Internal)
   }
@@ -56,8 +60,6 @@ object ErrorADT {
   case object IncorrectPassword extends AuthenticationError {
     override def httpErrorType: HTTPErrorType = BadRequest
   }
-
-  private case class Wrapper(error: ErrorADT, name: String)
 
   sealed trait FrontendError extends ErrorADT
   case object PasswordsMismatch extends FrontendError {

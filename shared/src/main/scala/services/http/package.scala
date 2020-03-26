@@ -2,7 +2,7 @@ package services
 
 import io.circe.{Decoder, Encoder}
 import services.http.HttpClient.{Path, Query}
-import zio.{Has, Task, ZIO}
+import zio.{Has, ZIO}
 
 package object http {
 
@@ -24,11 +24,22 @@ package object http {
   def post[Q, R](path: Path[Unit], query: Query[Q])(q: Q)(implicit decoder: Decoder[R]): ZIO[HttpClient, Throwable, R] =
     ZIO.accessM(_.get[HttpClient.Service].post(path, query)(q))
 
+  def postIgnore[Q](path: Path[Unit], query: Query[Q])(q: Q): ZIO[HttpClient, Throwable, Int] =
+    ZIO.accessM(_.get[HttpClient.Service].postIgnore(path, query)(q))
+
+  def postIgnore[B](path: Path[Unit], body: B)(implicit encoder: Encoder[B]): ZIO[HttpClient, Throwable, Int] =
+    ZIO.accessM(_.get[HttpClient.Service].postIgnore(path, body))
+
   def post[B, Q, R](
       path: Path[Unit],
       query: Query[Q],
       body: B
   )(q: Q)(implicit decoder: Decoder[R], encoder: Encoder[B]): ZIO[HttpClient, Throwable, R] =
     ZIO.accessM(_.get[HttpClient.Service].post(path, query, body)(q))
+
+  def postIgnore[B, Q](path: Path[Unit], query: Query[Q], body: B)(
+      q: Q
+  )(implicit encoder: Encoder[B]): ZIO[HttpClient, Throwable, Int] =
+    ZIO.accessM(_.get[HttpClient.Service].postIgnore(path, query, body)(q))
 
 }

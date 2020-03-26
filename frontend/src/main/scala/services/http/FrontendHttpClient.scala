@@ -58,6 +58,12 @@ object FrontendHttpClient {
       )
     )
 
+    def errorResponse[E](implicit eDecoder: Decoder[E]): ResponseAs[Option[Either[Error, E]], Nothing] =
+      asEither(
+        asStringAlways.map(decode[E]),
+        ignore
+      ).map(_.swap.toOption)
+
     def readResult[E <: Throwable, A](response: Response[Either[Either[Error, E], Either[Error, A]]]): IO[E, A] =
       ZIO
         .effect(response.body match {
@@ -104,6 +110,28 @@ object FrontendHttpClient {
         resultBody <- readResult(response)
       } yield resultBody
 
+    private def preparedPostQueryIgnore[B](body: Option[B])(implicit encoder: Encoder[B]) =
+      for {
+        start <- boilerplate
+        uri <- ZIO.environment[Uri]
+        response <- Task
+          .fromFuture(
+            implicit ec => {
+              val withResponseAndUri = start.response(errorResponse[ErrorADT]).post(uri)
+              body match {
+                case Some(b) => withResponseAndUri.body(b).send()
+                case None    => withResponseAndUri.send()
+              }
+            }
+          )
+          .orDie
+        _ <- response.body match {
+          case None               => ZIO.succeed(())
+          case Some(Right(error)) => ZIO.fail(error)
+          case Some(Left(e))      => ZIO.fail(e)
+        }
+      } yield response.code.code
+
     def get[T, Q, R](path: Path[T], query: Query[Q])(t: T, q: Q)(implicit decoder: Decoder[R]): Task[R] =
       pathWithParams(path, query)(t, q).flatMap(preparedQuery[R].provide)
 
@@ -130,6 +158,15 @@ object FrontendHttpClient {
         q: Q
     )(implicit decoder: Decoder[R], encoder: Encoder[B]): Task[R] =
       pathWithParams(path, query)((), q).flatMap(preparedPostQuery(Some(body)).provide)
+
+    def postIgnore[Q](path: Path[Unit], query: Query[Q])(q: Q): Task[Int] =
+      pathWithParams(path, query)((), q).flatMap(preparedPostQueryIgnore[Int](None).provide)
+
+    def postIgnore[B](path: Path[Unit], body: B)(implicit encoder: Encoder[B]): Task[Int] =
+      simplePath(path)(()).flatMap(preparedPostQueryIgnore(Some(body)).provide)
+
+    def postIgnore[B, Q](path: Path[Unit], query: Query[Q], body: B)(q: Q)(implicit encoder: Encoder[B]): Task[Int] =
+      pathWithParams(path, query)((), q).flatMap(preparedPostQueryIgnore(Some(body)).provide)
   })
 
 }

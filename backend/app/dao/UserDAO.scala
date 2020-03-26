@@ -53,13 +53,15 @@ object UserDAO extends Results {
       _ <- log.info(s"User added ($userAdded), pending registration removed ($pendingRemoved).")
     } yield Ok).refineOrDie(onlyErrorADT)
 
-  val login: ZIO[Clock with Users with Crypto with Has[HasRequest[Request, LoginUser]], ErrorADT, Result] = (for {
-    request <- simpleZIORequest[LoginUser]
-    LoginUser(userName, password) = request.body
-    user <- correctPassword(userName, password)
-    userJson = user.asJson.noSpaces
-    now <- currentTime(TimeUnit.SECONDS)
-  } yield Guards.applySession(Ok, userJson, now.toString)).refineOrDie(onlyErrorADT)
+  val login: ZIO[Clock with Users with Crypto with Logging with Has[HasRequest[Request, LoginUser]], ErrorADT, Result] =
+    (for {
+      request <- simpleZIORequest[LoginUser]
+      _ <- log.info(s"New login by ${request.body.userName}")
+      LoginUser(userName, password) = request.body
+      user <- correctPassword(userName, password)
+      userJson = user.asJson.noSpaces
+      now <- currentTime(TimeUnit.SECONDS)
+    } yield Guards.applySession(Ok, userJson, now.toString)).refineOrDie(onlyErrorADT)
 
   val amISuperUser: ZIO[Clock with Configuration with Has[HasRequest[Request, AnyContent]], ErrorADT, Result] =
     (for {

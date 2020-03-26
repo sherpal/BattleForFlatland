@@ -14,7 +14,7 @@ object IndexCSS extends js.Object
 object Main {
   val css: IndexCSS.type = IndexCSS
 
-  val createElement = ZIO.effect(
+  final val createElement = ZIO.effect(
     Option(dom.document.getElementById("root")).getOrElse {
       val elem = dom.document.createElement("div")
       elem.id = "root"
@@ -23,7 +23,7 @@ object Main {
     }
   )
 
-  val emptyContainer = for {
+  final val emptyContainer = for {
     container <- ZIO.environment[dom.Element]
     _ <- ZIO.effect {
       if (scala.scalajs.LinkingInfo.developmentMode) {
@@ -34,12 +34,12 @@ object Main {
     }
   } yield ()
 
-  val renderAppInContainer = for {
+  final val renderAppInContainer = for {
     container <- ZIO.environment[dom.Element]
-    reactiveElement <- ZIO.effect(render(container, App()))
+    reactiveElement <- ZIO.effect(render(container, frontend.components.App()))
   } yield reactiveElement
 
-  val program = for {
+  final val program = for {
     container <- createElement
     _ <- emptyContainer.provide(container)
     _ <- renderAppInContainer.provide(container)

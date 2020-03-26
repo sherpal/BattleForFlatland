@@ -41,6 +41,8 @@ final case class NewUser(name: String, password: String, confirmPassword: String
 
 object NewUser {
 
+  def empty: NewUser = NewUser("", "", "", "")
+
   def validate(newUser: NewUser): List[ErrorADT] = validator(newUser)
 
   def samePasswords: Validator[NewUser, ErrorADT] =
