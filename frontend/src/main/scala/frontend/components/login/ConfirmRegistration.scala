@@ -4,6 +4,7 @@ import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import errors.ErrorADT
 import frontend.components.Component
+import frontend.components.utils.PrimaryLink
 import frontend.router.{Link, RouteDefinitions}
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Div
@@ -31,7 +32,7 @@ final class ConfirmRegistration private (registrationKey: String) extends Compon
         p(
           "You can now connect to Battle for flatland.",
           br(),
-          Link(RouteDefinitions.loginRoute)("Login")
+          PrimaryLink(RouteDefinitions.loginRoute)("Login")
         )
       )
     },

@@ -3,6 +3,7 @@ package frontend.components.login
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
+import frontend.components.utils.PrimaryLink
 import frontend.router.{Link, RouteDefinitions}
 import org.scalajs.dom
 import org.scalajs.dom.html.Div
@@ -14,7 +15,7 @@ final class Login private () extends Component[dom.html.Div] {
     LoginForm(),
     p(
       "Not account, yet? Sign-up ",
-      span(className := "clickable", Link(RouteDefinitions.registerRoute)("here")),
+      PrimaryLink(RouteDefinitions.registerRoute)("here"),
       "!"
     )
   )
