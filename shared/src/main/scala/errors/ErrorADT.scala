@@ -34,6 +34,9 @@ object ErrorADT {
 
   /** Errors that can be thrown in the backend. */
   sealed trait BackendError extends ErrorADT
+  case class WrongStatusCode(code: Int) extends BackendError {
+    override def httpErrorType: HTTPResultType = Internal
+  }
 
   sealed trait DatabaseError extends BackendError
   case class UserExists(userName: String) extends DatabaseError {

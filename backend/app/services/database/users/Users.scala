@@ -80,7 +80,7 @@ object Users {
       for {
         time <- currentDateTime
         id <- uuid
-        registrationKey = id.filterNot(_ != '-')
+        registrationKey = id.filterNot(_ == '-')
         hashed <- hashPassword(rawPassword)
         pendingRegistration = PendingRegistration(
           registrationKey,

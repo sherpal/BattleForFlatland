@@ -30,6 +30,8 @@ import zio.UIO
   * - returns the result of the `submitProgram`.
   * The `submitProgram` must be an unexceptional IO, whose return type is specified in the `SubmitReturn` type param.
   *
+  * The stream `$isSubmitting` allows you to disable any form that should not be submitted multiple times.
+  *
   * @example
   *          A typical pattern would be:
   *          You have a case class `User(name: String, email: String)`. You then create two inputs, one for the name
@@ -68,11 +70,21 @@ trait SimpleForm[FormData, SubmitReturn] { self: Component[_] =>
 
   private lazy val $formDataView = $formData.observe
 
+  def formDataNow: FormData = $formDataView.now
+
   def submitProgram(formData: FormData): UIO[SubmitReturn]
 
+  private val isSubmittingBus: EventBus[Boolean] = new EventBus[Boolean]
+  final val $isSubmitting                        = isSubmittingBus.events
+
   val $submitEvents: EventStream[SubmitReturn] = submitBus.events
+    .mapTo(isSubmittingBus.writer.onNext(true))
     .mapTo($formDataView.now)
     .map(submitProgram)
     .flatMap(EventStream.fromZIOEffect)
+    .map(traverse => {
+      isSubmittingBus.writer.onNext(false)
+      traverse
+    })
 
 }

@@ -2,7 +2,8 @@ package frontend.components
 
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import frontend.components.login.{ConfirmRegistration, Login, Register}
+import frontend.components.home.Home
+import frontend.components.login.{ConfirmRegistration, Login, PostRegister, Register}
 import frontend.router.RouteDefinitions._
 import frontend.router.{Route, Routes}
 import org.scalajs.dom
@@ -15,7 +16,9 @@ final class App private () extends Component[dom.html.Div] {
       .firstOf(
         Route(loginRoute, () => Login()),
         Route(registerRoute, () => Register()),
-        Route(confirmRoute, (_: Unit, key: String) => ConfirmRegistration(key))
+        Route(postRegisterRoute, (_: Unit, userName: String) => PostRegister(userName)),
+        Route(confirmRoute, (_: Unit, key: String) => ConfirmRegistration(key)),
+        Route(homeRoute, () => Home())
       )
       .map {
         case Some(elem) => elem

@@ -3,7 +3,7 @@ package frontend.components.login
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import errors.ErrorADT
-import errors.ErrorADT.ErrorOr
+import errors.ErrorADT.{ErrorOr, MultipleErrorsMap, WrongStatusCode}
 import frontend.components.Component
 import frontend.components.forms.SimpleForm
 import frontend.router.{Link, RouteDefinitions}
@@ -14,6 +14,8 @@ import org.scalajs.dom.html.{Form, Progress}
 import programs.frontend.login._
 import services.http.FrontendHttpClient
 import zio.{UIO, ZIO}
+import services.routing._
+import utils.ziohelpers._
 
 /**
   * Component making the form to register (sign-up) to the Battle For Flatland web application.
@@ -41,10 +43,13 @@ final class RegisterForm extends Component[html.Form] with SimpleForm[NewUser, E
     }
   )
 
-  val program: ZIO[NewUser, Nothing, Either[ErrorADT, Int]] = for {
+  val program: ZIO[NewUser, Nothing, Either[ErrorADT, Int]] = (for {
     newUser <- ZIO.environment[NewUser]
-    statusCode <- register(newUser).provideLayer(FrontendHttpClient.live)
-  } yield statusCode
+    statusCode <- register(newUser, validator).provideLayer(FrontendHttpClient.live)
+    // this should never fail as it should fail before
+    _ <- failIfWith(statusCode / 100 != 2, WrongStatusCode(statusCode))
+    _ <- moveTo(RouteDefinitions.postRegisterRoute)(newUser.name).provideLayer(FRouting.live)
+  } yield statusCode).either
 
   def submitProgram(formData: NewUser): UIO[ErrorOr[Int]] = program.provide(formData)
 
@@ -67,8 +72,12 @@ final class RegisterForm extends Component[html.Form] with SimpleForm[NewUser, E
       label("Email address"),
       input(`type` := "text", inContext(elem => onChange.mapTo(elem.ref.value) --> emailChanger))
     ),
-    input(`type` := "submit", value := "Sign-up"),
-    Link(RouteDefinitions.loginRoute)("Login")
+    input(`type` := "submit", value := "Sign-up", disabled <-- $isSubmitting),
+    child <-- $submitEvents.map {
+      case Left(MultipleErrorsMap(errors)) => errors.toString
+      case Left(error)                     => error.toString
+      case Right(code)                     => code.toString
+    }
   )
 
   $formData.foreach(println)
