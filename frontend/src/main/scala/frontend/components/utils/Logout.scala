@@ -3,11 +3,10 @@ package frontend.components.utils
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import org.scalajs.dom.html
-import utils.laminarzio.Implicits._
 import programs.frontend.login.logout
 import services.http.FrontendHttpClient
 import services.routing.FRouting
-import zio.UIO
+import utils.laminarzio.Implicits._
 
 object Logout {
 

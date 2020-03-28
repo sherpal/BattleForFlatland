@@ -8,10 +8,10 @@ import frontend.components.connected.fixed.DashboardHeader
 import models.users.Role.SuperUser
 import models.users.{RouteDefinitions, User}
 import org.scalajs.dom.html
-import utils.laminarzio.Implicits._
-import programs.frontend.login.{amISuperUser, me}
+import programs.frontend.login.me
 import services.http.FrontendHttpClient.{live => httpLive}
 import services.routing._
+import utils.laminarzio.Implicits._
 
 final class Home private () extends Component[html.Div] {
 

@@ -1,11 +1,11 @@
 package frontend.components.connected.fixed
 
 import com.raquo.airstream.eventstream.EventStream
+import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
-import org.scalajs.dom.html
-import com.raquo.laminar.api.L._
 import frontend.components.utils.Logout
+import org.scalajs.dom.html
 
 final class DashboardHeader private ($userName: EventStream[String]) extends Component[html.Element] {
   val element: ReactiveHtmlElement[html.Element] = header(

@@ -11,10 +11,9 @@ import models.users.{Role, User}
 import play.api.mvc.{Request, Result}
 import services.config._
 import utils.playzio.HasRequest
-import zio.{Has, UIO, ZIO}
-import zio.clock.{currentTime, Clock}
 import utils.playzio.PlayZIO._
-import services.logging.{log, Logging}
+import zio.clock.{currentTime, Clock}
+import zio.{Has, UIO, ZIO}
 
 object Guards {
 

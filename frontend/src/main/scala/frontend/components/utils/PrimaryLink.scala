@@ -1,10 +1,10 @@
 package frontend.components.utils
 
+import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import frontend.router.{Link, Router}
+import frontend.router.Link
 import org.scalajs.dom.html
 import urldsl.language.{PathSegment, PathSegmentWithQueryParams, QueryParameters}
-import com.raquo.laminar.api.L._
 
 object PrimaryLink {
   def apply(to: PathSegment[Unit, _])(text: String): ReactiveHtmlElement[html.Span] =

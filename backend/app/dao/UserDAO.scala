@@ -13,12 +13,12 @@ import services.config.Configuration
 import services.crypto.Crypto
 import services.database.users._
 import services.logging._
+import utils.WriteableImplicits._
 import utils.playzio.HasRequest
 import utils.playzio.PlayZIO.simpleZIORequest
 import utils.ziohelpers._
 import zio.clock.{currentTime, Clock}
 import zio.{Has, UIO, ZIO}
-import utils.WriteableImplicits._
 
 object UserDAO extends Results {
 

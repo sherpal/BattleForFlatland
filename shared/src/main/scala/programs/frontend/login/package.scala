@@ -1,15 +1,14 @@
 package programs.frontend
 
 import errors.ErrorADT
-import errors.ErrorADT.WrongStatusCode
 import io.circe.generic.auto._
 import models.users.{LoginUser, NewUser, RouteDefinitions, User}
 import models.validators.FieldsValidator
 import services.http._
+import services.routing._
 import urldsl.language.QueryParameters.dummyErrorImpl._
 import utils.ziohelpers.fieldsValidateOrFail
 import zio.{UIO, URIO, ZIO}
-import services.routing._
 
 package object login {
 
