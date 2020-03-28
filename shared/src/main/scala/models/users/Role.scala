@@ -1,4 +1,4 @@
-package models
+package models.users
 
 sealed trait Role extends PartiallyOrdered[Role] {
 
@@ -7,7 +7,7 @@ sealed trait Role extends PartiallyOrdered[Role] {
   /** List of roles this role is directly under. */
   def under: List[Role]
 
-  def allUnder: List[Role] = under ++ under.flatMap(_.under)
+  def allUnder: List[Role] = under ++ under.flatMap(_.allUnder)
 
   override def tryCompareTo[B >: Role](that: B)(implicit evidence$1: AsPartiallyOrdered[B]): Option[Int] = that match {
     case that: Role =>

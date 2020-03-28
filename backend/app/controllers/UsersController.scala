@@ -50,6 +50,8 @@ final class UsersController @Inject()(
 
   def logout: Action[AnyContent] = Action { Ok.withNewSession }
 
+  def me: Action[AnyContent] = Action.zio(UserDAO.me.provideButRequest[Request, AnyContent](layer))
+
   def amISuperUser: Action[AnyContent] = Action.zio(UserDAO.amISuperUser.provideButRequest[Request, AnyContent](layer))
 
 }

@@ -36,7 +36,7 @@ lazy val `shared` = crossProject(JSPlatform, JVMPlatform)
 /** Backend server uses Play framework */
 lazy val `backend` = (project in file("./backend"))
   .enablePlugins(PlayScala)
-  .enablePlugins(SwaggerPlugin)
+  //.enablePlugins(SwaggerPlugin)
   .settings(
     scalaVersion := "2.13.1",
     BackendSettings(),

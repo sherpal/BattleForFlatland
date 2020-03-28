@@ -18,6 +18,7 @@ import utils.playzio.PlayZIO.simpleZIORequest
 import utils.ziohelpers._
 import zio.clock.{currentTime, Clock}
 import zio.{Has, UIO, ZIO}
+import utils.WriteableImplicits._
 
 object UserDAO extends Results {
 
@@ -63,11 +64,16 @@ object UserDAO extends Results {
       now <- currentTime(TimeUnit.SECONDS)
     } yield Guards.applySession(Ok, userJson, now.toString)).refineOrDie(onlyErrorADT)
 
-  val amISuperUser: ZIO[Clock with Configuration with Has[HasRequest[Request, AnyContent]], ErrorADT, Result] =
+  val amISuperUser =
     (for {
       request <- simpleZIORequest[AnyContent]
       sessionRequest <- Guards.authenticated(request)
       _ <- Guards.onlySuperUser(sessionRequest)
     } yield Ok).refineOrDie(onlyErrorADT)
+
+  val me = (for {
+    session <- Guards.authenticated[AnyContent]
+    user <- UIO(session.user)
+  } yield Ok(user)).refineOrDie(onlyErrorADT)
 
 }

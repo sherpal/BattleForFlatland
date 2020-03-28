@@ -2,9 +2,9 @@ package programs.frontend
 
 import errors.ErrorADT
 import io.circe.generic.auto._
-import models.users.{LoginUser, NewUser}
+import models.users.{LoginUser, NewUser, User}
 import models.validators.FieldsValidator
-import services.http.{postIgnore, HttpClient}
+import services.http._
 import urldsl.language.QueryParameters.dummyErrorImpl._
 import utils.ziohelpers.fieldsValidateOrFail
 import zio.{UIO, URIO, ZIO}
@@ -38,5 +38,10 @@ package object login {
       statusCode <- postIgnore(path, newUser)
     } yield statusCode)
       .refineOrDie(ErrorADT.onlyErrorADT)
+
+  final val me: ZIO[HttpClient, ErrorADT, User] = get[User](models.users.Routes.me).refineOrDie(ErrorADT.onlyErrorADT)
+
+  final val amISuperUser: URIO[HttpClient, Boolean] =
+    getStatus(models.users.Routes.superUser).map(_ / 100 == 2).catchAll(_ => UIO(false))
 
 }

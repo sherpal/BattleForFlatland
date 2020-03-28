@@ -11,6 +11,21 @@ POST    /api/hello                      controllers.HomeController.helloNbr(nbr:
 
 
 # Users routes
+
+###
+#  summary: Succeed only if client is connected
+#  tags:
+#    - Users Endpoints
+#  responses:
+#  responses:
+#    200:
+#      description: success
+#      schema:
+#        type: "array"
+#        items:
+#          $ref: '#/definitions/models.users.User'
+###
+GET     /api/users/me                   controllers.UsersController.me
 ###
 #  summary: Succeed only if client is a SuperUser
 #  tags:

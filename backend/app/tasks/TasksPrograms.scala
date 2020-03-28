@@ -1,7 +1,7 @@
 package tasks
 
-import models.Role.SuperUser
-import models.{Role, User}
+import models.users.Role.SuperUser
+import models.users.{Role, User}
 import services.config._
 import services.crypto.Crypto
 import services.database.users._

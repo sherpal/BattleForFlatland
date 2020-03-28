@@ -3,7 +3,7 @@ package services.database.users
 import java.util.UUID
 
 import errors.ErrorADT.UserDoesNotExist
-import models.{Role, User}
+import models.users.{Role, User}
 import services.database.db.Database.runAsTask
 import slick.jdbc.JdbcProfile
 import utils.database.models.{CrossUserRole, DBRole, DBUser, PendingRegistration}

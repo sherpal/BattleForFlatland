@@ -1,6 +1,6 @@
 package services.actions
 
-import models.User
+import models.users.User
 import zio.UIO
 
 object UserSessionAction {

@@ -7,7 +7,7 @@ import errors.ErrorADT.{
   PendingRegistrationNotAdded,
   UserExists
 }
-import models.{Role, User}
+import models.users.{Role, User}
 import services.config._
 import services.crypto.{HashedPassword, _}
 import services.database.db.Database

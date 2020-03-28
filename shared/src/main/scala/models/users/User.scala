@@ -1,4 +1,4 @@
-package models
+package models.users
 
 import java.time.LocalDateTime
 

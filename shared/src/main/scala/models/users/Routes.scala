@@ -9,5 +9,7 @@ object Routes {
   final val confirmRegistration = users / "confirm-registration"
   final val login               = users / "login"
   final val register            = users / "register"
+  final val me                  = users / "me"
+  final val superUser           = users / "am-i-super-user"
 
 }

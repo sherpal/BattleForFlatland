@@ -74,17 +74,14 @@ trait SimpleForm[FormData, SubmitReturn] { self: Component[_] =>
 
   def submitProgram(formData: FormData): UIO[SubmitReturn]
 
-  private val isSubmittingBus: EventBus[Boolean] = new EventBus[Boolean]
-  final val $isSubmitting                        = isSubmittingBus.events
-
   val $submitEvents: EventStream[SubmitReturn] = submitBus.events
-    .mapTo(isSubmittingBus.writer.onNext(true))
     .mapTo($formDataView.now)
     .map(submitProgram)
     .flatMap(EventStream.fromZIOEffect)
-    .map(traverse => {
-      isSubmittingBus.writer.onNext(false)
-      traverse
-    })
+
+  final val $isSubmitting = EventStream.merge(
+    submitBus.events.mapTo(true),
+    $submitEvents.mapTo(false)
+  )
 
 }

@@ -1,6 +1,6 @@
 package services.database
 
-import models.{Role, User}
+import models.users.{Role, User}
 import services.crypto.Crypto
 import utils.database.models.{DBUser, PendingRegistration}
 import zio.clock.Clock
