@@ -1,12 +1,12 @@
 package frontend.components
 
+import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
+import frontend.components.login.{ConfirmRegistration, Login, Register}
+import frontend.router.RouteDefinitions._
+import frontend.router.{Route, Routes}
 import org.scalajs.dom
 import org.scalajs.dom.html.Div
-import com.raquo.laminar.api.L._
-import frontend.components.login.{ConfirmRegistration, Login, Register}
-import frontend.router.{Route, Routes}
-import frontend.router.RouteDefinitions._
 
 final class App private () extends Component[dom.html.Div] {
 

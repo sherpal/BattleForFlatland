@@ -7,18 +7,17 @@ import org.scalajs.dom
 import org.scalajs.dom.html
 import org.scalajs.dom.raw.Node
 import services.http._
+import typings.pixiJs.mod.{Application, Sprite, Texture}
+import typings.pixiJs.{AnonAntialias => ApplicationOptions}
 import urldsl.language.PathSegment.dummyErrorImpl._
 import urldsl.language.QueryParameters.dummyErrorImpl.{param => qParam}
 import utils.laminarzio.Implicits._
 import zio.{UIO, ZIO}
 
 import scala.concurrent.duration.FiniteDuration
-import typings.pixiJs.mod.{Application, Sprite, Texture}
-import typings.pixiJs.{AnonAntialias => ApplicationOptions}
-
 import scala.language.implicitConversions
 import scala.scalajs.js
-import scala.util.{Random, Success, Try}
+import scala.util.{Success, Try}
 
 object App {
 

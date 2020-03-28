@@ -1,11 +1,11 @@
 package frontend.components.login
 
+import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
+import frontend.router.{Link, RouteDefinitions}
 import org.scalajs.dom
 import org.scalajs.dom.html.Div
-import com.raquo.laminar.api.L._
-import frontend.router.{Link, RouteDefinitions}
 
 final class Login private () extends Component[dom.html.Div] {
 

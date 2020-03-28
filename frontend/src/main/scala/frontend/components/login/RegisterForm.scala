@@ -1,19 +1,19 @@
 package frontend.components.login
 
+import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import errors.ErrorADT
+import errors.ErrorADT.ErrorOr
 import frontend.components.Component
 import frontend.components.forms.SimpleForm
+import frontend.router.{Link, RouteDefinitions}
 import models.users.NewUser
 import models.validators.FieldsValidator
 import org.scalajs.dom.html
 import org.scalajs.dom.html.{Form, Progress}
-import com.raquo.laminar.api.L._
-import errors.ErrorADT.ErrorOr
-import frontend.router.{Link, RouteDefinitions}
-import zio.{UIO, ZIO}
 import programs.frontend.login._
 import services.http.FrontendHttpClient
+import zio.{UIO, ZIO}
 
 /**
   * Component making the form to register (sign-up) to the Battle For Flatland web application.

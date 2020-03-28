@@ -2,19 +2,9 @@ package models.users
 
 import errors.ErrorADT
 import errors.ErrorADT.PasswordsMismatch
-import models.validators.StringValidators.{
-  atLeastLength,
-  containsDigit,
-  containsLowercase,
-  containsUppercase,
-  doesNotContainAnyOf,
-  emailValidator,
-  nonEmptyString,
-  validPassword
-}
-import models.validators.{FieldsValidator, Validator}
+import models.validators.StringValidators._
 import models.validators.Validator.simpleValidator
-import models.validators.StringValidators.noSpace
+import models.validators.{FieldsValidator, Validator}
 
 final case class NewUser(name: String, password: String, confirmPassword: String, email: String) {
   def valid: Boolean = password == confirmPassword

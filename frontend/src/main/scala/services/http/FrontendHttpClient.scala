@@ -1,14 +1,14 @@
 package services.http
 
 import errors.ErrorADT
+import io.circe.parser.decode
+import io.circe.syntax._
 import io.circe.{Decoder, Encoder, Error}
+import org.scalajs.dom
 import services.http.HttpClient.{csrfTokenName, Path, Query, Service}
 import sttp.client._
 import sttp.model.{MediaType, MultiQueryParams, Uri}
-import zio.{IO, Task, UIO, ZIO, ZLayer}
-import io.circe.syntax._
-import io.circe.parser.decode
-import org.scalajs.dom
+import zio._
 
 import scala.concurrent.Future
 

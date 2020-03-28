@@ -1,18 +1,18 @@
 package frontend.components.login
 
+import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import errors.ErrorADT
+import errors.ErrorADT.ErrorOr
 import frontend.components.Component
 import frontend.components.forms.SimpleForm
 import models.users.LoginUser
 import models.validators.FieldsValidator
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Form
-import com.raquo.laminar.api.L._
-import errors.ErrorADT.ErrorOr
 import programs.frontend.login.login
 import services.http.FrontendHttpClient
-import zio.{UIO, ZIO}
+import zio.UIO
 
 final class LoginForm private () extends Component[html.Form] with SimpleForm[LoginUser, ErrorOr[Int]] {
 

@@ -1,11 +1,11 @@
 package programs.frontend
 
 import errors.ErrorADT
+import io.circe.generic.auto._
 import models.users.{LoginUser, NewUser}
 import services.http.{postIgnore, HttpClient}
-import zio.{UIO, URIO, ZIO}
 import urldsl.language.QueryParameters.dummyErrorImpl._
-import io.circe.generic.auto._
+import zio.{UIO, URIO}
 
 package object login {
 

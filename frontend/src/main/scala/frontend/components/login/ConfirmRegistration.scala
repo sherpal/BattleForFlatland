@@ -1,15 +1,15 @@
 package frontend.components.login
 
+import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
+import errors.ErrorADT
 import frontend.components.Component
+import frontend.router.{Link, RouteDefinitions}
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Div
-import com.raquo.laminar.api.L._
-import errors.ErrorADT
-import frontend.router.{Link, RouteDefinitions}
+import programs.frontend.login.confirmRegistrationCall
 import services.http._
 import utils.laminarzio.Implicits._
-import programs.frontend.login.confirmRegistrationCall
 
 final class ConfirmRegistration private (registrationKey: String) extends Component[html.Div] {
 
