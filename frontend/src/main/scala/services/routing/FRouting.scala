@@ -1,8 +1,8 @@
 package services.routing
 
-import urldsl.language.{PathSegment, PathSegmentWithQueryParams, QueryParameters}
-import zio.{UIO, ZIO, ZLayer}
 import frontend.router.Router.router
+import urldsl.language.{PathSegment, PathSegmentWithQueryParams}
+import zio.{UIO, ZIO, ZLayer}
 
 object FRouting {
 

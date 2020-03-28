@@ -8,6 +8,6 @@ import urldsl.language.PathSegment
 object Link {
 
   def apply(to: PathSegment[Unit, _])(text: String): ReactiveHtmlElement[html.Span] =
-    span(className := "clickable", onClick --> (_ => Router.router.moveTo("/" + to.createPath())), text)
+    span(onClick --> (_ => Router.router.moveTo("/" + to.createPath())), text)
 
 }

@@ -21,7 +21,6 @@ final class ConfirmRegistration private (registrationKey: String) extends Compon
 
   val element: ReactiveHtmlElement[Div] = div(
     className := "ConfirmRegistration",
-    h1("Confirm registration"),
     p(
       "Registration key: ",
       registrationKey

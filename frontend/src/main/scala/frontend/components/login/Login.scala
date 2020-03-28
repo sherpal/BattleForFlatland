@@ -11,11 +11,10 @@ final class Login private () extends Component[dom.html.Div] {
 
   val element: ReactiveHtmlElement[Div] = div(
     className := "Login",
-    h1("Login"),
     LoginForm(),
     p(
       "Not account, yet? Sign-up ",
-      Link(RouteDefinitions.registerRoute)("here"),
+      span(className := "clickable", Link(RouteDefinitions.registerRoute)("here")),
       "!"
     )
   )

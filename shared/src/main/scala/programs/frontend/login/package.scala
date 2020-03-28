@@ -6,8 +6,8 @@ import models.users.{LoginUser, NewUser}
 import models.validators.FieldsValidator
 import services.http.{postIgnore, HttpClient}
 import urldsl.language.QueryParameters.dummyErrorImpl._
-import zio.{UIO, URIO, ZIO}
 import utils.ziohelpers.fieldsValidateOrFail
+import zio.{UIO, URIO, ZIO}
 
 package object login {
 

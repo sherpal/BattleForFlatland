@@ -3,7 +3,7 @@ package frontend.components.login
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import errors.ErrorADT
-import errors.ErrorADT.{ErrorOr, WrongStatusCode}
+import errors.ErrorADT.ErrorOr
 import frontend.components.Component
 import frontend.components.forms.SimpleForm
 import frontend.router.RouteDefinitions
@@ -13,9 +13,9 @@ import org.scalajs.dom.html
 import org.scalajs.dom.html.Form
 import programs.frontend.login.login
 import services.http.FrontendHttpClient
-import zio.{UIO, URIO, ZIO}
 import services.routing._
 import utils.ziohelpers._
+import zio.{UIO, URIO, ZIO}
 
 final class LoginForm private () extends Component[html.Form] with SimpleForm[LoginUser, ErrorOr[Int]] {
 

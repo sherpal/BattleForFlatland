@@ -1,8 +1,6 @@
 package services
 
-import models.User
-import zio.{Has, URIO, ZIO}
-import zio.Tagged
+import zio.{Has, Tagged, URIO, ZIO}
 
 /**
   * Actions describe how frontend requests are handled by the backend.

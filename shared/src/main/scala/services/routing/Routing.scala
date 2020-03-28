@@ -1,7 +1,7 @@
 package services.routing
 
 import urldsl.language.{PathSegment, PathSegmentWithQueryParams, QueryParameters}
-import zio.{Task, UIO}
+import zio.UIO
 
 object Routing {
 

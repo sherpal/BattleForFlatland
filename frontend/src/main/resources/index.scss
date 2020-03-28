@@ -1,3 +1,15 @@
+
+:root {
+    --primary-yellow: #FBB040;
+    --primary-orange: #e86000;
+    --primary-grey: #A2958A;
+
+    --dark-grey: #515151;
+
+    --column-width: 100px;
+}
+
+
 body {
   margin: 0;
   padding: 0;
@@ -6,6 +18,55 @@ body {
 
 
 .clickable {
-    color: #ff9933;
+    color: var(--primary-orange);
     cursor: pointer;
 }
+
+
+.outside-conn {
+    display: grid;
+    grid-template-rows: 60px 1fr;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+        "header"
+        "main";
+
+    nav {
+        span {
+            padding: 3px;
+            cursor: pointer;
+        }
+
+        .primary {
+            background-color: white;
+            color: var(--primary-orange);
+        }
+
+        .secondary {
+            color: white
+        }
+    }
+
+    input[type="submit"] {
+        background-color: var(--primary-orange);
+        color: white;
+        padding: 5px;
+        border: solid 1px var(--primary-orange);
+        height: 29px;
+        cursor: pointer;
+    }
+}
+
+.outside-conn > header {
+    display: flex;
+    justify-content: space-between;
+    background-color: var(--primary-orange);
+    grid-area: header;
+    align-items: center;
+}
+
+.outside-conn > div {
+    grid-area: main;
+    padding: 20px;
+}
+
