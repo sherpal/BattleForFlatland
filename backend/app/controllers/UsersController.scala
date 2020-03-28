@@ -2,7 +2,7 @@ package controllers
 
 import dao.UserDAO
 import io.circe.generic.auto._
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import models.users.{LoginUser, NewUser}
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -20,6 +20,7 @@ import zio.clock.Clock
 
 import scala.concurrent.ExecutionContext
 
+@Singleton
 final class UsersController @Inject()(
     assets: Assets,
     errorHandler: HttpErrorHandler,

@@ -21,6 +21,8 @@ object ErrorADT {
     case e: ErrorADT => e
   }
 
+  type ErrorOr[T] = Either[ErrorADT, T]
+
   case class MultipleErrors(errors: List[ErrorADT]) extends ErrorADT {
     def httpErrorType: HTTPErrorType = errors.headOption.map(_.httpErrorType).getOrElse(Internal)
   }
