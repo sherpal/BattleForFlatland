@@ -1,4 +1,4 @@
-package frontend.router
+package models.users
 
 import urldsl.language.PathSegment.dummyErrorImpl._
 import urldsl.language.QueryParameters.dummyErrorImpl._

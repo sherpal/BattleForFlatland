@@ -2,9 +2,9 @@ package frontend.components
 
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import frontend.components.home.Home
+import frontend.components.connected.home.Home
 import frontend.components.login.OutsideConnContainer
-import frontend.router.RouteDefinitions._
+import models.users.RouteDefinitions._
 import frontend.router.{Route, Routes}
 import org.scalajs.dom
 import org.scalajs.dom.html.Div

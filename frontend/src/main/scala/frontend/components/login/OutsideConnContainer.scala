@@ -3,7 +3,7 @@ package frontend.components.login
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
-import frontend.router.RouteDefinitions._
+import models.users.RouteDefinitions._
 import frontend.router.{Route, Routes}
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Div

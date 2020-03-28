@@ -6,8 +6,7 @@ import errors.ErrorADT
 import errors.ErrorADT.{ErrorOr, MultipleErrorsMap}
 import frontend.components.Component
 import frontend.components.forms.SimpleForm
-import frontend.router.RouteDefinitions
-import models.users.NewUser
+import models.users.{NewUser, RouteDefinitions}
 import models.validators.FieldsValidator
 import org.scalajs.dom.html
 import org.scalajs.dom.html.{Form, Progress}

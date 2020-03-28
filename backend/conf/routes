@@ -40,6 +40,7 @@ GET     /api/users/am-i-super-user      controllers.UsersController.amISuperUser
 POST    /api/users/register             controllers.UsersController.register
 POST    /api/users/confirm-registration controllers.UsersController.confirmRegistration(registrationKey)
 POST    /api/users/login                controllers.UsersController.login
+POST    /api/users/logout               controllers.UsersController.logout
 
 ### NoDocs ###
 GET   /docs/swagger-ui/*file        controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)

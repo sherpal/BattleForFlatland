@@ -6,8 +6,7 @@ import errors.ErrorADT
 import errors.ErrorADT.ErrorOr
 import frontend.components.Component
 import frontend.components.forms.SimpleForm
-import frontend.router.RouteDefinitions
-import models.users.LoginUser
+import models.users.{LoginUser, RouteDefinitions}
 import models.validators.FieldsValidator
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Form

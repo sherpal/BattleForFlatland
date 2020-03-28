@@ -4,7 +4,8 @@ import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
 import frontend.components.utils.PrimaryLink
-import frontend.router.{Link, RouteDefinitions}
+import frontend.router.Link
+import models.users.RouteDefinitions
 import org.scalajs.dom
 import org.scalajs.dom.html.Div
 

@@ -17,10 +17,19 @@ body {
  }
 
 
+/* Removing defaults */
+
+ ul {
+     list-style-type: none;
+ }
+
+
+
 .clickable {
     cursor: pointer;
 }
 
+/* Outside all connection. */
 
 .outside-conn {
     display: grid;
@@ -30,21 +39,6 @@ body {
         "header"
         "main";
 
-    nav {
-        span {
-            padding: 3px;
-            cursor: pointer;
-        }
-
-        .primary {
-            background-color: white;
-            color: var(--primary-orange);
-        }
-
-        .secondary {
-            color: white
-        }
-    }
 
     input[type="submit"] {
         background-color: var(--primary-orange);
@@ -68,6 +62,70 @@ body {
     grid-area: main;
     padding: 20px;
 }
+
+
+/* Inside connections */
+
+.main-conn {
+    display: grid;
+    grid-template-rows: 60px 1fr;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+        "header"
+        "main";
+
+   .main {
+       grid-area: main;
+       padding: 20px;
+   }
+
+   .menu {
+
+        width: 120px;
+
+        ul {
+            display: flex;
+            justify-content: space-around;
+            flex-direction: column;
+
+            li {
+                padding: 5px;
+            }
+        }
+
+   }
+
+}
+
+.main-conn > header {
+    display: flex;
+    justify-content: space-between;
+    background-color: var(--primary-orange);
+    grid-area: header;
+    align-items: center;
+}
+
+
+
+
+/* Buttons */
+
+nav {
+    .clickable {
+        padding: 3px;
+        cursor: pointer;
+    }
+
+    .primary {
+        background-color: white;
+        color: var(--primary-orange);
+    }
+
+    .secondary {
+        color: white
+    }
+}
+
 
 .primary-link {
     color: var(--primary-orange);

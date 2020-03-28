@@ -11,5 +11,6 @@ object Routes {
   final val register            = users / "register"
   final val me                  = users / "me"
   final val superUser           = users / "am-i-super-user"
+  final val logout              = users / "logout"
 
 }

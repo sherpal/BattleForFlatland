@@ -5,7 +5,8 @@ import com.raquo.laminar.nodes.ReactiveHtmlElement
 import errors.ErrorADT
 import frontend.components.Component
 import frontend.components.utils.PrimaryLink
-import frontend.router.{Link, RouteDefinitions}
+import frontend.router.Link
+import models.users.RouteDefinitions
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Div
 import programs.frontend.login.confirmRegistrationCall
