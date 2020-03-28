@@ -1,6 +1,6 @@
 package errors
 
-import errors.HTTPErrorType._
+import errors.HTTPResultType._
 import io.circe.generic.extras.Configuration
 import io.circe.{Decoder, Encoder}
 
@@ -12,7 +12,7 @@ import io.circe.{Decoder, Encoder}
   *
   */
 sealed trait ErrorADT extends Throwable {
-  def httpErrorType: HTTPErrorType
+  def httpErrorType: HTTPResultType
 }
 
 object ErrorADT {
@@ -24,11 +24,11 @@ object ErrorADT {
   type ErrorOr[T] = Either[ErrorADT, T]
 
   case class MultipleErrors(errors: List[ErrorADT]) extends ErrorADT {
-    def httpErrorType: HTTPErrorType = errors.headOption.map(_.httpErrorType).getOrElse(Internal)
+    def httpErrorType: HTTPResultType = errors.headOption.map(_.httpErrorType).getOrElse(Internal)
   }
 
   case class MultipleErrorsMap(errors: Map[String, List[ErrorADT]]) extends ErrorADT {
-    def httpErrorType: HTTPErrorType =
+    def httpErrorType: HTTPResultType =
       errors.toList.headOption.flatMap(_._2.headOption).map(_.httpErrorType).getOrElse(Internal)
   }
 
@@ -37,39 +37,39 @@ object ErrorADT {
 
   sealed trait DatabaseError extends BackendError
   case class UserExists(userName: String) extends DatabaseError {
-    def httpErrorType: HTTPErrorType = BadRequest
+    def httpErrorType: HTTPResultType = BadRequest
   }
   case class UserDoesNotExist(userName: String) extends DatabaseError {
-    def httpErrorType: HTTPErrorType = BadRequest
+    def httpErrorType: HTTPResultType = BadRequest
   }
   case object CantDeleteTheBoss extends DatabaseError {
-    def httpErrorType: HTTPErrorType = Forbidden
+    def httpErrorType: HTTPResultType = Forbidden
   }
   case class PendingRegistrationNotAdded(userName: String) extends DatabaseError {
-    def httpErrorType: HTTPErrorType = Internal
+    def httpErrorType: HTTPResultType = Internal
   }
   case class PendingRegistrationDoesNotExist(registrationKey: String) extends DatabaseError {
-    def httpErrorType: HTTPErrorType = BadRequest
+    def httpErrorType: HTTPResultType = BadRequest
   }
 
   sealed trait AuthenticationError extends ErrorADT
   case object YouAreUnauthorized extends AuthenticationError {
-    def httpErrorType: HTTPErrorType = Unauthorized
+    def httpErrorType: HTTPResultType = Unauthorized
   }
   case object ForbiddenForYou extends AuthenticationError {
-    def httpErrorType: HTTPErrorType = Forbidden
+    def httpErrorType: HTTPResultType = Forbidden
   }
   case object IncorrectPassword extends AuthenticationError {
-    override def httpErrorType: HTTPErrorType = BadRequest
+    override def httpErrorType: HTTPResultType = BadRequest
   }
 
   sealed trait FrontendError extends ErrorADT
   case object PasswordsMismatch extends FrontendError {
-    def httpErrorType: HTTPErrorType = BadRequest
+    def httpErrorType: HTTPResultType = BadRequest
   }
 
   sealed trait ValidatorError extends ErrorADT {
-    def httpErrorType: HTTPErrorType = BadRequest
+    def httpErrorType: HTTPResultType = BadRequest
   }
   sealed trait NumericValidatorError extends ValidatorError
   case class NonZero(value: String) extends NumericValidatorError

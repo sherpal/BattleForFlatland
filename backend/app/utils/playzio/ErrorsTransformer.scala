@@ -1,18 +1,18 @@
 package utils.playzio
 
 import errors.ErrorADT._
-import errors.{ErrorADT, HTTPErrorType}
+import errors.{ErrorADT, HTTPResultType}
 import play.api.mvc.{Result, Results}
 import utils.WriteableImplicits._
 
 object ErrorsTransformer extends Results {
 
-  private val httpErrorTypeMap: HTTPErrorType => Status = {
-    case HTTPErrorType.BadRequest   => BadRequest
-    case HTTPErrorType.Forbidden    => Forbidden
-    case HTTPErrorType.Internal     => InternalServerError
-    case HTTPErrorType.NotFound     => NotFound
-    case HTTPErrorType.Unauthorized => Unauthorized
+  private val httpErrorTypeMap: HTTPResultType => Status = {
+    case HTTPResultType.BadRequest   => BadRequest
+    case HTTPResultType.Forbidden    => Forbidden
+    case HTTPResultType.Internal     => InternalServerError
+    case HTTPResultType.NotFound     => NotFound
+    case HTTPResultType.Unauthorized => Unauthorized
   }
 
   implicit final class ErrorADTToResults(errorADT: ErrorADT) {
