@@ -1,13 +1,16 @@
 package utils
 
 import errors.ErrorADT
-import errors.ErrorADT.{MultipleErrors, MultipleErrorsMap}
+import errors.ErrorADT.{MultipleErrors, MultipleErrorsMap, WrongStatusCode}
 import models.validators.{FieldsValidator, Validator}
-import zio.{IO, ZIO}
+import zio.{IO, UIO, ZIO}
 
 package object ziohelpers {
 
   def failIfWith[E](mustFail: => Boolean, e: E): IO[E, Unit] = if (mustFail) ZIO.fail(e) else ZIO.succeed(())
+
+  def unsuccessfulStatusCode(statusCode: Int): ZIO[Any, WrongStatusCode, Unit] =
+    UIO(()).filterOrFail(_ => statusCode / 100 != 2)(WrongStatusCode(statusCode))
 
   def validateOrFail[E <: ErrorADT, T](validator: Validator[T, E])(t: T): IO[ErrorADT, Unit] =
     validator(t) match {

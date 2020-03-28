@@ -12,7 +12,7 @@ import scala.scalajs.js.annotation.{JSExportTopLevel, JSImport}
 object IndexCSS extends js.Object
 
 object Main {
-  val css: IndexCSS.type = IndexCSS
+  println("css", IndexCSS)
 
   final val createElement = ZIO.effect(
     Option(dom.document.getElementById("root")).getOrElse {

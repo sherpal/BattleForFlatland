@@ -29,7 +29,7 @@ final class LoginForm private () extends Component[html.Form] with SimpleForm[Lo
     loginUser <- ZIO.environment[LoginUser]
     statusCode <- login(loginUser).provideLayer(FrontendHttpClient.live)
     // should never fail as it should fail before.
-    _ <- failIfWith(statusCode / 100 != 2, WrongStatusCode(statusCode))
+    _ <- unsuccessfulStatusCode(statusCode)
     _ <- moveTo(RouteDefinitions.homeRoute).provideLayer(FRouting.live)
   } yield statusCode).either
 

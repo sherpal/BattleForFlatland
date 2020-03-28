@@ -47,7 +47,7 @@ final class RegisterForm extends Component[html.Form] with SimpleForm[NewUser, E
     newUser <- ZIO.environment[NewUser]
     statusCode <- register(newUser, validator).provideLayer(FrontendHttpClient.live)
     // this should never fail as it should fail before
-    _ <- failIfWith(statusCode / 100 != 2, WrongStatusCode(statusCode))
+    _ <- unsuccessfulStatusCode(statusCode)
     _ <- moveTo(RouteDefinitions.postRegisterRoute)(newUser.name).provideLayer(FRouting.live)
   } yield statusCode).either
 

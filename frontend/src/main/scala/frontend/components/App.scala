@@ -1,5 +1,6 @@
 package frontend.components
 
+import assets.ScalaLogo
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.home.Home
@@ -12,6 +13,7 @@ import org.scalajs.dom.html.Div
 final class App private () extends Component[dom.html.Div] {
 
   val element: ReactiveHtmlElement[Div] = div(
+    img(src := ScalaLogo),
     child <-- Routes
       .firstOf(
         Route(loginRoute, () => Login()),
@@ -22,7 +24,7 @@ final class App private () extends Component[dom.html.Div] {
       )
       .map {
         case Some(elem) => elem
-        case None       => div("uh oh")
+        case None       => div("uh oh") // todo: 404
       }
   )
 

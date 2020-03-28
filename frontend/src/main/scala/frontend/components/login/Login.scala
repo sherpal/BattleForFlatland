@@ -13,7 +13,11 @@ final class Login private () extends Component[dom.html.Div] {
     className := "Login",
     h1("Login"),
     LoginForm(),
-    Link(RouteDefinitions.registerRoute)("Register")
+    p(
+      "Not account, yet? Sign-up ",
+      Link(RouteDefinitions.registerRoute)("here"),
+      "!"
+    )
   )
 
 }
