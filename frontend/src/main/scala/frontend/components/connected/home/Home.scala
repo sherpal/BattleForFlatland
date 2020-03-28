@@ -5,6 +5,7 @@ import com.raquo.laminar.nodes.ReactiveHtmlElement
 import errors.ErrorADT
 import frontend.components.Component
 import frontend.components.connected.fixed.DashboardHeader
+import models.users.Role.SuperUser
 import models.users.{RouteDefinitions, User}
 import org.scalajs.dom.html
 import utils.laminarzio.Implicits._
@@ -23,8 +24,7 @@ final class Home private () extends Component[html.Div] {
       )
     }
   )
-  val $amISuperUper: EventStream[Boolean] =
-    EventStream.fromZIOEffect(amISuperUser.provideLayer(httpLive))
+  val $amISuperUper: EventStream[Boolean] = $user.map(_.roles.contains(SuperUser))
 
   val element: ReactiveHtmlElement[html.Div] = div(
     className := "main-conn",

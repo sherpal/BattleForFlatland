@@ -42,7 +42,7 @@ object UserDAO extends Results {
           UIO.succeed(0)
       }
       registrationKey <- addPendingRegistration(userName, password, email)
-      _ <- log.info(s"New registration with key `$registrationKey`")
+      _ <- log.info(s"New registration with key `$registrationKey` for user $userName.")
       // todo send email with the registration key
     } yield Ok).refineOrDie(onlyErrorADT)
 
@@ -57,23 +57,24 @@ object UserDAO extends Results {
   val login: ZIO[Clock with Users with Crypto with Logging with Has[HasRequest[Request, LoginUser]], ErrorADT, Result] =
     (for {
       request <- simpleZIORequest[LoginUser]
-      _ <- log.info(s"New login by ${request.body.userName}")
       LoginUser(userName, password) = request.body
       user <- correctPassword(userName, password)
       userJson = user.asJson.noSpaces
       now <- currentTime(TimeUnit.SECONDS)
+      _ <- log.info(s"New login by ${request.body.userName}")
     } yield Guards.applySession(Ok, userJson, now.toString)).refineOrDie(onlyErrorADT)
 
-  val amISuperUser =
+  val amISuperUser: ZIO[Clock with Configuration with Has[HasRequest[Request, AnyContent]], ErrorADT, UserDAO.Status] =
     (for {
       request <- simpleZIORequest[AnyContent]
       sessionRequest <- Guards.authenticated(request)
       _ <- Guards.onlySuperUser(sessionRequest)
     } yield Ok).refineOrDie(onlyErrorADT)
 
-  val me = (for {
+  val me: ZIO[Clock with Configuration with Has[HasRequest[Request, AnyContent]], ErrorADT, Result] = (for {
     session <- Guards.authenticated[AnyContent]
     user <- UIO(session.user)
-  } yield Ok(user)).refineOrDie(onlyErrorADT)
+    now <- currentTime(TimeUnit.SECONDS)
+  } yield Guards.applySession(Ok(user), user.asJson.noSpaces, now.toString)).refineOrDie(onlyErrorADT)
 
 }
