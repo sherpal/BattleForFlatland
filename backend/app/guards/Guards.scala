@@ -48,6 +48,7 @@ object Guards {
 
   /**
     * Provides a [[SessionRequest]] when the user is properly authenticated.
+    * @tparam A type of the body contained in the request.
     */
   def authenticated[A](
       implicit tagged: zio.Tagged[A]

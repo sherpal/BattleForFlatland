@@ -7,24 +7,14 @@ import models.users.{Role, User}
 import services.database.db.Database.runAsTask
 import slick.jdbc.JdbcProfile
 import utils.database.models.{CrossUserRole, DBRole, DBUser, PendingRegistration}
-import utils.database.tables.{CrossUsersRolesTable, PendingRegistrationsTable, RolesTable, UsersTable}
 import zio.{Task, ZIO}
 
 private[users] final class UsersLive(
-    api: JdbcProfile#API
+    val api: JdbcProfile#API
 )(implicit db: JdbcProfile#Backend#Database)
-    extends Users.Service {
+    extends UsersSlickHelper(api)
+    with Users.Service {
   import api._
-
-  private val userQuery     = UsersTable.query
-  private val roleQuery     = RolesTable.query
-  private val crossQuery    = CrossUsersRolesTable.query
-  private val pendingRQuery = PendingRegistrationsTable.query
-
-  private val usersToRole = crossQuery
-    .joinLeft(roleQuery)
-    .on(_.roleId === _.roleId)
-    .map { case (cross, maybeRole) => (cross.userId, maybeRole.map(_.roleName)) }
 
   def dbUsers: Task[Vector[DBUser]] =
     runAsTask(
@@ -34,15 +24,7 @@ private[users] final class UsersLive(
   def users(from: Long, to: Long): Task[Vector[User]] =
     runAsTask(
       userQuery.drop(from).take(to - from).joinLeft(usersToRole).on(_.userId === _._1).result
-    ).map { allUsersWithRolesFlat =>
-      allUsersWithRolesFlat
-        .groupBy(_._1)
-        .map {
-          case (user, userRoles) =>
-            user.user(userRoles.flatMap(_._2.flatMap(_._2)).map(Role.roleByName).toList)
-        }
-        .toVector
-    }
+    ).map(unflattenUsers)
 
   def insertRoles(roles: List[Role]): Task[Boolean] =
     if (roles.isEmpty) ZIO.succeed(true)
@@ -64,9 +46,7 @@ private[users] final class UsersLive(
   def selectUser(userName: String): Task[Option[User]] =
     runAsTask(
       userQuery.filter(_.userName === userName).joinLeft(usersToRole).on(_.userId === _._1).result
-    ).map { userRoles =>
-      userRoles.headOption.map(_._1).map { _.user(userRoles.flatMap(_._2.flatMap(_._2)).map(Role.roleByName).toList) }
-    }
+    ).map(unflattenUsers).map(_.headOption)
 
   def userIdFromName(userName: String): Task[Option[String]] =
     runAsTask(userQuery.filter(_.userName === userName).map(_.userId).result.headOption)

@@ -42,6 +42,11 @@ POST    /api/users/confirm-registration controllers.UsersController.confirmRegis
 POST    /api/users/login                controllers.UsersController.login
 POST    /api/users/logout               controllers.UsersController.logout
 
+# Battle for Flatland
+
+GET     /api/bff/games                  controllers.MenuGamesController.games
+POST    /api/bff/new-game               controllers.MenuGamesController.newGame
+
 ### NoDocs ###
 GET   /docs/swagger-ui/*file        controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
 ### NoDocs ###

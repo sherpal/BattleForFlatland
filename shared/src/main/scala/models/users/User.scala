@@ -10,3 +10,16 @@ final case class User(
     createdOn: LocalDateTime,
     roles: List[Role]
 )
+
+object User {
+
+  def empty: User = User(
+    "",
+    "",
+    "",
+    "",
+    LocalDateTime.now,
+    Nil
+  )
+
+}

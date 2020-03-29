@@ -68,6 +68,12 @@ sealed trait Validator[-T, +E] {
   final def toOptionValidator[F >: E](noneError: => Option[F]): Validator[Option[T], F] =
     optionValidator(this, noneError)
 
+  /**
+    * Creates a [[Validator]] for Options from this validator.
+    * None are valid. If you want Nones to be invalid, see method above.
+    */
+  final def toOptionValidator: Validator[Option[T], E] = toOptionValidator[E](None)
+
 }
 
 object Validator {

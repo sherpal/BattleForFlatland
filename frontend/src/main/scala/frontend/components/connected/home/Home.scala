@@ -17,6 +17,8 @@ final class Home private () extends Component[html.Div] {
 
   val $me: EventStream[Either[ErrorADT, User]] = EventStream.fromZIOEffect(me.either.provideLayer(httpLive))
   val $user: EventStream[User]                 = $me.collect { case Right(user) => user }
+  val $amISuperUper: EventStream[Boolean]      = $user.map(_.roles.contains(SuperUser))
+
   val $redirect: EventStream[Unit] = $me.filter(_.isLeft).flatMap(
     _ => {
       EventStream.fromZIOEffect(
@@ -24,7 +26,6 @@ final class Home private () extends Component[html.Div] {
       )
     }
   )
-  val $amISuperUper: EventStream[Boolean] = $user.map(_.roles.contains(SuperUser))
 
   val element: ReactiveHtmlElement[html.Div] = div(
     className := "main-conn",

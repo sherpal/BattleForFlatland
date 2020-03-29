@@ -28,6 +28,7 @@
   <logger name="application" level="DEBUG" />
   <logger name="AddAdminInDB" level="DEBUG" />
   <logger name="UsersController" level="INFO" />
+  <logger name="MenuGamesController" level="INFO" />
 
   <root level="WARN">
     <!--<appender-ref ref="ASYNCFILE" />-->
