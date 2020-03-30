@@ -14,7 +14,8 @@ object SharedSettings {
       "com.softwaremill.sttp.client" %%% "core" % "2.0.6", // http requests
       "dev.zio" %%% "zio" % zioVersion,
       "be.doeraene" %%% "url-dsl" % "0.1.4",
-      "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-RC5"
+      "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-RC5",
+      "com.lihaoyi" %%% "scalatags" % "0.8.2"
     ) ++ Seq( // circe for json serialisation
       "io.circe" %%% "circe-core",
       "io.circe" %%% "circe-generic",

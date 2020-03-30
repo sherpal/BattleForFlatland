@@ -56,11 +56,6 @@ package object login {
 
   def users(from: Long, to: Long): ZIO[HttpClient, ErrorADT, List[User]] =
     get[(Long, Long), List[User]](models.users.Routes.donwloadUsers, param[Long]("from") & param[Long]("to"))((0L, 10L))
-      .mapError(e => {
-        println("coucou")
-        println(e.toString)
-        e
-      })
       .refineOrDie(ErrorADT.onlyErrorADT)
 
 }

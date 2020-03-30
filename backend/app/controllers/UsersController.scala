@@ -12,6 +12,7 @@ import services.config.Configuration
 import services.crypto.Crypto
 import services.database.db.Database.dbProvider
 import services.database.users.Users
+import services.emails.JVMEmails
 import services.logging.PlayLogging
 import slick.jdbc.JdbcProfile
 import utils.ReadsImplicits._
@@ -35,7 +36,7 @@ final class UsersController @Inject()(
   lazy val logger: Logger = Logger("UsersController")
 
   private val layer = Clock.live ++ Configuration.live ++ (dbProvider(db) >>> Users.live) ++ Crypto.live ++
-    PlayLogging.live(logger)
+    PlayLogging.live(logger) ++ JVMEmails.live
 
   def users(from: Long, to: Long): Action[AnyContent] =
     Action.zio(UserDAO.allUsers(from, to).map(Ok(_)).provideButRequest[Request, AnyContent](layer))

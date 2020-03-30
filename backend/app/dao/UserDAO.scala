@@ -19,6 +19,8 @@ import utils.playzio.PlayZIO.simpleZIORequest
 import utils.ziohelpers._
 import zio.clock.{currentTime, Clock}
 import zio.{Has, UIO, ZIO}
+import services.emails._
+import scalatags.Text.all._
 
 object UserDAO extends Results {
 
@@ -33,7 +35,7 @@ object UserDAO extends Results {
     } yield urs).refineOrDie(ErrorADT.onlyErrorADT)
 
   val register
-      : ZIO[Logging with Users with Crypto with Clock with Has[HasRequest[Request, NewUser]], ErrorADT, UserDAO.Status] =
+      : ZIO[Emails with Logging with Users with Crypto with Clock with Has[HasRequest[Request, NewUser]], ErrorADT, UserDAO.Status] =
     (for {
       request <- simpleZIORequest[NewUser]
       NewUser(userName, password, _, email) = request.body
@@ -51,7 +53,7 @@ object UserDAO extends Results {
       }
       registrationKey <- addPendingRegistration(userName, password, email)
       _ <- log.info(s"New registration with key `$registrationKey` for user $userName.")
-      // todo send email with the registration key
+      _ <- sendEmail(email, "Thank you for signing up to Battle for Flatland", div(registrationKey))
     } yield Ok).refineOrDie(ErrorADT.onlyErrorADT)
 
   def confirmRegistration(
