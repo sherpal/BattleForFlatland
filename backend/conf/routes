@@ -37,6 +37,7 @@ GET     /api/users/me                   controllers.UsersController.me
 #        type: "string"
 ###
 GET     /api/users/am-i-super-user      controllers.UsersController.amISuperUser
+GET     /api/users/users                controllers.UsersController.users(from: Long, to: Long)
 POST    /api/users/register             controllers.UsersController.register
 POST    /api/users/confirm-registration controllers.UsersController.confirmRegistration(registrationKey)
 POST    /api/users/login                controllers.UsersController.login
@@ -44,6 +45,18 @@ POST    /api/users/logout               controllers.UsersController.logout
 
 # Battle for Flatland
 
+###
+#  summary: Succeed only if client is connected
+#  tags:
+#    - BFF Endpoints
+#  responses:
+#    200:
+#      description: success
+#      schema:
+#        type: "array"
+#        items:
+#          $ref: '#/definitions/models.bff.outofgame.MenuGame'
+###
 GET     /api/bff/games                  controllers.MenuGamesController.games
 POST    /api/bff/new-game               controllers.MenuGamesController.newGame
 

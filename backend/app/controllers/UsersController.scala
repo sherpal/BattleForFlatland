@@ -17,6 +17,7 @@ import slick.jdbc.JdbcProfile
 import utils.ReadsImplicits._
 import utils.playzio.PlayZIO._
 import zio.clock.Clock
+import utils.WriteableImplicits._
 
 import scala.concurrent.ExecutionContext
 
@@ -35,6 +36,9 @@ final class UsersController @Inject()(
 
   private val layer = Clock.live ++ Configuration.live ++ (dbProvider(db) >>> Users.live) ++ Crypto.live ++
     PlayLogging.live(logger)
+
+  def users(from: Long, to: Long): Action[AnyContent] =
+    Action.zio(UserDAO.allUsers(from, to).map(Ok(_)).provideButRequest[Request, AnyContent](layer))
 
   def register: Action[NewUser] = Action.zio(parse.json[NewUser])(
     UserDAO.register.provideButRequest[Request, NewUser](layer)

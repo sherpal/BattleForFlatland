@@ -7,6 +7,7 @@ import models.validators.FieldsValidator
 import services.http._
 import services.routing._
 import urldsl.language.QueryParameters.dummyErrorImpl._
+import urldsl.vocabulary.Printer
 import utils.ziohelpers.fieldsValidateOrFail
 import zio.{UIO, URIO, ZIO}
 
@@ -50,5 +51,16 @@ package object login {
 
   final val amISuperUser: URIO[HttpClient, Boolean] =
     getStatus(models.users.Routes.superUser).map(_ / 100 == 2).catchAll(_ => UIO(false))
+
+  implicit val longPrinter: Printer[Long] = (t: Long) => t.toString
+
+  def users(from: Long, to: Long): ZIO[HttpClient, ErrorADT, List[User]] =
+    get[(Long, Long), List[User]](models.users.Routes.donwloadUsers, param[Long]("from") & param[Long]("to"))((0L, 10L))
+      .mapError(e => {
+        println("coucou")
+        println(e.toString)
+        e
+      })
+      .refineOrDie(ErrorADT.onlyErrorADT)
 
 }

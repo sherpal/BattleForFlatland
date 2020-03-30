@@ -6,6 +6,7 @@ object Routes {
 
   private val users = root / "users"
 
+  final val donwloadUsers       = users / "users"
   final val confirmRegistration = users / "confirm-registration"
   final val login               = users / "login"
   final val register            = users / "register"

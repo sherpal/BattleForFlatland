@@ -7,7 +7,7 @@ import errors.ErrorADT.UserExists
 import guards.Guards
 import io.circe.generic.auto._
 import io.circe.syntax._
-import models.users.{LoginUser, NewUser}
+import models.users.{LoginUser, NewUser, User}
 import play.api.mvc.{AnyContent, Request, Result, Results}
 import services.config.Configuration
 import services.crypto.Crypto
@@ -22,7 +22,15 @@ import zio.{Has, UIO, ZIO}
 
 object UserDAO extends Results {
 
-  private val onlyErrorADT: PartialFunction[Throwable, ErrorADT] = { case e: ErrorADT => e }
+  def allUsers(
+      from: Long,
+      to: Long
+  ): ZIO[Users with Clock with Configuration with Has[HasRequest[Request, AnyContent]], ErrorADT, Vector[User]] =
+    (for {
+      req <- Guards.authenticated[AnyContent]
+      _ <- Guards.onlySuperUser(req)
+      urs <- users(from, to)
+    } yield urs).refineOrDie(ErrorADT.onlyErrorADT)
 
   val register
       : ZIO[Logging with Users with Crypto with Clock with Has[HasRequest[Request, NewUser]], ErrorADT, UserDAO.Status] =
@@ -44,7 +52,7 @@ object UserDAO extends Results {
       registrationKey <- addPendingRegistration(userName, password, email)
       _ <- log.info(s"New registration with key `$registrationKey` for user $userName.")
       // todo send email with the registration key
-    } yield Ok).refineOrDie(onlyErrorADT)
+    } yield Ok).refineOrDie(ErrorADT.onlyErrorADT)
 
   def confirmRegistration(
       registrationKey: String
@@ -52,7 +60,7 @@ object UserDAO extends Results {
     (for {
       (userAdded, pendingRemoved) <- confirmPendingRegistration(registrationKey)
       _ <- log.info(s"User added ($userAdded), pending registration removed ($pendingRemoved).")
-    } yield Ok).refineOrDie(onlyErrorADT)
+    } yield Ok).refineOrDie(ErrorADT.onlyErrorADT)
 
   val login: ZIO[Clock with Users with Crypto with Logging with Has[HasRequest[Request, LoginUser]], ErrorADT, Result] =
     (for {
@@ -62,19 +70,19 @@ object UserDAO extends Results {
       userJson = user.asJson.noSpaces
       now <- currentTime(TimeUnit.SECONDS)
       _ <- log.info(s"New login by ${request.body.userName}")
-    } yield Guards.applySession(Ok, userJson, now.toString)).refineOrDie(onlyErrorADT)
+    } yield Guards.applySession(Ok, userJson, now.toString)).refineOrDie(ErrorADT.onlyErrorADT)
 
   val amISuperUser: ZIO[Clock with Configuration with Has[HasRequest[Request, AnyContent]], ErrorADT, UserDAO.Status] =
     (for {
       request <- simpleZIORequest[AnyContent]
       sessionRequest <- Guards.authenticated(request)
       _ <- Guards.onlySuperUser(sessionRequest)
-    } yield Ok).refineOrDie(onlyErrorADT)
+    } yield Ok).refineOrDie(ErrorADT.onlyErrorADT)
 
   val me: ZIO[Clock with Configuration with Has[HasRequest[Request, AnyContent]], ErrorADT, Result] = (for {
     session <- Guards.authenticated[AnyContent]
     user <- UIO(session.user)
     now <- currentTime(TimeUnit.SECONDS)
-  } yield Guards.applySession(Ok(user), user.asJson.noSpaces, now.toString)).refineOrDie(onlyErrorADT)
+  } yield Guards.applySession(Ok(user), user.asJson.noSpaces, now.toString)).refineOrDie(ErrorADT.onlyErrorADT)
 
 }
