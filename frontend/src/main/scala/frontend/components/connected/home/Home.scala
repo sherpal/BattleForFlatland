@@ -5,6 +5,7 @@ import com.raquo.laminar.nodes.ReactiveHtmlElement
 import errors.ErrorADT
 import frontend.components.Component
 import frontend.components.connected.fixed.DashboardHeader
+import frontend.components.connected.menugames.Games
 import models.users.Role.SuperUser
 import models.users.{RouteDefinitions, User}
 import org.scalajs.dom.html
@@ -57,6 +58,7 @@ final class Home private () extends Component[html.Div] {
           else "You are not a SuperUser."
         }
       ),
+      Games(),
       child <-- $users.map(UserList(_))
     )
   )

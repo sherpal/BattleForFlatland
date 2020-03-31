@@ -2,7 +2,7 @@ package frontend
 
 import com.raquo.laminar.api.L._
 import org.scalajs.dom
-import zio.ZIO
+import zio.{UIO, ZIO}
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.{JSExportTopLevel, JSImport}
@@ -13,6 +13,15 @@ object IndexCSS extends js.Object
 
 object Main {
   println("css", IndexCSS)
+
+  final val makeCSS = for {
+    head <- ZIO.effectTotal(dom.document.getElementsByTagName("head")(0))
+    css <- UIO(CSS) *> UIO(GlobalStyleSheet.textStyleSheet) // touching CSS object
+    style <- ZIO.effectTotal(dom.document.createElement("style"))
+    _ <- ZIO.effectTotal(println(css))
+    _ <- ZIO.effectTotal(style.innerText = css)
+    _ <- ZIO.effectTotal(head.appendChild(style))
+  } yield ()
 
   final val createElement = ZIO.effect(
     Option(dom.document.getElementById("root")).getOrElse {
@@ -43,6 +52,7 @@ object Main {
     container <- createElement
     _ <- emptyContainer.provide(container)
     _ <- renderAppInContainer.provide(container)
+    _ <- makeCSS
   } yield ()
   @JSExportTopLevel("main")
   def main(): Unit =

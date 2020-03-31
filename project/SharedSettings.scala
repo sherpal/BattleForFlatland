@@ -13,6 +13,7 @@ object SharedSettings {
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.client" %%% "core" % "2.0.6", // http requests
       "dev.zio" %%% "zio" % zioVersion,
+      "dev.zio" %%% "zio-streams" % zioVersion,
       "be.doeraene" %%% "url-dsl" % "0.1.4",
       "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-RC5",
       "com.lihaoyi" %%% "scalatags" % "0.8.2"
