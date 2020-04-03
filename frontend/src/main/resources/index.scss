@@ -34,33 +34,40 @@ body {
 .outside-conn {
     display: grid;
     grid-template-rows: 60px 1fr;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 4fr 1fr;
     grid-template-areas:
-        "header"
-        "main";
+        "header header header"
+        "empty1 main empty2";
 
 
-    input[type="submit"] {
+/*     input[type="submit"] {
         background-color: var(--primary-orange);
         color: white;
         padding: 5px;
         border: solid 1px var(--primary-orange);
         height: 29px;
         cursor: pointer;
-    }
+    } */
 }
 
-.outside-conn > header {
+.outside-conn > .navbar {
     display: flex;
     justify-content: space-between;
-    background-color: var(--primary-orange);
+/*     background-color: var(--primary-orange); */
     grid-area: header;
     align-items: center;
 }
 
-.outside-conn > div {
+.outside-conn > section {
     grid-area: main;
     padding: 20px;
+}
+
+.outside-conn > .empty1 {
+    grid-area: empty1
+}
+.outside-conn > .empty2 {
+    grid-area: empty2
 }
 
 
@@ -110,23 +117,13 @@ body {
 
 /* Buttons */
 
-nav {
-    .clickable {
-        padding: 3px;
-        cursor: pointer;
-    }
 
-    .primary {
-        background-color: white;
-        color: var(--primary-orange);
-    }
 
-    .secondary {
-        color: white
-    }
+
+.form-control {
+    max-width: 250px;
 }
 
-
-.primary-link {
-    color: var(--primary-orange);
+a {
+    cursor: pointer;
 }

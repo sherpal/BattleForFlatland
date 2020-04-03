@@ -8,8 +8,8 @@ import models.users.RouteDefinitions
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Div
 
-final class PostRegister private (userName: String) extends Component[html.Div] {
-  val element: ReactiveHtmlElement[Div] = div(
+final class PostRegister private (userName: String) extends Component[html.Element] {
+  val element: ReactiveHtmlElement[html.Element] = section(
     p(s"Thank you, $userName, for registering to Battle For Flatland!"),
     p("You should soon receive an email with a confirmation link to follow in order to confirm you registration."),
     PrimaryLink(RouteDefinitions.loginRoute)("Login")

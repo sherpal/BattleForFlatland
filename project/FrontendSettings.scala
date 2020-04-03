@@ -12,7 +12,16 @@ object FrontendSettings {
     npmDependencies in Compile ++= Seq(
       "pixi.js" -> "5.2.1",
       "@pixi/core" -> "5.2.1",
-      "pixi-filters" -> "3.1.0"
+      "@pixi/math" -> "5.2.1",
+      "@pixi/utils" -> "5.2.1",
+      "@pixi/settings" -> "5.2.1",
+      "@pixi/constants" -> "5.2.1",
+      "pixi-filters" -> "3.1.0",
+      "@popperjs/core" -> "2.2.0"
+//      "jquery" -> "3.4.1",
+//      "popper.js" -> "1.16.1",
+//      "bootstrap" -> "4.4.1",
+//      "@types/bootstrap" -> "4.3.2"
     ),
 //    npmDevDependencies in Compile += "file-loader" -> "6.0.0",
 //    npmDevDependencies in Compile += "style-loader" -> "1.1.3",

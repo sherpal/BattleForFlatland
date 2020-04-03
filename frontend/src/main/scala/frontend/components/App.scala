@@ -4,6 +4,7 @@ import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.connected.home.Home
 import frontend.components.login.OutsideConnContainer
+import frontend.components.utils.Redirect
 import frontend.router.{Route, Routes}
 import models.users.RouteDefinitions._
 import org.scalajs.dom
@@ -14,6 +15,7 @@ final class App private () extends Component[dom.html.Div] {
   val element: ReactiveHtmlElement[Div] = div(
     child <-- Routes
       .firstOf(
+        Route(entry, () => Redirect(homeRoute)),
         Route(loginRoute, () => OutsideConnContainer("Login")),
         Route(registerRoute, () => OutsideConnContainer("Sign-up")),
         Route(postRegisterRoute, (_: Unit, _: String) => OutsideConnContainer("Sign-up complete!")),

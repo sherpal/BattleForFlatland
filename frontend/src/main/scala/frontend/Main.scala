@@ -11,8 +11,18 @@ import scala.scalajs.js.annotation.{JSExportTopLevel, JSImport}
 @js.native
 object IndexCSS extends js.Object
 
+@JSImport("resources/bootstrap.css", JSImport.Default)
+@js.native
+object Flatly extends js.Object
+
 object Main {
+
+  println("flatly", Flatly)
   println("css", IndexCSS)
+
+  import typings.popperjsCore.{mod => Popper}
+  println("Popper")
+  dom.console.log(Popper)
 
   final val makeCSS = for {
     head <- ZIO.effectTotal(dom.document.getElementsByTagName("head")(0))
@@ -46,6 +56,7 @@ object Main {
   final val renderAppInContainer = for {
     container <- ZIO.environment[dom.Element]
     reactiveElement <- ZIO.effect(render(container, frontend.components.App()))
+    _ <- ZIO.effect(render(container, frontend.components.utils.bootstrap.ModalWindow.modalContainer))
   } yield reactiveElement
 
   final val program = for {
