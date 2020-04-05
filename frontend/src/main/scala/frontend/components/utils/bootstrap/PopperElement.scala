@@ -33,7 +33,6 @@ object PopperElement {
         val popover = dom.document.getElementById(id)
         popover.parentNode.removeChild(popover)
       case None =>
-        dom.console.log(attachedTo.dataset)
         val title          = attachedTo.dataset.apply("originalTitle")
         val body           = attachedTo.dataset.apply("content")
         val tooltipElement = Apply(title, body).render

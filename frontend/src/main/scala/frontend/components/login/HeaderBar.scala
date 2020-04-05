@@ -27,7 +27,7 @@ final class HeaderBar private (title: String) extends Component[html.Element] {
 
   val element: ReactiveHtmlElement[html.Element] =
     nav(
-      navbar,
+      headerStyle,
       h1(className := "h-8", pad(2), "Battle for Flatland"),
       ul(
         className := "flex justify-between",
