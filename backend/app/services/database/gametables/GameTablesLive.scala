@@ -7,8 +7,7 @@ import services.database.users.UsersSlickHelper
 import slick.jdbc.JdbcProfile
 import utils.database.models.DBUser
 import utils.database.tables.MenuGamesTable
-import zio.{IO, Task, UIO, ZIO}
-import utils.ziohelpers._
+import zio.{Task, UIO, ZIO}
 
 final class GameTablesLive(
     val api: JdbcProfile#API

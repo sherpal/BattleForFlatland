@@ -5,11 +5,11 @@ import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
 import frontend.components.utils.tailwind._
 import frontend.router.Link
+import globals._
 import models.users.RouteDefinitions._
 import org.scalajs.dom.html
 import org.scalajs.dom.html.LI
 import urldsl.language.PathSegment
-import globals._
 
 final class HeaderBar private (title: String) extends Component[html.Element] {
 

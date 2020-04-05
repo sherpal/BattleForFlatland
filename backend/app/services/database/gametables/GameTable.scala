@@ -2,13 +2,13 @@ package services.database.gametables
 
 import errors.ErrorADT.{GameExists, InconsistentMenuGameInDB}
 import models.bff.outofgame.{DBMenuGame, MenuGame}
-import zio.{Task, ZIO, ZLayer}
-import utils.ziohelpers._
 import services.crypto._
 import services.database.db.Database
 import services.database.db.Database.DBProvider
 import utils.database.DBProfile
+import utils.ziohelpers._
 import zio.clock._
+import zio.{Task, ZIO, ZLayer}
 
 object GameTable {
 

@@ -41,10 +41,11 @@ final class RegisterForm extends Component[html.Form] with SimpleForm[NewUser, E
       width := "200px",
       className := "bg-gray-300 rounded h-2",
       div(
-        className := "progress-bar",
+        //className := "progress-bar",
         className := "h-full rounded",
         role := "progressbar",
         width <-- $passwordStrengths.map(_ * 100).map(_.toString + "%"),
+        className := "transition-all duration-1000 ease-in-out transform",
         className <-- $passwordStrengths.map {
           case x if x <= 0.3 => "bg-red-500"
           case x if x <= 0.6 => "bg-orange-500"

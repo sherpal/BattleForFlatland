@@ -2,6 +2,8 @@ package dao
 
 import errors.ErrorADT
 import guards.Guards._
+import io.circe.generic.auto._
+import io.circe.syntax._
 import models.bff.outofgame.MenuGame
 import play.api.mvc.{AnyContent, Request, Results}
 import services.config.Configuration
@@ -11,8 +13,6 @@ import services.logging.{log, Logging}
 import utils.playzio.HasRequest
 import zio.clock.Clock
 import zio.{Has, ZIO}
-import io.circe.generic.auto._
-import io.circe.syntax._
 
 object MenuGameDAO extends Results {
 
@@ -23,8 +23,9 @@ object MenuGameDAO extends Results {
     _ <- authenticated[AnyContent]
     allGames <- gameTables
     (errors, actualGames) = allGames.partitionMap(identity)
+    gamesWithoutPasswords = actualGames.map(_.forgetPassword) // frontend doesn't need to know the password, even hashed
     _ <- ZIO.foreachParN(1)(errors.map(_.asJson.noSpaces))(log.warn(_))
-  } yield actualGames).refineOrDie(ErrorADT.onlyErrorADT)
+  } yield gamesWithoutPasswords).refineOrDie(ErrorADT.onlyErrorADT)
 
   val addNewGame: ZIO[Logging with GameTable with Crypto with Clock with Configuration with Has[
     HasRequest[Request, MenuGame]

@@ -1,48 +1,63 @@
 package frontend.components.connected.menugames
 
 import com.raquo.laminar.api.L._
-import com.raquo.laminar.lifecycle.{NodeDidMount, NodeWasDiscarded, NodeWillUnmount}
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import frontend.components.Component
+import frontend.components.utils.ToggleButton
+import frontend.components.utils.tailwind._
+import frontend.components.utils.tailwind.forms._
+import frontend.components.{Component, ModalWindow}
 import org.scalajs.dom.html
-import programs.frontend.games.streamExpl
-import utils.laminarzio.Implicits._
-import zio.clock.Clock
 
-final class NewGame private (closeWriter: Observer[Unit]) extends Component[html.Div] {
+final class NewGame private (closeWriter: ModalWindow.CloseWriter) extends Component[html.Div] { //} with SimpleForm[MenuGame, Unit] {
 
-  private val layer = Clock.live
+  val withPasswordBus: EventBus[Boolean] = new EventBus
 
-  val (f, xs) = EventStream
-    .fromZStream(streamExpl.provideLayer(layer))
+  val $withPassword: Signal[Boolean] = withPasswordBus.events.startWith(false)
 
-  val element: ReactiveHtmlElement[html.Div] = {
-    val d = div(
-      className := "NewGame",
-      zIndex := 5,
-      position := "fixed",
-      top := "0px",
-      left := "0px",
-      p("new game works"),
-      NewGameForm(),
-      button("Cancel", onClick.mapTo(()) --> closeWriter),
-      child <-- xs
-        .map(e => {
-          println(e)
-          e
-        })
-        .map(_.toString)
+  val element: ReactiveHtmlElement[html.Div] = div(
+    className := "bg-white rounded-lg border-gray-200 border-2 w-auto whitespace-no-wrap",
+    pad(5),
+    h1(className := s"text-lg text-$primaryColour-$primaryColourDark", "New game"),
+    form(
+      fieldSet(
+        div(
+          formGroup,
+          formLabel("Game name"),
+          formInput("text", placeholder := "Choose a game name")
+        ),
+        div(
+          "Private game ",
+          ToggleButton(withPasswordBus.writer)
+        ),
+        div(
+          className <-- $withPassword.map(if (_) "flex" else "hidden"),
+          div(
+            formGroup,
+            formLabel("Game password"),
+            formInput("password", placeholder := "Password for the game")
+          )
+        )
+      ),
+      div(
+        formGroup,
+        div(className := "md:w-1/3"),
+        div(
+          className := "md:w-2/3 justify-between",
+          input(
+            `type` := "submit",
+            "Create game",
+            btn,
+            primaryButton
+          ),
+          span(
+            secondaryButton,
+            "Cancel",
+            onClick.mapTo(()) --> closeWriter
+          )
+        )
+      )
     )
-
-    d.subscribe(_.mountEvents) {
-      case NodeDidMount =>
-      case NodeWillUnmount =>
-        f.cancel()
-      case NodeWasDiscarded =>
-    }
-
-    d
-  }
+  )
 
 }
 

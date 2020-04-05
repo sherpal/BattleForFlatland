@@ -4,7 +4,7 @@ import errors.ErrorADT.InconsistentMenuGameInDB
 import models.bff.outofgame.MenuGame
 import services.crypto.Crypto
 import zio.clock.Clock
-import zio.{Has, Task, ZIO}
+import zio.{Has, ZIO}
 
 package object gametables {
 

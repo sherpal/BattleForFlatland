@@ -2,7 +2,6 @@ package services.database.users
 
 import models.users.{Role, User}
 import slick.jdbc.JdbcProfile
-import utils.database.DBProfile
 import utils.database.models.DBUser
 import utils.database.tables.{CrossUsersRolesTable, PendingRegistrationsTable, RolesTable, UsersTable}
 

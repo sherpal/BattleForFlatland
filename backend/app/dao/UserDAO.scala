@@ -9,9 +9,11 @@ import io.circe.generic.auto._
 import io.circe.syntax._
 import models.users.{LoginUser, NewUser, User}
 import play.api.mvc.{AnyContent, Request, Result, Results}
+import scalatags.Text.all._
 import services.config.Configuration
 import services.crypto.Crypto
 import services.database.users._
+import services.emails._
 import services.logging._
 import utils.WriteableImplicits._
 import utils.playzio.HasRequest
@@ -19,8 +21,6 @@ import utils.playzio.PlayZIO.simpleZIORequest
 import utils.ziohelpers._
 import zio.clock.{currentTime, Clock}
 import zio.{Has, UIO, ZIO}
-import services.emails._
-import scalatags.Text.all._
 
 object UserDAO extends Results {
 
@@ -69,7 +69,7 @@ object UserDAO extends Results {
       request <- simpleZIORequest[LoginUser]
       LoginUser(userName, password) = request.body
       user <- correctPassword(userName, password)
-      userJson = user.asJson.noSpaces
+      userJson = user.forgetPassword.asJson.noSpaces
       now <- currentTime(TimeUnit.SECONDS)
       _ <- log.info(s"New login by ${request.body.userName}")
     } yield Guards.applySession(Ok, userJson, now.toString)).refineOrDie(ErrorADT.onlyErrorADT)
@@ -83,7 +83,7 @@ object UserDAO extends Results {
 
   val me: ZIO[Clock with Configuration with Has[HasRequest[Request, AnyContent]], ErrorADT, Result] = (for {
     session <- Guards.authenticated[AnyContent]
-    user <- UIO(session.user)
+    user <- UIO(session.user.forgetPassword)
     now <- currentTime(TimeUnit.SECONDS)
   } yield Guards.applySession(Ok(user), user.asJson.noSpaces, now.toString)).refineOrDie(ErrorADT.onlyErrorADT)
 

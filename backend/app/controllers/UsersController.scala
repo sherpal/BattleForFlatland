@@ -16,9 +16,9 @@ import services.emails.JVMEmails
 import services.logging.PlayLogging
 import slick.jdbc.JdbcProfile
 import utils.ReadsImplicits._
+import utils.WriteableImplicits._
 import utils.playzio.PlayZIO._
 import zio.clock.Clock
-import utils.WriteableImplicits._
 
 import scala.concurrent.ExecutionContext
 

@@ -16,7 +16,7 @@ package object forms {
   def formInput(tpe: String, modifier: Modifier[ReactiveHtmlElement[html.Input]]*): ReactiveHtmlElement[html.Div] = div(
     className := "md:w-2/3",
     input(
-      className := "bg-white appearance-none border-gray-400 border-2 border-white rounded w-full " +
+      className := "bg-white appearance-none border-gray-400 border-2 rounded w-full " +
         s"py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white " +
         s"focus:border-$primaryColour-$primaryColourDark",
       `type` := tpe,

@@ -49,16 +49,8 @@ final class Home private () extends Component[html.Div] {
     div(
       child <-- $redirect.map(_ => "Not logged, redirecting to Login."), // kicking off stream
       className := "main",
-      h1("Battle for Flatland"),
-      p(s"Hello, ", child <-- $user.map(_.userName)),
-      p(
-        child <-- $amISuperUper.map {
-          if (_) "You are a SuperUser."
-          else "You are not a SuperUser."
-        }
-      ),
-      Games(),
-      child <-- $users.map(UserList(_))
+      Games()
+      //child <-- $users.map(UserList(_))
     )
   )
 }

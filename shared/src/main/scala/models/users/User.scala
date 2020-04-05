@@ -9,7 +9,14 @@ final case class User(
     mailAddress: String,
     createdOn: LocalDateTime,
     roles: List[Role]
-)
+) {
+
+  /**
+    * Copy this [[User]] and forgets the hashed password.
+    * The frontend is usually not supposed to have access to it.
+    */
+  def forgetPassword: User = copy(hashedPassword = "")
+}
 
 object User {
 

@@ -98,8 +98,7 @@ final class LoginForm private () extends Component[html.Form] with SimpleForm[Lo
           primaryButton
         ),
         span(
-          className := s"text-$primaryColour-$primaryColourLight hover:text-$primaryColour-$primaryColourDark px-4",
-          cursorPointer,
+          secondaryButton,
           "Forgot password?"
         )
       )
