@@ -23,7 +23,7 @@ final class DashboardHeader private ($userName: EventStream[String]) extends Com
           )
         )
       ),
-      li(span(pad(2), className := "cursor-pointer hover:text-indigo-200", Logout()))
+      li(span(pad(2), className := s"cursor-pointer hover:text-$primaryColour-$primaryColourVeryLight", Logout()))
     )
   )
 }

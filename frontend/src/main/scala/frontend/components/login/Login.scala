@@ -17,7 +17,7 @@ final class Login private () extends Component[dom.html.Element] {
     p(
       "Not account, yet? Sign-up ",
       span(
-        className := "text-indigo-500 hover:text-indigo-900",
+        className := s"text-$primaryColour-$primaryColourLight hover:text-$primaryColour-$primaryColourDark",
         cursorPointer,
         Link(RouteDefinitions.registerRoute)("here")
       ),

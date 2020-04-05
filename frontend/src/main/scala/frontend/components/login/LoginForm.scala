@@ -95,10 +95,10 @@ final class LoginForm private () extends Component[html.Form] with SimpleForm[Lo
           value := "Login",
           disabled <-- $isSubmitting,
           btn,
-          btnIndigo
+          primaryButton
         ),
         span(
-          className := "text-indigo-500 hover:text-indigo-900 px-4",
+          className := s"text-$primaryColour-$primaryColourLight hover:text-$primaryColour-$primaryColourDark px-4",
           cursorPointer,
           "Forgot password?"
         )

@@ -17,7 +17,8 @@ package object forms {
     className := "md:w-2/3",
     input(
       className := "bg-white appearance-none border-gray-400 border-2 border-white rounded w-full " +
-        "py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-indigo-900",
+        s"py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white " +
+        s"focus:border-$primaryColour-$primaryColourDark",
       `type` := tpe,
       modifier
     )

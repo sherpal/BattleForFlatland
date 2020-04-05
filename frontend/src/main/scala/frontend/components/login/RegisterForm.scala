@@ -121,7 +121,7 @@ final class RegisterForm extends Component[html.Form] with SimpleForm[NewUser, E
         div(className := "md:w-1/3"),
         div(
           className := "md:w-2/3",
-          input(`type` := "submit", value := "Sign-up", btn, btnIndigo, cursorPointer, disabled <-- $isSubmitting)
+          input(`type` := "submit", value := "Sign-up", btn, primaryButton, cursorPointer, disabled <-- $isSubmitting)
         )
       )
     ),
