@@ -32,6 +32,8 @@ import zio.UIO
   *
   * The stream `$isSubmitting` allows you to disable any form that should not be submitted multiple times.
   *
+  * Concrete implementations of the class must call the `init` method at the end of their constructor.
+  *
   * @example
   *          A typical pattern would be:
   *          You have a case class `User(name: String, email: String)`. You then create two inputs, one for the name
@@ -42,6 +44,8 @@ import zio.UIO
   * @tparam SubmitReturn type of the data that the `submitProgram` will return
   */
 trait SimpleForm[FormData, SubmitReturn] { self: Component[_] =>
+
+  private var isInit: Boolean = false
 
   implicit private def owner: Owner = self.element
 
@@ -70,12 +74,18 @@ trait SimpleForm[FormData, SubmitReturn] { self: Component[_] =>
 
   private lazy val $formDataView = $formData.observe
 
-  def formDataNow: FormData = $formDataView.now
+  def formDataNow: FormData = {
+    if (scala.scalajs.LinkingInfo.developmentMode && !isInit) {
+      dom.console.error("SimpleForm not initialized")
+      throw new Exception("SimpleForm not initialized.")
+    }
+    $formDataView.now
+  }
 
   def submitProgram(formData: FormData): UIO[SubmitReturn]
 
   val $submitEvents: EventStream[SubmitReturn] = submitBus.events
-    .mapTo($formDataView.now)
+    .mapTo(formDataNow)
     .map(submitProgram)
     .flatMap(EventStream.fromZIOEffect)
 
@@ -83,5 +93,13 @@ trait SimpleForm[FormData, SubmitReturn] { self: Component[_] =>
     submitBus.events.mapTo(true),
     $submitEvents.mapTo(false)
   )
+
+  /**
+    * Concrete implementations need to call this in order to start the stream.
+    */
+  def init(): Unit = {
+    isInit = true
+    formDataNow // kicking off streams.
+  }
 
 }

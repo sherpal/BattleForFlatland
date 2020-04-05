@@ -6,17 +6,18 @@ import errors.ErrorADT
 import errors.ErrorADT.{ErrorOr, MultipleErrorsMap}
 import frontend.components.Component
 import frontend.components.forms.SimpleForm
+import frontend.components.utils.bootstrap.PopperElement
+import frontend.components.utils.tailwind._
+import frontend.components.utils.tailwind.forms._
 import models.users.{NewUser, RouteDefinitions}
 import models.validators.FieldsValidator
 import org.scalajs.dom.html
-import org.scalajs.dom.html.{Form, Progress}
+import org.scalajs.dom.html.Form
 import programs.frontend.login._
 import services.http.FrontendHttpClient
 import services.routing._
 import utils.ziohelpers._
 import zio.{UIO, ZIO}
-import frontend.components.BootstrapCSS._
-import frontend.components.utils.bootstrap.PopperElement
 
 /**
   * Component making the form to register (sign-up) to the Battle For Flatland web application.
@@ -35,35 +36,29 @@ final class RegisterForm extends Component[html.Form] with SimpleForm[NewUser, E
   val $passwordStrengths: Signal[Double] = $formData.map(_.passwordStrength)
 
   val passwordStrengthBar: ReactiveHtmlElement[html.Div] = div(
-    formGroup,
     div(
       className := "progress",
-      maxWidth := "200px",
+      width := "200px",
+      className := "bg-gray-300 rounded h-2",
       div(
         className := "progress-bar",
+        className := "h-full rounded",
         role := "progressbar",
-        aria.valueMin := 0.0,
-        aria.valueMax := 100.0,
-        aria.valueNow <-- $passwordStrengths.map(_ * 100),
         width <-- $passwordStrengths.map(_ * 100).map(_.toString + "%"),
         className <-- $passwordStrengths.map {
-          case x if x <= 0.3 => "bg-danger"
-          case x if x <= 0.6 => "bg-warning"
-          case _             => "bg-success"
+          case x if x <= 0.3 => "bg-red-500"
+          case x if x <= 0.6 => "bg-orange-500"
+          case _             => "bg-green-500"
         }
       )
     ),
     span(
-      badgePill,
-      textInfo,
       "What is this?",
       dataAttr("container") := "body",
       title := "",
-      popover,
-      placement("right"),
       dataAttr("content") := "This bar attempts to reflects the strength of your password. There is no need to panic if it is not fully green!",
-      originalTitle("Password strength"),
-      PopperElement.attachedPopover
+      dataAttr("origin-title") := "Password strength",
+      PopperElement.attachPopover
     )
   )
 
@@ -82,46 +77,53 @@ final class RegisterForm extends Component[html.Form] with SimpleForm[NewUser, E
     fieldSet(
       div(
         formGroup,
-        label("Username"),
-        input(
-          `type` := "text",
+        formLabel("Username"),
+        formInput(
+          "text",
           placeholder := "Choose user name",
-          formControl,
           inContext(elem => onChange.mapTo(elem.ref.value) --> nameChanger)
         )
       ),
       div(
         formGroup,
-        label("Password"),
-        input(
-          `type` := "password",
+        formLabel("Password"),
+        formInput(
+          "password",
           placeholder := "Choose password",
-          formControl,
           inContext(elem => onInput.mapTo(elem.ref.value) --> passwordChanger)
-        ),
-        passwordStrengthBar
+        )
       ),
       div(
         formGroup,
-        label("Confirm password"),
-        input(
-          `type` := "password",
+        div(className := "md:w-1/3"),
+        div(className := "md:w-2/3", passwordStrengthBar)
+      ),
+      div(
+        formGroup,
+        formLabel("Confirm password"),
+        formInput(
+          "password",
           placeholder := "Confirm password",
-          formControl,
           inContext(elem => onChange.mapTo(elem.ref.value) --> confirmPasswordChanger)
         )
       ),
       div(
         formGroup,
-        label("Email address"),
-        input(
-          `type` := "email",
+        formLabel("Email address"),
+        formInput(
+          "email",
           placeholder := "Enter your email",
-          formControl,
           inContext(elem => onChange.mapTo(elem.ref.value) --> emailChanger)
         )
       ),
-      input(`type` := "submit", value := "Sign-up", btnPrimary, disabled <-- $isSubmitting)
+      div(
+        formGroup,
+        div(className := "md:w-1/3"),
+        div(
+          className := "md:w-2/3",
+          input(`type` := "submit", value := "Sign-up", btn, btnIndigo, cursorPointer, disabled <-- $isSubmitting)
+        )
+      )
     ),
     child <-- $submitEvents.map {
       case Left(MultipleErrorsMap(errors)) => errors.toString
@@ -129,6 +131,8 @@ final class RegisterForm extends Component[html.Form] with SimpleForm[NewUser, E
       case Right(code)                     => code.toString
     }
   )
+
+  init()
 }
 
 object RegisterForm {

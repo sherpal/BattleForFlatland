@@ -6,6 +6,8 @@ import errors.ErrorADT
 import errors.ErrorADT.{ErrorOr, IncorrectPassword}
 import frontend.components.Component
 import frontend.components.forms.SimpleForm
+import frontend.components.utils.tailwind._
+import frontend.components.utils.tailwind.forms._
 import models.users.{LoginUser, RouteDefinitions}
 import models.validators.FieldsValidator
 import org.scalajs.dom.html
@@ -15,7 +17,6 @@ import services.http.FrontendHttpClient
 import services.routing._
 import utils.ziohelpers._
 import zio.{UIO, URIO, ZIO}
-import frontend.components.BootstrapCSS._
 
 final class LoginForm private () extends Component[html.Form] with SimpleForm[LoginUser, ErrorOr[Int]] {
 
@@ -41,9 +42,9 @@ final class LoginForm private () extends Component[html.Form] with SimpleForm[Lo
   }
 
   val $touched: EventBus[Boolean] = new EventBus()
-  val touch                       = onFocus.mapTo(false) --> $touched
+  final val touch                 = onFocus.mapTo(false) --> $touched
 
-  val $isInvalid =
+  final val $isInvalid =
     EventStream
       .merge(
         $touched.events,
@@ -53,30 +54,28 @@ final class LoginForm private () extends Component[html.Form] with SimpleForm[Lo
 
   def submitProgram(loginUser: LoginUser): UIO[ErrorOr[Int]] = program.provide(loginUser)
 
-  implicit val element: ReactiveHtmlElement[Form] = form(
+  val element: ReactiveHtmlElement[Form] = form(
     submit,
     fieldSet(
       div(
         formGroup,
-        label("User name"),
-        input(
-          `type` := "text",
-          formControl,
+        formLabel("User name"),
+        formInput(
+          "text",
           className <-- $isInvalid,
-          placeholder := "User name",
-          inContext(elem => onChange.mapTo(elem.ref.value) --> nameChanger),
+          placeholder := "Enter user name...",
+          inContext(elem => onInput.mapTo(elem.ref.value) --> nameChanger),
           touch
         )
       ),
       div(
         formGroup,
-        label("Password"),
-        input(
-          `type` := "password",
-          formControl,
+        formLabel("Password"),
+        formInput(
+          "password",
           className <-- $isInvalid,
-          placeholder := "enter password...",
-          inContext(elem => onChange.mapTo(elem.ref.value) --> passwordChanger),
+          placeholder := "Enter password...",
+          inContext(elem => onInput.mapTo(elem.ref.value) --> passwordChanger),
           touch
         )
       ),
@@ -86,16 +85,28 @@ final class LoginForm private () extends Component[html.Form] with SimpleForm[Lo
         display <-- $invalidPassword.startWith(false).map(if (_) "" else "none")
       )
     ),
-    input(
-      `type` := "submit",
-      value := "Login",
-      disabled <-- $isSubmitting,
-      btnPrimary
+    div(
+      formGroup,
+      div(className := "md:w-1/3"),
+      div(
+        className := "wd-w-2/3 justify-between",
+        input(
+          `type` := "submit",
+          value := "Login",
+          disabled <-- $isSubmitting,
+          btn,
+          btnIndigo
+        ),
+        span(
+          className := "text-indigo-500 hover:text-indigo-900 px-4",
+          cursorPointer,
+          "Forgot password?"
+        )
+      )
     )
   )
 
-  $formData.foreach(println)
-
+  init()
 }
 
 object LoginForm {

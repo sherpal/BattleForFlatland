@@ -2,7 +2,8 @@ package frontend.components.login
 
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import frontend.components.{BootstrapCSS, Component}
+import frontend.components.Component
+import frontend.components.utils.tailwind._
 import frontend.router.Link
 import models.users.RouteDefinitions
 import org.scalajs.dom
@@ -15,7 +16,11 @@ final class Login private () extends Component[dom.html.Element] {
     LoginForm(),
     p(
       "Not account, yet? Sign-up ",
-      span(BootstrapCSS.textInfo, Link(RouteDefinitions.registerRoute)("here")),
+      span(
+        className := "text-indigo-500 hover:text-indigo-900",
+        cursorPointer,
+        Link(RouteDefinitions.registerRoute)("here")
+      ),
       "!"
     )
   )

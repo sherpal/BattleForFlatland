@@ -13,4 +13,6 @@ object RouteDefinitions {
 
   final val homeRoute = root / "home"
 
+  final val testRoute = root / "test"
+
 }

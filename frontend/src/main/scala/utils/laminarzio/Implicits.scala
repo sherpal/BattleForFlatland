@@ -2,8 +2,8 @@ package utils.laminarzio
 
 import com.raquo.airstream.eventbus.EventBus
 import com.raquo.airstream.eventstream.EventStream
-import zio.{CancelableFuture, ZIO}
 import zio.stream._
+import zio.{CancelableFuture, ZIO}
 
 object Implicits {
 

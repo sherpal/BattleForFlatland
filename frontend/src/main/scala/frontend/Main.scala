@@ -15,10 +15,16 @@ object IndexCSS extends js.Object
 @js.native
 object Flatly extends js.Object
 
+@JSImport("resources/tailwind-index.css", JSImport.Default)
+@js.native
+object Tailwind extends js.Object
+
 object Main {
 
-  println("flatly", Flatly)
+  //println("flatly", Flatly)
   println("css", IndexCSS)
+  println("Tailwind", Tailwind)
+//  println("AppCSS", AppCSS)
 
   import typings.popperjsCore.{mod => Popper}
   println("Popper")

@@ -11,11 +11,10 @@ import models.users.{RouteDefinitions, User}
 import org.scalajs.dom.html
 import programs.frontend.login._
 import services.http.FrontendHttpClient.{live => httpLive}
-import services.http.HttpClient
+import services.logging.{log, FLogging}
 import services.routing._
 import utils.laminarzio.Implicits._
-import services.logging.{log, FLogging, Logging}
-import zio.{UIO, ZLayer}
+import zio.UIO
 
 final class Home private () extends Component[html.Div] {
 

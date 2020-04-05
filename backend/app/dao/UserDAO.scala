@@ -68,6 +68,7 @@ object UserDAO extends Results {
     (for {
       request <- simpleZIORequest[LoginUser]
       LoginUser(userName, password) = request.body
+      _ <- log.info(userName + " " + password)
       user <- correctPassword(userName, password)
       userJson = user.asJson.noSpaces
       now <- currentTime(TimeUnit.SECONDS)

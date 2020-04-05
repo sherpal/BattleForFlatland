@@ -1,12 +1,9 @@
 package frontend.components.connected.menugames
 
+import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
 import org.scalajs.dom.html
-import com.raquo.laminar.api.L._
-import zio.clock._
-import programs.frontend.games.streamExpl
-import utils.laminarzio.Implicits._
 
 final class Games private () extends Component[html.Div] {
 

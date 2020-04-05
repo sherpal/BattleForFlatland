@@ -2,26 +2,14 @@ package frontend.components.utils.bootstrap
 
 import java.util.UUID
 
+import com.raquo.laminar.api.L._
+import com.raquo.laminar.nodes.ReactiveElement
 import org.scalajs.dom
 import org.scalajs.dom.html
 import scalatags.JsDom
 import typings.popperjsCore.{mod => Popper}
-import com.raquo.laminar.api.L._
-import com.raquo.laminar.nodes.{ReactiveElement, ReactiveHtmlElement}
 
 object PopperElement {
-
-  //    div(
-  //      className := "popover fade bs-popover show",
-  //      role := "tooltip",
-  //      styleAttr := "position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(250px, 500px, 0px);",
-  //      div(
-  //        className := "arrow",
-  //        top := "40px"
-  //      ),
-  //      h3(className := "popover-header", "Popover title"),
-  //      div(className := "popover-body", "un gros body de la mort qui tue")
-  //    )
 
   private object Apply {
     import scalatags.JsDom.all._
@@ -35,7 +23,7 @@ object PopperElement {
       )
   }
 
-  def createPopover(attachedTo: html.Element): Unit = {
+  private def createPopover(attachedTo: html.Element): Unit = {
 
     val describedBy = "aria-described-by"
 
@@ -65,7 +53,7 @@ object PopperElement {
 
   }
 
-  def attachedPopover[El <: ReactiveElement[dom.html.Element]]: Modifier[El] =
+  def attachPopover[El <: ReactiveElement[dom.html.Element]]: Modifier[El] =
     inContext[El](elem => onClick.mapTo(elem.ref) --> (ref => createPopover(ref)))
 
 }

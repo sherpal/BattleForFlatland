@@ -1,9 +1,9 @@
 package frontend.components.utils.bootstrap
 
-import org.scalajs.dom.html
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.{BootstrapCSS, Component}
+import org.scalajs.dom.html
 
 final class ModalWindow private (
     title: String,
@@ -92,8 +92,6 @@ object ModalWindow {
     position := "absolute",
     top := "0px",
     left := "0px",
-    width := "300px",
-    height := "200px",
     zIndex := "100",
     className := "bs-component",
     child <-- modalBus.events.startWith(None).map(_.map((apply _).tupled)).map {

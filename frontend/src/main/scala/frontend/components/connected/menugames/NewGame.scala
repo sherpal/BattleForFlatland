@@ -1,10 +1,10 @@
 package frontend.components.connected.menugames
 
+import com.raquo.laminar.api.L._
+import com.raquo.laminar.lifecycle.{NodeDidMount, NodeWasDiscarded, NodeWillUnmount}
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
 import org.scalajs.dom.html
-import com.raquo.laminar.api.L._
-import com.raquo.laminar.lifecycle.{NodeDidMount, NodeWasDiscarded, NodeWillUnmount}
 import programs.frontend.games.streamExpl
 import utils.laminarzio.Implicits._
 import zio.clock.Clock

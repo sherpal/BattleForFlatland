@@ -6,7 +6,6 @@ import frontend.components.Component
 import frontend.components.utils.PrimaryLink
 import models.users.RouteDefinitions
 import org.scalajs.dom.html
-import org.scalajs.dom.html.Div
 
 final class PostRegister private (userName: String) extends Component[html.Element] {
   val element: ReactiveHtmlElement[html.Element] = section(
