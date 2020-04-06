@@ -20,7 +20,10 @@ final case class MenuGame(
     * Returns this [[MenuGame]] where the password has been "forgotten". The class still knows whether there is a
     * password (if it's `Some("")`) but loses the information.
     */
-  def forgetPassword: MenuGame = copy(maybeHashedPassword = maybeHashedPassword.map(_ => ""))
+  def forgetPassword: MenuGame = copy(
+    maybeHashedPassword = maybeHashedPassword.map(_ => ""),
+    gameCreator         = gameCreator.forgetPassword
+  )
 }
 
 object MenuGame {
