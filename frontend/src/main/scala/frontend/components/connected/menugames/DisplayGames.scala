@@ -38,35 +38,35 @@ final class DisplayGames private ($games: EventStream[List[MenuGame]], showNewGa
           onClick.mapTo(()) --> showNewGameWriter
         )
       ),
-      child <-- $games.filterNot(_.isEmpty).mapTo(
-        table(
-          textPrimaryColour,
-          thead(
-            tr(
-              th("Game"),
-              th("Created by")
-            )
-          ),
-          tbody(
-            children <-- $games.split(_.gameId)(renderGameRow)
+      child <-- $games.map {
+        case Nil =>
+          p(
+            pad(2),
+            textPrimaryColour,
+            "There is currently no game. You can start a new one ",
+            span(
+              "here",
+              textPrimaryColourLight,
+              cursorPointer,
+              className := s"hover:text-$primaryColour-$primaryColourDark",
+              onClick.mapTo(()) --> showNewGameWriter
+            ),
+            "."
           )
-        )
-      ),
-      child <-- $games.filter(_.isEmpty).mapTo(
-        p(
-          pad(2),
-          textPrimaryColour,
-          "There is currently no game. You can start a new one ",
-          span(
-            "here",
-            textPrimaryColourLight,
-            cursorPointer,
-            className := s"hover:text-$primaryColour-$primaryColourDark",
-            onClick.mapTo(()) --> showNewGameWriter
-          ),
-          "."
-        )
-      )
+        case _ =>
+          table(
+            textPrimaryColour,
+            thead(
+              tr(
+                th("Game"),
+                th("Created by")
+              )
+            ),
+            tbody(
+              children <-- $games.split(_.gameId)(renderGameRow)
+            )
+          )
+      }
     )
   )
 

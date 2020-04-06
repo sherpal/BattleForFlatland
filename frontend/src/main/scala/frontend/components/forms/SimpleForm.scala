@@ -102,4 +102,10 @@ trait SimpleForm[FormData, SubmitReturn] { self: Component[_] =>
     formDataNow // kicking off streams.
   }
 
+  /**
+    * Prints the data passing through the form if in dev mode.
+    */
+  def initDebug(): Unit =
+    $debug.foreach(println)
+
 }

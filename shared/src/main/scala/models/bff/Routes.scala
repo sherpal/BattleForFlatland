@@ -6,6 +6,7 @@ object Routes {
 
   final val bff = root / "bff"
 
-  final val allGames = bff / "games"
+  final val allGames    = bff / "games"
+  final val newMenuGame = bff / "new-game"
 
 }

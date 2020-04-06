@@ -10,6 +10,8 @@ import zio.stream._
 
 import scala.concurrent.duration._
 
+import utils.ziohelpers.unsuccessfulStatusCode
+
 package object games {
 
   val streamExpl: ZStream[Clock, Nothing, Int] =
@@ -22,5 +24,11 @@ package object games {
   val loadGames: ZStream[HttpClient with Clock, Nothing, Either[Throwable, List[MenuGame]]] = ZStream
     .fromSchedule(Schedule.spaced(zio.duration.Duration.fromScala(5.seconds)))
     .flatMap(_ => ZStream.fromEffect(downloadGames))
+
+  def createNewGame(game: MenuGame): ZIO[HttpClient, Throwable, Int] =
+    for {
+      statusCode <- postIgnore(newMenuGame, game)
+      - <- unsuccessfulStatusCode(statusCode)
+    } yield statusCode
 
 }

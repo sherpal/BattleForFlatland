@@ -41,7 +41,8 @@ object SharedSettings {
 
   def jsSettings: Seq[Def.Setting[_]] = settings(
     libraryDependencies ++= Seq(
-      )
+      "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0-RC3_2019a"
+    )
   )
 
 }

@@ -2,7 +2,7 @@ package errors
 
 import errors.HTTPResultType._
 import io.circe.generic.extras.Configuration
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, Encoder, Json}
 
 /**
   * Parent of all errors that are handled in both the frontend and the backend.
@@ -13,6 +13,8 @@ import io.circe.{Decoder, Encoder}
   */
 sealed trait ErrorADT extends Throwable {
   def httpErrorType: HTTPResultType
+
+  def json(implicit encoder: Encoder[ErrorADT]): Json = encoder.apply(this)
 }
 
 object ErrorADT {

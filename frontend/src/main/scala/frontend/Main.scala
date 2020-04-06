@@ -30,6 +30,10 @@ object Main {
   println("Popper")
   dom.console.log(Popper)
 
+  final val addPageTitle = ZIO.effectTotal {
+    dom.document.title = globals.projectName
+  }
+
   final val makeCSS = for {
     head <- ZIO.effectTotal(dom.document.getElementsByTagName("head")(0))
     css <- UIO(CSS) *> UIO(GlobalStyleSheet.textStyleSheet) // touching CSS object
@@ -66,6 +70,7 @@ object Main {
   } yield reactiveElement
 
   final val program = for {
+    _ <- addPageTitle
     container <- createElement
     _ <- emptyContainer.provide(container)
     _ <- renderAppInContainer.provide(container)

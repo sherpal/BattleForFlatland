@@ -5,6 +5,7 @@ import guards.Guards._
 import io.circe.generic.auto._
 import io.circe.syntax._
 import models.bff.outofgame.MenuGame
+import models.syntax.Validated
 import play.api.mvc.{AnyContent, Request, Results}
 import services.config.Configuration
 import services.crypto.Crypto
@@ -13,6 +14,7 @@ import services.logging.{log, Logging}
 import utils.playzio.HasRequest
 import zio.clock.Clock
 import zio.{Has, ZIO}
+import utils.ziohelpers.fieldsValidateOrFail
 
 object MenuGameDAO extends Results {
 
@@ -33,6 +35,7 @@ object MenuGameDAO extends Results {
     sessionRequest <- authenticated[MenuGame]
     user = sessionRequest.user
     game = sessionRequest.body
+    _ <- fieldsValidateOrFail(Validated[MenuGame, ErrorADT].fieldsValidator)(game)
     _ <- newGame(game.gameName, user.userId, game.maybeHashedPassword)
     _ <- log.info(s"New game ${game.gameName} created by ${user.userName}.")
   } yield ()).refineOrDie(ErrorADT.onlyErrorADT)

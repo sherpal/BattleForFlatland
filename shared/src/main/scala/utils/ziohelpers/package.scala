@@ -19,6 +19,11 @@ package object ziohelpers {
       case errors      => ZIO.fail(MultipleErrors(errors))
     }
 
+  /**
+    * Applies the given [[models.validators.FieldsValidator]] to the element `t`.
+    * If the element fails to pass validation, its [[errors.ErrorADT.MultipleErrorsMap]] is returned.
+    * Returns [[Unit]] otherwise.
+    */
   def fieldsValidateOrFail[E <: ErrorADT, T](
       fieldsValidator: FieldsValidator[T, E]
   )(t: T): IO[MultipleErrorsMap, Unit] = {
