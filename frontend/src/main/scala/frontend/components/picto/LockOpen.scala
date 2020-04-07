@@ -1,13 +1,11 @@
 package frontend.components.picto
 
-import com.raquo.laminar.nodes.ReactiveHtmlElement
-import frontend.components.{Component, LifecycleComponent}
-import org.scalajs.dom.html
 import com.raquo.laminar.api.L._
+import com.raquo.laminar.nodes.ReactiveHtmlElement
+import frontend.components.LifecycleComponent
+import org.scalajs.dom.html
 
 final class LockOpen private () extends LifecycleComponent[html.Span] {
-
-  import svg._
 
   val elem: ReactiveHtmlElement[html.Span] = span(
 //    svg(

@@ -1,5 +1,6 @@
 package programs.frontend
 
+import errors.ErrorADT
 import io.circe.generic.auto._
 import models.bff.Routes._
 import models.bff.outofgame.MenuGame
@@ -9,7 +10,6 @@ import zio.clock._
 import zio.stream._
 
 import scala.concurrent.duration._
-
 import utils.ziohelpers.unsuccessfulStatusCode
 
 package object games {
@@ -19,11 +19,12 @@ package object games {
       .fromSchedule(Schedule.spaced(zio.duration.Duration.fromScala(2.seconds)))
       .tap(x => UIO(println(x)))
 
-  val downloadGames: URIO[HttpClient, Either[Throwable, List[MenuGame]]] = get[List[MenuGame]](allGames).either
+  val downloadGames: ZIO[HttpClient, ErrorADT, List[MenuGame]] =
+    get[List[MenuGame]](allGames).refineOrDie(ErrorADT.onlyErrorADT)
 
-  val loadGames: ZStream[HttpClient with Clock, Nothing, Either[Throwable, List[MenuGame]]] = ZStream
+  val loadGames: ZStream[HttpClient with Clock, Nothing, Either[ErrorADT, List[MenuGame]]] = ZStream
     .fromSchedule(Schedule.spaced(zio.duration.Duration.fromScala(5.seconds)))
-    .flatMap(_ => ZStream.fromEffect(downloadGames))
+    .flatMap(_ => ZStream.fromEffect(downloadGames.either))
 
   def createNewGame(game: MenuGame): ZIO[HttpClient, Throwable, Int] =
     for {

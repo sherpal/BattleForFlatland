@@ -30,7 +30,7 @@ final class HeaderBar private (title: String) extends Component[html.Element] {
   val element: ReactiveHtmlElement[html.Element] =
     nav(
       headerStyle,
-      h1(className := "text-3xl", pad(2), projectName),
+      h1(className := "text-xl", pad(2), projectName),
       ul(
         className := "flex justify-between",
         pad(2),

@@ -11,7 +11,7 @@ import org.scalajs.dom.html
 final class DashboardHeader private ($userName: EventStream[String]) extends Component[html.Element] {
   val element: ReactiveHtmlElement[html.Element] = header(
     headerStyle,
-    h1(className := "text-3xl", pad(2), globals.projectName),
+    h1(className := "text-xl", pad(2), globals.projectName),
     ul(
       className := "flex justify-between",
       pad(2),

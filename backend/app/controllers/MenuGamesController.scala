@@ -1,8 +1,9 @@
 package controllers
 
+import akka.actor.ActorRef
 import dao.MenuGameDAO
 import io.circe.generic.auto._
-import javax.inject.{Inject, Singleton}
+import javax.inject.{Inject, Named, Singleton}
 import models.bff.outofgame.MenuGame
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -16,7 +17,9 @@ import services.logging.PlayLogging
 import slick.jdbc.JdbcProfile
 import utils.ReadsImplicits._
 import utils.WriteableImplicits._
+import utils.actors.ActorProvider
 import utils.playzio.PlayZIO._
+import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeper
 import zio.UIO
 import zio.clock.Clock
 
@@ -26,7 +29,8 @@ import scala.concurrent.ExecutionContext
 final class MenuGamesController @Inject()(
     errorHandler: HttpErrorHandler,
     protected val dbConfigProvider: DatabaseConfigProvider,
-    cc: ControllerComponents
+    cc: ControllerComponents,
+    @Named(GameMenuRoomBookKeeper.name) bookKeeper: ActorRef
 )(implicit val ec: ExecutionContext)
     extends AbstractController(cc)
     with HasDatabaseConfigProvider[JdbcProfile] {
@@ -34,7 +38,7 @@ final class MenuGamesController @Inject()(
   lazy val logger: Logger = Logger("MenuGamesController")
 
   private val layer = Clock.live ++ Configuration.live ++ (dbProvider(db) >>> GameTable.live) ++ Crypto.live ++
-    PlayLogging.live(logger)
+    PlayLogging.live(logger) ++ ActorProvider.live(Map(GameMenuRoomBookKeeper.name -> bookKeeper))
 
   def newGame: Action[MenuGame] = Action.zio(parse.json[MenuGame])(
     (MenuGameDAO.addNewGame *> UIO(Ok)).provideButRequest[Request, MenuGame](layer)

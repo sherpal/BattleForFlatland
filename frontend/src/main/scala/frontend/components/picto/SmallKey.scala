@@ -1,9 +1,9 @@
 package frontend.components.picto
 
+import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.LifecycleComponent
 import org.scalajs.dom.html
-import com.raquo.laminar.api.L._
 
 final class SmallKey private () extends LifecycleComponent[html.Span] {
 

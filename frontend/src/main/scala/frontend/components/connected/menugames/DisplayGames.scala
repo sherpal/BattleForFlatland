@@ -3,12 +3,12 @@ package frontend.components.connected.menugames
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
-import frontend.components.picto.{LockClosed, LockOpen, SmallKey}
+import frontend.components.picto.SmallKey
 import frontend.components.utils.tailwind._
+import frontend.components.utils.tailwind.components.Table._
 import models.bff.outofgame.MenuGame
 import org.scalajs.dom.html
 import org.scalajs.dom.html.TableRow
-import frontend.components.utils.tailwind.components.Table._
 
 final class DisplayGames private ($games: EventStream[List[MenuGame]], showNewGameWriter: Observer[Unit])
     extends Component[html.Element] {

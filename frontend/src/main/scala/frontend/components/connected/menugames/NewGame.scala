@@ -8,20 +8,20 @@ import frontend.components.forms.SimpleForm
 import frontend.components.utils.ToggleButton
 import frontend.components.utils.tailwind._
 import frontend.components.utils.tailwind.forms._
-import frontend.components.{Component, ModalWindow}
+import frontend.components.{LifecycleComponent, ModalWindow}
 import models.bff.outofgame.MenuGame
 import models.syntax.{Pointed, Validated}
 import models.validators.FieldsValidator
 import org.scalajs.dom.html
+import programs.frontend.games._
 import services.http.FrontendHttpClient
 import zio.UIO
-import programs.frontend.games._
 
 final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
     implicit
     menuGamePointed: Pointed[MenuGame],
     validated: Validated[MenuGame, ErrorADT]
-) extends Component[html.Div]
+) extends LifecycleComponent[html.Div]
     with SimpleForm[MenuGame, ErrorOr[Int]] {
 
   val initialData: MenuGame                          = menuGamePointed.unit
@@ -36,7 +36,12 @@ final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
 
   val $withPassword: Signal[Boolean] = $formData.map(_.maybeHashedPassword.isDefined)
 
-  val element: ReactiveHtmlElement[html.Div] = div(
+  val createdBus: EventBus[Unit] = new EventBus
+
+  override def componentDidMount(): Unit =
+    createdBus.writer.onNext(())
+
+  val elem: ReactiveHtmlElement[html.Div] = div(
     className := "bg-white rounded-lg border-gray-200 border-2 whitespace-no-wrap",
     width := "800px",
     pad(5),
@@ -50,7 +55,8 @@ final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
           formInput(
             "text",
             placeholder := "Choose a game name",
-            inContext(elem => onChange.mapTo(elem.ref.value) --> gameNameChanger)
+            inContext(elem => onChange.mapTo(elem.ref.value) --> gameNameChanger),
+            focus <-- createdBus.events.mapTo(true).map(x => { println(x); x })
           )
         ),
         div(
