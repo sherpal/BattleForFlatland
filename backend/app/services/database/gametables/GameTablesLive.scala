@@ -2,11 +2,12 @@ package services.database.gametables
 
 import errors.ErrorADT.InconsistentMenuGameInDB
 import models.bff.outofgame.{DBMenuGame, MenuGame}
+import models.users.User
 import services.database.db.Database.runAsTask
 import services.database.users.UsersSlickHelper
 import slick.jdbc.JdbcProfile
-import utils.database.models.DBUser
-import utils.database.tables.MenuGamesTable
+import utils.database.models.{DBUser, UserInGameTable}
+import utils.database.tables.{MenuGamesTable, UsersInGameTables}
 import zio.{Task, UIO, ZIO}
 
 final class GameTablesLive(
@@ -19,7 +20,8 @@ final class GameTablesLive(
 
   import api._
 
-  private val gameTableQuery = MenuGamesTable.query
+  private val gameTableQuery        = MenuGamesTable.query
+  private val usersInGameTableQuery = UsersInGameTables.query
 
   def gameTables: Task[List[Either[InconsistentMenuGameInDB, MenuGame]]] =
     for {
@@ -42,4 +44,39 @@ final class GameTablesLive(
         case None              => UIO(None)
       }
     } yield game
+
+  def selectGameById(gameId: String): Task[Option[MenuGame]] =
+    for {
+      gamesFlat <- runAsTask(gamesHelper.gamesWithUserFlat(gameTableQuery.filter(_.gameId === gameId)).result)
+      game <- gamesHelper.unflattenGames(gamesFlat).map(_.headOption).flatMap {
+        case Some(Left(error)) => ZIO.fail(error)
+        case Some(Right(g))    => UIO(Some(g))
+        case None              => UIO(None)
+      }
+    } yield game
+
+  protected def addUsersInGameTables(userInGameTable: UserInGameTable): Task[Int] =
+    runAsTask(usersInGameTableQuery += userInGameTable)
+
+  protected def removeUsersInGameTables(userInGameTable: UserInGameTable): Task[Int] =
+    runAsTask(
+      usersInGameTableQuery
+        .filter(_.userId === userInGameTable.userId)
+        .filter(_.gameId === userInGameTable.gameId)
+        .delete
+    )
+
+  protected def userAlreadyPlaying(userId: String): Task[Boolean] =
+    runAsTask(
+      usersInGameTableQuery.filter(_.userId === userId).result
+    ).map(_.nonEmpty)
+
+  protected def playersInGameWithId(gameId: String): Task[List[User]] =
+    runAsTask(
+      userQuery
+        .filter(_.userId in usersInGameTableQuery.filter(_.gameId === gameId).map(_.userId))
+        .joinLeft(usersToRole)
+        .on(_.userId === _._1)
+        .result
+    ).map(unflattenUsers).map(_.toList)
 }

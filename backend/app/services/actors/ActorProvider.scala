@@ -1,4 +1,4 @@
-package utils.actors
+package services.actors
 
 import akka.actor.ActorRef
 import zio._

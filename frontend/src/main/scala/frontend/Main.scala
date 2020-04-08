@@ -26,10 +26,6 @@ object Main {
   println("Tailwind", Tailwind)
 //  println("AppCSS", AppCSS)
 
-  import typings.popperjsCore.{mod => Popper}
-  println("Popper")
-  dom.console.log(Popper)
-
   final val addPageTitle = ZIO.effectTotal {
     dom.document.title = globals.projectName
   }
@@ -38,7 +34,6 @@ object Main {
     head <- ZIO.effectTotal(dom.document.getElementsByTagName("head")(0))
     css <- UIO(CSS) *> UIO(GlobalStyleSheet.textStyleSheet) // touching CSS object
     style <- ZIO.effectTotal(dom.document.createElement("style"))
-    _ <- ZIO.effectTotal(println(css))
     _ <- ZIO.effectTotal(style.innerText = css)
     _ <- ZIO.effectTotal(head.appendChild(style))
   } yield ()
@@ -74,7 +69,7 @@ object Main {
     container <- createElement
     _ <- emptyContainer.provide(container)
     _ <- renderAppInContainer.provide(container)
-    _ <- makeCSS
+    //_ <- makeCSS
   } yield ()
   @JSExportTopLevel("main")
   def main(): Unit =

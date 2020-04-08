@@ -17,7 +17,7 @@ package object gametables {
       gameName: String,
       creatorId: String,
       rawPassword: Option[String]
-  ): ZIO[GameTable with Crypto with Clock, Throwable, Int] =
+  ): ZIO[GameTable with Crypto with Clock, Throwable, String] =
     ZIO.accessM(_.get[GameTable.Service].newGame(gameName, creatorId, rawPassword))
 
   def gameExists(gameName: String): ZIO[GameTable, Throwable, Boolean] =

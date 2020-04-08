@@ -23,14 +23,12 @@ final class GameMenuRoomBookKeeper extends Actor with ActorLogging {
     case SendHeartBeat =>
       currentClients.foreach(_ ! SendHeartBeat) // maintaining connection alive
     case NewClient =>
-      println("new web socket client")
       sender ! NewGame
       context.watch(sender)
       context.become(receiver(currentClients + sender))
     case NewGame =>
       currentClients.foreach(_ ! NewGame)
     case Terminated(ref) =>
-      println("web socket client terminated")
       context.become(receiver(currentClients - ref))
   }
 

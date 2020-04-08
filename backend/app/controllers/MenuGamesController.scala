@@ -17,7 +17,7 @@ import services.logging.PlayLogging
 import slick.jdbc.JdbcProfile
 import utils.ReadsImplicits._
 import utils.WriteableImplicits._
-import utils.actors.ActorProvider
+import services.actors.ActorProvider
 import utils.playzio.PlayZIO._
 import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeper
 import zio.UIO

@@ -11,8 +11,8 @@ import services.config.Configuration
 import services.crypto.Crypto
 import services.database.gametables._
 import services.logging.{log, Logging}
-import utils.actors.ActorProvider
-import utils.actors.ActorProvider.ActorProvider
+import services.actors.ActorProvider
+import services.actors.ActorProvider.ActorProvider
 import utils.playzio.HasRequest
 import utils.ziohelpers.fieldsValidateOrFail
 import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeper
@@ -34,17 +34,17 @@ object MenuGameDAO extends Results {
 
   val addNewGame: ZIO[ActorProvider with Logging with GameTable with Crypto with Clock with Configuration with Has[
     HasRequest[Request, MenuGame]
-  ], ErrorADT, Unit] = (for {
+  ], ErrorADT, String] = (for {
     sessionRequest <- authenticated[MenuGame]
     user = sessionRequest.user
     game = sessionRequest.body
     _ <- fieldsValidateOrFail(Validated[MenuGame, ErrorADT].fieldsValidator)(game)
-    _ <- newGame(game.gameName, user.userId, game.maybeHashedPassword)
-    _ <- log.info(s"New game ${game.gameName} created by ${user.userName}.")
+    newGameId <- newGame(game.gameName, user.userId, game.maybeHashedPassword)
+    _ <- log.info(s"New game ${game.gameName} ($newGameId) created by ${user.userName}.")
     menuGameBookKeeper <- ActorProvider.actorRef(GameMenuRoomBookKeeper.name)
     _ <- ZIO
       .effect(menuGameBookKeeper.get ! GameMenuRoomBookKeeper.NewGame)
       .either // either cause we don't care if it fails
-  } yield ()).refineOrDie(ErrorADT.onlyErrorADT)
+  } yield newGameId).refineOrDie(ErrorADT.onlyErrorADT)
 
 }

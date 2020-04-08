@@ -126,7 +126,6 @@ final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
       .provideLayer(layer)
 
   init()
-  initDebug()
 }
 
 object NewGame {
