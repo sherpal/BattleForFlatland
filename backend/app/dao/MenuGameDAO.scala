@@ -5,6 +5,7 @@ import guards.Guards._
 import io.circe.generic.auto._
 import io.circe.syntax._
 import models.bff.outofgame.MenuGame
+import models.common.PasswordWrapper
 import models.syntax.Validated
 import play.api.mvc.{AnyContent, Request, Results}
 import services.config.Configuration
@@ -19,7 +20,7 @@ import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeper
 import zio.clock.Clock
 import zio.{Has, ZIO}
 
-object MenuGameDAO extends Results {
+object MenuGameDAO { //} extends Results {
 
   val games
       : ZIO[Logging with GameTable with Clock with Configuration with Has[HasRequest[Request, AnyContent]], ErrorADT, List[
@@ -39,12 +40,22 @@ object MenuGameDAO extends Results {
     user = sessionRequest.user
     game = sessionRequest.body
     _ <- fieldsValidateOrFail(Validated[MenuGame, ErrorADT].fieldsValidator)(game)
-    newGameId <- newGame(game.gameName, user.userId, game.maybeHashedPassword)
+    newGameId <- newGame(game.gameName, user.userId, user.userName, game.maybeHashedPassword)
     _ <- log.info(s"New game ${game.gameName} ($newGameId) created by ${user.userName}.")
     menuGameBookKeeper <- ActorProvider.actorRef(GameMenuRoomBookKeeper.name)
     _ <- ZIO
       .effect(menuGameBookKeeper.get ! GameMenuRoomBookKeeper.NewGame)
       .either // either cause we don't care if it fails
   } yield newGameId).refineOrDie(ErrorADT.onlyErrorADT)
+
+  def addPlayerToGame(gameId: String): ZIO[GameTable with Clock with Crypto with Configuration with Has[
+    HasRequest[Request, PasswordWrapper]
+  ], ErrorADT, Unit] =
+    (for {
+      sessionRequest <- authenticated[PasswordWrapper]
+      user                   = sessionRequest.user
+      maybeSubmittedPassword = sessionRequest.body.submittedPassword
+      _ <- addUserToGame(user, gameId, maybeSubmittedPassword)
+    } yield ()).refineOrDie(ErrorADT.onlyErrorADT)
 
 }

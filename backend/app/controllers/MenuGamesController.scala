@@ -5,6 +5,7 @@ import dao.MenuGameDAO
 import io.circe.generic.auto._
 import javax.inject.{Inject, Named, Singleton}
 import models.bff.outofgame.MenuGame
+import models.common.PasswordWrapper
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.http.HttpErrorHandler
@@ -41,11 +42,15 @@ final class MenuGamesController @Inject()(
     PlayLogging.live(logger) ++ ActorProvider.live(Map(GameMenuRoomBookKeeper.name -> bookKeeper))
 
   def newGame: Action[MenuGame] = Action.zio(parse.json[MenuGame])(
-    (MenuGameDAO.addNewGame *> UIO(Ok)).provideButRequest[Request, MenuGame](layer)
+    MenuGameDAO.addNewGame.map(Ok(_)).provideButRequest[Request, MenuGame](layer)
   )
 
   def games: Action[AnyContent] = Action.zio(
     MenuGameDAO.games.map(Ok(_)).provideButRequest[Request, AnyContent](layer)
+  )
+
+  def joinGame(gameId: String): Action[PasswordWrapper] = Action.zio(parse.json[PasswordWrapper])(
+    (MenuGameDAO.addPlayerToGame(gameId) *> UIO(Ok)).provideButRequest[Request, PasswordWrapper](layer)
   )
 
 }

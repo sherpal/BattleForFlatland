@@ -19,9 +19,10 @@ package object gametables {
   def newGame(
       gameName: String,
       creatorId: String,
+      creatorName: String,
       rawPassword: Option[String]
   ): ZIO[GameTable with Crypto with Clock, Throwable, String] =
-    ZIO.accessM(_.get[GameTable.Service].newGame(gameName, creatorId, rawPassword))
+    ZIO.accessM(_.get[GameTable.Service].newGame(gameName, creatorId, creatorName, rawPassword))
 
   def gameExists(gameName: String): GameTableTask[Boolean] =
     ZIO.accessM(_.get[GameTable.Service].gameExists(gameName))
@@ -43,5 +44,8 @@ package object gametables {
 
   def removePlayerFromGame(userId: String, gameId: String): GameTableTask[Boolean] =
     ZIO.accessM(_.get[GameTable.Service].removePlayerFromGame(userId, gameId))
+
+  def isPlayerInGame(user: User, gameId: String): GameTableTask[Boolean] =
+    ZIO.accessM(_.get[GameTable.Service].isPlayerInGame(user, gameId))
 
 }

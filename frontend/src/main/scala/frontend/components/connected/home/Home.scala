@@ -5,7 +5,7 @@ import com.raquo.laminar.nodes.ReactiveHtmlElement
 import errors.ErrorADT
 import frontend.components.Component
 import frontend.components.connected.fixed.DashboardHeader
-import frontend.components.connected.menugames.Games
+import frontend.components.connected.menugames.{GameJoined, Games}
 import models.users.Role.SuperUser
 import models.users.{RouteDefinitions, User}
 import org.scalajs.dom.html
@@ -15,6 +15,9 @@ import services.logging.{log, FLogging}
 import services.routing._
 import utils.laminarzio.Implicits._
 import zio.UIO
+import frontend.router.{Route, Routes}
+import models.users.RouteDefinitions._
+import models.bff.Routes._
 
 final class Home private () extends Component[html.Div] {
 
@@ -49,7 +52,15 @@ final class Home private () extends Component[html.Div] {
     div(
       child <-- $redirect.map(_ => "Not logged, redirecting to Login."), // kicking off stream
       className := "main",
-      Games()
+      child <-- Routes
+        .firstOf(
+          Route(homeRoute, () => Games()),
+          Route(gameJoined ? gameJoinedParam, (_: Unit, gameId: String) => GameJoined(gameId))
+        )
+        .map {
+          case Some(component) => component
+          case None            => div("uh-oh")
+        }
       //child <-- $users.map(UserList(_))
     )
   )

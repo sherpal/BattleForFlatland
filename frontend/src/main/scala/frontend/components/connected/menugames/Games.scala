@@ -18,10 +18,6 @@ final class Games private () extends LifecycleComponent[html.Div] {
 
   final val socket = new JsonWebSocket[String, String]("ws://localhost:8080/ws/game-menu-room")
 
-  val (cancelDLGames, gamesOrErrors$) = EventStream.fromZStream(games.loadGames.provideLayer(layer))
-
-  override def componentWillUnmount(): Unit = cancelDLGames.cancel()
-
   //final val $games = gamesOrErrors$.collect { case Right(gameList) => gameList }
 
   final val $games = socket.$in.filter(_.nonEmpty)

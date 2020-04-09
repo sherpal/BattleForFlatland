@@ -67,9 +67,14 @@ object GameTable {
       */
     protected def playersInGameWithId(gameId: String): Task[List[User]]
 
+    /** Returns whether this user belongs to the game with that id. */
+    final def isPlayerInGame(user: User, gameId: String): Task[Boolean] =
+      playersInGameWithId(gameId).map(_.exists(_.userId == user.userId))
+
     /**
       * Creates a new [[models.bff.outofgame.DBMenuGame]] in database using the given information.
       * Generates the game id and created on timestamp on site.
+      * Returns the generated id.
       *
       * The `rawPassword` is the one entered by the user when creating the game. /!\ Must be hashed! /!\
       * If it is None, then the game is set without any password.
@@ -77,9 +82,11 @@ object GameTable {
     final def newGame(
         gameName: String,
         creatorId: String,
+        creatorName: String,
         rawPassword: Option[String]
     ): ZIO[Crypto with Clock, Throwable, String] =
       for {
+        userPlayingFiber <- userAlreadyPlaying(creatorId).fork
         alreadyExistsFiber <- gameExists(gameName).fork
         hashed <- (for {
           password <- ZIO.fromOption(rawPassword)
@@ -89,6 +96,8 @@ object GameTable {
         id <- uuid
         alreadyExists <- alreadyExistsFiber.join
         _ <- failIfWith(alreadyExists, GameExists(gameName))
+        userPlaying <- userPlayingFiber.join
+        _ <- failIfWith(userPlaying, UserAlreadyPlaying(creatorName))
         dbGame = DBMenuGame(id, gameName, hashed, creatorId, now)
         _ <- newDBGame(dbGame)
       } yield id

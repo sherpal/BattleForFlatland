@@ -2,7 +2,7 @@ package frontend.components.connected.menugames
 
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import frontend.components.Component
+import frontend.components.{Component, ModalWindow}
 import frontend.components.picto.SmallKey
 import frontend.components.utils.tailwind._
 import frontend.components.utils.tailwind.components.Table._
@@ -13,6 +13,12 @@ import org.scalajs.dom.html.TableRow
 final class DisplayGames private ($games: EventStream[List[MenuGame]], showNewGameWriter: Observer[Unit])
     extends Component[html.Element] {
 
+  /** Write a Some(game) for opening the join game panel, or None to close it. */
+  val showJoinGameModalBus: EventBus[Option[MenuGame]] = new EventBus
+  val closeJoinGameWriter: Observer[Unit]              = showJoinGameModalBus.writer.contramap(_ => None)
+  val openJoinGameWriter: Observer[MenuGame]           = showJoinGameModalBus.writer.contramap(Some(_))
+  val $openJoinGame: EventStream[Option[MenuGame]]     = showJoinGameModalBus.events
+
   def renderGameRow(gameId: String, game: MenuGame, gameStream: EventStream[MenuGame]): ReactiveHtmlElement[TableRow] =
     tr(
       clickableRow,
@@ -21,7 +27,8 @@ final class DisplayGames private ($games: EventStream[List[MenuGame]], showNewGa
       td(
         tableData,
         child <-- gameStream.map(_.maybeHashedPassword.map(_ => SmallKey().element).getOrElse(emptyNode))
-      )
+      ),
+      onClick.mapTo(game) --> openJoinGameWriter
     )
 
   val element: ReactiveHtmlElement[html.Element] = section(
@@ -73,7 +80,12 @@ final class DisplayGames private ($games: EventStream[List[MenuGame]], showNewGa
             )
         }
       )
-    )
+    ),
+    child <-- $openJoinGame.map {
+      case Some(game) =>
+        ModalWindow(JoinGameModal(game, closeJoinGameWriter), closeJoinGameWriter)
+      case None => emptyNode
+    }
   )
 
 }

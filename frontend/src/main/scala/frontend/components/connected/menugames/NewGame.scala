@@ -16,6 +16,9 @@ import org.scalajs.dom.html
 import programs.frontend.games._
 import services.http.FrontendHttpClient
 import zio.UIO
+import frontend.components.utils.tailwind.modal._
+import models.common.PasswordWrapper
+import services.routing.FRouting
 
 final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
     implicit
@@ -27,7 +30,7 @@ final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
   val initialData: MenuGame                          = menuGamePointed.unit
   val validator: FieldsValidator[MenuGame, ErrorADT] = validated.fieldsValidator
 
-  private val layer = FrontendHttpClient.live
+  private val layer = FrontendHttpClient.live ++ FRouting.live
 
   val gameNameChanger: Observer[String] = makeDataChanger[String](gameName => _.copy(gameName = gameName))
   val passwordChanger: Observer[Option[String]] = makeDataChanger(
@@ -42,9 +45,8 @@ final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
     createdBus.writer.onNext(())
 
   val elem: ReactiveHtmlElement[html.Div] = div(
-    className := "bg-white rounded-lg border-gray-200 border-2 whitespace-no-wrap",
+    modalContainer,
     width := "800px",
-    pad(5),
     h1(className := s"text-lg text-$primaryColour-$primaryColourDark", "New game"),
     form(
       submit,
@@ -118,9 +120,10 @@ final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
 
   def submitProgram(formData: MenuGame): UIO[ErrorOr[Int]] =
     (for {
-      code <- createNewGame(formData)
+      gameId <- createNewGame(formData)
+      gameJoined <- joinGameProgram(formData.copy(gameId = gameId), PasswordWrapper(formData.maybeHashedPassword))
       _ <- UIO(closeWriter.onNext(()))
-    } yield code)
+    } yield gameJoined)
       .refineOrDie(ErrorADT.onlyErrorADT)
       .either
       .provideLayer(layer)

@@ -59,6 +59,7 @@ POST    /api/users/logout               controllers.UsersController.logout
 ###
 GET     /api/bff/games                  controllers.MenuGamesController.games
 POST    /api/bff/new-game               controllers.MenuGamesController.newGame
+POST    /api/bff/join-game              controllers.MenuGamesController.joinGame(gameId: String)
 
 GET   /ws-test                      controllers.WebSocketController.socketTest
 GET   /ws/game-menu-room            controllers.WebSocketController.gameMenuRoom

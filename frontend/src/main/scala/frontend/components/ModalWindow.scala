@@ -9,8 +9,8 @@ final class ModalWindow private (content: ReactiveHtmlElement[html.Element], clo
     extends Component[html.Div] {
 
   val element: ReactiveHtmlElement[html.Div] = div(
-    className := "flex flex-col items-center justify-start absolute inset-0 z-50",
-    div(className := "h-32 w-5"),
+    className := "flex flex-col items-center justify-center absolute inset-0 z-50",
+    //div(className := "h-32 w-5"),
     div(
       onClick.stopPropagation --> (_ => {}),
       content

@@ -12,7 +12,7 @@ final class UsersInGameTables(tag: Tag) extends Table[UserInGameTable](tag, "use
   def userId   = column[String]("user_id")
   def joinedOn = column[LocalDateTime]("joined_on")
 
-  def * = (userId, gameId, joinedOn) <> (UserInGameTable.tupled, UserInGameTable.unapply)
+  def * = (gameId, userId, joinedOn) <> (UserInGameTable.tupled, UserInGameTable.unapply)
 
 }
 

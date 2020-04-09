@@ -10,6 +10,7 @@ import frontend.router.{Route, Routes}
 import models.users.RouteDefinitions._
 import org.scalajs.dom
 import org.scalajs.dom.html.Div
+import models.bff.Routes._
 
 final class App private () extends Component[dom.html.Div] {
 
@@ -22,6 +23,7 @@ final class App private () extends Component[dom.html.Div] {
         Route(postRegisterRoute, (_: Unit, _: String) => OutsideConnContainer("Sign-up complete!")),
         Route(confirmRoute, (_: Unit, _: String) => OutsideConnContainer("Registering completed")),
         Route(homeRoute, () => Home()),
+        Route(gameJoined ? gameJoinedParam, (_: Unit, _: String) => Home()),
         Route(testRoute, () => Test())
       )
       .map {

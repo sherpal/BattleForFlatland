@@ -6,11 +6,13 @@ import org.scalajs.dom.html
 
 package object forms {
 
+  final val formPrimaryTextColour = className := "text-gray-500"
+
   final val formGroup = className := "md:flex md:items-center mb-6"
 
   def formLabel(text: String): ReactiveHtmlElement[html.Div] = div(
     className := "md:w-1/3",
-    label(className := "block text-gray-500 font-bold mb-1 md:mb-0 pr-4", text)
+    label(className := "block font-bold mb-1 md:mb-0 pr-4", formPrimaryTextColour, text)
   )
 
   def formInput(tpe: String, modifier: Modifier[ReactiveHtmlElement[html.Input]]*): ReactiveHtmlElement[html.Div] = div(

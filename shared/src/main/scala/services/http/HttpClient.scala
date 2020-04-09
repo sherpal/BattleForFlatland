@@ -3,6 +3,7 @@ package services.http
 import io.circe.{Decoder, Encoder}
 import urldsl.errors.DummyError
 import urldsl.language.{PathSegment, QueryParameters}
+import urldsl.language.QueryParameters.dummyErrorImpl.{empty => emptyParam}
 import zio._
 
 /**
@@ -69,6 +70,13 @@ object HttpClient {
     def post[B, Q, R](path: Path[Unit], query: Query[Q], body: B)(
         q: Q
     )(implicit decoder: Decoder[R], encoder: Encoder[B]): Task[R]
+
+    /**
+      * Makes a POST http call to the given [[Path]] with the given body of type `B`.
+      * Interprets the response as an element of type `R`.
+      */
+    final def post[B, R](path: Path[Unit], body: B)(implicit encoder: Encoder[B], decoder: Decoder[R]): Task[R] =
+      post[B, Unit, R](path, emptyParam, body)(())
 
     /**
       * Makes a POST http call to the given [[Path]] with the given [[Query]] parameters and with the given body.

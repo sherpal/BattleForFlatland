@@ -37,6 +37,12 @@ package object http {
   )(q: Q)(implicit decoder: Decoder[R], encoder: Encoder[B]): ZIO[HttpClient, Throwable, R] =
     ZIO.accessM(_.get[HttpClient.Service].post(path, query, body)(q))
 
+  def post[B, R](
+      path: Path[Unit],
+      body: B
+  )(implicit encoder: Encoder[B], decoder: Decoder[R]): ZIO[HttpClient, Throwable, R] =
+    ZIO.accessM(_.get[HttpClient.Service].post(path, body))
+
   def postIgnore[B, Q](path: Path[Unit], query: Query[Q], body: B)(
       q: Q
   )(implicit encoder: Encoder[B]): ZIO[HttpClient, Throwable, Int] =
