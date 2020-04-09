@@ -1,6 +1,13 @@
 package services.database.gametables
 
-import errors.ErrorADT.{GameDoesNotExist, GameExists, InconsistentMenuGameInDB, UserAlreadyPlaying}
+import errors.ErrorADT.{
+  GameDoesNotExist,
+  GameExists,
+  InconsistentMenuGameInDB,
+  IncorrectGamePassword,
+  MissingPassword,
+  UserAlreadyPlaying
+}
 import models.bff.outofgame.{DBMenuGame, MenuGame, MenuGameWithPlayers}
 import models.users.User
 import services.crypto._
@@ -91,13 +98,19 @@ object GameTable {
     /**
       * Adds the given user to the game.
       */
-    final def addUserToGame(user: User, gameId: String): ZIO[Clock, Throwable, Int] =
+    final def addUserToGame(
+        user: User,
+        gameId: String,
+        maybePassword: Option[String]
+    ): ZIO[Clock with Crypto, Throwable, Int] =
       for {
+        maybeGameFiber <- selectGameById(gameId).fork
         userAlreadyThere <- userAlreadyPlaying(user.userId)
-        gameExistsFiber <- gameWithIdExists(gameId).fork
         _ <- failIfWith(userAlreadyThere, UserAlreadyPlaying(user.userName))
-        doesGameExist <- gameExistsFiber.join
-        _ <- failIfWith(!doesGameExist, GameDoesNotExist(gameId))
+        maybeGame <- maybeGameFiber.join
+        game <- getOrFail(maybeGame, GameDoesNotExist(gameId))
+        passwordIsValid <- checkPasswordIfRequired(maybePassword, game.maybeHashedPassword.map(HashedPassword))
+        _ <- failIfWith(!passwordIsValid, IncorrectGamePassword)
         now <- currentDateTime.map(_.toLocalDateTime)
         userInGameTable <- UIO(UserInGameTable(gameId, user.userId, now))
         added <- addUsersInGameTables(userInGameTable)
@@ -106,12 +119,12 @@ object GameTable {
     /**
       * Fetches game and players information for the game id.
       */
-    final def gameWithPlayersById(gameId: String): ZIO[Any, Throwable, MenuGameWithPlayers] =
+    final def gameWithPlayersById(gameId: String): Task[MenuGameWithPlayers] =
       for {
         maybeGameFiber <- selectGameById(gameId).fork
         playersFiber <- playersInGameWithId(gameId).fork
         maybeGame <- maybeGameFiber.join
-        game <- ZIO.fromOption(maybeGame).flatMapError(_ => UIO(GameDoesNotExist(gameId)))
+        game <- getOrFail(maybeGame, GameDoesNotExist(gameId))
         players <- playersFiber.join
 
       } yield MenuGameWithPlayers(game, players)
@@ -121,7 +134,7 @@ object GameTable {
       * If the user was the creator, we also delete the game.
       * Returning true in that case, false otherwise, so that other players can be notified.
       */
-    final def removePlayerFromGame(userId: String, gameId: String): ZIO[Any, Throwable, Boolean] =
+    final def removePlayerFromGame(userId: String, gameId: String): Task[Boolean] =
       for {
         maybeGame <- selectGameById(gameId)
         game <- ZIO.fromOption(maybeGame).flatMapError(_ => UIO(GameDoesNotExist(gameId)))

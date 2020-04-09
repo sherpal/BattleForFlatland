@@ -12,6 +12,12 @@ package object crypto {
   def checkPassword(password: String, hashedPassword: HashedPassword): URIO[Crypto, Boolean] =
     ZIO.accessM(_.get[Service].checkPassword(password, hashedPassword))
 
+  def checkPasswordIfRequired(
+      maybePassword: Option[String],
+      maybeHashedPassword: Option[HashedPassword]
+  ): URIO[Crypto, Boolean] =
+    ZIO.accessM(_.get[Service].checkPasswordIfRequired(maybePassword, maybeHashedPassword))
+
   val uuid: URIO[Crypto, String] = ZIO.accessM(_.get[Service].uuid)
 
 }
