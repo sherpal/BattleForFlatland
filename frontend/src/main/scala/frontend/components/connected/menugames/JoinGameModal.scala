@@ -1,7 +1,7 @@
 package frontend.components.connected.menugames
 
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import errors.ErrorADT.ErrorOr
+import errors.ErrorADT.{ErrorOr, IncorrectGamePassword}
 import frontend.components.forms.SimpleForm
 import frontend.components.{LifecycleComponent, ModalWindow}
 import models.common.PasswordWrapper
@@ -28,6 +28,17 @@ final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.Clos
 
   val passwordChanger: Observer[String] = makeDataChanger(password => _.copy(submittedPassword = Some(password)))
 
+  /** Error displays are washed out when password input receive focus.
+    * This is done by poking this bus.
+    */
+  val passwordTouchedBus: EventBus[Unit]  = new EventBus
+  val $passwordTouches: EventStream[Unit] = passwordTouchedBus.events
+
+  val $maybePasswordErrors: EventStream[Option[ErrorADT]] = EventStream.merge(
+    $passwordTouches.mapTo(None),
+    $submitEvents.map(_.swap.toOption)
+  )
+
   val elem: ReactiveHtmlElement[html.Element] = aside(
     modalContainer,
     h1(
@@ -45,7 +56,10 @@ final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.Clos
               formInput(
                 "password",
                 placeholder := "Enter game password",
-                inContext(elem => onChange.mapTo(elem.ref.value) --> passwordChanger)
+                inContext(elem => onChange.mapTo(elem.ref.value) --> passwordChanger),
+                onFocus.mapTo(()) --> passwordTouchedBus,
+                className <-- $maybePasswordErrors.map(_.isDefined).map(if (_) "border-red-500" else ""),
+                focus <-- $submitEvents.mapTo(false)
               )
             )
           )
@@ -60,11 +74,11 @@ final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.Clos
       div(
         p(
           className := "text-red-600",
-          pre(
-            child.text <-- $submitEvents.collect { case Left(error) => error }
-              .map(_.json)
-              .map(_.spaces2)
-          )
+          child.text <-- $maybePasswordErrors.map {
+            case Some(IncorrectGamePassword) => "Invalid password"
+            case Some(error)                 => s"Unhandled error ($error)."
+            case _                           => ""
+          }
         )
       ),
       div(
