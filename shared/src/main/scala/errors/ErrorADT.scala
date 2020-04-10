@@ -76,6 +76,9 @@ object ErrorADT {
   case object IncorrectGamePassword extends MenuGameError {
     def httpErrorType: HTTPResultType = BadRequest
   }
+  case class YouAreNotInGame(gameId: String) extends MenuGameError {
+    def httpErrorType: HTTPResultType = Forbidden
+  }
 
   sealed trait AuthenticationError extends ErrorADT
   case object YouAreUnauthorized extends AuthenticationError {

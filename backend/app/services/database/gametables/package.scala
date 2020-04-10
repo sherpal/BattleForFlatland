@@ -48,4 +48,7 @@ package object gametables {
   def isPlayerInGame(user: User, gameId: String): GameTableTask[Boolean] =
     ZIO.accessM(_.get[GameTable.Service].isPlayerInGame(user, gameId))
 
+  def userAlreadyPlaying(userId: String): GameTableTask[Option[String]] =
+    ZIO.accessM(_.get[GameTable.Service].userAlreadyPlaying(userId))
+
 }

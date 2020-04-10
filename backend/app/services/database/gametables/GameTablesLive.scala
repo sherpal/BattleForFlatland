@@ -66,10 +66,13 @@ final class GameTablesLive(
         .delete
     )
 
-  protected def userAlreadyPlaying(userId: String): Task[Boolean] =
+  def userAlreadyPlaying(userId: String): Task[Option[String]] =
     runAsTask(
-      usersInGameTableQuery.filter(_.userId === userId).result
-    ).map(_.nonEmpty)
+      usersInGameTableQuery
+        .filter(_.userId === userId)
+        .map(_.gameId)
+        .result
+    ).map(_.headOption)
 
   protected def playersInGameWithId(gameId: String): Task[List[User]] =
     runAsTask(

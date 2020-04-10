@@ -10,7 +10,7 @@ import models.users.Role.SuperUser
 import models.users.{RouteDefinitions, User}
 import org.scalajs.dom.html
 import programs.frontend.login._
-import services.http.FrontendHttpClient.{live => httpLive}
+import services.http.FHttpClient.{live => httpLive}
 import services.logging.{log, FLogging}
 import services.routing._
 import utils.laminarzio.Implicits._
@@ -55,7 +55,7 @@ final class Home private () extends Component[html.Div] {
       child <-- Routes
         .firstOf(
           Route(homeRoute, () => Games()),
-          Route(gameJoined ? gameJoinedParam, (_: Unit, gameId: String) => GameJoined(gameId))
+          Route(gameJoined ? gameIdParam, (_: Unit, gameId: String) => GameJoined(gameId))
         )
         .map {
           case Some(component) => component

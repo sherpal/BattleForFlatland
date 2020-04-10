@@ -27,7 +27,7 @@ object App {
   ScalaLogo
 
   private def postNumber(nbr: Int) =
-    post[Int, String](root / "hello", qParam[Int]("nbr"))(nbr).provideLayer(FrontendHttpClient.live)
+    post[Int, String](root / "hello", qParam[Int]("nbr"))(nbr).provideLayer(FHttpClient.live)
 
   val postBus: EventBus[Int] = new EventBus()
 
@@ -39,7 +39,7 @@ object App {
 
   val amISuperUser = getStatus(root / "users" / "am-i-super-user")
     .flatMap(x => ZIO.effect(println(x)))
-    .provideLayer(FrontendHttpClient.live)
+    .provideLayer(FHttpClient.live)
 
   implicit def scalaDurationToZIODuration(duration: scala.concurrent.duration.Duration): zio.duration.Duration =
     zio.duration.Duration.fromScala(duration)
@@ -76,7 +76,7 @@ object App {
       h2("Backend works?"),
       p(
         child <-- EventStream
-          .fromZIOEffect(get[String](root / "hello").provideLayer(FrontendHttpClient.live))
+          .fromZIOEffect(get[String](root / "hello").provideLayer(FHttpClient.live))
           .map(span(_))
       )
     ),

@@ -4,9 +4,10 @@ import errors.ErrorADT
 import guards.Guards._
 import io.circe.generic.auto._
 import io.circe.syntax._
-import models.bff.outofgame.MenuGame
+import models.bff.outofgame.{MenuGame, MenuGameWithPlayers}
 import models.common.PasswordWrapper
 import models.syntax.Validated
+import models.users.User
 import play.api.mvc.{AnyContent, Request, Results}
 import services.config.Configuration
 import services.crypto.Crypto
@@ -18,7 +19,7 @@ import utils.playzio.HasRequest
 import utils.ziohelpers.fieldsValidateOrFail
 import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeper
 import zio.clock.Clock
-import zio.{Has, ZIO}
+import zio.{Has, UIO, ZIO}
 
 object MenuGameDAO { //} extends Results {
 
@@ -57,5 +58,24 @@ object MenuGameDAO { //} extends Results {
       maybeSubmittedPassword = sessionRequest.body.submittedPassword
       _ <- addUserToGame(user, gameId, maybeSubmittedPassword)
     } yield ()).refineOrDie(ErrorADT.onlyErrorADT)
+
+  def amIInGame(
+      gameId: String
+  ): ZIO[GameTable with Clock with Configuration with Has[HasRequest[Request, AnyContent]], ErrorADT, Int] =
+    partOfGame[AnyContent](gameId).refineOrDie(ErrorADT.onlyErrorADT) *> UIO(0)
+
+  def amIAmPlayingSomewhere
+      : ZIO[GameTable with Clock with Configuration with Has[HasRequest[Request, AnyContent]], ErrorADT, Option[
+        String
+      ]] =
+    (for {
+      sessionRequest <- authenticated[AnyContent]
+      maybeGameId <- userAlreadyPlaying(sessionRequest.user.userId)
+    } yield maybeGameId).refineOrDie(ErrorADT.onlyErrorADT)
+
+  def gameInfo(
+      gameId: String
+  ): ZIO[GameTable with Clock with Configuration with Has[HasRequest[Request, AnyContent]], ErrorADT, MenuGameWithPlayers] =
+    partOfGame[AnyContent](gameId).refineOrDie(ErrorADT.onlyErrorADT).map(_.gameInfo)
 
 }

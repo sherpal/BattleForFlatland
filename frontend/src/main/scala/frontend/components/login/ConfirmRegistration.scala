@@ -15,7 +15,7 @@ import utils.laminarzio.Implicits._
 final class ConfirmRegistration private (registrationKey: String) extends Component[html.Div] {
 
   val $confirmRegistration: EventStream[Either[ErrorADT, Int]] =
-    EventStream.fromZIOEffect(confirmRegistrationCall(registrationKey).provideLayer(FrontendHttpClient.live))
+    EventStream.fromZIOEffect(confirmRegistrationCall(registrationKey).provideLayer(FHttpClient.live))
 
   val $confirmSuccess: EventStream[Int]      = $confirmRegistration.collect { case Right(code) => code }
   val $confirmFailure: EventStream[ErrorADT] = $confirmRegistration.collect { case Left(error) => error }

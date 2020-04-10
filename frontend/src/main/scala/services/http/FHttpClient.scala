@@ -12,7 +12,7 @@ import zio._
 
 import scala.concurrent.Future
 
-object FrontendHttpClient {
+object FHttpClient {
 
   val live: ZLayer[Any, Nothing, HttpClient] = ZLayer.succeed(new Service {
     implicit def bodySerializer[A](implicit aEncoder: Encoder[A]): A => BasicRequestBody =

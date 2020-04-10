@@ -14,7 +14,7 @@ import models.validators.FieldsValidator
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Form
 import programs.frontend.login._
-import services.http.FrontendHttpClient
+import services.http.FHttpClient
 import services.routing._
 import utils.ziohelpers._
 import zio.{UIO, ZIO}
@@ -65,7 +65,7 @@ final class RegisterForm extends Component[html.Form] with SimpleForm[NewUser, E
 
   val program: ZIO[NewUser, Nothing, Either[ErrorADT, Int]] = (for {
     newUser <- ZIO.environment[NewUser]
-    statusCode <- register(newUser, validator).provideLayer(FrontendHttpClient.live)
+    statusCode <- register(newUser, validator).provideLayer(FHttpClient.live)
     // this should never fail as it should fail before
     _ <- unsuccessfulStatusCode(statusCode)
     _ <- moveTo(RouteDefinitions.postRegisterRoute)(newUser.name).provideLayer(FRouting.live)

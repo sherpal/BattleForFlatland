@@ -59,8 +59,9 @@ object GameTable {
 
     /**
       * Returns whether the player with the given id is already linked to a game.
+      * If it is, returns the game id wrapped in some. If not, returns None.
       */
-    protected def userAlreadyPlaying(userId: String): Task[Boolean]
+    def userAlreadyPlaying(userId: String): Task[Option[String]]
 
     /**
       * Returns the list of users in the game with that id.
@@ -97,7 +98,7 @@ object GameTable {
         alreadyExists <- alreadyExistsFiber.join
         _ <- failIfWith(alreadyExists, GameExists(gameName))
         userPlaying <- userPlayingFiber.join
-        _ <- failIfWith(userPlaying, UserAlreadyPlaying(creatorName))
+        _ <- failIfWith(userPlaying.isDefined, UserAlreadyPlaying(creatorName))
         dbGame = DBMenuGame(id, gameName, hashed, creatorId, now)
         _ <- newDBGame(dbGame)
       } yield id
@@ -115,7 +116,7 @@ object GameTable {
       for {
         maybeGameFiber <- selectGameById(gameId).fork
         userAlreadyThere <- userAlreadyPlaying(user.userId)
-        _ <- failIfWith(userAlreadyThere, UserAlreadyPlaying(user.userName))
+        _ <- failIfWith(userAlreadyThere.isDefined, UserAlreadyPlaying(user.userName))
         maybeGame <- maybeGameFiber.join
         game <- getOrFail(maybeGame, GameDoesNotExist(gameId))
         passwordIsValid <- checkPasswordIfRequired(maybePassword, game.maybeHashedPassword.map(HashedPassword))

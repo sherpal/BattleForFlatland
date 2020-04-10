@@ -13,7 +13,7 @@ import models.bff.outofgame.MenuGame
 import models.validators.FieldsValidator
 import zio.UIO
 import programs.frontend.games._
-import services.http.FrontendHttpClient
+import services.http.FHttpClient
 import services.routing.FRouting
 import frontend.components.utils.tailwind._
 import frontend.components.utils.tailwind.forms._
@@ -24,7 +24,7 @@ final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.Clos
 ) extends LifecycleComponent[html.Element]
     with SimpleForm[PasswordWrapper, ErrorOr[Int]] {
 
-  private val layer = FrontendHttpClient.live ++ FRouting.live
+  private val layer = FHttpClient.live ++ FRouting.live
 
   val passwordChanger: Observer[String] = makeDataChanger(password => _.copy(submittedPassword = Some(password)))
 

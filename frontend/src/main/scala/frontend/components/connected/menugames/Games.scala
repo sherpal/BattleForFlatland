@@ -8,20 +8,20 @@ import models.bff.outofgame.MenuGame
 import org.scalajs.dom.raw.NonDocumentTypeChildNode
 import org.scalajs.dom.{html, raw}
 import programs.frontend.games
-import services.http.FrontendHttpClient
+import services.http.FHttpClient
+import services.routing.FRouting
 import utils.laminarzio.Implicits._
 import utils.websocket.JsonWebSocket
 
 final class Games private () extends LifecycleComponent[html.Div] {
 
-  final val layer = FrontendHttpClient.live ++ zio.clock.Clock.live
+  final val layer = FHttpClient.live ++ zio.clock.Clock.live ++ FRouting.live
 
   final val socket = new JsonWebSocket[String, String]("ws://localhost:8080/ws/game-menu-room")
 
   //final val $games = gamesOrErrors$.collect { case Right(gameList) => gameList }
 
   final val $games = socket.$in.filter(_.nonEmpty)
-    .map(println)
     .flatMap(
       _ => EventStream.fromZIOEffect[Either[ErrorADT, List[MenuGame]]](games.downloadGames.either.provideLayer(layer))
     )
@@ -41,7 +41,10 @@ final class Games private () extends LifecycleComponent[html.Div] {
     DisplayGames($games, showWriter)
   )
 
-  override def componentDidMount(): Unit = socket.open()(elem)
+  override def componentDidMount(): Unit = {
+    socket.open()(elem)
+    zio.Runtime.default.unsafeRunToFuture(games.amIAmPlayingSomewhere.provideLayer(layer))
+  }
 }
 
 object Games {

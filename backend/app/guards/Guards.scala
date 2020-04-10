@@ -3,17 +3,19 @@ package guards
 import java.util.concurrent.TimeUnit
 
 import errors.ErrorADT
-import errors.ErrorADT.{ForbiddenForYou, YouAreUnauthorized}
+import errors.ErrorADT.{ForbiddenForYou, YouAreNotInGame, YouAreUnauthorized}
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import models.users.Role.SuperUser
 import models.users.{Role, User}
-import play.api.mvc.{Request, Result}
+import play.api.mvc.{AnyContent, Request, Result}
 import services.config._
 import utils.playzio.HasRequest
 import utils.playzio.PlayZIO._
 import zio.clock.{currentTime, Clock}
 import zio.{Has, UIO, ZIO}
+import services.database.gametables._
+import utils.ziohelpers._
 
 object Guards {
 
@@ -73,5 +75,20 @@ object Guards {
 
   def onlySuperUser[R <: SessionRequest[_]](req: R): ZIO[Any, ErrorADT.YouAreUnauthorized.type, R] =
     authorizedAtLeast[R](req, SuperUser)
+
+  /**
+    * Returns whether the user is authenticated and is playing in the game with that id.
+    * Creates a [[guards.JoinedGameRequest]].
+    */
+  def partOfGame[A](gameId: String)(
+      implicit tagged: zio.Tagged[A]
+  ): ZIO[GameTable with Clock with Configuration with Has[HasRequest[Request, A]], Throwable, JoinedGameRequest[A]] =
+    for {
+      sessionRequest <- authenticated[A].refineOrDie(ErrorADT.onlyErrorADT)
+      user = sessionRequest.user
+      gameInfo <- gameWithPlayersById(gameId)
+      isInGame = gameInfo.players.exists(_.userId == user.userId)
+      _ <- failIfWith(!isInGame, YouAreNotInGame(gameId))
+    } yield JoinedGameRequest[A](gameInfo.onlyPlayerNames, user, sessionRequest.request)
 
 }

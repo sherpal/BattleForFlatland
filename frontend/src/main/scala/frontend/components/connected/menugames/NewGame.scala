@@ -14,7 +14,7 @@ import models.syntax.{Pointed, Validated}
 import models.validators.FieldsValidator
 import org.scalajs.dom.html
 import programs.frontend.games._
-import services.http.FrontendHttpClient
+import services.http.FHttpClient
 import zio.UIO
 import frontend.components.utils.tailwind.modal._
 import models.common.PasswordWrapper
@@ -30,7 +30,7 @@ final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
   val initialData: MenuGame                          = menuGamePointed.unit
   val validator: FieldsValidator[MenuGame, ErrorADT] = validated.fieldsValidator
 
-  private val layer = FrontendHttpClient.live ++ FRouting.live
+  private val layer = FHttpClient.live ++ FRouting.live
 
   val gameNameChanger: Observer[String] = makeDataChanger[String](gameName => _.copy(gameName = gameName))
   val passwordChanger: Observer[Option[String]] = makeDataChanger(

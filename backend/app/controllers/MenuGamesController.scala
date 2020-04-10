@@ -28,7 +28,6 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 final class MenuGamesController @Inject()(
-    errorHandler: HttpErrorHandler,
     protected val dbConfigProvider: DatabaseConfigProvider,
     cc: ControllerComponents,
     @Named(GameMenuRoomBookKeeper.name) bookKeeper: ActorRef
@@ -52,5 +51,17 @@ final class MenuGamesController @Inject()(
   def joinGame(gameId: String): Action[PasswordWrapper] = Action.zio(parse.json[PasswordWrapper])(
     (MenuGameDAO.addPlayerToGame(gameId) *> UIO(Ok)).provideButRequest[Request, PasswordWrapper](layer)
   )
+
+  def amIAmPlayingSomewhere: Action[AnyContent] = Action.zio {
+    MenuGameDAO.amIAmPlayingSomewhere.map(Ok(_)).provideButRequest[Request, AnyContent](layer)
+  }
+
+  def amIInGame(gameId: String): Action[AnyContent] = Action.zio {
+    (MenuGameDAO.amIInGame(gameId) *> UIO(Ok)).provideButRequest[Request, AnyContent](layer)
+  }
+
+  def gameInfo(gameId: String): Action[AnyContent] = Action.zio {
+    MenuGameDAO.gameInfo(gameId).map(Ok(_)).provideButRequest[Request, AnyContent](layer)
+  }
 
 }

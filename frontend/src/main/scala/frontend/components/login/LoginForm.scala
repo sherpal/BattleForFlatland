@@ -13,7 +13,7 @@ import models.validators.FieldsValidator
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Form
 import programs.frontend.login.login
-import services.http.FrontendHttpClient
+import services.http.FHttpClient
 import services.routing._
 import utils.ziohelpers._
 import zio.{UIO, URIO, ZIO}
@@ -28,7 +28,7 @@ final class LoginForm private () extends Component[html.Form] with SimpleForm[Lo
 
   val program: URIO[LoginUser, Either[ErrorADT, Int]] = (for {
     loginUser <- ZIO.environment[LoginUser]
-    statusCode <- login(loginUser).provideLayer(FrontendHttpClient.live)
+    statusCode <- login(loginUser).provideLayer(FHttpClient.live)
     // should never fail as it should fail before.
     _ <- unsuccessfulStatusCode(statusCode)
     _ <- moveTo(RouteDefinitions.homeRoute).provideLayer(FRouting.live)
