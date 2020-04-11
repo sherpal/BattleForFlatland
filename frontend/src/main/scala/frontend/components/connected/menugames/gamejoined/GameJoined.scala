@@ -32,7 +32,9 @@ final class GameJoined private (gameId: String) extends LifecycleComponent[html.
       s"You've joined game $gameId."
     ),
     pre(
-      child.text <-- socket.$in.map(x => new js.Date().getTime.toString -> x.asJson.spaces2).map(_.toString)
+      child.text <-- socket.$in.filterNot(_ == WebSocketProtocol.HeartBeat)
+        .map(x => new js.Date().getTime.toString -> x.asJson.spaces2)
+        .map(_.toString)
     ),
     pre(
       child.text <-- $gameInfo.map(_.asJson.spaces2)
