@@ -65,7 +65,7 @@ GET     /api/bff/game-info              controllers.MenuGamesController.gameInfo
 
 GET   /ws/test                      controllers.WebSocketController.socketTest
 GET   /ws/game-menu-room            controllers.WebSocketController.gameMenuRoom
-GET   /ws/bff/game-anti-chamber     controllers.WebSocketController.gameAntiChamber(gameId)
+GET   /ws/bff/game-anti-chamber     controllers.GameAntiChamberController.gameAntiChamber(gameId)
 
 ### NoDocs ###
 GET   /docs/swagger-ui/*file        controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)

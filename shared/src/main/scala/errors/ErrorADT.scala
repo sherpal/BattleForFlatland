@@ -72,7 +72,7 @@ object ErrorADT {
     def httpErrorType: HTTPResultType = BadRequest
   }
 
-  sealed trait MenuGameError extends DatabaseError
+  sealed trait MenuGameError extends BackendError
   case class InconsistentMenuGameInDB(gameId: String, gameName: String) extends MenuGameError {
     def httpErrorType: HTTPResultType = Internal
   }
@@ -93,6 +93,11 @@ object ErrorADT {
   }
   case class YouAreNotInGame(gameId: String) extends MenuGameError {
     def httpErrorType: HTTPResultType = Forbidden
+  }
+
+  sealed trait GameAntiChamberError extends BackendError
+  case class GameHasBeenCancelled(gameId: String) extends GameAntiChamberError {
+    def httpErrorType: HTTPResultType = BadRequest
   }
 
   sealed trait AuthenticationError extends ErrorADT

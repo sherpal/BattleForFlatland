@@ -94,4 +94,17 @@ object Guards {
       _ <- failIfWith(!isInGame, YouAreNotInGame(gameId))
     } yield JoinedGameRequest[A](gameInfo.onlyPlayerNames, user, sessionRequest.request)
 
+  /**
+    * Returns whether the user is authenticated, is playing in the game with that id and is its creator.
+    * Creates a [[guards.JoinedGameRequest]] when it is the case, bail with [[errors.ErrorADT.YouAreUnauthorized]]
+    * otherwise)
+    */
+  def headOfGame[A](gameId: String)(
+      implicit tagged: zio.Tagged[A]
+  ): ZIO[GameTable with Clock with Configuration with Has[HasRequest[Request, A]], Throwable, JoinedGameRequest[A]] =
+    for {
+      joinedGameRequest <- partOfGame[A](gameId)
+      _ <- failIfWith(!joinedGameRequest.isGameHead, ErrorADT.YouAreUnauthorized)
+    } yield joinedGameRequest
+
 }

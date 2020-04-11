@@ -7,7 +7,7 @@ sealed trait WebSocketProtocol
 
 object WebSocketProtocol {
 
-  case object PlayerJoined extends WebSocketProtocol
+  case object GameStatusUpdated extends WebSocketProtocol
   case object GameCancelled extends WebSocketProtocol
   case object HeartBeat extends WebSocketProtocol
 

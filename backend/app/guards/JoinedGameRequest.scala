@@ -8,4 +8,8 @@ final case class JoinedGameRequest[A](
     gameInfo: MenuGameWithPlayers,
     user: User,
     request: Request[A]
-) extends WrappedRequest[A](request)
+) extends WrappedRequest[A](request) {
+
+  def isGameHead: Boolean = gameInfo.game.gameCreator.userId == user.userId
+
+}

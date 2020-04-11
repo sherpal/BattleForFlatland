@@ -2,6 +2,7 @@ package websocketkeepers.gameantichamber
 
 import akka.actor.{Actor, ActorRef, Props, Terminated}
 import javax.inject.Singleton
+import models.bff.gameantichamber.WebSocketProtocol
 
 import scala.concurrent.duration._
 
@@ -27,61 +28,82 @@ final class JoinedGameDispatcher extends Actor {
     * When a child die, if it still had pending messages, we re-create a new one and we flush the set.
     *
     */
-  def receiver(gameActors: Map[String, (ActorRef, Set[GameAntiChamber.PlayerConnected], Boolean)]): Actor.Receive = {
+  def receiver(gameActors: Map[String, GameAntiChamberInfo]): Actor.Receive = {
     case SendHeartBeat =>
-      gameActors.values.map(_._1).foreach(_ ! SendHeartBeat) // keeping connections alive
+      gameActors.values.map(_.ref).foreach(_ ! SendHeartBeat) // keeping connections alive
     case NewClient(gameId, userId) => // a new web socket client arrives
       gameActors.get(gameId) match {
-        case Some(ref) if !ref._3 => // this game is already taken care of, and not waiting, we notify the actor
-          ref._1 ! GameAntiChamber.PlayerConnected(sender, userId)
-        case Some(ref) if ref._3 => // this game already exists, but waiting, we stack the message
+        case Some(info) if info.gameIsCancelling => // game already cancelling, we directly notify the client
+          sender ! WebSocketProtocol.GameCancelled
+        case Some(info)
+            if !info.isClosing => // this game is already taken care of, and not closing, we notify the actor
+          info.ref ! GameAntiChamber.PlayerConnected(sender, userId)
+        case Some(info) if info.isClosing => // this game already exists, but closing, we stack the message
           context.become(
-            receiver(gameActors + (gameId -> ref.copy(_2 = ref._2 + GameAntiChamber.PlayerConnected(sender, userId))))
+            receiver(gameActors + (gameId -> info.stackMessage(GameAntiChamber.PlayerConnected(sender, userId))))
           )
         case None => // this game does not exist, we create it and start over
           context.become(
             receiver(
-              gameActors + (gameId -> (context.watch(context.actorOf(GameAntiChamber.props(gameId))), Set(), false))
+              gameActors + (gameId -> GameAntiChamberInfo(
+                gameId,
+                context.watch(context.actorOf(GameAntiChamber.props(gameId)))
+              ))
             )
           )
           self forward NewClient(gameId, userId)
       }
-    case GameAntiChamber.IAmEmpty => // a child has no more connection. We tell it to close and put it in waiting mode
+    case GameAntiChamber.IAmEmpty => // a child has no more connection. We tell it to close and put it in closing mode
       sender ! GameAntiChamber.YouCanClose
-      gameActors.find(_._2._1 == sender).foreach {
-        case (gameId, (ref, stackedMessage, _)) =>
+      gameActors.find(_._2.ref == sender).foreach {
+        case (gameId, gameInfo) =>
           context.become(
-            receiver(gameActors + (gameId -> (ref, stackedMessage, true)))
+            receiver(gameActors + (gameId -> gameInfo.closingMode))
           )
       }
     case GameAntiChamber.DidNotClose =>
       // the child did not close because by the time it received the YouCanClose message,
       // it actually received other PlayerConnected Message.
-      // We send it all the message that we stacked until then and clear the stack, putting its status
-      // as non waiting again.
-      gameActors.find(_._2._1 == sender).foreach {
-        case (gameId, (_, stackedMessage, _)) =>
-          stackedMessage.foreach(sender ! _)
+      // We send it all the messages that we stacked until then and clear the stack, putting its status
+      // as open.
+      gameActors.find(_._2.ref == sender).foreach {
+        case (gameId, gameInfo) =>
+          gameInfo.stackedPlayerConnected.foreach(sender ! _)
           context.become(
             receiver(
-              gameActors + (gameId -> (sender, Set(), false))
+              gameActors + (gameId -> gameInfo.clearStack.openMode)
             )
           )
+      }
+    case GameAntiChamber.CancelGame =>
+      // the game has been cancelled. We notify the sender that it can close all connections then die, and we put it
+      // into cancel mode, and we notify all the stacked messages that the game has been cancelled
+      gameActors.find(_._2.ref == sender).foreach {
+        case (gameId, gameInfo) =>
+          gameInfo.stackedPlayerConnected.map(_.ref).foreach(_ ! WebSocketProtocol.GameCancelled)
+          sender ! GameAntiChamber.YouCanCleanUpCancel
+          context.become(receiver(gameActors + (gameId -> gameInfo.cancelling.clearStack)))
+
       }
     case Terminated(child) =>
       // The child actually was killed. If we still have stacked messages, we create a new one and send it all the
       // stacked messages.
-      gameActors.find(_._2._1 == child).foreach {
-        case (gameId, (_, stackedMessage, _)) =>
-          if (stackedMessage.isEmpty) {
+      gameActors.find(_._2.ref == child).foreach {
+        case (gameId, gameInfo) =>
+          if (gameInfo.stackedPlayerConnected.isEmpty) {
             context.become(receiver(gameActors - gameId))
           } else {
             val newChild = context.watch(context.actorOf(GameAntiChamber.props(gameId)))
-            stackedMessage.foreach(newChild ! _)
-            context.become(receiver(gameActors + (gameId -> (newChild, Set(), false))))
+            gameInfo.stackedPlayerConnected.foreach(newChild ! _)
+            context.become(receiver(gameActors + (gameId -> GameAntiChamberInfo(gameId, newChild))))
           }
       }
 
+    case GameAntiChamberManagerFor(gameId) =>
+      sender ! HereIsMaybeTheAntiChamberManagerFor(
+        gameId,
+        gameActors.get(gameId).filterNot(_.gameIsCancelling).map(_.ref)
+      )
   }
 
   def receive: Receive = receiver(Map())
@@ -92,6 +114,26 @@ object JoinedGameDispatcher {
 
   case object SendHeartBeat
   case class NewClient(gameId: String, userId: String)
+  case class GameAntiChamberManagerFor(gameId: String)
+  case class HereIsMaybeTheAntiChamberManagerFor(gameId: String, ref: Option[ActorRef])
+
+  private case class GameAntiChamberInfo(
+      gameId: String,
+      ref: ActorRef,
+      stackedPlayerConnected: Set[GameAntiChamber.PlayerConnected] = Set(),
+      isClosing: Boolean                                           = false,
+      gameIsCancelling: Boolean                                    = false
+  ) {
+    def stackMessage(playerConnected: GameAntiChamber.PlayerConnected): GameAntiChamberInfo =
+      copy(stackedPlayerConnected = stackedPlayerConnected + playerConnected)
+
+    def closingMode: GameAntiChamberInfo = copy(isClosing = true)
+    def openMode: GameAntiChamberInfo    = copy(isClosing = false)
+
+    def cancelling: GameAntiChamberInfo = copy(gameIsCancelling = true)
+
+    def clearStack: GameAntiChamberInfo = copy(stackedPlayerConnected = Set())
+  }
 
   def props: Props = Props(new JoinedGameDispatcher)
 
