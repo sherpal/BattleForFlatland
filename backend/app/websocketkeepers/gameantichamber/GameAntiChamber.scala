@@ -1,10 +1,10 @@
 package websocketkeepers.gameantichamber
 
 import java.time.{LocalDateTime, ZoneOffset}
-import java.time.temporal.{ChronoUnit, TemporalUnit}
 
+import akka.actor.{Actor, ActorRef, Props, Terminated}
 import akka.pattern.pipe
-import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill, Props, Terminated}
+import dao.GameAntiChamberDAO
 import models.bff.gameantichamber.WebSocketProtocol
 import models.bff.gameantichamber.WebSocketProtocol.GameStatusUpdated
 import services.actors.ActorProvider
@@ -14,7 +14,6 @@ import services.database.gametables._
 import services.logging._
 import zio.clock.Clock
 import zio.{Has, ZLayer}
-import dao.GameAntiChamberDAO
 
 import scala.concurrent.duration._
 
@@ -26,7 +25,6 @@ final class GameAntiChamber(
 ) extends Actor {
 
   import GameAntiChamber._
-
   import context.dispatcher
 
   def now: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC)

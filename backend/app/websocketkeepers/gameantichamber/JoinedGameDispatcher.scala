@@ -1,6 +1,6 @@
 package websocketkeepers.gameantichamber
 
-import akka.actor.{Actor, ActorRef, Props, Terminated}
+import akka.actor.{Actor, ActorRef, Terminated}
 import javax.inject.{Inject, Singleton}
 import models.bff.gameantichamber.WebSocketProtocol
 import play.api.Logger
@@ -12,8 +12,8 @@ import services.database.db.Database.dbProvider
 import services.database.gametables.GameTable
 import services.logging.{Logging, PlayLogging}
 import slick.jdbc.JdbcProfile
-import zio.{Has, ZLayer}
 import zio.clock.Clock
+import zio.{Has, ZLayer}
 
 import scala.concurrent.duration._
 

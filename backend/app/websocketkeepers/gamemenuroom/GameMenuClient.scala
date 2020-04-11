@@ -1,6 +1,6 @@
 package websocketkeepers.gamemenuroom
 
-import akka.actor.{Actor, ActorRef, PoisonPill, Props, Terminated}
+import akka.actor.{Actor, ActorRef, Props, Terminated}
 
 import scala.util.Try
 

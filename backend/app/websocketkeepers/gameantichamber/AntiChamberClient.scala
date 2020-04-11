@@ -1,6 +1,6 @@
 package websocketkeepers.gameantichamber
 
-import akka.actor.{Actor, ActorRef, PoisonPill, Props, Terminated}
+import akka.actor.{Actor, ActorRef, Props, Terminated}
 import models.bff.gameantichamber.WebSocketProtocol
 import models.users.User
 

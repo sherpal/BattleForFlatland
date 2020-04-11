@@ -5,11 +5,11 @@ import errors.ErrorADT.YouAreNotInGame
 import models.users.User
 import play.api.mvc.RequestHeader
 import services.config.Configuration
+import services.database.gametables._
 import utils.playzio.PlayZIO._
+import utils.ziohelpers.failIfWith
 import zio.clock.Clock
 import zio.{Has, ZIO}
-import services.database.gametables._
-import utils.ziohelpers.failIfWith
 
 object WebSocketGuards {
 
