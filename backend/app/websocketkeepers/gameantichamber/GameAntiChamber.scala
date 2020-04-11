@@ -86,6 +86,7 @@ final class GameAntiChamber(
       case CancelGame =>
         log.debug("Already cancelling")
       case SeenAlive(userId) =>
+        logInfo(s"SeenAlive: $userId")
         players.values.find(_.userId == userId).foreach { info =>
           context.become(
             receiver(
@@ -102,12 +103,20 @@ final class GameAntiChamber(
                 gameId,
                 players.values.map { case ClientInfo(_, userId, lastTimeSeenAlive) => userId -> lastTimeSeenAlive }.toMap
               )
-              .map(if (_) CancelGame else akka.Done)
+              .map {
+                case (creatorWasKicked, peopleWereKicked) =>
+                  if (creatorWasKicked) CancelGame
+                  else if (peopleWereKicked) PeopleWereKicked
+                  else akka.Done
+              }
               .provideLayer(layer)
           )
           .pipeTo(self)
       case akka.Done =>
-        logInfo("People may have been killed.")
+        logInfo("Nobody was kicked")
+      case PeopleWereKicked =>
+        logInfo("People were kicked, notifying remaining ones.")
+        clients.foreach(_ ! GameStatusUpdated)
 
       case CheckIfGameStillThere =>
         zio.Runtime.default
@@ -134,6 +143,7 @@ object GameAntiChamber {
   case object Hello extends GameAntiChamberMessage // notifying an AntiChamberClient that I take care of the game
   case object CancelGame extends GameAntiChamberMessage
   case object CheckIfGameStillThere extends GameAntiChamberMessage
+  case object PeopleWereKicked extends GameAntiChamberMessage
 
   /** Sent to this actor whenever a user pinged the server to say their are still connected. */
   case class SeenAlive(userId: String) extends GameAntiChamberMessage

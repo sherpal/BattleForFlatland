@@ -27,12 +27,8 @@ import scala.concurrent.duration._
 
 object GameAntiChamberDAO {
 
-  def cancelGame(gameId: String): ZIO[Logging with ActorProvider with GameTable with Clock with Configuration with Has[
-    HasRequest[Request, AnyContent]
-  ], Throwable, Unit] =
+  private def askGameAntiChamberManager(gameId: String) =
     for {
-      request <- Guards.headOfGame[AnyContent](gameId) // guarding
-      _ <- deleteGame(request.gameInfo.game.gameName)
       maybeJoinedGameDispatcher <- services.actors.ActorProvider.actorRef(JoinedGameDispatcher.name)
       joinedGameDispatcher <- getOrFail(
         maybeJoinedGameDispatcher,
@@ -45,14 +41,33 @@ object GameAntiChamberDAO {
         }
         .map(_.ref)
       gameAntiChamberManagerRef <- getOrFail(maybeGameAntiChamberManagerRef, GameHasBeenCancelled(gameId))
+    } yield gameAntiChamberManagerRef
+
+  def cancelGame(gameId: String): ZIO[Logging with ActorProvider with GameTable with Clock with Configuration with Has[
+    HasRequest[Request, AnyContent]
+  ], Throwable, Unit] =
+    for {
+      request <- Guards.headOfGame[AnyContent](gameId) // guarding
+      _ <- deleteGame(request.gameInfo.game.gameName)
+      gameAntiChamberManagerRef <- askGameAntiChamberManager(gameId)
       _ <- ZIO.effectTotal(gameAntiChamberManagerRef ! GameAntiChamber.CancelGame)
       _ <- log.info(s"Game $gameId has been cancelled.")
+    } yield ()
+
+  def iAmStillThere(gameId: String): ZIO[ActorProvider with GameTable with Clock with Configuration with Has[
+    HasRequest[Request, AnyContent]
+  ], Throwable, Unit] =
+    for {
+      request <- Guards.partOfGame[AnyContent](gameId) // guarding
+      user = request.user
+      gameAntiChamberManagerRef <- askGameAntiChamberManager(gameId)
+      _ <- ZIO.effectTotal(gameAntiChamberManagerRef ! GameAntiChamber.SeenAlive(user.userId))
     } yield ()
 
   def kickInactivePlayers(
       gameId: String,
       lastSeenAlive: Map[String, LocalDateTime]
-  ): ZIO[GameTable with Logging with Clock with Configuration, Throwable, Boolean] =
+  ): ZIO[GameTable with Logging with Clock with Configuration, Throwable, (Boolean, Boolean)] =
     for {
       idleTime <- timeBeforePlayersGetKickedInSeconds
       gameInfo <- gameWithPlayersById(gameId)
@@ -69,6 +84,6 @@ object GameAntiChamberDAO {
           removePlayerFromGame(user.userId, gameId)
         }
         .map(_.exists(identity))
-    } yield creatorWasRemoved
+    } yield (creatorWasRemoved, playersToKick.nonEmpty) // returning if the creator was removed and if people where kicked
 
 }

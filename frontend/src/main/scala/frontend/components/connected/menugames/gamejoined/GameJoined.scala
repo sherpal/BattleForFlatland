@@ -17,17 +17,24 @@ import services.routing.FRouting
 import utils.laminarzio.Implicits._
 import utils.websocket.JsonWebSocket
 import services.routing._
+import zio.clock.Clock
 import frontend.components.utils.tailwind._
+import scalajs.js.timers.{clearInterval, setInterval}
 
 import scala.scalajs.js
+import scala.concurrent.duration._
 
 final class GameJoined private (gameId: String) extends LifecycleComponent[html.Element] {
 
-  private val layer = FHttpClient.live ++ FRouting.live ++ FLogging.live
+  private val layer = FHttpClient.live ++ FRouting.live ++ FLogging.live ++ Clock.live
 
   private val socket = JsonWebSocket[WebSocketProtocol, WebSocketProtocol, String](gameJoinedWS, gameIdParam, gameId)
 
   private val fetchingGameInfo = fetchGameInfo(gameId).provideLayer(layer)
+
+  private val pokingHandle = setInterval(10.seconds) {
+    zio.Runtime.default.unsafeRunToFuture(pokingPresence(gameId).provideLayer(layer))
+  }
 
   val $gameInfo: EventStream[MenuGameWithPlayers] =
     socket.$in.collect { case WebSocketProtocol.GameStatusUpdated => () }
@@ -67,8 +74,10 @@ final class GameJoined private (gameId: String) extends LifecycleComponent[html.
   override def componentDidMount(): Unit =
     socket.open()(elem)
 
-  override def componentWillUnmount(): Unit =
+  override def componentWillUnmount(): Unit = {
     socket.close()
+    clearInterval(pokingHandle)
+  }
 
 }
 
