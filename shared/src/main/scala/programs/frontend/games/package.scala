@@ -66,4 +66,7 @@ package object games {
       )
       .option
 
+  def sendCancelGame(gameId: String): ZIO[HttpClient, ErrorADT, Int] =
+    postIgnore(cancelGame, gameIdParam)(gameId).refineOrDie(ErrorADT.onlyErrorADT)
+
 }

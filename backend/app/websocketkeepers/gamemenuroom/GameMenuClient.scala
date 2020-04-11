@@ -12,7 +12,7 @@ final class GameMenuClient(outerWorld: ActorRef, gameMenuRoomBookKeeper: ActorRe
 
   override def preStart(): Unit = {
     Try(context.watch(outerWorld)).getOrElse {
-      self ! PoisonPill // we can't even watch this actor, let's just die.
+      context.stop(self) // we can't even watch this actor, let's just die.
     }
 
     gameMenuRoomBookKeeper ! GameMenuRoomBookKeeper.NewClient
@@ -24,7 +24,7 @@ final class GameMenuClient(outerWorld: ActorRef, gameMenuRoomBookKeeper: ActorRe
     case GameMenuRoomBookKeeper.SendHeartBeat =>
       outerWorld ! """ "" """
     case Terminated(_) =>
-      self ! PoisonPill
+      context.stop(self)
   }
 
 }

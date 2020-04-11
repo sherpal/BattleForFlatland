@@ -8,6 +8,7 @@ import io.circe.syntax._
 import models.bff.Routes._
 import models.bff.gameantichamber.WebSocketProtocol
 import models.bff.outofgame.MenuGameWithPlayers
+import models.users.RouteDefinitions
 import org.scalajs.dom.html
 import programs.frontend.games._
 import services.http.FHttpClient
@@ -15,6 +16,8 @@ import services.logging.FLogging
 import services.routing.FRouting
 import utils.laminarzio.Implicits._
 import utils.websocket.JsonWebSocket
+import services.routing._
+import frontend.components.utils.tailwind._
 
 import scala.scalajs.js
 
@@ -24,10 +27,27 @@ final class GameJoined private (gameId: String) extends LifecycleComponent[html.
 
   private val socket = JsonWebSocket[WebSocketProtocol, WebSocketProtocol, String](gameJoinedWS, gameIdParam, gameId)
 
+  private val fetchingGameInfo = fetchGameInfo(gameId).provideLayer(layer)
+
   val $gameInfo: EventStream[MenuGameWithPlayers] =
-    EventStream.fromZIOEffect(fetchGameInfo(gameId).provideLayer(layer)).collect { case Some(info) => info }
+    socket.$in.collect { case WebSocketProtocol.GameStatusUpdated => () }
+      .debounce(1000)
+      .flatMap(_ => EventStream.fromZIOEffect(fetchingGameInfo))
+      .collect { case Some(info) => info }
+
+  val $firstGameInfo: EventStream[MenuGameWithPlayers] =
+    EventStream.fromZIOEffect(fetchingGameInfo).collect { case Some(info) => info }
+
+  val $gameCancelled: EventStream[Unit] = socket.$in.collect { case WebSocketProtocol.GameCancelled => () }
+    .flatMap(_ => EventStream.fromZIOEffect(moveTo(RouteDefinitions.homeRoute).provideLayer(layer)))
+
+  val cancelGameBus = new EventBus[Unit]
+  val $cancelGame: EventStream[Int] =
+    cancelGameBus.events.flatMap(_ => EventStream.fromZIOEffect(sendCancelGame(gameId).provideLayer(layer)))
 
   val elem: ReactiveHtmlElement[html.Element] = section(
+    className <-- $gameCancelled.mapTo(""), // kicking off stream
+    className <-- $cancelGame.mapTo(""), // kicking off stream
     p(
       s"You've joined game $gameId."
     ),
@@ -37,7 +57,10 @@ final class GameJoined private (gameId: String) extends LifecycleComponent[html.
         .map(_.toString)
     ),
     pre(
-      child.text <-- $gameInfo.map(_.asJson.spaces2)
+      child.text <-- EventStream.merge($gameInfo, $firstGameInfo).map(_.asJson.spaces2)
+    ),
+    div(
+      button(btn, primaryButton, "Cancel game", onClick.mapTo(()) --> cancelGameBus)
     )
   )
 

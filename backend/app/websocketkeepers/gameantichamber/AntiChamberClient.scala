@@ -16,7 +16,7 @@ final class AntiChamberClient(outerWorld: ActorRef, joinedGameDispatcher: ActorR
 
   override def preStart(): Unit = {
     Try(context.watch(outerWorld)).getOrElse {
-      self ! PoisonPill // we can't even watch this actor, let's just die.
+      context.stop(self) // we can't even watch this actor, let's just die.
     }
 
     joinedGameDispatcher ! JoinedGameDispatcher.NewClient(gameId, user.userId)
@@ -25,7 +25,8 @@ final class AntiChamberClient(outerWorld: ActorRef, joinedGameDispatcher: ActorR
   def receiver(antiChamberActor: ActorRef): Actor.Receive = {
     case WebSocketProtocol.GameCancelled =>
       // if the message is to cancel the game, we close the connection
-      outerWorld ! PoisonPill
+      outerWorld ! WebSocketProtocol.GameCancelled
+      context.stop(self)
     case m: WebSocketProtocol if sender == outerWorld =>
       // outside world has sent a message, we send it to the anti chamber manager on our behalf, so that it can check
       // if I have permission to do that
@@ -36,13 +37,17 @@ final class AntiChamberClient(outerWorld: ActorRef, joinedGameDispatcher: ActorR
     case Terminated(child) =>
       if (child == outerWorld) {
         // web socket connection is closed, we kill ourselves
-        self ! PoisonPill
+        context.stop(self)
       }
   }
 
   def receive: Actor.Receive = {
     case GameAntiChamber.Hello =>
       context.become(receiver(sender))
+    case Terminated(child) =>
+      if (child == outerWorld) {
+        context.stop(self)
+      }
     case m =>
       println("weird", m)
   }

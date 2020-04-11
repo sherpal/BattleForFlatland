@@ -1,8 +1,19 @@
 package websocketkeepers.gameantichamber
 
 import akka.actor.{Actor, ActorRef, Props, Terminated}
-import javax.inject.Singleton
+import javax.inject.{Inject, Singleton}
 import models.bff.gameantichamber.WebSocketProtocol
+import play.api.Logger
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import services.actors.ActorProvider
+import services.config.Configuration
+import services.crypto.Crypto
+import services.database.db.Database.dbProvider
+import services.database.gametables.GameTable
+import services.logging.{Logging, PlayLogging}
+import slick.jdbc.JdbcProfile
+import zio.{Has, ZLayer}
+import zio.clock.Clock
 
 import scala.concurrent.duration._
 
@@ -10,7 +21,17 @@ import scala.concurrent.duration._
   * The role of the [[JoinedGameDispatcher]] is to listen to WebSocket connections
   */
 @Singleton
-final class JoinedGameDispatcher extends Actor {
+final class JoinedGameDispatcher @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)
+    extends Actor
+    with HasDatabaseConfigProvider[JdbcProfile] {
+
+  lazy val logger: Logger = Logger("GameAntiChamberActorSystem")
+
+  val layer
+      : ZLayer[Any, Nothing, Clock with Configuration with GameTable with Crypto with Has[Logging.Service] with Has[
+        ActorProvider.Service
+      ]] = Clock.live ++ Configuration.live ++ (dbProvider(db) >>> GameTable.live) ++ Crypto.live ++
+    PlayLogging.live(logger) ++ ActorProvider.live(Map(JoinedGameDispatcher.name -> self))
 
   import context.dispatcher
   import websocketkeepers.gameantichamber.JoinedGameDispatcher._
@@ -47,7 +68,7 @@ final class JoinedGameDispatcher extends Actor {
             receiver(
               gameActors + (gameId -> GameAntiChamberInfo(
                 gameId,
-                context.watch(context.actorOf(GameAntiChamber.props(gameId)))
+                context.watch(context.actorOf(GameAntiChamber.props(gameId, layer)))
               ))
             )
           )
@@ -93,7 +114,7 @@ final class JoinedGameDispatcher extends Actor {
           if (gameInfo.stackedPlayerConnected.isEmpty) {
             context.become(receiver(gameActors - gameId))
           } else {
-            val newChild = context.watch(context.actorOf(GameAntiChamber.props(gameId)))
+            val newChild = context.watch(context.actorOf(GameAntiChamber.props(gameId, layer)))
             gameInfo.stackedPlayerConnected.foreach(newChild ! _)
             context.become(receiver(gameActors + (gameId -> GameAntiChamberInfo(gameId, newChild))))
           }
@@ -135,7 +156,7 @@ object JoinedGameDispatcher {
     def clearStack: GameAntiChamberInfo = copy(stackedPlayerConnected = Set())
   }
 
-  def props: Props = Props(new JoinedGameDispatcher)
+  //def props: Props = Props(new JoinedGameDispatcher)
 
   final val name = "joined-game-dispatcher"
 

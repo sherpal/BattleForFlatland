@@ -20,4 +20,7 @@ package object config {
   def sessionMaxAge: ZIO[Configuration, ReadingConfigError, Long] =
     ZIO.accessM(_.get[Configuration.Service].sessionMaxAge)
 
+  def timeBeforePlayersGetKickedInSeconds: ZIO[Configuration, ReadingConfigError, Long] =
+    ZIO.accessM(_.get[Configuration.Service].timeBeforePlayersGetKickedInSeconds)
+
 }

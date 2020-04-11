@@ -27,6 +27,9 @@ package object gametables {
   def gameExists(gameName: String): GameTableTask[Boolean] =
     ZIO.accessM(_.get[GameTable.Service].gameExists(gameName))
 
+  def gameWithIdExists(gameId: String): GameTableTask[Boolean] =
+    ZIO.accessM(_.get[GameTable.Service].gameWithIdExists(gameId))
+
   def selectGameByName(gameName: String): GameTableTask[Option[MenuGame]] =
     ZIO.accessM(_.get[GameTable.Service].selectGameByName(gameName))
 

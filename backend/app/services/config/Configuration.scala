@@ -14,6 +14,8 @@ object Configuration {
     def superUserMail: IO[ReadingConfigError, String]
 
     def sessionMaxAge: IO[ReadingConfigError, Long]
+
+    def timeBeforePlayersGetKickedInSeconds: IO[ReadingConfigError, Long]
   }
 
   val live: Layer[Nothing, Configuration] = ZLayer.succeed(
@@ -28,6 +30,9 @@ object Configuration {
       def superUserMail: IO[ReadingConfigError, String]     = load[String](|> >> "superUser" >> "mail")
 
       def sessionMaxAge: IO[ReadingConfigError, Long] = load[Long](|> >> "play" >> "http" >> "session" >> "maxAge")
+
+      def timeBeforePlayersGetKickedInSeconds: IO[ReadingConfigError, Long] =
+        load[Long](|> >> "bff" >> "timeBeforePlayersGetKickedInSeconds")
     }
   )
 
