@@ -5,7 +5,8 @@ import com.raquo.laminar.nodes.ReactiveHtmlElement
 import errors.ErrorADT
 import frontend.components.Component
 import frontend.components.connected.fixed.DashboardHeader
-import frontend.components.connected.menugames.{GameJoined, Games}
+import frontend.components.connected.menugames.Games
+import frontend.components.connected.menugames.gamejoined.GameJoined
 import frontend.router.{Route, Routes}
 import models.bff.Routes._
 import models.users.Role.SuperUser

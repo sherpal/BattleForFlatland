@@ -1,10 +1,11 @@
-package frontend.components.connected.menugames
+package frontend.components.connected.menugames.gamejoined
 
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import frontend.components.{Component, LifecycleComponent}
+import frontend.components.LifecycleComponent
 import io.circe.generic.auto._
 import io.circe.syntax._
+import models.bff.Routes._
 import models.bff.gameantichamber.WebSocketProtocol
 import models.bff.outofgame.MenuGameWithPlayers
 import org.scalajs.dom.html
@@ -14,7 +15,6 @@ import services.logging.FLogging
 import services.routing.FRouting
 import utils.laminarzio.Implicits._
 import utils.websocket.JsonWebSocket
-import models.bff.Routes._
 
 import scala.scalajs.js
 
