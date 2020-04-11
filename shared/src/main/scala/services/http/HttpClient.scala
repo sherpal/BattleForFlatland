@@ -2,8 +2,8 @@ package services.http
 
 import io.circe.{Decoder, Encoder}
 import urldsl.errors.DummyError
-import urldsl.language.{PathSegment, QueryParameters}
 import urldsl.language.QueryParameters.dummyErrorImpl.{empty => emptyParam}
+import urldsl.language.{PathSegment, QueryParameters}
 import zio._
 
 /**

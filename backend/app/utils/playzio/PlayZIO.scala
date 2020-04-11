@@ -5,7 +5,7 @@ import errors.ErrorADT
 import play.api.mvc.WebSocket.MessageFlowTransformer
 import play.api.mvc._
 import utils.playzio.ErrorsTransformer._
-import zio.{Has, IO, Runtime, Tagged, ZIO, ZLayer}
+import zio.{Has, Runtime, Tagged, ZIO, ZLayer}
 
 object PlayZIO {
 

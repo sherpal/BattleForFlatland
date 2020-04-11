@@ -11,9 +11,8 @@ import scala.concurrent.duration._
 @Singleton
 final class JoinedGameDispatcher extends Actor {
 
-  import websocketkeepers.gameantichamber.JoinedGameDispatcher._
-
   import context.dispatcher
+  import websocketkeepers.gameantichamber.JoinedGameDispatcher._
 
   override def preStart(): Unit =
     context.system.scheduler.scheduleAtFixedRate(5.seconds, 5.seconds, self, SendHeartBeat)

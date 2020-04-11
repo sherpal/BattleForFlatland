@@ -7,10 +7,10 @@ import frontend.components.login.OutsideConnContainer
 import frontend.components.test.Test
 import frontend.components.utils.Redirect
 import frontend.router.{Route, Routes}
+import models.bff.Routes._
 import models.users.RouteDefinitions._
 import org.scalajs.dom
 import org.scalajs.dom.html.Div
-import models.bff.Routes._
 
 final class App private () extends Component[dom.html.Div] {
 

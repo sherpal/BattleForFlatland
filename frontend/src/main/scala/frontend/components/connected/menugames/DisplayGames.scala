@@ -2,10 +2,10 @@ package frontend.components.connected.menugames
 
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import frontend.components.{Component, ModalWindow}
 import frontend.components.picto.SmallKey
 import frontend.components.utils.tailwind._
 import frontend.components.utils.tailwind.components.Table._
+import frontend.components.{Component, ModalWindow}
 import models.bff.outofgame.MenuGame
 import org.scalajs.dom.html
 import org.scalajs.dom.html.TableRow

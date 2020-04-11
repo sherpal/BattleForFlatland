@@ -2,7 +2,7 @@ package services.config
 
 import errors.ErrorADT.ReadingConfigError
 import services.config.ConfigRequester.{|>, FromConfig}
-import zio.{IO, Layer, Task, ZIO, ZLayer}
+import zio.{IO, Layer, ZIO, ZLayer}
 
 object Configuration {
 

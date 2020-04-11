@@ -8,17 +8,17 @@ import frontend.components.forms.SimpleForm
 import frontend.components.utils.ToggleButton
 import frontend.components.utils.tailwind._
 import frontend.components.utils.tailwind.forms._
+import frontend.components.utils.tailwind.modal._
 import frontend.components.{LifecycleComponent, ModalWindow}
 import models.bff.outofgame.MenuGame
+import models.common.PasswordWrapper
 import models.syntax.{Pointed, Validated}
 import models.validators.FieldsValidator
 import org.scalajs.dom.html
 import programs.frontend.games._
 import services.http.FHttpClient
-import zio.UIO
-import frontend.components.utils.tailwind.modal._
-import models.common.PasswordWrapper
 import services.routing.FRouting
+import zio.UIO
 
 final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
     implicit

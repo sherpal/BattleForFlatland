@@ -5,17 +5,16 @@ import io.circe.generic.auto._
 import models.bff.Routes._
 import models.bff.outofgame.{MenuGame, MenuGameWithPlayers}
 import models.common.PasswordWrapper
-import models.syntax.Pointed
 import models.users.RouteDefinitions._
 import services.http._
-import zio.{UIO, _}
+import services.logging._
+import services.routing._
+import utils.ziohelpers.unsuccessfulStatusCode
 import zio.clock._
 import zio.stream._
-import services.routing._
-import services.logging._
+import zio.{UIO, _}
 
 import scala.concurrent.duration._
-import utils.ziohelpers.unsuccessfulStatusCode
 
 package object games {
 

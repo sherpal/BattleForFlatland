@@ -5,7 +5,6 @@ import errors.ErrorADT.{
   GameExists,
   InconsistentMenuGameInDB,
   IncorrectGamePassword,
-  MissingPassword,
   UserAlreadyPlaying
 }
 import models.bff.outofgame.{DBMenuGame, MenuGame, MenuGameWithPlayers}

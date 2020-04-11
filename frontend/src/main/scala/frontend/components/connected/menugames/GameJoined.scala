@@ -1,17 +1,17 @@
 package frontend.components.connected.menugames
 
+import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
-import org.scalajs.dom.html
-import com.raquo.laminar.api.L._
+import io.circe.generic.auto._
+import io.circe.syntax._
 import models.bff.outofgame.MenuGameWithPlayers
+import org.scalajs.dom.html
 import programs.frontend.games._
 import services.http.FHttpClient
 import services.logging.FLogging
 import services.routing.FRouting
 import utils.laminarzio.Implicits._
-import io.circe.syntax._
-import io.circe.generic.auto._
 
 final class GameJoined private (gameId: String) extends Component[html.Element] {
 

@@ -8,8 +8,8 @@ import models.bff.outofgame.MenuGame
 import models.common.PasswordWrapper
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import play.api.http.HttpErrorHandler
 import play.api.mvc._
+import services.actors.ActorProvider
 import services.config.Configuration
 import services.crypto.Crypto
 import services.database.db.Database.dbProvider
@@ -18,7 +18,6 @@ import services.logging.PlayLogging
 import slick.jdbc.JdbcProfile
 import utils.ReadsImplicits._
 import utils.WriteableImplicits._
-import services.actors.ActorProvider
 import utils.playzio.PlayZIO._
 import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeper
 import zio.UIO

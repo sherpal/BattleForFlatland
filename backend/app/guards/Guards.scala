@@ -8,14 +8,14 @@ import io.circe.generic.auto._
 import io.circe.parser.decode
 import models.users.Role.SuperUser
 import models.users.{Role, User}
-import play.api.mvc.{AnyContent, Request, RequestHeader, Result}
+import play.api.mvc.{Request, RequestHeader, Result}
 import services.config._
+import services.database.gametables._
 import utils.playzio.HasRequest
 import utils.playzio.PlayZIO._
+import utils.ziohelpers._
 import zio.clock.{currentTime, Clock}
 import zio.{Has, UIO, ZIO}
-import services.database.gametables._
-import utils.ziohelpers._
 
 object Guards {
 

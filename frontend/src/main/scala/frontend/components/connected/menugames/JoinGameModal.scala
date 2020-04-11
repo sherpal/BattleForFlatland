@@ -1,23 +1,23 @@
 package frontend.components.connected.menugames
 
+import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
+import errors.ErrorADT
 import errors.ErrorADT.{ErrorOr, IncorrectGamePassword}
 import frontend.components.forms.SimpleForm
-import frontend.components.{LifecycleComponent, ModalWindow}
-import models.common.PasswordWrapper
-import models.syntax.Pointed
-import org.scalajs.dom.html
-import com.raquo.laminar.api.L._
-import errors.ErrorADT
-import models.bff.outofgame.MenuGame
-import models.validators.FieldsValidator
-import zio.UIO
-import programs.frontend.games._
-import services.http.FHttpClient
-import services.routing.FRouting
 import frontend.components.utils.tailwind._
 import frontend.components.utils.tailwind.forms._
 import frontend.components.utils.tailwind.modal._
+import frontend.components.{LifecycleComponent, ModalWindow}
+import models.bff.outofgame.MenuGame
+import models.common.PasswordWrapper
+import models.syntax.Pointed
+import models.validators.FieldsValidator
+import org.scalajs.dom.html
+import programs.frontend.games._
+import services.http.FHttpClient
+import services.routing.FRouting
+import zio.UIO
 
 final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.CloseWriter)(
     implicit pwPointed: Pointed[PasswordWrapper]

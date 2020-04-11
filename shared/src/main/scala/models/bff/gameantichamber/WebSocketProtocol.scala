@@ -1,7 +1,7 @@
 package models.bff.gameantichamber
 
 import io.circe.generic.extras.Configuration
-import io.circe.{Decoder, Encoder, Json}
+import io.circe.{Decoder, Encoder}
 
 sealed trait WebSocketProtocol
 
