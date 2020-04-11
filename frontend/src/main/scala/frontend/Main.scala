@@ -11,20 +11,14 @@ import scala.scalajs.js.annotation.{JSExportTopLevel, JSImport}
 @js.native
 object IndexCSS extends js.Object
 
-@JSImport("resources/bootstrap.css", JSImport.Default)
-@js.native
-object Flatly extends js.Object
-
 @JSImport("resources/tailwind-index.css", JSImport.Default)
 @js.native
 object Tailwind extends js.Object
 
 object Main {
 
-  //println("flatly", Flatly)
   println("css", IndexCSS)
   println("Tailwind", Tailwind)
-//  println("AppCSS", AppCSS)
 
   final val addPageTitle = ZIO.effectTotal {
     dom.document.title = globals.projectName
@@ -47,40 +41,37 @@ object Main {
     }
   )
 
-  final val emptyContainer = for {
-    container <- ZIO.environment[dom.Element]
-    _ <- ZIO.effect {
-      Option(dom.window.asInstanceOf[js.Dynamic].selectDynamic("__laminar_root"))
+  final val emptyContainer = ZIO.effect {
+    if (scala.scalajs.LinkingInfo.developmentMode) {
+      Option(dom.window.asInstanceOf[js.Dynamic].selectDynamic("__laminar_root_unmount"))
         .filter(x => !js.isUndefined(x))
-        .foreach { laminarRoot =>
-          println(laminarRoot)
-          laminarRoot.asInstanceOf[Root].unmount()
-        }
-
-      if (scala.scalajs.LinkingInfo.developmentMode) {
-        while (container.children.length > 0) {
-          container.removeChild(container.children(0))
-        }
-      }
+        .map(_.asInstanceOf[js.Function0[Unit]])
+        .foreach { _.apply() }
     }
-  } yield ()
+  }
 
   final val renderAppInContainer = for {
     container <- ZIO.environment[dom.Element]
     reactiveElement <- ZIO.effect(render(container, frontend.components.App()))
     _ <- ZIO.effect(render(container, frontend.components.utils.bootstrap.ModalWindow.modalContainer))
-    _ <- ZIO.effect(dom.window.asInstanceOf[js.Dynamic].__laminar_root = reactiveElement.asInstanceOf[js.Any])
+    unmountFunction <- UIO {
+      val unmount: js.Function0[js.Any] = () => {
+        println("Unmounting previous element...")
+        reactiveElement.unmount()
+      }
+
+      unmount
+    }
+    _ <- ZIO.effect(dom.window.asInstanceOf[js.Dynamic].__laminar_root_unmount = unmountFunction)
   } yield reactiveElement
 
   final val program = for {
     _ <- addPageTitle
     container <- createElement
-    _ <- emptyContainer.provide(container)
+    _ <- emptyContainer
     _ <- renderAppInContainer.provide(container)
-    //_ <- makeCSS
   } yield ()
   @JSExportTopLevel("main")
   def main(): Unit =
-    //program.unsafeRunSync()
     zio.Runtime.default.unsafeRun(program.orDie)
 }
