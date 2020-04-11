@@ -50,6 +50,13 @@ object Main {
   final val emptyContainer = for {
     container <- ZIO.environment[dom.Element]
     _ <- ZIO.effect {
+      Option(dom.window.asInstanceOf[js.Dynamic].selectDynamic("__laminar_root"))
+        .filter(x => !js.isUndefined(x))
+        .foreach { laminarRoot =>
+          println(laminarRoot)
+          laminarRoot.asInstanceOf[Root].unmount()
+        }
+
       if (scala.scalajs.LinkingInfo.developmentMode) {
         while (container.children.length > 0) {
           container.removeChild(container.children(0))
@@ -62,6 +69,7 @@ object Main {
     container <- ZIO.environment[dom.Element]
     reactiveElement <- ZIO.effect(render(container, frontend.components.App()))
     _ <- ZIO.effect(render(container, frontend.components.utils.bootstrap.ModalWindow.modalContainer))
+    _ <- ZIO.effect(dom.window.asInstanceOf[js.Dynamic].__laminar_root = reactiveElement.asInstanceOf[js.Any])
   } yield reactiveElement
 
   final val program = for {
