@@ -3,12 +3,12 @@ package guards
 import java.util.concurrent.TimeUnit
 
 import errors.ErrorADT
-import errors.ErrorADT.{ForbiddenForYou, YouAreNotInGame, YouAreUnauthorized}
+import errors.ErrorADT.{CirceDecodingError, ForbiddenForYou, YouAreNotInGame, YouAreUnauthorized}
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import models.users.Role.SuperUser
 import models.users.{Role, User}
-import play.api.mvc.{AnyContent, Request, Result}
+import play.api.mvc.{AnyContent, Request, RequestHeader, Result}
 import services.config._
 import utils.playzio.HasRequest
 import utils.playzio.PlayZIO._
@@ -28,16 +28,11 @@ object Guards {
   def applySession(result: Result, userJson: String, nowAsString: String): Result =
     result.withSession(Guards.userSessionKey -> userJson, Guards.lastTimestampKey -> nowAsString)
 
-  /**
-    * Returns the [[SessionRequest]] when the user is properly authenticated within the [[play.api.mvc.Request]]'s
-    * session.
-    * Fails with a [[errors.ErrorADT.YouAreUnauthorized]] if the request's session does not contain the proper info.
-    */
-  def authenticated[A](req: Request[A]): ZIO[Clock with Configuration, Throwable, SessionRequest[A]] =
+  def userFromRequestHeader(req: RequestHeader): ZIO[Clock with Configuration, ErrorADT, User] =
     for {
       maybeUserJson <- UIO(req.session.get(userSessionKey))
       lastTimeStampStr <- UIO(req.session.get(lastTimestampKey))
-      lastTimestamp <- ZIO.effect(lastTimeStampStr.get.toLong).mapError(_ => YouAreUnauthorized)
+      lastTimestamp <- ZIO.effect(lastTimeStampStr.get.toLong).refineOrDie(_ => YouAreUnauthorized)
       maxAge <- sessionMaxAge
       now <- currentTime(TimeUnit.SECONDS)
       _ <- if (now - lastTimestamp > maxAge) ZIO.fail(YouAreUnauthorized) else UIO(())
@@ -45,8 +40,16 @@ object Guards {
         case Some(json) => UIO(json)
         case None       => ZIO.fail(ForbiddenForYou)
       }
-      user <- ZIO.fromEither(decode[User](userJson))
-    } yield SessionRequest(user, req)
+      user <- ZIO.fromEither(decode[User](userJson)).mapError(_.getMessage).mapError(CirceDecodingError)
+    } yield user
+
+  /**
+    * Returns the [[SessionRequest]] when the user is properly authenticated within the [[play.api.mvc.Request]]'s
+    * session.
+    * Fails with a [[errors.ErrorADT.YouAreUnauthorized]] if the request's session does not contain the proper info.
+    */
+  def authenticated[A](req: Request[A]): ZIO[Clock with Configuration, Throwable, SessionRequest[A]] =
+    userFromRequestHeader(req).map(SessionRequest(_, req))
 
   /**
     * Provides a [[SessionRequest]] when the user is properly authenticated.

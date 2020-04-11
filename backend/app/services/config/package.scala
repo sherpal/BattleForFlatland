@@ -1,5 +1,6 @@
 package services
 
+import errors.ErrorADT.ReadingConfigError
 import zio.{Has, ZIO}
 
 package object config {
@@ -9,11 +10,14 @@ package object config {
 //  def load[T](configRequester: ConfigRequester)(implicit fromConfig: FromConfig[T]): ZIO[Configuration, Throwable, T] =
 //    ZIO.accessM(_.get[Configuration.Service].load[T](configRequester))
 
-  def superUserName: ZIO[Configuration, Throwable, String] = ZIO.accessM(_.get[Configuration.Service].superUserName)
-  def superUserPassword: ZIO[Configuration, Throwable, String] =
+  def superUserName: ZIO[Configuration, ReadingConfigError, String] =
+    ZIO.accessM(_.get[Configuration.Service].superUserName)
+  def superUserPassword: ZIO[Configuration, ReadingConfigError, String] =
     ZIO.accessM(_.get[Configuration.Service].superUserPassword)
-  def superUserMail: ZIO[Configuration, Throwable, String] = ZIO.accessM(_.get[Configuration.Service].superUserMail)
+  def superUserMail: ZIO[Configuration, ReadingConfigError, String] =
+    ZIO.accessM(_.get[Configuration.Service].superUserMail)
 
-  def sessionMaxAge: ZIO[Configuration, Throwable, Long] = ZIO.accessM(_.get[Configuration.Service].sessionMaxAge)
+  def sessionMaxAge: ZIO[Configuration, ReadingConfigError, Long] =
+    ZIO.accessM(_.get[Configuration.Service].sessionMaxAge)
 
 }

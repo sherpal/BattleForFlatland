@@ -34,6 +34,21 @@ object ErrorADT {
       errors.toList.headOption.flatMap(_._2.headOption).map(_.httpErrorType).getOrElse(Internal)
   }
 
+  sealed abstract class ThrowableWrapper(throwable: Throwable) extends Throwable {
+    override def getMessage: String                      = throwable.getMessage
+    override def getLocalizedMessage: String             = throwable.getLocalizedMessage
+    override def getCause: Throwable                     = throwable.getCause
+    override def getStackTrace: Array[StackTraceElement] = throwable.getStackTrace
+  }
+
+  case class CirceDecodingError(message: String) extends ErrorADT {
+    def httpErrorType: HTTPResultType = Internal
+  }
+
+  case class ReadingConfigError(message: String) extends ErrorADT {
+    def httpErrorType: HTTPResultType = Internal
+  }
+
   /** Errors that can be thrown in the backend. */
   sealed trait BackendError extends ErrorADT
   case class WrongStatusCode(code: Int) extends BackendError {

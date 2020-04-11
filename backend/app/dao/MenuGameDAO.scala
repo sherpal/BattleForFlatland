@@ -2,6 +2,7 @@ package dao
 
 import errors.ErrorADT
 import guards.Guards._
+import guards.WebSocketGuards
 import io.circe.generic.auto._
 import io.circe.syntax._
 import models.bff.outofgame.{MenuGame, MenuGameWithPlayers}

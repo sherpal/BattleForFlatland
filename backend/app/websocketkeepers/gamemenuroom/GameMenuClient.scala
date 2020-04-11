@@ -5,14 +5,14 @@ import akka.actor.{Actor, ActorRef, PoisonPill, Props, Terminated}
 import scala.util.Try
 
 /**
-  * Actor representing the the web socket client in the game menu room.
+  * Actor representing the web socket client in the game menu room.
   * @param outerWorld actor given by the `ActorFlow.actorRef` method to send message back to the client.
   */
 final class GameMenuClient(outerWorld: ActorRef, gameMenuRoomBookKeeper: ActorRef) extends Actor {
 
   override def preStart(): Unit = {
     Try(context.watch(outerWorld)).getOrElse {
-      self ! PoisonPill // we we can't even watch this actor, let's just die.
+      self ! PoisonPill // we can't even watch this actor, let's just die.
     }
 
     gameMenuRoomBookKeeper ! GameMenuRoomBookKeeper.NewClient
