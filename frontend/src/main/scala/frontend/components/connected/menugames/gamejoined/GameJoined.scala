@@ -8,7 +8,7 @@ import io.circe.syntax._
 import models.bff.Routes._
 import models.bff.gameantichamber.WebSocketProtocol
 import models.bff.outofgame.MenuGameWithPlayers
-import models.users.RouteDefinitions
+import models.users.{RouteDefinitions, User}
 import org.scalajs.dom.html
 import programs.frontend.games._
 import services.http.FHttpClient
@@ -19,12 +19,12 @@ import utils.websocket.JsonWebSocket
 import services.routing._
 import zio.clock.Clock
 import frontend.components.utils.tailwind._
-import scalajs.js.timers.{clearInterval, setInterval}
 
+import scalajs.js.timers.{clearInterval, setInterval}
 import scala.scalajs.js
 import scala.concurrent.duration._
 
-final class GameJoined private (gameId: String) extends LifecycleComponent[html.Element] {
+final class GameJoined private (gameId: String, me: User) extends LifecycleComponent[html.Element] {
 
   private val layer = FHttpClient.live ++ FRouting.live ++ FLogging.live ++ Clock.live
 
@@ -37,13 +37,16 @@ final class GameJoined private (gameId: String) extends LifecycleComponent[html.
   }
 
   val $gameInfo: EventStream[MenuGameWithPlayers] =
-    socket.$in.collect { case WebSocketProtocol.GameStatusUpdated => () }
-      .debounce(1000)
-      .flatMap(_ => EventStream.fromZIOEffect(fetchingGameInfo))
+    EventStream
+      .merge(
+        socket.$in.collect { case WebSocketProtocol.GameStatusUpdated => () }
+          .debounce(1000)
+          .flatMap(_ => EventStream.fromZIOEffect(fetchingGameInfo)),
+        EventStream.fromZIOEffect(fetchingGameInfo)
+      )
       .collect { case Some(info) => info }
 
-  val $firstGameInfo: EventStream[MenuGameWithPlayers] =
-    EventStream.fromZIOEffect(fetchingGameInfo).collect { case Some(info) => info }
+  val $amICreator: EventStream[Boolean] = $gameInfo.map(_.game.gameCreator.userId == me.userId)
 
   val $gameCancelled: EventStream[Unit] = socket.$in.collect { case WebSocketProtocol.GameCancelled => () }
     .flatMap(_ => EventStream.fromZIOEffect(moveTo(RouteDefinitions.homeRoute).provideLayer(layer)))
@@ -52,9 +55,14 @@ final class GameJoined private (gameId: String) extends LifecycleComponent[html.
   val $cancelGame: EventStream[Int] =
     cancelGameBus.events.flatMap(_ => EventStream.fromZIOEffect(sendCancelGame(gameId).provideLayer(layer)))
 
+  val leaveGameBus = new EventBus[Unit]
+  val $leaveGame: EventStream[Int] =
+    leaveGameBus.events.flatMap(_ => EventStream.fromZIOEffect(iAmLeaving(gameId).provideLayer(layer)))
+
   val elem: ReactiveHtmlElement[html.Element] = section(
     className <-- $gameCancelled.mapTo(""), // kicking off stream
     className <-- $cancelGame.mapTo(""), // kicking off stream
+    className <-- $leaveGame.mapTo(""), // kicking off stream
     p(
       s"You've joined game $gameId."
     ),
@@ -64,10 +72,15 @@ final class GameJoined private (gameId: String) extends LifecycleComponent[html.
         .map(_.toString)
     ),
     pre(
-      child.text <-- EventStream.merge($gameInfo, $firstGameInfo).map(_.asJson.spaces2)
+      child.text <-- $gameInfo.map(_.asJson.spaces2)
     ),
     div(
-      button(btn, primaryButton, "Cancel game", onClick.mapTo(()) --> cancelGameBus)
+      child <-- $amICreator.map {
+        if (_)
+          button(btn, primaryButton, "Cancel game", onClick.mapTo(()) --> cancelGameBus)
+        else
+          button(btn, primaryButton, "Leave game", onClick.mapTo(()) --> leaveGameBus)
+      }
     )
   )
 
@@ -82,5 +95,5 @@ final class GameJoined private (gameId: String) extends LifecycleComponent[html.
 }
 
 object GameJoined {
-  def apply(gameId: String) = new GameJoined(gameId)
+  def apply(gameId: String, me: User) = new GameJoined(gameId, me)
 }

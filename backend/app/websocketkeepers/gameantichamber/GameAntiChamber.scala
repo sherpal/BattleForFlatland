@@ -125,6 +125,13 @@ final class GameAntiChamber(
           )
           .pipeTo(self)
 
+      case PlayerLeavesGame(userId) =>
+        players.values.find(_.userId == userId).foreach {
+          case ClientInfo(ref, _, _) =>
+            context.become(receiver(players - ref))
+            clients.foreach(_ ! GameStatusUpdated)
+        }
+
     }
   }
 
@@ -144,6 +151,7 @@ object GameAntiChamber {
   case object CancelGame extends GameAntiChamberMessage
   case object CheckIfGameStillThere extends GameAntiChamberMessage
   case object PeopleWereKicked extends GameAntiChamberMessage
+  case class PlayerLeavesGame(userId: String) extends GameAntiChamberMessage
 
   /** Sent to this actor whenever a user pinged the server to say their are still connected. */
   case class SeenAlive(userId: String) extends GameAntiChamberMessage

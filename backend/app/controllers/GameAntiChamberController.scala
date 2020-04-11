@@ -55,6 +55,11 @@ final class GameAntiChamberController @Inject()(
       .provideButRequest[Request, AnyContent](layer)
   }
 
+  def playerLeavesGame(gameId: String): Action[AnyContent] = Action.zio {
+    (GameAntiChamberDAO.leaveGame(gameId).refineOrDie(ErrorADT.onlyErrorADT) *> UIO(Ok))
+      .provideButRequest[Request, AnyContent](layer)
+  }
+
   /**
     * Joins the game anti chamber actor system when a Web Socket connects.
     * We check that the user is authenticated and then create the flow based on the actor system.

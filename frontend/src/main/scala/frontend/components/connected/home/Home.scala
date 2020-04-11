@@ -48,22 +48,24 @@ final class Home private () extends Component[html.Div] {
   )
 
   val element: ReactiveHtmlElement[html.Div] = div(
+    child <-- $redirect.map(_ => "Not logged, redirecting to Login."), // kicking off stream
     className := "main-conn",
     DashboardHeader($user.map(_.userName)),
-    div(
-      child <-- $redirect.map(_ => "Not logged, redirecting to Login."), // kicking off stream
-      className := "main",
-      child <-- Routes
-        .firstOf(
-          Route(homeRoute, () => Games()),
-          Route(gameJoined ? gameIdParam, (_: Unit, gameId: String) => GameJoined(gameId))
-        )
-        .map {
-          case Some(component) => component
-          case None            => div("uh-oh")
-        }
-      //child <-- $users.map(UserList(_))
-    )
+    child <-- $user.map { user =>
+      div(
+        className := "main",
+        child <-- Routes
+          .firstOf(
+            Route(homeRoute, () => Games()),
+            Route(gameJoined ? gameIdParam, (_: Unit, gameId: String) => GameJoined(gameId, user))
+          )
+          .map {
+            case Some(component) => component
+            case None            => div("uh-oh")
+          }
+        //child <-- $users.map(UserList(_))
+      )
+    }
   )
 }
 

@@ -24,6 +24,12 @@ final case class MenuGame(
     maybeHashedPassword = maybeHashedPassword.map(_ => ""),
     gameCreator         = gameCreator.forgetPassword
   )
+
+  def onlyCreatorName: MenuGame = copy(
+    maybeHashedPassword = maybeHashedPassword.map(_ => ""),
+    gameCreator         = gameCreator.onlyName
+  )
+
 }
 
 object MenuGame {

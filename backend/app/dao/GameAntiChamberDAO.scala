@@ -64,6 +64,17 @@ object GameAntiChamberDAO {
       _ <- ZIO.effectTotal(gameAntiChamberManagerRef ! GameAntiChamber.SeenAlive(user.userId))
     } yield ()
 
+  def leaveGame(gameId: String): ZIO[ActorProvider with GameTable with Clock with Configuration with Has[
+    HasRequest[Request, AnyContent]
+  ], Throwable, Unit] =
+    for {
+      request <- Guards.partOfGame[AnyContent](gameId)
+      user = request.user
+      gameAntiChamberManagerRef <- askGameAntiChamberManager(gameId)
+      _ <- ZIO.effectTotal(gameAntiChamberManagerRef ! GameAntiChamber.PlayerLeavesGame(user.userId))
+      _ <- removePlayerFromGame(user.userId, gameId)
+    } yield ()
+
   def kickInactivePlayers(
       gameId: String,
       lastSeenAlive: Map[String, LocalDateTime]

@@ -69,7 +69,12 @@ package object games {
   def sendCancelGame(gameId: String): ZIO[HttpClient, ErrorADT, Int] =
     postIgnore(cancelGame, gameIdParam)(gameId).refineOrDie(ErrorADT.onlyErrorADT)
 
-  def pokingPresence(gameId: String) =
+  def pokingPresence(gameId: String): ZIO[Routing with HttpClient, ErrorADT, Int] =
     postIgnore(iAmStilThere, gameIdParam)(gameId)
+      .refineOrDie(ErrorADT.onlyErrorADT)
+      .flatMapError(error => moveTo(homeRoute).as(error))
+
+  def iAmLeaving(gameId: String): ZIO[HttpClient, ErrorADT, Int] =
+    postIgnore(leaveGame, gameIdParam)(gameId).refineOrDie(ErrorADT.onlyErrorADT)
 
 }
