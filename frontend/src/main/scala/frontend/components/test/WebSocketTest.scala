@@ -5,10 +5,11 @@ import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.LifecycleComponent
 import org.scalajs.dom.html
 import utils.websocket.JsonWebSocket
+import urldsl.language.PathSegment.dummyErrorImpl._
 
 final class WebSocketTest private () extends LifecycleComponent[html.Div] {
 
-  val socket = new JsonWebSocket[String, String]("ws://localhost:8080/ws-test")
+  private val socket = JsonWebSocket[String, String](root / "ws-test")
 
   implicit val elem: ReactiveHtmlElement[html.Div] = div(
     className := "bg-red-200",

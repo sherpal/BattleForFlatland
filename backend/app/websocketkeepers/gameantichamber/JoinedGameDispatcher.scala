@@ -95,6 +95,6 @@ object JoinedGameDispatcher {
 
   def props: Props = Props(new JoinedGameDispatcher)
 
-  final val name = "game-menu-room-book-keeper"
+  final val name = "joined-game-dispatcher"
 
 }

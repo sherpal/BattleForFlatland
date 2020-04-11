@@ -63,7 +63,7 @@ POST    /api/bff/join-game              controllers.MenuGamesController.joinGame
 GET     /api/bff/am-i-playing           controllers.MenuGamesController.amIAmPlayingSomewhere
 GET     /api/bff/game-info              controllers.MenuGamesController.gameInfo(gameId: String)
 
-GET   /ws-test                      controllers.WebSocketController.socketTest
+GET   /ws/test                      controllers.WebSocketController.socketTest
 GET   /ws/game-menu-room            controllers.WebSocketController.gameMenuRoom
 GET   /ws/game-anti-chamber         controllers.WebSocketController.gameAntiChamber(gameId)
 

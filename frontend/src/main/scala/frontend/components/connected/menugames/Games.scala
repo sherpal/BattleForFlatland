@@ -12,12 +12,13 @@ import services.http.FHttpClient
 import services.routing.FRouting
 import utils.laminarzio.Implicits._
 import utils.websocket.JsonWebSocket
+import urldsl.language.PathSegment.dummyErrorImpl._
 
 final class Games private () extends LifecycleComponent[html.Div] {
 
   final val layer = FHttpClient.live ++ zio.clock.Clock.live ++ FRouting.live
 
-  final val socket = new JsonWebSocket[String, String]("ws://localhost:8080/ws/game-menu-room")
+  final val socket = JsonWebSocket[String, String](root / "game-menu-room")
 
   //final val $games = gamesOrErrors$.collect { case Right(gameList) => gameList }
 
