@@ -30,14 +30,15 @@ final class JsonWebSocket[In, Out, P, Q] private (
 
   private def url: String = "ws://" + dom.document.location.host + "/ws/" + pathWithQueryParams.createUrlString(p, q)
 
-  private val socket = ZIO.effect(new WebSocket(url))
+  private lazy val socket = new WebSocket(url)
 
-  private val inBus: EventBus[In]   = new EventBus[In]
-  private val outBus: EventBus[Out] = new EventBus[Out]
+  private val inBus: EventBus[In]      = new EventBus[In]
+  private val outBus: EventBus[Out]    = new EventBus[Out]
+  private val closeBus: EventBus[Unit] = new EventBus
 
   private def openWebSocketConnection(implicit owner: Owner) =
     for {
-      webSocket <- socket
+      webSocket <- UIO(socket)
       _ <- UIO {
         webSocket.onmessage = (event: MessageEvent) => {
           decode[In](event.data.asInstanceOf[String]) match {
@@ -59,8 +60,14 @@ final class JsonWebSocket[In, Out, P, Q] private (
   def open()(implicit owner: Owner): Unit =
     zio.Runtime.default.unsafeRunToFuture(openWebSocketConnection)
 
-  val $in: EventStream[In]     = inBus.events
-  val outWriter: WriteBus[Out] = outBus.writer
+  def close(): Unit = {
+    socket.close()
+    closeBus.writer.onNext(())
+  }
+
+  val $in: EventStream[In]       = inBus.events
+  val outWriter: WriteBus[Out]   = outBus.writer
+  val $closed: EventStream[Unit] = closeBus.events
 
 }
 

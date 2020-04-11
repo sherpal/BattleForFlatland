@@ -46,6 +46,9 @@ final class Games private () extends LifecycleComponent[html.Div] {
     socket.open()(elem)
     zio.Runtime.default.unsafeRunToFuture(games.amIAmPlayingSomewhere.provideLayer(layer))
   }
+
+  override def componentWillUnmount(): Unit = socket.close()
+
 }
 
 object Games {

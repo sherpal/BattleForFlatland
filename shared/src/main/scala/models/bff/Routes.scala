@@ -15,6 +15,7 @@ object Routes {
   final val gameJoined    = bff / "game-joined"
   final val amIPlaying    = bff / "am-i-playing"
   final val gameInfo      = bff / "game-info"
+  final val gameJoinedWS  = bff / "game-anti-chamber"
 
   final val gameIdParam = param[String]("gameId")
 
