@@ -46,6 +46,10 @@ final class WebSocketController @Inject()(
   implicit private def antiChamberFlowTransformer: MessageFlowTransformer[AntiChamberProtocol, AntiChamberProtocol] =
     MessageFlowTransformer.jsonMessageFlowTransformer[AntiChamberProtocol, AntiChamberProtocol]
 
+  /**
+    * Joins the game anti chamber actor system when a Web Socket connects.
+    * We check that the user is authenticated and then create the flow based on the actor system.
+    */
   def gameAntiChamber(gameId: String): WebSocket =
     WebSocket.zio[AntiChamberProtocol, AntiChamberProtocol](
       WebSocketGuards.authenticated
