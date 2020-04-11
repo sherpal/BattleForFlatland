@@ -4,6 +4,9 @@ import com.raquo.laminar.api.L._
 
 package object tailwind {
 
+  final val mainContentContainer = className := "grid grid-rows-1 grid-cols-5"
+  final val mainContent          = className := "col-start-2 col-end-5"
+
   final val primaryColour          = "indigo"
   final val primaryColourDark      = "900"
   final val primaryColourLight     = "500"

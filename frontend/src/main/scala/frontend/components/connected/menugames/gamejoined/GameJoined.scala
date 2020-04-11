@@ -20,9 +20,11 @@ import services.routing._
 import zio.clock.Clock
 import frontend.components.utils.tailwind._
 
-import scalajs.js.timers.{clearInterval, setInterval}
+import scalajs.js.timers.{clearInterval, setInterval, SetIntervalHandle}
 import scala.scalajs.js
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success}
 
 final class GameJoined private (gameId: String, me: User) extends LifecycleComponent[html.Element] {
 
@@ -32,8 +34,11 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
 
   private val fetchingGameInfo = fetchGameInfo(gameId).provideLayer(layer)
 
-  private val pokingHandle = setInterval(10.seconds) {
-    zio.Runtime.default.unsafeRunToFuture(pokingPresence(gameId).provideLayer(layer))
+  private val pokingHandle: SetIntervalHandle = setInterval(10.seconds) {
+    zio.Runtime.default.unsafeRunToFuture(pokingPresence(gameId).provideLayer(layer)) onComplete {
+      case Success(_) =>
+      case Failure(_) => clearInterval(pokingHandle)
+    }
   }
 
   val $gameInfo: EventStream[MenuGameWithPlayers] =
@@ -60,27 +65,37 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
     leaveGameBus.events.flatMap(_ => EventStream.fromZIOEffect(iAmLeaving(gameId).provideLayer(layer)))
 
   val elem: ReactiveHtmlElement[html.Element] = section(
+    mainContentContainer,
     className <-- $gameCancelled.mapTo(""), // kicking off stream
     className <-- $cancelGame.mapTo(""), // kicking off stream
     className <-- $leaveGame.mapTo(""), // kicking off stream
-    p(
-      s"You've joined game $gameId."
-    ),
-    pre(
-      child.text <-- socket.$in.filterNot(_ == WebSocketProtocol.HeartBeat)
-        .map(x => new js.Date().getTime.toString -> x.asJson.spaces2)
-        .map(_.toString)
-    ),
-    pre(
-      child.text <-- $gameInfo.map(_.asJson.spaces2)
-    ),
     div(
-      child <-- $amICreator.map {
-        if (_)
-          button(btn, primaryButton, "Cancel game", onClick.mapTo(()) --> cancelGameBus)
-        else
-          button(btn, primaryButton, "Leave game", onClick.mapTo(()) --> leaveGameBus)
-      }
+      mainContent,
+      h1(
+        className := "text-3xl",
+        className := s"text-$primaryColour-$primaryColourDark",
+        child.text <-- $gameInfo.map(_.game.gameName).map("Game " + _)
+      ),
+      PlayerList($gameInfo.map(_.players)),
+//      p(
+//        s"You've joined game $gameId."
+//      ),
+//      pre(
+//        child.text <-- socket.$in.filterNot(_ == WebSocketProtocol.HeartBeat)
+//          .map(x => new js.Date().getTime.toString -> x.asJson.spaces2)
+//          .map(_.toString)
+//      ),
+//      pre(
+//        child.text <-- $gameInfo.map(_.asJson.spaces2)
+//      ),
+      div(
+        child <-- $amICreator.map {
+          if (_)
+            button(btn, primaryButton, "Cancel game", onClick.mapTo(()) --> cancelGameBus)
+          else
+            button(btn, primaryButton, "Leave game", onClick.mapTo(()) --> leaveGameBus)
+        }
+      )
     )
   )
 

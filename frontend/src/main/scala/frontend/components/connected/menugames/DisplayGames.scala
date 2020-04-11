@@ -32,10 +32,9 @@ final class DisplayGames private ($games: EventStream[List[MenuGame]], showNewGa
     )
 
   val element: ReactiveHtmlElement[html.Element] = section(
-    className := "grid grid-rows-1 grid-cols-5",
+    mainContentContainer,
     div(
-      className := "col-start-2 col-end-5",
-      //className := "grid grid-rows-2 grid-cols-1",
+      mainContent,
       className := "bg-gray-200",
       div(
         className := "flex items-start justify-between border-b-2",
