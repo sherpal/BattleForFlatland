@@ -32,9 +32,10 @@ final class JsonWebSocket[In, Out, P, Q] private (
 
   private lazy val socket = new WebSocket(url)
 
-  private val inBus: EventBus[In]      = new EventBus[In]
-  private val outBus: EventBus[Out]    = new EventBus[Out]
-  private val closeBus: EventBus[Unit] = new EventBus
+  private val inBus: EventBus[In]           = new EventBus
+  private val outBus: EventBus[Out]         = new EventBus
+  private val closeBus: EventBus[Unit]      = new EventBus
+  private val errorBus: EventBus[dom.Event] = new EventBus
 
   private def openWebSocketConnection(implicit owner: Owner) =
     for {
@@ -51,9 +52,15 @@ final class JsonWebSocket[In, Out, P, Q] private (
       }
       _ <- UIO {
         outBus.events.map(encoder.apply).map(_.noSpaces).foreach(webSocket.send)
+        outBus.events.map(encoder.apply).map(_.noSpaces).foreach(println)
       }
       _ <- UIO {
-        webSocket.onerror = (event: Event) => dom.console.error(event)
+        webSocket.onerror = (event: Event) => {
+          if (scala.scalajs.LinkingInfo.developmentMode) {
+            dom.console.error(event)
+          }
+          errorBus.writer.onNext(event)
+        }
       }
     } yield ()
 
@@ -68,6 +75,7 @@ final class JsonWebSocket[In, Out, P, Q] private (
   val $in: EventStream[In]       = inBus.events
   val outWriter: WriteBus[Out]   = outBus.writer
   val $closed: EventStream[Unit] = closeBus.events
+  val $error: EventStream[Event] = errorBus.events
 
 }
 

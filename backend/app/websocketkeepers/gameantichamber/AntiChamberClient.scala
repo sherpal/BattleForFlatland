@@ -27,18 +27,21 @@ final class AntiChamberClient(outerWorld: ActorRef, joinedGameDispatcher: ActorR
       // if the message is to cancel the game, we close the connection
       outerWorld ! WebSocketProtocol.GameCancelled
       context.stop(self)
-    case m: WebSocketProtocol if sender == outerWorld =>
-      // outside world has sent a message, we send it to the anti chamber manager on our behalf, so that it can check
-      // if I have permission to do that
-      antiChamberActor ! m
     case m: WebSocketProtocol if sender == antiChamberActor =>
       // anti chamber manager has sent order for the outside world, we forward it
       outerWorld ! m
+    case m: WebSocketProtocol =>
+      // outside world has sent a message, we send it to the anti chamber manager on our behalf, so that it can check
+      // if I have permission to do that
+      antiChamberActor ! m
     case Terminated(child) =>
       if (child == outerWorld) {
         // web socket connection is closed, we kill ourselves
         context.stop(self)
       }
+
+    case m =>
+      println(s"hey, $m")
   }
 
   def receive: Actor.Receive = {

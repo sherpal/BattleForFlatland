@@ -33,6 +33,9 @@ package object gametables {
   def selectGameByName(gameName: String): GameTableTask[Option[MenuGame]] =
     ZIO.accessM(_.get[GameTable.Service].selectGameByName(gameName))
 
+  def selectGameById(gameId: String): GameTableTask[Option[MenuGame]] =
+    ZIO.accessM(_.get[GameTable.Service].selectGameById(gameId))
+
   def deleteGame(gameName: String): GameTableTask[Int] = ZIO.accessM(_.get[GameTable.Service].deleteGame(gameName))
 
   def addUserToGame(

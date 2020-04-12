@@ -54,6 +54,13 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
   val $amICreator: EventStream[Boolean] = $gameInfo.map(_.game.gameCreator.userId == me.userId)
 
   val $gameCancelled: EventStream[Unit] = socket.$in.collect { case WebSocketProtocol.GameCancelled => () }
+
+  val $shouldMoveBackToHome: EventStream[Unit] = EventStream
+    .merge(
+      $gameCancelled,
+      socket.$closed,
+      socket.$error.mapTo(())
+    )
     .flatMap(_ => EventStream.fromZIOEffect(moveTo(RouteDefinitions.homeRoute).provideLayer(layer)))
 
   val cancelGameBus = new EventBus[Unit]
@@ -66,7 +73,7 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
 
   val elem: ReactiveHtmlElement[html.Element] = section(
     mainContentContainer,
-    className <-- $gameCancelled.mapTo(""), // kicking off stream
+    className <-- $shouldMoveBackToHome.mapTo(""), // kicking off stream
     className <-- $cancelGame.mapTo(""), // kicking off stream
     className <-- $leaveGame.mapTo(""), // kicking off stream
     div(
@@ -93,7 +100,12 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
           if (_)
             button(btn, primaryButton, "Cancel game", onClick.mapTo(()) --> cancelGameBus)
           else
-            button(btn, primaryButton, "Leave game", onClick.mapTo(()) --> leaveGameBus)
+            button(
+              btn,
+              primaryButton,
+              "Leave game",
+              onClick.mapTo(WebSocketProtocol.PlayerLeavesGame(me.userId)) --> socket.outWriter
+            )
         }
       )
     )

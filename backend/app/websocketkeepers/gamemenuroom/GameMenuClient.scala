@@ -19,7 +19,7 @@ final class GameMenuClient(outerWorld: ActorRef, gameMenuRoomBookKeeper: ActorRe
   }
 
   override def receive: Receive = {
-    case GameMenuRoomBookKeeper.NewGame =>
+    case GameMenuRoomBookKeeper.GameListUpdate =>
       outerWorld ! """ "new-game" """
     case GameMenuRoomBookKeeper.SendHeartBeat =>
       outerWorld ! """ "" """

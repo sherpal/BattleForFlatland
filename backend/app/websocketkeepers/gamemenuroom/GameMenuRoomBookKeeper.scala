@@ -2,7 +2,7 @@ package websocketkeepers.gamemenuroom
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
 import javax.inject.Singleton
-import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeper.{NewClient, NewGame, SendHeartBeat}
+import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeper.{GameListUpdate, NewClient, SendHeartBeat}
 
 import scala.concurrent.duration._
 
@@ -23,11 +23,11 @@ final class GameMenuRoomBookKeeper extends Actor with ActorLogging {
     case SendHeartBeat =>
       currentClients.foreach(_ ! SendHeartBeat) // maintaining connection alive
     case NewClient =>
-      sender ! NewGame
+      sender ! GameListUpdate
       context.watch(sender)
       context.become(receiver(currentClients + sender))
-    case NewGame =>
-      currentClients.foreach(_ ! NewGame)
+    case GameListUpdate =>
+      currentClients.foreach(_ ! GameListUpdate)
     case Terminated(ref) =>
       context.become(receiver(currentClients - ref))
   }
@@ -39,7 +39,7 @@ final class GameMenuRoomBookKeeper extends Actor with ActorLogging {
 object GameMenuRoomBookKeeper {
 
   final case class NewClient(actorRef: ActorRef)
-  final case object NewGame
+  final case object GameListUpdate
   final case object SendHeartBeat
 
   def props: Props = Props(new GameMenuRoomBookKeeper)

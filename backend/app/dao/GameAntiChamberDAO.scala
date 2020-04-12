@@ -20,6 +20,7 @@ import websocketkeepers.gameantichamber.JoinedGameDispatcher.{
   HereIsMaybeTheAntiChamberManagerFor
 }
 import websocketkeepers.gameantichamber.{GameAntiChamber, JoinedGameDispatcher}
+import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeper
 import zio.clock.{Clock, _}
 import zio.{Has, UIO, ZIO}
 
@@ -43,6 +44,14 @@ object GameAntiChamberDAO {
       gameAntiChamberManagerRef <- getOrFail(maybeGameAntiChamberManagerRef, GameHasBeenCancelled(gameId))
     } yield gameAntiChamberManagerRef
 
+  private val askGameMenuRoomBookKeeper = for {
+    maybeBookKeeper <- services.actors.ActorProvider.actorRef(GameMenuRoomBookKeeper.name)
+    bookKeeper <- getOrFail(
+      maybeBookKeeper,
+      new Exception("GameMenuRoomBookKeeper actor is not there, something is way off!")
+    )
+  } yield bookKeeper
+
   def cancelGame(gameId: String): ZIO[Logging with ActorProvider with GameTable with Clock with Configuration with Has[
     HasRequest[Request, AnyContent]
   ], Throwable, Unit] =
@@ -51,6 +60,8 @@ object GameAntiChamberDAO {
       _ <- deleteGame(request.gameInfo.game.gameName)
       gameAntiChamberManagerRef <- askGameAntiChamberManager(gameId)
       _ <- ZIO.effectTotal(gameAntiChamberManagerRef ! GameAntiChamber.CancelGame)
+      bookKeeper <- askGameMenuRoomBookKeeper
+      _ <- ZIO.effectTotal(bookKeeper ! GameMenuRoomBookKeeper.GameListUpdate)
       _ <- log.info(s"Game $gameId has been cancelled.")
     } yield ()
 

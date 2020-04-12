@@ -10,6 +10,7 @@ object WebSocketProtocol {
   case object GameStatusUpdated extends WebSocketProtocol
   case object GameCancelled extends WebSocketProtocol
   case object HeartBeat extends WebSocketProtocol
+  case class PlayerLeavesGame(userId: String) extends WebSocketProtocol
 
   import io.circe.generic.extras.semiauto._
   implicit val genDevConfig: Configuration =

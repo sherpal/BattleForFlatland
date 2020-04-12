@@ -21,6 +21,7 @@ import slick.jdbc.JdbcProfile
 import utils.ReadsImplicits._
 import utils.playzio.PlayZIO._
 import websocketkeepers.gameantichamber.{AntiChamberClient, JoinedGameDispatcher}
+import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeper
 import zio.UIO
 import zio.clock.Clock
 
@@ -30,7 +31,8 @@ import scala.concurrent.ExecutionContext
 final class GameAntiChamberController @Inject()(
     protected val dbConfigProvider: DatabaseConfigProvider,
     cc: ControllerComponents,
-    @Named(JoinedGameDispatcher.name) joinedGameDispatcher: ActorRef
+    @Named(JoinedGameDispatcher.name) joinedGameDispatcher: ActorRef,
+    @Named(GameMenuRoomBookKeeper.name) gameMenuRoomBookKeeperRef: ActorRef
 )(implicit val ec: ExecutionContext, actorSystem: ActorSystem)
     extends AbstractController(cc)
     with HasDatabaseConfigProvider[JdbcProfile] {
@@ -38,7 +40,12 @@ final class GameAntiChamberController @Inject()(
   lazy val logger: Logger = Logger("GameAntiChamberController")
 
   private val layer = Clock.live ++ Configuration.live ++ (dbProvider(db) >>> GameTable.live) ++ Crypto.live ++
-    PlayLogging.live(logger) ++ ActorProvider.live(Map(JoinedGameDispatcher.name -> joinedGameDispatcher))
+    PlayLogging.live(logger) ++ ActorProvider.live(
+    Map(
+      JoinedGameDispatcher.name -> joinedGameDispatcher,
+      GameMenuRoomBookKeeper.name -> gameMenuRoomBookKeeperRef
+    )
+  )
 
   type AntiChamberProtocol = gameantichamber.WebSocketProtocol
 

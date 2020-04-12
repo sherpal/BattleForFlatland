@@ -44,7 +44,7 @@ object MenuGameDAO { //} extends Results {
     _ <- log.info(s"New game ${game.gameName} ($newGameId) created by ${user.userName}.")
     menuGameBookKeeper <- ActorProvider.actorRef(GameMenuRoomBookKeeper.name)
     _ <- ZIO
-      .effect(menuGameBookKeeper.get ! GameMenuRoomBookKeeper.NewGame)
+      .effect(menuGameBookKeeper.get ! GameMenuRoomBookKeeper.GameListUpdate)
       .either // either cause we don't care if it fails
   } yield newGameId).refineOrDie(ErrorADT.onlyErrorADT)
 

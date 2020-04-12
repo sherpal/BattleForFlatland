@@ -1,7 +1,7 @@
 package websocketkeepers.gameantichamber
 
 import akka.actor.{Actor, ActorRef, Terminated}
-import javax.inject.{Inject, Singleton}
+import javax.inject.{Inject, Named, Singleton}
 import models.bff.gameantichamber.WebSocketProtocol
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -12,6 +12,7 @@ import services.database.db.Database.dbProvider
 import services.database.gametables.GameTable
 import services.logging.{Logging, PlayLogging}
 import slick.jdbc.JdbcProfile
+import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeper
 import zio.clock.Clock
 import zio.{Has, ZLayer}
 
@@ -21,8 +22,10 @@ import scala.concurrent.duration._
   * The role of the [[JoinedGameDispatcher]] is to listen to WebSocket connections
   */
 @Singleton
-final class JoinedGameDispatcher @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)
-    extends Actor
+final class JoinedGameDispatcher @Inject()(
+    protected val dbConfigProvider: DatabaseConfigProvider,
+    @Named(GameMenuRoomBookKeeper.name) gameMenuBookKeeperRef: ActorRef
+) extends Actor
     with HasDatabaseConfigProvider[JdbcProfile] {
 
   lazy val logger: Logger = Logger("GameAntiChamberActorSystem")
@@ -31,7 +34,12 @@ final class JoinedGameDispatcher @Inject()(protected val dbConfigProvider: Datab
       : ZLayer[Any, Nothing, Clock with Configuration with GameTable with Crypto with Has[Logging.Service] with Has[
         ActorProvider.Service
       ]] = Clock.live ++ Configuration.live ++ (dbProvider(db) >>> GameTable.live) ++ Crypto.live ++
-    PlayLogging.live(logger) ++ ActorProvider.live(Map(JoinedGameDispatcher.name -> self))
+    PlayLogging.live(logger) ++ ActorProvider.live(
+    Map(
+      JoinedGameDispatcher.name -> self,
+      GameMenuRoomBookKeeper.name -> gameMenuBookKeeperRef
+    )
+  )
 
   import context.dispatcher
   import websocketkeepers.gameantichamber.JoinedGameDispatcher._
