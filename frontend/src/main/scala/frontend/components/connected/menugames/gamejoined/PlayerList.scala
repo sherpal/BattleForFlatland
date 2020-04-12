@@ -21,7 +21,7 @@ object PlayerList {
         users.map { user =>
           tr(
             td(tableData, user.userName),
-            td(tableData, "todo")
+            td(tableData, "ready!")
           )
         }
       }

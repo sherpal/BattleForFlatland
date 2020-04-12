@@ -42,7 +42,7 @@ final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.Clos
   val elem: ReactiveHtmlElement[html.Element] = aside(
     modalContainer,
     h1(
-      className := s"text-lg text-$primaryColour-$primaryColourDark",
+      className := s"text-xl text-$primaryColour-$primaryColourDark",
       s"Join game ${game.gameName}"
     ),
     form(
@@ -67,6 +67,7 @@ final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.Clos
           fieldSet(
             p(
               formPrimaryTextColour,
+              className := "py-5",
               "Confirm join game?"
             )
           )
@@ -86,7 +87,7 @@ final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.Clos
         div(
           input(
             `type` := "submit",
-            "Join game",
+            value := "Join game",
             btn,
             primaryButton,
             disabled <-- $isSubmitting

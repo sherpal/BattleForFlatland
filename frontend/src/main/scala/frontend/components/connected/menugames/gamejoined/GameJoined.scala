@@ -96,13 +96,14 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
 //        child.text <-- $gameInfo.map(_.asJson.spaces2)
 //      ),
       div(
+        child <-- $amICreator.map { if (_) button(btn, primaryButton, "Launch game!") else emptyNode },
         child <-- $amICreator.map {
           if (_)
-            button(btn, primaryButton, "Cancel game", onClick.mapTo(()) --> cancelGameBus)
+            button(btn, secondaryButton, "Cancel game", onClick.mapTo(()) --> cancelGameBus)
           else
             button(
               btn,
-              primaryButton,
+              secondaryButton,
               "Leave game",
               onClick.mapTo(WebSocketProtocol.PlayerLeavesGame(me.userId)) --> socket.outWriter
             )
