@@ -23,7 +23,9 @@ object BackendSettings {
       "org.mindrot" % "jbcrypt" % "0.3m",
       // Database driver
       "org.postgresql" % "postgresql" % "42.2.5",
-      "org.webjars" % "swagger-ui" % "2.2.0"
+      "org.webjars" % "swagger-ui" % "2.2.0",
+      "com.typesafe.akka" %% "akka-actor-typed" % "2.6.4",
+      "com.typesafe.akka" %% "akka-stream-typed" % "2.6.4"
     )
   )
 
