@@ -1,10 +1,10 @@
 package frontend.components.connected.menugames.gamejoined
 
 import com.raquo.airstream.eventstream.EventStream
-import models.users.User
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.utils.tailwind.components.Table._
+import models.users.User
 import org.scalajs.dom.html.Table
 
 object PlayerList {

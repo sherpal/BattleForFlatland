@@ -1,7 +1,7 @@
 package websocketkeepers.gamemenuroom
 
-import akka.actor.typed.{ActorRef, Behavior, Terminated}
 import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.{ActorRef, Behavior}
 import com.google.inject.Provides
 import play.api.libs.concurrent.ActorModule
 

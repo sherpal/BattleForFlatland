@@ -10,9 +10,9 @@ import org.scalajs.dom.{html, raw}
 import programs.frontend.games
 import services.http.FHttpClient
 import services.routing.FRouting
+import urldsl.language.PathSegment.dummyErrorImpl._
 import utils.laminarzio.Implicits._
 import utils.websocket.JsonWebSocket
-import urldsl.language.PathSegment.dummyErrorImpl._
 
 final class Games private () extends LifecycleComponent[html.Div] {
 

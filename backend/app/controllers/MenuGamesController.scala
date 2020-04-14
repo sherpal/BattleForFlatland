@@ -3,13 +3,13 @@ package controllers
 import akka.actor.typed.ActorRef
 import dao.MenuGameDAO
 import io.circe.generic.auto._
-import javax.inject.{Inject, Named, Singleton}
+import javax.inject.{Inject, Singleton}
 import models.bff.outofgame.MenuGame
 import models.common.PasswordWrapper
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.mvc._
-import services.actors.{ActorProvider, TypedActorProvider}
+import services.actors.TypedActorProvider
 import services.config.Configuration
 import services.crypto.Crypto
 import services.database.db.Database.dbProvider
@@ -19,8 +19,8 @@ import slick.jdbc.JdbcProfile
 import utils.ReadsImplicits._
 import utils.WriteableImplicits._
 import utils.playzio.PlayZIO._
-import websocketkeepers.gameantichamber.{JoinedGameDispatcher, JoinedGameDispatcherTyped}
-import websocketkeepers.gamemenuroom.{GameMenuRoomBookKeeper, GameMenuRoomBookKeeperTyped}
+import websocketkeepers.gameantichamber.JoinedGameDispatcherTyped
+import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeperTyped
 import zio.UIO
 import zio.clock.Clock
 

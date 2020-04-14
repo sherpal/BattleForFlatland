@@ -9,7 +9,7 @@ import errors.ErrorADT.GameDoesNotExist
 import models.bff.gameantichamber.WebSocketProtocol
 import models.bff.gameantichamber.WebSocketProtocol.{GameCancelled, GameStatusUpdated}
 import models.bff.outofgame.MenuGame
-import services.actors.{ActorProvider, TypedActorProvider}
+import services.actors.TypedActorProvider
 import services.config.Configuration
 import services.crypto.Crypto
 import services.database.gametables._

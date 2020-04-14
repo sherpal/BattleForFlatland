@@ -5,12 +5,12 @@ import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.ownership.Owner
 import io.circe.parser.decode
 import io.circe.{Decoder, Encoder}
+import org.scalajs.dom
 import org.scalajs.dom.raw.MessageEvent
 import org.scalajs.dom.{Event, WebSocket}
-import zio.{UIO, ZIO}
-import urldsl.language._
 import urldsl.language.QueryParameters.dummyErrorImpl._
-import org.scalajs.dom
+import urldsl.language._
+import zio.UIO
 
 /**
   * Prepares a WebSocket to connect to the specified url.
@@ -42,7 +42,6 @@ final class JsonWebSocket[In, Out, P, Q] private (
       webSocket <- UIO(socket)
       _ <- UIO {
         webSocket.onmessage = (event: MessageEvent) => {
-          dom.console.log(event.data)
           decode[In](event.data.asInstanceOf[String]) match {
             case Right(in) => inBus.writer.onNext(in)
             case Left(error) =>

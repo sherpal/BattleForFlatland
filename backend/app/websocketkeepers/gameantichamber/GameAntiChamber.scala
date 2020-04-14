@@ -14,9 +14,9 @@ import services.config.Configuration
 import services.crypto.Crypto
 import services.database.gametables._
 import services.logging._
-import zio.clock.Clock
-import zio.{Has, UIO, ZIO, ZLayer}
 import utils.ziohelpers.getOrFail
+import zio.clock.Clock
+import zio.{Has, ZIO, ZLayer}
 
 import scala.collection.immutable.Queue
 import scala.concurrent.duration._

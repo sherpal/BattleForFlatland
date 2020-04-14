@@ -3,8 +3,7 @@ package frontend.components.connected.menugames.gamejoined
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.LifecycleComponent
-import io.circe.generic.auto._
-import io.circe.syntax._
+import frontend.components.utils.tailwind._
 import models.bff.Routes._
 import models.bff.gameantichamber.WebSocketProtocol
 import models.bff.outofgame.MenuGameWithPlayers
@@ -13,17 +12,14 @@ import org.scalajs.dom.html
 import programs.frontend.games._
 import services.http.FHttpClient
 import services.logging.FLogging
-import services.routing.FRouting
+import services.routing.{FRouting, _}
 import utils.laminarzio.Implicits._
 import utils.websocket.JsonWebSocket
-import services.routing._
 import zio.clock.Clock
-import frontend.components.utils.tailwind._
 
-import scalajs.js.timers.{clearInterval, setInterval, SetIntervalHandle}
-import scala.scalajs.js
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.scalajs.js.timers.{clearInterval, setInterval, SetIntervalHandle}
 import scala.util.{Failure, Success}
 
 final class GameJoined private (gameId: String, me: User) extends LifecycleComponent[html.Element] {

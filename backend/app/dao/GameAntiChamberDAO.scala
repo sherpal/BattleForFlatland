@@ -4,7 +4,7 @@ import java.time.temporal.ChronoUnit
 import java.time.{LocalDateTime, ZoneOffset}
 import java.util.concurrent.TimeUnit
 
-import akka.actor.typed.{ActorSystem, Scheduler}
+import akka.actor.typed.Scheduler
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.util.Timeout
 import errors.ErrorADT.GameHasBeenCancelled

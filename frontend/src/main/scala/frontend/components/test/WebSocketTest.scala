@@ -4,8 +4,8 @@ import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.LifecycleComponent
 import org.scalajs.dom.html
-import utils.websocket.JsonWebSocket
 import urldsl.language.PathSegment.dummyErrorImpl._
+import utils.websocket.JsonWebSocket
 
 final class WebSocketTest private () extends LifecycleComponent[html.Div] {
 

@@ -3,11 +3,10 @@ package controllers
 //import akka.actor.{ActorRef, ActorSystem}
 import akka.actor.ActorSystem
 import akka.actor.typed.{ActorRef, Scheduler}
-import akka.stream.scaladsl.{Flow, Sink}
+import akka.stream.scaladsl.Flow
 import dao.GameAntiChamberDAO
 import errors.ErrorADT
 import guards.WebSocketGuards
-import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
 import javax.inject.{Inject, Singleton}

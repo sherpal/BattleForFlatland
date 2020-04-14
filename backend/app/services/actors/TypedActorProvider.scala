@@ -1,10 +1,9 @@
 package services.actors
 
 import akka.actor.typed.ActorRef
-import javax.inject.Inject
 import websocketkeepers.gameantichamber.JoinedGameDispatcherTyped
 import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeperTyped
-import zio.{Has, Layer, UIO, URIO, ZIO, ZLayer}
+import zio._
 
 object TypedActorProvider {
 
