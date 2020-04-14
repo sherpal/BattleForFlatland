@@ -1,6 +1,6 @@
 package controllers
 
-import akka.actor.ActorRef
+import akka.actor.typed.ActorRef
 import dao.MenuGameDAO
 import io.circe.generic.auto._
 import javax.inject.{Inject, Named, Singleton}
@@ -9,7 +9,7 @@ import models.common.PasswordWrapper
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.mvc._
-import services.actors.ActorProvider
+import services.actors.{ActorProvider, TypedActorProvider}
 import services.config.Configuration
 import services.crypto.Crypto
 import services.database.db.Database.dbProvider
@@ -19,7 +19,8 @@ import slick.jdbc.JdbcProfile
 import utils.ReadsImplicits._
 import utils.WriteableImplicits._
 import utils.playzio.PlayZIO._
-import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeper
+import websocketkeepers.gameantichamber.{JoinedGameDispatcher, JoinedGameDispatcherTyped}
+import websocketkeepers.gamemenuroom.{GameMenuRoomBookKeeper, GameMenuRoomBookKeeperTyped}
 import zio.UIO
 import zio.clock.Clock
 
@@ -29,7 +30,9 @@ import scala.concurrent.ExecutionContext
 final class MenuGamesController @Inject()(
     protected val dbConfigProvider: DatabaseConfigProvider,
     cc: ControllerComponents,
-    @Named(GameMenuRoomBookKeeper.name) bookKeeper: ActorRef
+    //@Named(GameMenuRoomBookKeeper.name) bookKeeper: ActorRef
+    gameMenuRoomBookKeeperRef: ActorRef[GameMenuRoomBookKeeperTyped.Message],
+    joinedGameDispatcherRef: ActorRef[JoinedGameDispatcherTyped.Message]
 )(implicit val ec: ExecutionContext)
     extends AbstractController(cc)
     with HasDatabaseConfigProvider[JdbcProfile] {
@@ -37,7 +40,7 @@ final class MenuGamesController @Inject()(
   lazy val logger: Logger = Logger("MenuGamesController")
 
   private val layer = Clock.live ++ Configuration.live ++ (dbProvider(db) >>> GameTable.live) ++ Crypto.live ++
-    PlayLogging.live(logger) ++ ActorProvider.live(Map(GameMenuRoomBookKeeper.name -> bookKeeper))
+    PlayLogging.live(logger) ++ TypedActorProvider.live(gameMenuRoomBookKeeperRef, joinedGameDispatcherRef)
 
   def newGame: Action[MenuGame] = Action.zio(parse.json[MenuGame])(
     MenuGameDAO.addNewGame.map(Ok(_)).provideButRequest[Request, MenuGame](layer)

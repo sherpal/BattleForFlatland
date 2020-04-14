@@ -8,17 +8,17 @@ import models.bff.outofgame.{MenuGame, MenuGameWithPlayers}
 import models.common.PasswordWrapper
 import models.syntax.Validated
 import play.api.mvc.{AnyContent, Request}
-import services.actors.ActorProvider
-import services.actors.ActorProvider.ActorProvider
 import services.config.Configuration
 import services.crypto.Crypto
 import services.database.gametables._
 import services.logging.{log, Logging}
 import utils.playzio.HasRequest
 import utils.ziohelpers.fieldsValidateOrFail
-import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeper
+import websocketkeepers.gamemenuroom.{GameMenuRoomBookKeeper, GameMenuRoomBookKeeperTyped}
 import zio.clock.Clock
 import zio.{Has, UIO, ZIO}
+import services.actors.TypedActorProvider
+import services.actors.TypedActorProvider._
 
 object MenuGameDAO { //} extends Results {
 
@@ -33,7 +33,7 @@ object MenuGameDAO { //} extends Results {
     _ <- ZIO.foreachParN(1)(errors.map(_.asJson.noSpaces))(log.warn(_))
   } yield gamesWithoutPasswords).refineOrDie(ErrorADT.onlyErrorADT)
 
-  val addNewGame: ZIO[ActorProvider with Logging with GameTable with Crypto with Clock with Configuration with Has[
+  val addNewGame: ZIO[TypedActorProvider with Logging with GameTable with Crypto with Clock with Configuration with Has[
     HasRequest[Request, MenuGame]
   ], ErrorADT, String] = (for {
     sessionRequest <- authenticated[MenuGame]
@@ -42,9 +42,9 @@ object MenuGameDAO { //} extends Results {
     _ <- fieldsValidateOrFail(Validated[MenuGame, ErrorADT].fieldsValidator)(game)
     newGameId <- newGame(game.gameName, user.userId, user.userName, game.maybeHashedPassword)
     _ <- log.info(s"New game ${game.gameName} ($newGameId) created by ${user.userName}.")
-    menuGameBookKeeper <- ActorProvider.actorRef(GameMenuRoomBookKeeper.name)
+    menuGameBookKeeper <- gameMenuRoomBookKeeperRef
     _ <- ZIO
-      .effect(menuGameBookKeeper.get ! GameMenuRoomBookKeeper.GameListUpdate)
+      .effect(menuGameBookKeeper ! GameMenuRoomBookKeeperTyped.GameListUpdate)
       .either // either cause we don't care if it fails
   } yield newGameId).refineOrDie(ErrorADT.onlyErrorADT)
 

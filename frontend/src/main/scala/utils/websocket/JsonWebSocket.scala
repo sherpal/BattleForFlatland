@@ -42,6 +42,7 @@ final class JsonWebSocket[In, Out, P, Q] private (
       webSocket <- UIO(socket)
       _ <- UIO {
         webSocket.onmessage = (event: MessageEvent) => {
+          dom.console.log(event.data)
           decode[In](event.data.asInstanceOf[String]) match {
             case Right(in) => inBus.writer.onNext(in)
             case Left(error) =>

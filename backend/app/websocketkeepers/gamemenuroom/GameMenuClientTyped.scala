@@ -11,13 +11,14 @@ object GameMenuClientTyped {
   case object GameListUpdate extends Message
   case object SendHeartBeat extends Message
   private case object Broken extends Message
+  case object Dummy extends Message // ignoring messages from the frontend
 
   def apply(
       outerWorld: ActorRef[String],
       gameMenuRoomBookKeeper: ActorRef[GameMenuRoomBookKeeperTyped.Message]
   ): Behavior[Message] =
     Behaviors.setup { context =>
-      Try(context.watch(outerWorld)).getOrElse {
+      Try(context.watchWith(outerWorld, Broken)).getOrElse {
         context.self ! Broken
       }
 
@@ -32,7 +33,7 @@ object GameMenuClientTyped {
           Behaviors.same
         case Broken =>
           Behaviors.stopped
-
+        case Dummy => Behaviors.unhandled
       }
 
     }

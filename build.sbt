@@ -24,7 +24,8 @@ lazy val `shared` = crossProject(JSPlatform, JVMPlatform)
   .settings(
     SharedSettings(),
     scalaVersion := "2.13.1",
-    scalacOptions := scalaCompilerOptions
+    scalacOptions := scalaCompilerOptions,
+    testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )
   .jvmSettings(
     SharedSettings.jvmSettings
@@ -57,8 +58,6 @@ lazy val `frontend` = (project in file("./frontend"))
     stUseScalaJsDom := false
   )
   .dependsOn(shared.js)
-
-testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
 
 addCommandAlias("dev", ";frontend/fastOptJS::startWebpackDevServer;~frontend/fastOptJS")
 

@@ -39,23 +39,32 @@ object GameAntiChamberTyped {
       sender: ActorRef[AntiChamberClientTyped.WebSocketProtocolWrapper]
   ) extends Message
 
-  private case class PlayerLeavesGame(userId: String) extends Message
-  case object SendHeartBeat extends Message
-  case class PlayerConnected(ref: ActorRef[AntiChamberClientTyped.WebSocketProtocolWrapper], userId: String)
-      extends Message
   private case class PlayerDisconnected(ref: ActorRef[AntiChamberClientTyped.WebSocketProtocolWrapper]) extends Message
   case class YouCanClose(ref: ActorRef[JoinedGameDispatcherTyped.DidNotClose]) extends Message
-  case object YouCanCleanUpCancel extends Message
-  case object CancelGame extends Message
-  case class SeenAlive(userId: String) extends Message
   private case object CheckAlive extends Message
   private case object PeopleWereKicked extends Message
   private case object Dummy extends Message
+
+  sealed trait MessageFromOutside extends Message
+  case class PlayerConnected(ref: ActorRef[AntiChamberClientTyped.Message], userId: String) extends MessageFromOutside
+  case class SeenAlive(userId: String) extends MessageFromOutside
+  case class PlayerLeavesGame(userId: String) extends MessageFromOutside
+  case object SendHeartBeat extends MessageFromOutside
+  case object YouCanCleanUpCancel extends MessageFromOutside
+  case object CancelGame extends MessageFromOutside
 
   private case class ClientInfo(ref: ActorRef[Nothing], userId: String, lastTimeSeenAlive: LocalDateTime)
 
   private def protocol(protocolMessage: WebSocketProtocol) =
     AntiChamberClientTyped.WebSocketProtocolWrapper(protocolMessage, AntiChamberClientTyped.GameAntiChamberSender)
+
+  def apply(
+      gameId: String,
+      parent: ActorRef[JoinedGameDispatcherTyped.CancelGame],
+      layer: ZLayer[Any, Nothing, Clock with Configuration with GameTable with Crypto with Has[Logging.Service] with Has[
+        TypedActorProvider.Service
+      ]]
+  ): Behavior[Message] = waitingForGameInfo(Queue(), gameId, parent, layer)
 
   def behavior(
       menuGame: MenuGame,
@@ -96,6 +105,7 @@ object GameAntiChamberTyped {
           // a new player has connected. We tell it who we are, we notify all the others that a new client arrived
           // and we add it to the list
           context.watchWith(ref, PlayerDisconnected(ref))
+          ref ! AntiChamberClientTyped.HelloFromAntiChamber(context.self)
           clients.foreach(_ ! protocol(GameStatusUpdated))
           behavior(menuGame, players + (ref -> ClientInfo(ref, userId, now)), parent, layer)
         case PlayerDisconnected(ref) =>
@@ -106,7 +116,7 @@ object GameAntiChamberTyped {
           // actually can't close
           if (players.isEmpty) Behaviors.stopped
           else {
-            ref ! DidNotClose(context.self)
+            ref ! DidNotClose(context.self.narrow[PlayerConnected])
             Behaviors.same
           }
         case YouCanCleanUpCancel =>
@@ -194,7 +204,7 @@ object GameAntiChamberTyped {
       case _ if triesLeft > 0 => fetchGameInfo(gameId, triesLeft - 1)
     }
 
-  def waitingForGameInfo(
+  private def waitingForGameInfo(
       stackedMessages: Queue[Message],
       gameId: String,
       parent: ActorRef[JoinedGameDispatcherTyped.CancelGame],
