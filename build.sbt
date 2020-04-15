@@ -43,6 +43,7 @@ lazy val `backend` = (project in file("./backend"))
     BackendSettings(),
     BackendSettings.herokuSettings(),
     swaggerDomainNameSpaces := Seq("models"),
+    testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
     libraryDependencies += guice // dependency injection
   )
   .dependsOn(shared.jvm)

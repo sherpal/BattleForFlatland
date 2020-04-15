@@ -10,6 +10,7 @@ import sbt.Keys.libraryDependencies
 import play.sbt.PlayImport._
 
 object BackendSettings {
+  val zioVersion = "1.0.0-RC18-2"
 
   def apply(): Seq[Def.Setting[_]] = settings(
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3" % Test,
@@ -26,6 +27,10 @@ object BackendSettings {
       "org.webjars" % "swagger-ui" % "2.2.0",
       "com.typesafe.akka" %% "akka-actor-typed" % "2.6.4",
       "com.typesafe.akka" %% "akka-stream-typed" % "2.6.4"
+    ) ++ Seq(
+      "dev.zio" %% "zio-test" % zioVersion % "test",
+      "dev.zio" %% "zio-test-sbt" % zioVersion % "test",
+      "dev.zio" %% "zio-test-magnolia" % zioVersion % "test" // optional
     )
   )
 
