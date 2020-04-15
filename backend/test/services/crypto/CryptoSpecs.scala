@@ -21,9 +21,7 @@ object CryptoSpecs extends DefaultRunnableSpec {
     def uuid: UIO[String] = UIO("an-id")
   }
 
-  val layer
-      : ZLayer[Any, Nothing, Has[Crypto.Service] with Random with Sized] = ZLayer.succeed(cryptoTest) ++ Random.live ++ Sized
-    .live(5)
+  private val layer = ZLayer.succeed(cryptoTest) ++ Random.live ++ Sized.live(5)
 
   def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
     suite("crypto")(
