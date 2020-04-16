@@ -16,6 +16,7 @@ project/.bloop
 frontend/build
 
 backend/conf/dev.conf
+shared-backend/src/main/resources/dev.conf
 
 /database
 

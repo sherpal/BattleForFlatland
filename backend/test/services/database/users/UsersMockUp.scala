@@ -2,7 +2,7 @@ package services.database.users
 
 import models.users.{Role, User}
 import utils.database.models.{DBRole, DBUser, PendingRegistration}
-import zio.{Task, UIO}
+import zio.{Task, UIO, ZLayer}
 
 class UsersMockUp extends Users.Service {
 
@@ -25,10 +25,15 @@ class UsersMockUp extends Users.Service {
         case (user, roles) =>
           user.user(roles)
       }
-      .slice(math.max(0, from.toInt), math.max(0, from.toInt) + (to - from).toInt)
+      .slice(math.max(0, from.toInt), to.toInt)
   )
 
-  def insertRoles(roles: List[Role]): Task[Boolean] = Task.succeed(rolesDB ++= roles) *> UIO(true)
+  def insertRoles(roles: List[Role]): Task[Boolean] =
+    for {
+      startIdx <- UIO(rolesDB.map(_.roleId.toInt).max + 1)
+      dbRoles <- UIO(roles.zipWithIndex.map { case (role, idx) => DBRole((idx + startIdx).toString, role.name) })
+      _ <- UIO(rolesDB ++= dbRoles.toVector)
+    } yield true
 
   def allRoles: Task[Vector[Role]] = Task.succeed(rolesDB.map(_.roleName).map(Role.roleByName))
 
@@ -44,7 +49,9 @@ class UsersMockUp extends Users.Service {
   def removePendingRegistration(registrationKey: String): Task[Int] =
     for {
       wasThereBefore <- UIO(pendingRegistrationsDB.exists(_.registrationKey == registrationKey))
-      _ <- Task.succeed(pendingRegistrationsDB = pendingRegistrationsDB.filterNot(_.registrationKey == registrationKey))
+      _ <- Task.succeed {
+        pendingRegistrationsDB = pendingRegistrationsDB.filterNot(_.registrationKey == registrationKey)
+      }
     } yield if (wasThereBefore) 1 else 0
 
   def selectDBUser(userName: String): Task[Option[DBUser]] =
@@ -65,7 +72,9 @@ class UsersMockUp extends Users.Service {
   def deleteUser(userName: String): Task[Int] =
     for {
       wasThereBefore <- UIO(usersListDB._1.find(_.userName == userName).toList.length)
-      _ <- Task.succeed(usersListDB = usersListDB.filterNot(_._1.userName == userName))
+      _ <- Task.succeed {
+        usersListDB = usersListDB.filterNot(_._1.userName == userName)
+      }
     } yield wasThereBefore
 
   def selectUser(userName: String): Task[Option[User]] =
@@ -84,5 +93,11 @@ class UsersMockUp extends Users.Service {
           )
         case None => UIO(true)
       }
-    } yield true
+    } yield maybeUser.isDefined
+}
+
+object UsersMockUp {
+
+  def test: ZLayer[Any, Nothing, Users] = ZLayer.succeed(new UsersMockUp)
+
 }

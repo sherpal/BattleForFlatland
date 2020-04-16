@@ -34,19 +34,30 @@ lazy val `shared` = crossProject(JSPlatform, JVMPlatform)
     SharedSettings.jsSettings
   )
 
+lazy val `shared-backend` = project
+  .in(file("./shared-backend"))
+  .disablePlugins(HerokuPlugin)
+  .settings(
+    scalaVersion := "2.13.1",
+    BackendSettings(),
+    testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
+  )
+  .dependsOn(shared.jvm)
+
 /** Backend server uses Play framework */
 lazy val `backend` = (project in file("./backend"))
   .enablePlugins(PlayScala)
   //.enablePlugins(SwaggerPlugin)
   .settings(
     scalaVersion := "2.13.1",
-    BackendSettings(),
+    BackendSettings.playSpecifics(),
+    BackendSettings.testsDeps(),
     BackendSettings.herokuSettings(),
     swaggerDomainNameSpaces := Seq("models"),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
     libraryDependencies += guice // dependency injection
   )
-  .dependsOn(shared.jvm)
+  .dependsOn(`shared-backend`)
 
 lazy val `frontend` = (project in file("./frontend"))
   .enablePlugins(ScalablyTypedConverterPlugin)
@@ -59,6 +70,15 @@ lazy val `frontend` = (project in file("./frontend"))
     stUseScalaJsDom := false
   )
   .dependsOn(shared.js)
+
+lazy val `game-server` = project
+  .in(file("./game-server"))
+  .settings(
+    scalaVersion := "2.13.1",
+    GameServerSettings()
+  )
+  .disablePlugins(HerokuPlugin)
+  .dependsOn(`shared-backend`)
 
 addCommandAlias("dev", ";frontend/fastOptJS::startWebpackDevServer;~frontend/fastOptJS")
 

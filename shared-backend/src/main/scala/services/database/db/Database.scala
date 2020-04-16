@@ -26,9 +26,9 @@ object Database {
     } yield result
 
   def dbProvider(database: JdbcProfile#Backend#Database): Layer[Nothing, Has[Service]] =
-    ZLayer.succeed(new Service {
+    ZLayer.fromAcquireRelease(UIO(new Service {
       def db: UIO[JdbcBackend#DatabaseDef] = ZIO.succeed(database)
-    })
+    }))(service => service.db.map(_.close()))
 
   def db: ZIO[DBProvider, Nothing, JdbcProfile#Backend#Database] = ZIO.accessM(_.get[Service].db)
 
