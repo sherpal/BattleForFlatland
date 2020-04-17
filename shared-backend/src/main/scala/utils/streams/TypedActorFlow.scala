@@ -1,10 +1,11 @@
 package utils.streams
 
 import akka.actor.ActorSystem
-import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.{ActorSystem => TypedActorSystem}
+import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.scaladsl.adapter._
 import akka.actor.typed.{ActorRef, Behavior, Terminated}
-import akka.stream.OverflowStrategy
+import akka.stream.{Materializer, OverflowStrategy}
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import io.circe.parser.decode
@@ -42,6 +43,68 @@ object TypedActorFlow {
       .via(actorFlow)
       .map(outEncoder.apply)
       .map(_.noSpaces)
+  }
+
+  /**
+    * This is similar to `actorRef`, but it is created by a given ActorContext instead of the whole
+    * ActorSystem. This was needed because akka typed would not let me create a typed actor when the
+    * guardian is a custom behaviour.
+    * @param behavior actor to create for ingesting flow income
+    * @param actorName unique name to give to the actor
+    * @param context ActorContext as given by a Behaviors.receiveMessage method
+    */
+  def actorRefFromContext[In, Out](
+      behavior: ActorRef[Out] => Behavior[In],
+      actorName: String,
+      context: ActorContext[_],
+      bufferSize: Int                    = 16,
+      overflowStrategy: OverflowStrategy = OverflowStrategy.dropNew
+  )(implicit materializer: Materializer): Flow[In, Out, _] = {
+    val (outActor, publisher) = ActorSource
+      .actorRef[Out](
+        { case _ if false      => }: PartialFunction[Out, Unit],
+        { case e: Any if false => new Exception(e.toString) }: PartialFunction[Any, Throwable],
+        bufferSize,
+        overflowStrategy
+      )
+      .toMat(Sink.asPublisher(false))(Keep.both)
+      .run()
+
+    val sink = Flow[In]
+      .map(Right[EndOfStream, In])
+      .to(
+        ActorSink.actorRef[Either[EndOfStream, In]](
+          context.spawn(
+            Behaviors.setup[Either[EndOfStream, In]] { context =>
+              val flowActor = context.spawn(behavior(outActor), "flowActor")
+              context.watch(flowActor)
+
+              Behaviors
+                .receiveMessage[Either[EndOfStream, In]] {
+                  case Right(in) =>
+                    flowActor ! in
+                    Behaviors.same
+                  case Left(_) =>
+                    context.stop(flowActor)
+                    Behaviors.same
+                }
+                .receiveSignal {
+                  case (_, Terminated(_)) =>
+                    Behaviors.stopped
+                }
+            },
+            actorName
+          ),
+          Left(Success),
+          _ => Left(Failure)
+        )
+      )
+
+    Flow.fromSinkAndSource(
+      sink,
+      Source.fromPublisher(publisher)
+    )
+
   }
 
   def actorRef[In, Out](

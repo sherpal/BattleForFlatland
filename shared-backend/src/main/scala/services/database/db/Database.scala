@@ -25,10 +25,15 @@ object Database {
       }
     } yield result
 
-  def dbProvider(database: JdbcProfile#Backend#Database): Layer[Nothing, Has[Service]] =
+  def autoClosedDbProvider(database: JdbcProfile#Backend#Database): Layer[Nothing, Has[Service]] =
     ZLayer.fromAcquireRelease(UIO(new Service {
       def db: UIO[JdbcBackend#DatabaseDef] = ZIO.succeed(database)
-    }))(service => service.db.map(_.close()))
+    }))(service => service.db.map(_.close()) *> UIO(println("closed db")))
+
+  def dbProvider(database: JdbcProfile#Backend#Database): Layer[Nothing, Has[Service]] =
+    ZLayer.succeed(new Service {
+      def db: UIO[JdbcBackend#DatabaseDef] = UIO(database)
+    })
 
   def db: ZIO[DBProvider, Nothing, JdbcProfile#Backend#Database] = ZIO.accessM(_.get[Service].db)
 

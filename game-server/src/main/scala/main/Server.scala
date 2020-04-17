@@ -1,36 +1,38 @@
 package main
 
-import zio.{UIO, ZEnv, ZIO}
-import zio.console._
-import services.database.gametables.GameTable
-import services.database.db
-import akka.{actor, NotUsed}
-import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.HttpMethods.GET
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse, Uri}
-import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage, UpgradeToWebSocket}
-import akka.stream.scaladsl.{Flow, Sink}
-
-import scala.concurrent.duration._
-import scala.concurrent.Future
-import scala.io.StdIn
-import akka.actor.typed.scaladsl.adapter._
+import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import errors.ErrorADT
-import slick.basic.DatabaseConfig
+import models.bff.ingame.InGameWSProtocol
+import services.database.db
+import services.database.gametables.GameTable
 import slick.jdbc.PostgresProfile.api._
+import zio.console._
+import zio.{UIO, ZEnv, ZIO}
 
 object Server extends zio.App {
+
+  /** Echo server */
+  private val server = new ServerBehavior[InGameWSProtocol, InGameWSProtocol] {
+    def socketActor(outerWorld: ActorRef[InGameWSProtocol]): Behavior[InGameWSProtocol] =
+      Behaviors.receiveMessage { message =>
+        outerWorld ! message
+        Behaviors.same
+      }
+  }
 
   def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] = CLIConfig.makeConfig(args) match {
     case Some(config) =>
       val dbObject = Database.forConfig("slick.dbs.default.db")
-      val layer    = ZEnv.live ++ (db.Database.dbProvider(dbObject) >>> GameTable.live)
+      val layer    = ZEnv.live ++ (db.Database.autoClosedDbProvider(dbObject) >>> GameTable.live)
 
       (for {
         _ <- putStrLn(s"Game server running for game ${config.gameId}")
         _ <- setup.fetchGameInfo(config.gameId).refineOrDie(ErrorADT.onlyErrorADT)
+        actorSystem <- ZIO.effect(ActorSystem(server("localhost", 22222), "Server"))
+        _ <- putStrLn("Press enter to close server...")
+        _ <- getStrLn
+        _ <- ZIO.effectTotal(actorSystem ! ServerBehavior.Stop)
       } yield 0)
         .catchAll(error => putStrLn(error.toString) *> UIO(1))
         .provideLayer(layer)
