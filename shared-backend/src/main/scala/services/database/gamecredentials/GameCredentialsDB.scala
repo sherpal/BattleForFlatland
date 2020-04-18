@@ -3,12 +3,12 @@ package services.database.gamecredentials
 import errors.ErrorADT.{GameDoesNotExist, WrongGameCredentials}
 import models.bff.ingame.{AllGameCredentials, GameCredentials, GameUserCredentials}
 import models.bff.outofgame.MenuGameWithPlayers
-import zio.{Task, UIO, ZIO, ZLayer}
 import services.crypto._
 import services.database.db.Database
 import services.database.db.Database.DBProvider
 import utils.database.DBProfile
 import utils.ziohelpers._
+import zio.{Task, UIO, ZIO, ZLayer}
 
 object GameCredentialsDB {
 

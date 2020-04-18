@@ -1,17 +1,16 @@
 import akka.actor
 import akka.actor.typed.ActorSystem
-import akka.http.scaladsl.Http
-import models.bff.ingame.{GameCredentials, GameCredentialsWithGameInfo}
-import services.database.gametables._
-import zio.{UIO, ZIO}
-import zio.console.putStrLn
 import akka.actor.typed.scaladsl.adapter._
-import akka.http.scaladsl.model.{HttpRequest, Uri}
-import akka.util.Timeout
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.HttpRequest
 import errors.ErrorADT
 import io.circe.generic.auto._
 import io.circe.parser.decode
+import models.bff.ingame.{GameCredentials, GameCredentialsWithGameInfo}
+import services.database.gametables._
 import utils.customheader.{GameServerIdHeader, GameServerSecretHeader}
+import zio.ZIO
+import zio.console.putStrLn
 
 import scala.concurrent.duration._
 

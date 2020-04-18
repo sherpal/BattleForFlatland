@@ -3,7 +3,6 @@ package models.bff.gameantichamber
 import io.circe.generic.extras.Configuration
 import io.circe.{Decoder, Encoder}
 import models.bff.ingame.GameUserCredentials
-import io.circe.generic.auto._
 
 sealed trait WebSocketProtocol
 

@@ -12,11 +12,13 @@ import guards.Guards
 import play.api.mvc.{AnyContent, Request}
 import services.actors.TypedActorProvider._
 import services.config.{Configuration, _}
+import services.database.gamecredentials._
 import services.database.gametables.{GameTable, _}
 import services.logging._
 import utils.playzio.HasRequest
 import utils.ziohelpers.getOrFail
 import websocketkeepers.gameantichamber.GameAntiChamberTyped
+import websocketkeepers.gameantichamber.GameAntiChamberTyped.GameCredentialsWrapper
 import websocketkeepers.gameantichamber.JoinedGameDispatcherTyped.{
   GameAntiChamberManagerFor,
   HereIsMaybeTheAntiChamberManagerFor
@@ -24,8 +26,6 @@ import websocketkeepers.gameantichamber.JoinedGameDispatcherTyped.{
 import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeperTyped
 import zio.clock.{Clock, _}
 import zio.{Has, UIO, ZIO}
-import services.database.gamecredentials._
-import websocketkeepers.gameantichamber.GameAntiChamberTyped.GameCredentialsWrapper
 
 import scala.concurrent.duration._
 

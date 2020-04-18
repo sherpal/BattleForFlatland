@@ -1,13 +1,12 @@
 package utils.streams
 
 import akka.actor.ActorSystem
-import akka.actor.typed.{ActorSystem => TypedActorSystem}
-import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.scaladsl.adapter._
+import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior, Terminated}
-import akka.stream.{Materializer, OverflowStrategy}
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
+import akka.stream.{Materializer, OverflowStrategy}
 import io.circe.parser.decode
 import io.circe.{Decoder, Encoder}
 

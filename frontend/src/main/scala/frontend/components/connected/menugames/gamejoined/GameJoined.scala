@@ -4,6 +4,8 @@ import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.LifecycleComponent
 import frontend.components.utils.tailwind._
+import io.circe.generic.auto._
+import io.circe.syntax._
 import models.bff.Routes._
 import models.bff.gameantichamber.WebSocketProtocol
 import models.bff.ingame.GameUserCredentials
@@ -17,8 +19,6 @@ import services.routing.{FRouting, _}
 import utils.laminarzio.Implicits._
 import utils.websocket.JsonWebSocket
 import zio.clock.Clock
-import io.circe.syntax._
-import io.circe.generic.auto._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._

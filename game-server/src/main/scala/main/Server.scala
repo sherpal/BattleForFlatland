@@ -2,16 +2,12 @@ package main
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
-import akka.http.scaladsl.model.HttpHeader
-import errors.ErrorADT
 import models.bff.ingame.{GameCredentials, InGameWSProtocol}
 import services.database.db
 import services.database.gametables.GameTable
 import slick.jdbc.PostgresProfile.api._
 import zio.console._
-import zio.{Has, UIO, ZEnv, ZIO, ZLayer}
-import io.circe.generic.auto._
-import io.circe.syntax._
+import zio.{Has, UIO, ZEnv, ZIO}
 
 object Server extends zio.App {
 

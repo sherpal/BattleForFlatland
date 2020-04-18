@@ -19,7 +19,6 @@ import io.circe.parser.decode
 import io.circe.{Decoder, Encoder}
 import utils.streams.TypedActorFlow
 import zio.{Has, ZIO, ZLayer}
-import zio.console._
 
 import scala.concurrent.Future
 import scala.concurrent.duration._

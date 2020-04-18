@@ -17,6 +17,7 @@ import models.users.Role.SuperUser
 import models.users.{Role, User}
 import play.api.mvc.{Request, RequestHeader, Result}
 import services.config._
+import services.database.gamecredentials._
 import services.database.gametables._
 import utils.customheader.{GameServerIdHeader, GameServerSecretHeader}
 import utils.playzio.HasRequest
@@ -24,7 +25,6 @@ import utils.playzio.PlayZIO._
 import utils.ziohelpers._
 import zio.clock.{currentTime, Clock}
 import zio.{Has, UIO, ZIO}
-import services.database.gamecredentials._
 
 object Guards {
 

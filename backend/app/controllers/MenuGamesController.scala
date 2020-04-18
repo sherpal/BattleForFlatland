@@ -21,7 +21,6 @@ import utils.WriteableImplicits._
 import utils.playzio.PlayZIO._
 import websocketkeepers.gameantichamber.JoinedGameDispatcherTyped
 import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeperTyped
-import zio.UIO
 import zio.clock.Clock
 
 import scala.concurrent.ExecutionContext

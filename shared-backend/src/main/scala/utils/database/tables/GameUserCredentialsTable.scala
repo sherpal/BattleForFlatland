@@ -1,6 +1,6 @@
 package utils.database.tables
 
-import models.bff.ingame.{GameCredentials, GameUserCredentials}
+import models.bff.ingame.GameUserCredentials
 import slick.jdbc.PostgresProfile.api._
 import slick.lifted.Tag
 
