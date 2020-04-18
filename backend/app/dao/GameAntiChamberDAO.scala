@@ -24,6 +24,8 @@ import websocketkeepers.gameantichamber.JoinedGameDispatcherTyped.{
 import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeperTyped
 import zio.clock.{Clock, _}
 import zio.{Has, UIO, ZIO}
+import services.database.gamecredentials._
+import websocketkeepers.gameantichamber.GameAntiChamberTyped.GameCredentialsWrapper
 
 import scala.concurrent.duration._
 
@@ -54,6 +56,21 @@ object GameAntiChamberDAO {
       bookKeeper <- gameMenuRoomBookKeeperRef
       _ <- ZIO.effectTotal(bookKeeper ! GameMenuRoomBookKeeperTyped.GameListUpdate)
       _ <- log.info(s"Game $gameId has been cancelled.")
+    } yield ()
+
+  def startGame(gameId: String)(implicit scheduler: Scheduler) =
+    for {
+      _ <- Guards.headOfGame[AnyContent](gameId) // guarding
+      gameInfo <- gameWithPlayersById(gameId)
+      gameAntiChamberManagerRef <- askGameAntiChamberManager(gameId) // fetching this as it is the most probable to die
+      _ <- removeAllGameCredentials(gameId)
+      gameCredentials <- createAndAddGameCredentials(gameInfo)
+      _ <- log.info(s"""
+         |Game secret for $gameId is ${gameCredentials.gameCredentials.gameSecret}.
+         |Game server can be launched in sbt with the command:
+         |game-server/run -i $gameId -s ${gameCredentials.gameCredentials.gameSecret}
+         |""".stripMargin)
+      _ <- ZIO.effectTotal(gameAntiChamberManagerRef ! GameCredentialsWrapper(gameCredentials))
     } yield ()
 
   def iAmStillThere(

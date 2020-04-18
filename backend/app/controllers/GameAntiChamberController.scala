@@ -1,6 +1,5 @@
 package controllers
 
-//import akka.actor.{ActorRef, ActorSystem}
 import akka.actor.ActorSystem
 import akka.actor.typed.{ActorRef, Scheduler}
 import akka.stream.scaladsl.Flow
@@ -20,6 +19,7 @@ import services.actors.TypedActorProvider
 import services.config.Configuration
 import services.crypto._
 import services.database.db.Database.dbProvider
+import services.database.gamecredentials.GameCredentialsDB
 import services.database.gametables.GameTable
 import services.logging.PlayLogging
 import slick.jdbc.JdbcProfile
@@ -45,11 +45,15 @@ final class GameAntiChamberController @Inject()(
 
   lazy val logger: Logger = Logger("GameAntiChamberController")
 
-  private val layer = Clock.live ++ Configuration.live ++ (dbProvider(db) >>> GameTable.live) ++ Crypto.live ++
-    PlayLogging.live(logger) ++ TypedActorProvider.live(
-    typedGameMenuRoomBookKeeperRef,
-    typedJoinedGameDispatcherRef
-  )
+  private val layer = Clock.live ++
+    Configuration.live ++
+    (dbProvider(db) >>> (GameTable.live ++ GameCredentialsDB.live)) ++
+    Crypto.live ++
+    PlayLogging.live(logger) ++
+    TypedActorProvider.live(
+      typedGameMenuRoomBookKeeperRef,
+      typedJoinedGameDispatcherRef
+    )
 
   type AntiChamberProtocol = gameantichamber.WebSocketProtocol
 
@@ -58,6 +62,14 @@ final class GameAntiChamberController @Inject()(
 
   def cancelGame(gameId: String): Action[AnyContent] = Action.zio {
     (GameAntiChamberDAO.cancelGame(gameId).refineOrDie(ErrorADT.onlyErrorADT) *> UIO(Ok))
+      .provideButRequest[Request, AnyContent](layer)
+  }
+
+  def launchGame(gameId: String): Action[AnyContent] = Action.zio {
+    GameAntiChamberDAO
+      .startGame(gameId)
+      .refineOrDie(ErrorADT.onlyErrorADT)
+      .as(Ok)
       .provideButRequest[Request, AnyContent](layer)
   }
 

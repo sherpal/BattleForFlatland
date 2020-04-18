@@ -69,6 +69,9 @@ package object games {
   def sendCancelGame(gameId: String): ZIO[HttpClient, ErrorADT, Int] =
     postIgnore(cancelGame, gameIdParam)(gameId).refineOrDie(ErrorADT.onlyErrorADT)
 
+  def sendLaunchGame(gameId: String): ZIO[HttpClient, ErrorADT, Int] =
+    postIgnore(startGame, gameIdParam)(gameId).refineOrDie(ErrorADT.onlyErrorADT)
+
   def pokingPresence(gameId: String): ZIO[Routing with HttpClient, ErrorADT, Int] =
     postIgnore(iAmStilThere, gameIdParam)(gameId)
       .refineOrDie(ErrorADT.onlyErrorADT)

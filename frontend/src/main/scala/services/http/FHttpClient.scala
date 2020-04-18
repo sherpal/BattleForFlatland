@@ -64,13 +64,15 @@ object FHttpClient {
         ignore
       ).map(_.swap.toOption)
 
-    def readResult[E <: Throwable, A](response: Response[Either[Either[Error, E], Either[Error, A]]]): IO[E, A] =
+    def readResult[E <: Throwable, A](
+        response: Response[Either[Either[Error, E], Either[Error, A]]]
+    ): IO[Either[Error, E], A] =
       ZIO
         .effect(response.body match {
-          case Right(Right(t)) => Right[E, A](t)
-          case Right(Left(e))  => throw e // todo: change this nonsense
-          case Left(Left(e))   => throw e
-          case Left(Right(e))  => Left[E, A](e)
+          case Right(Right(t)) => Right[Either[Error, E], A](t)
+          case Right(Left(e))  => Left[Either[Error, E], A](Left[Error, E](e))
+          case Left(Left(e))   => Left[Either[Error, E], A](Left[Error, E](e))
+          case Left(Right(e))  => Left[Either[Error, E], A](Right[Error, E](e))
         })
         .orDie
         .flatMap {
@@ -87,7 +89,10 @@ object FHttpClient {
             implicit ec => start.response(responseAs[ErrorADT, A]).get(uri).send()
           )
           .orDie
-        resultBody <- readResult(response)
+        resultBody <- readResult(response).mapError {
+          case Left(circeError) => ErrorADT.CirceDecodingError(circeError.getStackTrace.map(_.toString).mkString("\n"))
+          case Right(e)         => e
+        }
       } yield resultBody
 
     private def preparedPostQuery[B, R](
@@ -107,7 +112,10 @@ object FHttpClient {
             }
           )
           .orDie
-        resultBody <- readResult(response)
+        resultBody <- readResult(response).mapError {
+          case Left(circeError) => ErrorADT.CirceDecodingError(circeError.getStackTrace.map(_.toString).mkString("\n"))
+          case Right(e)         => e
+        }
       } yield resultBody
 
     private def preparedPostQueryIgnore[B](body: Option[B])(implicit encoder: Encoder[B]) =

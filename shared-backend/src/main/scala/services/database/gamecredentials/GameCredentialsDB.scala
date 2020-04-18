@@ -57,7 +57,7 @@ object GameCredentialsDB {
     def removeAllGameCredentials(gameId: String): ZIO[Any, Throwable, Unit] =
       for {
         _ <- removeGameCredentials(gameId)
-        _ <- removeGameUserCredentials(gameId)
+        _ <- removeGameUserCredentials(gameId) // should be useless since db has an `on delete cascade` clause.
       } yield ()
 
   }

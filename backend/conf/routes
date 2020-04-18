@@ -68,6 +68,7 @@ GET     /api/bff/game-info              controllers.MenuGamesController.gameInfo
 POST    /api/bff/cancel-game            controllers.GameAntiChamberController.cancelGame(gameId: String)
 POST    /api/bff/i-am-still-there       controllers.GameAntiChamberController.iAmStillThere(gameId: String)
 POST    /api/bff/leave-game             controllers.GameAntiChamberController.playerLeavesGame(gameId: String)
+POST    /api/bff/start-game             controllers.GameAntiChamberController.launchGame(gameId: String)
 
 GET   /ws/test                      controllers.WebSocketController.socketTest
 GET   /ws/game-menu-room            controllers.WebSocketController.gameMenuRoom

@@ -52,7 +52,6 @@ final class JsonWebSocket[In, Out, P, Q] private (
       }
       _ <- UIO {
         outBus.events.map(encoder.apply).map(_.noSpaces).foreach(webSocket.send)
-        outBus.events.map(encoder.apply).map(_.noSpaces).foreach(println)
       }
       _ <- UIO {
         webSocket.onerror = (event: Event) => {

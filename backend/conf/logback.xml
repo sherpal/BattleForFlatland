@@ -31,6 +31,7 @@
   <logger name="MenuGamesController" level="INFO" />
   <logger name="GameAntiChamberController" level="INFO" />
   <logger name="GameAntiChamberActorSystem" level="INFO" />
+  <logger name="GameServerController" level="INFO" />
 
   <root level="WARN">
     <!--<appender-ref ref="ASYNCFILE" />-->

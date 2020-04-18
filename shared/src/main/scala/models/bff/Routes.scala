@@ -17,6 +17,7 @@ object Routes {
   final val gameInfo      = bff / "game-info" // get
   final val gameJoinedWS  = bff / "game-anti-chamber" // web socket
   final val cancelGame    = bff / "cancel-game" // post
+  final val startGame     = bff / "start-game" // post
   final val iAmStilThere  = bff / "i-am-still-there" // post
   final val leaveGame     = bff / "leave-game" // post
 

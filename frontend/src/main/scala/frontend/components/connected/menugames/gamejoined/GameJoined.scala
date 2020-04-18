@@ -6,6 +6,7 @@ import frontend.components.LifecycleComponent
 import frontend.components.utils.tailwind._
 import models.bff.Routes._
 import models.bff.gameantichamber.WebSocketProtocol
+import models.bff.ingame.GameUserCredentials
 import models.bff.outofgame.MenuGameWithPlayers
 import models.users.{RouteDefinitions, User}
 import org.scalajs.dom.html
@@ -16,6 +17,8 @@ import services.routing.{FRouting, _}
 import utils.laminarzio.Implicits._
 import utils.websocket.JsonWebSocket
 import zio.clock.Clock
+import io.circe.syntax._
+import io.circe.generic.auto._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -36,6 +39,8 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
       case Failure(_) => clearInterval(pokingHandle)
     }
   }
+
+  private val receivedCredentials: Var[List[GameUserCredentials]] = Var(List())
 
   val $gameInfo: EventStream[MenuGameWithPlayers] =
     EventStream
@@ -59,9 +64,25 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
     )
     .flatMap(_ => EventStream.fromZIOEffect(moveTo(RouteDefinitions.homeRoute).provideLayer(layer)))
 
+  val $updateCreds: EventStream[Unit] = socket.$in.collect {
+    case WebSocketProtocol.GameUserCredentialsWrapper(gameUserCredentials) =>
+      gameUserCredentials
+  }.map { creds =>
+    receivedCredentials.update(_ :+ creds)
+  }
+
   val cancelGameBus = new EventBus[Unit]
   val $cancelGame: EventStream[Int] =
     cancelGameBus.events.flatMap(_ => EventStream.fromZIOEffect(sendCancelGame(gameId).provideLayer(layer)))
+
+  val startGameBus = new EventBus[Unit]
+  val $startGame: EventStream[Int] =
+    startGameBus.events.flatMap(
+      _ =>
+        EventStream.fromZIOEffect(
+          sendLaunchGame(gameId).provideLayer(layer)
+        )
+    )
 
   val leaveGameBus = new EventBus[Unit]
   val $leaveGame: EventStream[Int] =
@@ -72,6 +93,8 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
     className <-- $shouldMoveBackToHome.mapTo(""), // kicking off stream
     className <-- $cancelGame.mapTo(""), // kicking off stream
     className <-- $leaveGame.mapTo(""), // kicking off stream
+    className <-- $updateCreds.mapTo(""), // kicking off stream // todo: delete this
+    className <-- $startGame.mapTo(""),
     div(
       mainContent,
       h1(
@@ -92,7 +115,16 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
 //        child.text <-- $gameInfo.map(_.asJson.spaces2)
 //      ),
       div(
-        child <-- $amICreator.map { if (_) button(btn, primaryButton, "Launch game!") else emptyNode },
+        child <-- $amICreator.map {
+          if (_)
+            button(
+              btn,
+              primaryButton,
+              "Launch game!",
+              onClick.mapTo(()) --> startGameBus
+            )
+          else emptyNode
+        },
         child <-- $amICreator.map {
           if (_)
             button(btn, secondaryButton, "Cancel game", onClick.mapTo(()) --> cancelGameBus)
@@ -104,6 +136,9 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
               onClick.mapTo(WebSocketProtocol.PlayerLeavesGame(me.userId)) --> socket.outWriter
             )
         }
+      ),
+      pre(
+        child.text <-- receivedCredentials.signal.map(_.asJson.spaces2)
       )
     )
   )

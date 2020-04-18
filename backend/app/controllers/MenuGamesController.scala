@@ -51,7 +51,7 @@ final class MenuGamesController @Inject()(
   )
 
   def joinGame(gameId: String): Action[PasswordWrapper] = Action.zio(parse.json[PasswordWrapper])(
-    (MenuGameDAO.addPlayerToGame(gameId) *> UIO(Ok)).provideButRequest[Request, PasswordWrapper](layer)
+    MenuGameDAO.addPlayerToGame(gameId).as(Ok).provideButRequest[Request, PasswordWrapper](layer)
   )
 
   def amIAmPlayingSomewhere: Action[AnyContent] = Action.zio {
@@ -59,7 +59,7 @@ final class MenuGamesController @Inject()(
   }
 
   def amIInGame(gameId: String): Action[AnyContent] = Action.zio {
-    (MenuGameDAO.amIInGame(gameId) *> UIO(Ok)).provideButRequest[Request, AnyContent](layer)
+    MenuGameDAO.amIInGame(gameId).as(Ok).provideButRequest[Request, AnyContent](layer)
   }
 
   def gameInfo(gameId: String): Action[AnyContent] = Action.zio {

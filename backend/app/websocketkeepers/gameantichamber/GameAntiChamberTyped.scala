@@ -7,7 +7,8 @@ import akka.actor.typed.{ActorRef, Behavior}
 import dao.GameAntiChamberDAO
 import errors.ErrorADT.GameDoesNotExist
 import models.bff.gameantichamber.WebSocketProtocol
-import models.bff.gameantichamber.WebSocketProtocol.{GameCancelled, GameStatusUpdated}
+import models.bff.gameantichamber.WebSocketProtocol.{GameCancelled, GameStatusUpdated, GameUserCredentialsWrapper}
+import models.bff.ingame.AllGameCredentials
 import models.bff.outofgame.MenuGame
 import services.actors.TypedActorProvider
 import services.config.Configuration
@@ -52,6 +53,7 @@ object GameAntiChamberTyped {
   case object SendHeartBeat extends MessageFromOutside
   case object YouCanCleanUpCancel extends MessageFromOutside
   case object CancelGame extends MessageFromOutside
+  case class GameCredentialsWrapper(gameCredentials: AllGameCredentials) extends MessageFromOutside
 
   private case class ClientInfo(ref: ActorRef[Nothing], userId: String, lastTimeSeenAlive: LocalDateTime)
 
@@ -96,6 +98,7 @@ object GameAntiChamberTyped {
                   Behaviors.same
                 case _ => Behaviors.same
               }
+            case WebSocketProtocol.GameUserCredentialsWrapper(_) => Behaviors.same
           }
         case SendHeartBeat =>
           // keeping connection alive
@@ -130,6 +133,19 @@ object GameAntiChamberTyped {
         case CancelGame =>
           context.log.debug("Already cancelling")
           Behaviors.same
+
+        case GameCredentialsWrapper(credentials) =>
+          for {
+            userCreds <- credentials.allGameUserCredentials
+            (clientRef, ClientInfo(_, userId, _)) <- players
+            if userCreds.userId == userId
+          } clientRef ! AntiChamberClientTyped.WebSocketProtocolWrapper(
+            GameUserCredentialsWrapper(userCreds),
+            AntiChamberClientTyped.GameAntiChamberSender
+          )
+
+          Behaviors.same // todo: change status to playing
+
         case SeenAlive(userId) =>
           players
             .find(_._2.userId == userId)

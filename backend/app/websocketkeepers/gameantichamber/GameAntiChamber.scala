@@ -86,6 +86,7 @@ final class GameAntiChamber(
                   s"Received a PlayerLeavesGame with a mismatch in user Id (Actual: $senderUserId, Received: $userId"
                 )
             }
+          case WebSocketProtocol.GameUserCredentialsWrapper(_) =>
         }
 
       // below are all the internal stuff (backend)
