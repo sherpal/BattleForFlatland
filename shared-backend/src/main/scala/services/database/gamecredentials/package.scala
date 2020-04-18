@@ -1,6 +1,6 @@
 package services.database
 
-import models.bff.ingame.AllGameCredentials
+import models.bff.ingame.{AllGameCredentials, GameCredentials}
 import models.bff.outofgame.MenuGameWithPlayers
 import services.crypto.Crypto
 import zio.{Has, ZIO}
@@ -23,5 +23,11 @@ package object gamecredentials {
     */
   def removeAllGameCredentials(gameId: String): ZIO[GameCredentialsDB, Throwable, Unit] =
     ZIO.accessM(_.get[GameCredentialsDB.Service].removeAllGameCredentials(gameId))
+
+  /** Checks that the game credentials are correct, and retrieve the credentials for the users of that game. */
+  def retrieveUsersCredentials(
+      gameCredentials: GameCredentials
+  ): ZIO[GameCredentialsDB, Throwable, AllGameCredentials] =
+    ZIO.accessM(_.get[GameCredentialsDB.Service].retrieveUsersCredentials(gameCredentials))
 
 }

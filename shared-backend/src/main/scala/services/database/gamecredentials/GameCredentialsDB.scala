@@ -1,5 +1,6 @@
 package services.database.gamecredentials
 
+import errors.ErrorADT.{GameDoesNotExist, WrongGameCredentials}
 import models.bff.ingame.{AllGameCredentials, GameCredentials, GameUserCredentials}
 import models.bff.outofgame.MenuGameWithPlayers
 import zio.{Task, UIO, ZIO, ZLayer}
@@ -7,6 +8,7 @@ import services.crypto._
 import services.database.db.Database
 import services.database.db.Database.DBProvider
 import utils.database.DBProfile
+import utils.ziohelpers._
 
 object GameCredentialsDB {
 
@@ -35,6 +37,12 @@ object GameCredentialsDB {
       */
     protected def removeGameUserCredentials(gameId: String): Task[Int]
 
+    /** Retrieves from the database the game credentials for that game id */
+    protected def fetchGameCredentials(gameId: String): Task[Option[GameCredentials]]
+
+    /** Retrieves from the database the list of game user credentials for that game id. */
+    protected def fetchUserCredentials(gameId: String): Task[List[GameUserCredentials]]
+
     /**
       * Creates the game credentials and the credentials for all users, adds them to the database, and return
       * them for telling the users and launching the game server.
@@ -59,6 +67,15 @@ object GameCredentialsDB {
         _ <- removeGameCredentials(gameId)
         _ <- removeGameUserCredentials(gameId) // should be useless since db has an `on delete cascade` clause.
       } yield ()
+
+    /** Checks that the game credentials are correct, and retrieve the credentials for the users of that game. */
+    def retrieveUsersCredentials(gameCredentials: GameCredentials): Task[AllGameCredentials] =
+      for {
+        maybeGameCreds <- fetchGameCredentials(gameCredentials.gameId)
+        dbGameCreds <- getOrFail(maybeGameCreds, GameDoesNotExist(gameCredentials.gameId))
+        _ <- failIfWith(dbGameCreds.gameSecret != gameCredentials.gameSecret, WrongGameCredentials)
+        usersCreds <- fetchUserCredentials(gameCredentials.gameId)
+      } yield AllGameCredentials(gameCredentials, usersCreds)
 
   }
 

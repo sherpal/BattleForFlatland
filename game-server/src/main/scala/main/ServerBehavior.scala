@@ -3,6 +3,7 @@ package main
 import java.util.UUID
 
 import akka.NotUsed
+import akka.actor.typed.scaladsl.AskPattern._
 import akka.actor.typed.scaladsl.adapter._
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
@@ -13,9 +14,12 @@ import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage, Upgrade
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, Uri}
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Flow, Sink}
+import akka.util.Timeout
 import io.circe.parser.decode
 import io.circe.{Decoder, Encoder}
 import utils.streams.TypedActorFlow
+import zio.{Has, ZIO, ZLayer}
+import zio.console._
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -97,7 +101,7 @@ trait ServerBehavior[In, Out] {
     }
 
   /** Starts an akka http server with the routes specified above. */
-  def apply(host: String, port: Int)(
+  private def apply(host: String, port: Int)(
       implicit
       decoder: Decoder[In],
       encoder: Encoder[Out]
@@ -115,15 +119,51 @@ trait ServerBehavior[In, Out] {
         Stop
     }
 
-    Behaviors.receiveMessage {
-      case Started =>
-        println(s"Server online at http://$host:$port/")
+    def started: Behavior[ServerMessage] = Behaviors.receiveMessage {
+      case Started => Behaviors.unhandled // should not happen
+      case Stop    => Behaviors.stopped
+      case WarnMeWhenStarted(replyTo) =>
+        replyTo ! ()
         Behaviors.same
-      case Stop =>
-        Behaviors.stopped
     }
 
+    def notYetStarted(waitingForStartedNotification: Option[ActorRef[Unit]]): Behavior[ServerMessage] =
+      Behaviors.receiveMessage {
+        case Started =>
+          println(s"Server online at http://$host:$port/")
+          waitingForStartedNotification.foreach(_ ! ())
+          started
+        case Stop =>
+          waitingForStartedNotification.foreach(_ ! ())
+          Behaviors.stopped
+        case WarnMeWhenStarted(replyTo) =>
+          notYetStarted(Some(replyTo))
+
+      }
+
+    notYetStarted(None)
+
   }
+
+  def launchServer(
+      host: String,
+      port: Int,
+      actorName: String = "Server"
+  )(
+      implicit
+      decoder: Decoder[In],
+      encoder: Encoder[Out]
+  ): ZLayer[Any, Nothing, Has[ActorSystem[ServerMessage]]] =
+    ZLayer.fromAcquireRelease(
+      for {
+        actorSystem <- ZIO.effectTotal(ActorSystem(apply(host, port), actorName))
+        _ <- ZIO
+          .fromFuture { _ =>
+            actorSystem.ask[Unit](replyTo => WarnMeWhenStarted(replyTo))(Timeout(5.seconds), actorSystem.scheduler)
+          }
+          .catchAll(_ => ZIO.effectTotal(actorSystem ! Stop))
+      } yield actorSystem
+    )(system => ZIO.effectTotal(system ! Stop))
 
 }
 
@@ -132,4 +172,6 @@ object ServerBehavior {
   sealed trait ServerMessage
   case object Stop extends ServerMessage
   case object Started extends ServerMessage
+  private case class WarnMeWhenStarted(replyTo: ActorRef[Unit]) extends ServerMessage
+
 }

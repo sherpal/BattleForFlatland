@@ -3,19 +3,28 @@ package guards
 import java.util.concurrent.TimeUnit
 
 import errors.ErrorADT
-import errors.ErrorADT.{CirceDecodingError, ForbiddenForYou, YouAreNotInGame, YouAreUnauthorized}
+import errors.ErrorADT.{
+  CirceDecodingError,
+  ForbiddenForYou,
+  MissingGameServerAuthHeader,
+  YouAreNotInGame,
+  YouAreUnauthorized
+}
 import io.circe.generic.auto._
 import io.circe.parser.decode
+import models.bff.ingame.{AllGameCredentials, GameCredentials}
 import models.users.Role.SuperUser
 import models.users.{Role, User}
 import play.api.mvc.{Request, RequestHeader, Result}
 import services.config._
 import services.database.gametables._
+import utils.customheader.{GameServerIdHeader, GameServerSecretHeader}
 import utils.playzio.HasRequest
 import utils.playzio.PlayZIO._
 import utils.ziohelpers._
 import zio.clock.{currentTime, Clock}
 import zio.{Has, UIO, ZIO}
+import services.database.gamecredentials._
 
 object Guards {
 
@@ -106,5 +115,19 @@ object Guards {
       joinedGameRequest <- partOfGame[A](gameId)
       _ <- failIfWith(!joinedGameRequest.isGameHead, ErrorADT.YouAreUnauthorized)
     } yield joinedGameRequest
+
+  def amIGameServer: ZIO[GameCredentialsDB with Has[RequestHeader], Throwable, AllGameCredentials] =
+    for {
+      header <- zioRequestHeader
+      gameIdHeaderValue <- ZIO
+        .fromOption(header.headers.get(GameServerIdHeader.name))
+        .mapError(_ => MissingGameServerAuthHeader(GameServerIdHeader.name))
+      gameId = GameServerIdHeader(gameIdHeaderValue)
+      gameSecretHeaderValue <- ZIO
+        .fromOption(header.headers.get(GameServerSecretHeader.name))
+        .mapError(_ => MissingGameServerAuthHeader(GameServerSecretHeader.name))
+      gameSecret = GameServerSecretHeader(gameSecretHeaderValue)
+      allCredentials <- retrieveUsersCredentials(GameCredentials(gameId.value, gameSecret.value))
+    } yield allCredentials
 
 }

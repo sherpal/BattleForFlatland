@@ -44,6 +44,9 @@ object ErrorADT {
   case class CirceDecodingError(message: String) extends ErrorADT {
     def httpErrorType: HTTPResultType = Internal
   }
+  def fromCirceDecodingError(error: io.circe.Error): CirceDecodingError = CirceDecodingError(
+    error.getMessage + "\n" + error.getStackTrace.map(_.toString).map("\t" + _).mkString("\n")
+  )
 
   case class ReadingConfigError(message: String) extends ErrorADT {
     def httpErrorType: HTTPResultType = Internal
@@ -53,6 +56,14 @@ object ErrorADT {
   sealed trait BackendError extends ErrorADT
   case class WrongStatusCode(code: Int) extends BackendError {
     override def httpErrorType: HTTPResultType = Internal
+  }
+
+  sealed trait GameServerCredentialsError extends BackendError
+  case class MissingGameServerAuthHeader(headerName: String) extends GameServerCredentialsError {
+    override def httpErrorType: HTTPResultType = BadRequest
+  }
+  case object WrongGameCredentials extends GameServerCredentialsError {
+    def httpErrorType: HTTPResultType = BadRequest
   }
 
   sealed trait DatabaseError extends BackendError

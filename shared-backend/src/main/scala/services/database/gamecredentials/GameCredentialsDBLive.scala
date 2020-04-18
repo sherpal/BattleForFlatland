@@ -31,4 +31,13 @@ final class GameCredentialsDBLive(
   protected def removeGameUserCredentials(gameId: String): Task[Int] = runAsTask(
     gameUserCredsQuery.filter(_.gameId === gameId).delete
   )
+
+  protected def fetchGameCredentials(gameId: String): Task[Option[GameCredentials]] = runAsTask(
+    gameCredsQuery.filter(_.gameId === gameId).result.headOption
+  )
+
+  protected def fetchUserCredentials(gameId: String): Task[List[GameUserCredentials]] =
+    runAsTask(
+      gameUserCredsQuery.filter(_.gameId === gameId).result
+    ).map(_.toList)
 }

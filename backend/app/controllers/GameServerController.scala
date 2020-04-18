@@ -2,10 +2,12 @@ package controllers
 
 import akka.actor.ActorSystem
 import akka.actor.typed.{ActorRef, Scheduler}
+import dao.GameServerDAO
+import errors.ErrorADT
 import javax.inject.Inject
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import play.api.mvc.{AbstractController, ControllerComponents}
+import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, Request, RequestHeader}
 import services.actors.TypedActorProvider
 import services.config.Configuration
 import services.crypto.Crypto
@@ -17,6 +19,10 @@ import slick.jdbc.JdbcProfile
 import websocketkeepers.gameantichamber.JoinedGameDispatcherTyped
 import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeperTyped
 import zio.clock.Clock
+import utils.playzio.PlayZIO._
+import io.circe.generic.auto._
+import utils.WriteableImplicits._
+import zio.ZLayer
 
 import scala.concurrent.ExecutionContext
 
@@ -44,5 +50,22 @@ final class GameServerController @Inject()(
       typedGameMenuRoomBookKeeperRef,
       typedJoinedGameDispatcherRef
     )
+
+  /**
+    * This route requires to have headers for game id and game secret.
+    * These are represented by the classes
+    * [[utils.customheader.GameServerSecretHeader]] and [[utils.customheader.GameServerIdHeader]].
+    */
+  def fetchGameInfoAndCredentials: Action[AnyContent] = Action.zio {
+    zioRequest[Request, AnyContent]
+      .flatMap(
+        request =>
+          GameServerDAO.retrieveCredentialsAndGameInfo
+            .map(Ok(_))
+            .refineOrDie(ErrorADT.onlyErrorADT)
+            .provideLayer(layer ++ ZLayer.succeed(request: RequestHeader))
+      )
+
+  }
 
 }

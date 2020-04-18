@@ -30,6 +30,11 @@ object PlayZIO {
           .provideLayer(ZLayer.succeed(HasRequest(request)))
       )
 
+    private def runForHeader(header: RequestHeader, block: ZIO[Has[RequestHeader], ErrorADT, Result]) =
+      Runtime.default.unsafeRunToFuture(
+        block.fold(_.result, identity).provideLayer(ZLayer.succeed(header))
+      )
+
     def zio[A](
         bodyParser: BodyParser[A]
     )(block: ZIO[Has[HasRequest[R, A]], ErrorADT, Result])(implicit tagged: Tagged[HasRequest[R, A]]): Action[A] =
@@ -58,8 +63,8 @@ object PlayZIO {
 
   }
 
-  final implicit class ProvideButHeader[R, E, In, Out](effect: ZIO[R, E, Flow[In, Out, _]]) {
-    def provideButHeader: ZIO.ProvideSomeLayer[Has[RequestHeader], R, E, Flow[In, Out, _]] =
+  final implicit class ProvideButHeader[R, E, A](effect: ZIO[R, E, A]) {
+    def provideButHeader: ZIO.ProvideSomeLayer[Has[RequestHeader], R, E, A] =
       effect.provideSomeLayer[Has[RequestHeader]]
   }
 
