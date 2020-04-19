@@ -6,6 +6,7 @@ import dao.GameServerDAO
 import errors.ErrorADT
 import io.circe.generic.auto._
 import javax.inject.Inject
+import models.bff.ingame.GameUserCredentials
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.mvc._
@@ -23,6 +24,8 @@ import websocketkeepers.gameantichamber.JoinedGameDispatcherTyped
 import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeperTyped
 import zio.ZLayer
 import zio.clock.Clock
+import utils.ReadsImplicits._
+import io.circe.generic.auto._
 
 import scala.concurrent.ExecutionContext
 
@@ -66,6 +69,13 @@ final class GameServerController @Inject()(
             .provideLayer(layer ++ ZLayer.succeed(request: RequestHeader))
       )
 
+  }
+
+  def clientFetchToken: Action[GameUserCredentials] = Action.zio(parse.json[GameUserCredentials]) {
+    GameServerDAO.clientFetchGameServerToken
+      .map(Ok(_))
+      .refineOrDie(ErrorADT.onlyErrorADT)
+      .provideButRequest[Request, GameUserCredentials](layer)
   }
 
 }

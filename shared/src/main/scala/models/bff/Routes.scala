@@ -21,6 +21,10 @@ object Routes {
   final val iAmStilThere  = bff / "i-am-still-there" // post
   final val leaveGame     = bff / "leave-game" // post
 
+  final val preFlightGameServer = root / "pre-flight" // options
+  final val gameServerToken     = root / "fetch-game-server-token" // post
+
   final val gameIdParam = param[String]("gameId")
+  final val emptyParam  = empty
 
 }

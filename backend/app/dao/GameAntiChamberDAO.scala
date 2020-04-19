@@ -12,6 +12,7 @@ import guards.Guards
 import play.api.mvc.{AnyContent, Request}
 import services.actors.TypedActorProvider._
 import services.config.{Configuration, _}
+import services.crypto.Crypto
 import services.database.gamecredentials._
 import services.database.gametables.{GameTable, _}
 import services.logging._
@@ -31,7 +32,7 @@ import scala.concurrent.duration._
 
 object GameAntiChamberDAO {
 
-  private def askGameAntiChamberManager(gameId: String)(implicit scheduler: Scheduler) =
+  private[dao] def askGameAntiChamberManager(gameId: String)(implicit scheduler: Scheduler) =
     for {
       dispatcherRef <- joinedGameDispatcherRef
       maybeGameAntiChamberManagerRef <- ZIO
@@ -58,11 +59,14 @@ object GameAntiChamberDAO {
       _ <- log.info(s"Game $gameId has been cancelled.")
     } yield ()
 
-  def startGame(gameId: String)(implicit scheduler: Scheduler) =
+  def startGame(
+      gameId: String
+  ): ZIO[Logging with GameCredentialsDB with Crypto with GameTable with Clock with Configuration with Has[
+    HasRequest[Request, AnyContent]
+  ], Throwable, Unit] =
     for {
       _ <- Guards.headOfGame[AnyContent](gameId) // guarding
       gameInfo <- gameWithPlayersById(gameId)
-      gameAntiChamberManagerRef <- askGameAntiChamberManager(gameId) // fetching this as it is the most probable to die
       _ <- removeAllGameCredentials(gameId)
       gameCredentials <- createAndAddGameCredentials(gameInfo)
       _ <- log.info(s"""
@@ -70,7 +74,6 @@ object GameAntiChamberDAO {
          |Game server can be launched in sbt with the command:
          |game-server/run -i $gameId -s ${gameCredentials.gameCredentials.gameSecret}
          |""".stripMargin)
-      _ <- ZIO.effectTotal(gameAntiChamberManagerRef ! GameCredentialsWrapper(gameCredentials))
     } yield ()
 
   def iAmStillThere(

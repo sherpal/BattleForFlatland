@@ -71,6 +71,11 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
     receivedCredentials.update(_ :+ creds)
   }
 
+  val $tokenForWebSocket: EventStream[String] = socket.$in.collect {
+    case WebSocketProtocol.GameUserCredentialsWrapper(gameUserCredentials) =>
+      gameUserCredentials
+  }.flatMap(creds => EventStream.fromZIOEffect(fetchGameToken(creds).provideLayer(layer)))
+
   val cancelGameBus = new EventBus[Unit]
   val $cancelGame: EventStream[Int] =
     cancelGameBus.events.flatMap(_ => EventStream.fromZIOEffect(sendCancelGame(gameId).provideLayer(layer)))
@@ -103,17 +108,6 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
         child.text <-- $gameInfo.map(_.game.gameName).map("Game " + _)
       ),
       PlayerList($gameInfo.map(_.players)),
-//      p(
-//        s"You've joined game $gameId."
-//      ),
-//      pre(
-//        child.text <-- socket.$in.filterNot(_ == WebSocketProtocol.HeartBeat)
-//          .map(x => new js.Date().getTime.toString -> x.asJson.spaces2)
-//          .map(_.toString)
-//      ),
-//      pre(
-//        child.text <-- $gameInfo.map(_.asJson.spaces2)
-//      ),
       div(
         child <-- $amICreator.map {
           if (_)
@@ -138,7 +132,8 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
         }
       ),
       pre(
-        child.text <-- receivedCredentials.signal.map(_.asJson.spaces2)
+        child.text <-- receivedCredentials.signal.map(_.asJson.spaces2),
+        child.text <-- $tokenForWebSocket
       )
     )
   )

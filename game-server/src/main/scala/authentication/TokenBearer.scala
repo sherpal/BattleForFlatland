@@ -35,51 +35,57 @@ object TokenBearer {
               (user, idx) <- users.zipWithIndex
               credentials <- userCredentials
               if user.userId == credentials.userId
-            } yield UserInfo(user, credentials.userSecret, s"$idx-${credentials.userSecret}", tokenRequested = false)
+            } yield UserInfo(user, credentials.userSecret, s"$idx-${credentials.userSecret}", tokenRequested = false),
+            userCredentials.headOption.map(_.gameId).getOrElse("")
           )
         case other =>
           waitingForCredentials(queuedMessages.enqueue(other))
       }
   }
 
-  private def receiver(playerTokens: List[UserInfo]): Behavior[Message] = Behaviors.receive { (context, message) =>
-    message match {
-      case TokenForUser(userCredentials, replyTo) =>
-        replyTo ! playerTokens
-          .find(
-            userInfo =>
-              userInfo.user.userId == userCredentials.userId && userInfo.userSecret == userCredentials.userSecret
-          )
-          .map(_.token)
-        receiver(
-          playerTokens.map(
-            info =>
-              info.copy(
-                tokenRequested = info.tokenRequested || (
-                  info.user.userId == userCredentials.userId && info.userSecret == userCredentials.userSecret
-                )
-              )
-          )
-        )
-      case TokenForTest(replyTo) =>
-        playerTokens.find(!_.tokenRequested) match {
-          case Some(info) =>
-            context.self ! TokenForUser(
-              GameUserCredentials(
-                info.user.userId,
-                "",
-                info.userSecret
-              ),
-              replyTo
+  private def receiver(playerTokens: List[UserInfo], gameId: String): Behavior[Message] = Behaviors.receive {
+    (context, message) =>
+      message match {
+        case TokenForUser(userCredentials, replyTo) if userCredentials.gameId != gameId =>
+          replyTo ! None
+          Behaviors.same
+        case TokenForUser(userCredentials, replyTo) =>
+          replyTo ! playerTokens
+            .find(
+              userInfo =>
+                userInfo.user.userId == userCredentials.userId && userInfo.userSecret == userCredentials.userSecret
             )
-          case None => replyTo ! None
-        }
-        Behaviors.same
-      case UserConnects(userId, token, replyTo) =>
-        replyTo ! playerTokens.exists(info => info.user.userId == userId && info.token == token)
-        Behaviors.same
-      case _: CredentialsWrapper => Behaviors.unhandled
-    }
+            .map(_.token)
+          receiver(
+            playerTokens.map(
+              info =>
+                info.copy(
+                  tokenRequested = info.tokenRequested || (
+                    info.user.userId == userCredentials.userId && info.userSecret == userCredentials.userSecret
+                  )
+                )
+            ),
+            gameId
+          )
+        case TokenForTest(replyTo) =>
+          playerTokens.find(!_.tokenRequested) match {
+            case Some(info) =>
+              context.self ! TokenForUser(
+                GameUserCredentials(
+                  info.user.userId,
+                  "",
+                  info.userSecret
+                ),
+                replyTo
+              )
+            case None => replyTo ! None
+          }
+          Behaviors.same
+        case UserConnects(userId, token, replyTo) =>
+          replyTo ! playerTokens.exists(info => info.user.userId == userId && info.token == token)
+          Behaviors.same
+        case _: CredentialsWrapper => Behaviors.unhandled
+      }
   }
 
   /**

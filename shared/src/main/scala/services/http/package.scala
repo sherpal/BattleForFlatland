@@ -48,4 +48,18 @@ package object http {
   )(implicit encoder: Encoder[B]): ZIO[HttpClient, Throwable, Int] =
     ZIO.accessM(_.get[HttpClient.Service].postIgnore(path, query, body)(q))
 
+  def getElsewhere[Q, R](path: Path[Unit], query: Query[Q], host: String, port: Int)(q: Q)(
+      implicit decoder: Decoder[R]
+  ): ZIO[HttpClient, Throwable, R] = ZIO.accessM(_.get[HttpClient.Service].getElsewhere(path, query, host, port)(q))
+
+  def postElsewhere[B, Q, R](path: Path[Unit], query: Query[Q], body: B, host: String, port: Int)(
+      q: Q
+  )(implicit decoder: Decoder[R], encoder: Encoder[B]): ZIO[HttpClient, Throwable, R] = ZIO.accessM(
+    _.get[HttpClient.Service].postElsewhere(path, query, body, host, port)(q)
+  )
+
+  def optionsElsewhere(path: Path[Unit], host: String, port: Int): ZIO[HttpClient, Throwable, Int] = ZIO.accessM(
+    _.get[HttpClient.Service].optionsElsewhere(path, host, port)
+  )
+
 }

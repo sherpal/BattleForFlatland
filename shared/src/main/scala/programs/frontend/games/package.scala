@@ -3,6 +3,7 @@ package programs.frontend
 import errors.ErrorADT
 import io.circe.generic.auto._
 import models.bff.Routes._
+import models.bff.ingame.GameUserCredentials
 import models.bff.outofgame.{MenuGame, MenuGameWithPlayers}
 import models.common.PasswordWrapper
 import models.users.RouteDefinitions._
@@ -79,5 +80,11 @@ package object games {
 
   def iAmLeaving(gameId: String): ZIO[HttpClient, ErrorADT, Int] =
     postIgnore(leaveGame, gameIdParam)(gameId).refineOrDie(ErrorADT.onlyErrorADT)
+
+  /** Asks the game server for the token. */
+  // todo: change the host!!!
+  def fetchGameToken(credentials: GameUserCredentials): ZIO[HttpClient, ErrorADT, String] =
+    post[GameUserCredentials, String](gameServerToken, credentials)
+      .refineOrDie(ErrorADT.onlyErrorADT)
 
 }

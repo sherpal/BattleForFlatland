@@ -83,6 +83,22 @@ object HttpClient {
       * Ignores the response body, and returns the status code instead.
       */
     def postIgnore[B, Q](path: Path[Unit], query: Query[Q], body: B)(q: Q)(implicit encoder: Encoder[B]): Task[Int]
+
+    /** Similar to `get` but with a custom host and port. */
+    def getElsewhere[Q, R](path: Path[Unit], query: Query[Q], host: String, port: Int)(q: Q)(
+        implicit decoder: Decoder[R]
+    ): Task[R]
+
+    /** Similar to `post` but with a custom host and port. */
+    def postElsewhere[B, Q, R](path: Path[Unit], query: Query[Q], body: B, host: String, port: Int)(
+        q: Q
+    )(implicit decoder: Decoder[R], encoder: Encoder[B]): Task[R]
+
+    /**
+      * Sends an OPTIONS http call to the specify path, host and port.
+      */
+    def optionsElsewhere(path: Path[Unit], host: String, port: Int): Task[Int]
+
   }
 
 }

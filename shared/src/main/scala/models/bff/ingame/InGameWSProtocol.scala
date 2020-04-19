@@ -8,6 +8,7 @@ sealed trait InGameWSProtocol
 object InGameWSProtocol {
 
   case object Hello extends InGameWSProtocol
+  case object HeartBeat extends InGameWSProtocol
 
   import io.circe.generic.extras.semiauto._
   implicit val genDevConfig: Configuration =

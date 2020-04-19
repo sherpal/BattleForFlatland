@@ -10,12 +10,14 @@ import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import akka.actor.{ActorSystem => ClassicActorSystem}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods._
+import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage, UpgradeToWebSocket}
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes, Uri}
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Flow, Sink}
 import akka.util.Timeout
 import authentication.TokenBearer
+import errors.ErrorADT
 import io.circe.parser.decode
 import io.circe.{Decoder, Encoder}
 import models.bff.ingame.GameUserCredentials
@@ -27,6 +29,7 @@ import urldsl.language.QueryParameters.simpleParamErrorImpl._
 import io.circe.generic.auto._
 import urldsl.language.{PathSegment, PathSegmentWithQueryParams}
 import urldsl.vocabulary.UrlMatching
+import io.circe.syntax._
 
 import scala.concurrent.{ExecutionContext, Future, TimeoutException}
 import scala.concurrent.duration._
@@ -82,7 +85,7 @@ trait ServerBehavior[In, Out] {
 
   object ServerRoutes {
 
-    final val tokenRoute = root / "token"
+    final val tokenRoute = root / "api" / "token"
 
     final val connectWithTokenRoute = (root / "connect") ? (param[String]("token") & param[String]("userId")).?
 
@@ -122,10 +125,12 @@ trait ServerBehavior[In, Out] {
                       )
                   )(Timeout(250.millis), context.system.scheduler)
                   .map {
-                    case Some(token) => HttpResponse(entity                        = token)
-                    case None        => HttpResponse(StatusCodes.Forbidden, entity = "wrong credentials")
+                    case Some(token) => HttpResponse(entity = token)
+                    case None =>
+                      HttpResponse(StatusCodes.Forbidden, entity = ErrorADT.WrongGameCredentials.asJson.spaces2)
                   }
               case Left(error) =>
+                error.fillInStackTrace()
                 error.printStackTrace()
                 Future.successful(HttpResponse(status = StatusCodes.BadRequest, entity = error.getMessage))
             }
@@ -150,6 +155,8 @@ trait ServerBehavior[In, Out] {
               }
           case Some(UrlMatching(_, None)) =>
             Future.successful(HttpResponse(StatusCodes.BadRequest, entity = "missing user id and/or token"))
+          case _ =>
+            Future.successful(HttpResponse(StatusCodes.BadRequest, entity = "bad"))
         }
 
       case r: HttpRequest =>

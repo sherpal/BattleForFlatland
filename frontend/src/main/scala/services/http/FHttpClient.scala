@@ -7,7 +7,7 @@ import io.circe.{Decoder, Encoder, Error}
 import org.scalajs.dom
 import services.http.HttpClient.{csrfTokenName, Path, Query, Service}
 import sttp.client._
-import sttp.model.{MediaType, MultiQueryParams, Uri}
+import sttp.model.{Header, MediaType, MultiQueryParams, Uri}
 import zio._
 
 import scala.concurrent.Future
@@ -33,16 +33,23 @@ object FHttpClient {
         .map(_.drop(csrfTokenName.length + 1))
     )
 
-    private def pathWithParams[T, Q](path: Path[T], query: Query[Q])(t: T, q: Q): UIO[Uri] =
-      host
+    private def pathWithParams[T, Q](path: Path[T], query: Query[Q], origin: UIO[Uri] = defaultOrigin)(
+        t: T,
+        q: Q
+    ): UIO[Uri] =
+      origin
         .map(_.path(HttpClient.apiPrefix +: path.createSegments(t).map(_.content)))
         .map(_.params(MultiQueryParams.fromMultiMap(query.createParamsMap(q))))
 
-    private def simplePath[T](p: Path[T])(t: T): UIO[Uri] =
-      host.map(_.path(HttpClient.apiPrefix +: p.createSegments(t).map(_.content)))
+    private def simplePath[T](p: Path[T], origin: UIO[Uri] = defaultOrigin)(t: T): UIO[Uri] =
+      origin.map(_.path(HttpClient.apiPrefix +: p.createSegments(t).map(_.content)))
 
-    private def host: UIO[Uri] = ZIO.succeed(
+    private def defaultOrigin: UIO[Uri] = ZIO.succeed(
       Uri.parse(dom.document.location.origin.toString).toOption.get
+    )
+
+    private def customOrigin(host: String, port: Int) = ZIO.succeed(
+      Uri.parse(dom.document.location.protocol + "//" + host + ":" + port).toOption.get
     )
 
     private def boilerplate: UIO[RequestT[Empty, Either[String, String], Nothing]] =
@@ -80,9 +87,9 @@ object FHttpClient {
           case Right(a) => ZIO.succeed(a)
         }
 
-    private def preparedQuery[A](implicit decoder: Decoder[A]) =
+    private def preparedQuery[A](headers: Header*)(implicit decoder: Decoder[A]): ZIO[Uri, ErrorADT, A] =
       for {
-        start <- boilerplate
+        start <- boilerplate.map(_.headers(headers: _*))
         uri <- ZIO.environment[Uri]
         response <- Task
           .fromFuture(
@@ -95,11 +102,14 @@ object FHttpClient {
         }
       } yield resultBody
 
+    private def preparedQuery[A](implicit decoder: Decoder[A]): ZIO[Uri, ErrorADT, A] = preparedQuery[A]()
+
     private def preparedPostQuery[B, R](
-        body: Option[B]
+        body: Option[B],
+        headers: Header*
     )(implicit decoder: Decoder[R], encoder: Encoder[B]) =
       for {
-        start <- boilerplate
+        start <- boilerplate.map(_.headers(headers: _*))
         uri <- ZIO.environment[Uri]
         response <- Task
           .fromFuture(
@@ -175,6 +185,38 @@ object FHttpClient {
 
     def postIgnore[B, Q](path: Path[Unit], query: Query[Q], body: B)(q: Q)(implicit encoder: Encoder[B]): Task[Int] =
       pathWithParams(path, query)((), q).flatMap(preparedPostQueryIgnore(Some(body)).provide)
+
+    def getElsewhere[Q, R](path: Path[Unit], query: Query[Q], host: String, port: Int)(q: Q)(
+        implicit decoder: Decoder[R]
+    ): Task[R] =
+      pathWithParams(path, query, origin = customOrigin(host, port))((), q)
+        .flatMap(preparedQuery[R](Header.unsafeApply("mode", "no-cors")).provide)
+
+    def postElsewhere[B, Q, R](path: Path[Unit], query: Query[Q], body: B, host: String, port: Int)(
+        q: Q
+    )(implicit decoder: Decoder[R], encoder: Encoder[B]): Task[R] =
+      pathWithParams(path, query, origin = customOrigin(host, port))((), q)
+        .flatMap(
+          preparedPostQuery(
+            Some(body),
+            Header.unsafeApply("mode", "no-cors")
+          ).provide
+        )
+
+    def optionsElsewhere(path: Path[Unit], host: String, port: Int): Task[Int] =
+      for {
+        path <- simplePath(path, origin = customOrigin(host, port))(())
+        response <- Task.fromFuture { implicit ec =>
+          basicRequest
+            .headers(
+              Header.unsafeApply("Access-Control-Request-Method", "POST"),
+              Header.unsafeApply("Access-Control-Request-Headers", "Content-Type")
+            )
+            .response(ignore)
+            .options(path)
+            .send()
+        }
+      } yield response.code.code
   })
 
 }
