@@ -22,13 +22,14 @@ import zio.UIO
 final class JsonWebSocket[In, Out, P, Q] private (
     pathWithQueryParams: PathSegmentWithQueryParams[P, _, Q, _],
     p: P,
-    q: Q
+    q: Q,
+    host: String
 )(
     implicit decoder: Decoder[In],
     encoder: Encoder[Out]
 ) {
 
-  private def url: String = "ws://" + dom.document.location.host + "/ws/" + pathWithQueryParams.createUrlString(p, q)
+  private def url: String = "ws://" + host + "/ws/" + pathWithQueryParams.createUrlString(p, q)
 
   private lazy val socket = new WebSocket(url)
 
@@ -80,14 +81,28 @@ final class JsonWebSocket[In, Out, P, Q] private (
 
 object JsonWebSocket {
 
-  def apply[In, Out](path: PathSegment[Unit, _])(
+  def apply[In, Out](path: PathSegment[Unit, _], host: String = dom.document.location.host)(
       implicit decoder: Decoder[In],
       encoder: Encoder[Out]
-  ): JsonWebSocket[In, Out, Unit, Unit] = new JsonWebSocket(path ? empty, (), ())
+  ): JsonWebSocket[In, Out, Unit, Unit] = new JsonWebSocket(path ? empty, (), (), host)
 
-  def apply[In, Out, Q](path: PathSegment[Unit, _], query: QueryParameters[Q, _], q: Q)(
+  def apply[In, Out, Q](
+      path: PathSegment[Unit, _],
+      query: QueryParameters[Q, _],
+      q: Q,
+      host: String
+  )(
       implicit decoder: Decoder[In],
       encoder: Encoder[Out]
-  ): JsonWebSocket[In, Out, Unit, Q] = new JsonWebSocket(path ? query, (), q)
+  ): JsonWebSocket[In, Out, Unit, Q] = new JsonWebSocket(path ? query, (), q, host)
+
+  def apply[In, Out, Q](
+      path: PathSegment[Unit, _],
+      query: QueryParameters[Q, _],
+      q: Q
+  )(
+      implicit decoder: Decoder[In],
+      encoder: Encoder[Out]
+  ): JsonWebSocket[In, Out, Unit, Q] = apply(path, query, q, dom.document.location.host)
 
 }

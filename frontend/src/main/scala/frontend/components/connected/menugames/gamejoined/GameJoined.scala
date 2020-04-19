@@ -76,6 +76,10 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
       gameUserCredentials
   }.flatMap(creds => EventStream.fromZIOEffect(fetchGameToken(creds).provideLayer(layer)))
 
+  val $moveToGame: EventStream[Unit] = $tokenForWebSocket.flatMap(
+    token => EventStream.fromZIOEffect(moveTo(inGame, gameIdParam & tokenParam)((gameId, token)).provideLayer(layer))
+  )
+
   val cancelGameBus = new EventBus[Unit]
   val $cancelGame: EventStream[Int] =
     cancelGameBus.events.flatMap(_ => EventStream.fromZIOEffect(sendCancelGame(gameId).provideLayer(layer)))
@@ -100,6 +104,7 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
     className <-- $leaveGame.mapTo(""), // kicking off stream
     className <-- $updateCreds.mapTo(""), // kicking off stream // todo: delete this
     className <-- $startGame.mapTo(""),
+    className <-- $moveToGame.mapTo(""), // kicking off stream
     div(
       mainContent,
       h1(

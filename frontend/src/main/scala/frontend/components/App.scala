@@ -3,6 +3,7 @@ package frontend.components
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.connected.home.Home
+import frontend.components.connected.ingame.GamePlayingContainer
 import frontend.components.login.OutsideConnContainer
 import frontend.components.test.Test
 import frontend.components.utils.Redirect
@@ -24,6 +25,11 @@ final class App private () extends Component[dom.html.Div] {
         Route(confirmRoute, (_: Unit, _: String) => OutsideConnContainer("Registering completed")),
         Route(homeRoute, () => Home()),
         Route(gameJoined ? gameIdParam, (_: Unit, _: String) => Home()),
+        Route(
+          inGame ? (gameIdParam & tokenParam), { (_: Unit, gameIdAndToken: (String, String)) =>
+            GamePlayingContainer(gameIdAndToken._1, gameIdAndToken._2)
+          }
+        ),
         Route(testRoute, () => Test())
       )
       .map {

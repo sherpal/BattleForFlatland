@@ -23,8 +23,12 @@ object Routes {
 
   final val preFlightGameServer = root / "pre-flight" // options
   final val gameServerToken     = root / "fetch-game-server-token" // post
+  final val joinGameServer      = root / "connect" // ws
+  final val inGame              = root / "in-game" // route (get)
 
-  final val gameIdParam = param[String]("gameId")
-  final val emptyParam  = empty
+  final val gameIdParam          = param[String]("gameId")
+  final val tokenParam           = param[String]("token")
+  final val userIdAndTokenParams = param[String]("userId") & tokenParam
+  final val emptyParam           = empty
 
 }

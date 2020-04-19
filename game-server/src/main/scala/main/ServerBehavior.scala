@@ -87,7 +87,7 @@ trait ServerBehavior[In, Out] {
 
     final val tokenRoute = root / "api" / "token"
 
-    final val connectWithTokenRoute = (root / "connect") ? (param[String]("token") & param[String]("userId")).?
+    final val connectWithTokenRoute = (root / "ws" / "connect") ? (param[String]("token") & param[String]("userId")).?
 
     def doesMatch(uri: Uri, path: PathSegment[_, _]): Boolean =
       path.matchPath(uri.path.toString).isRight
