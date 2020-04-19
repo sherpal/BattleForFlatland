@@ -8,6 +8,18 @@ sealed trait WebSocketProtocol
 
 object WebSocketProtocol {
 
+  private object MoreImplicits {
+    import io.circe.generic.auto._
+
+    def gameUserCredentialsEncoder: Encoder[GameUserCredentials] = implicitly[Encoder[GameUserCredentials]]
+    def gameUserCredentialsDecoder: Decoder[GameUserCredentials] = implicitly[Decoder[GameUserCredentials]]
+  }
+
+  private implicit def gameUserCredentialsEncoder: Encoder[GameUserCredentials] =
+    MoreImplicits.gameUserCredentialsEncoder
+  private implicit def gameUserCredentialsDecoder: Decoder[GameUserCredentials] =
+    MoreImplicits.gameUserCredentialsDecoder
+
   case object GameStatusUpdated extends WebSocketProtocol
   case object GameCancelled extends WebSocketProtocol
   case object HeartBeat extends WebSocketProtocol
