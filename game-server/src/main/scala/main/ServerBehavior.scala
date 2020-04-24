@@ -10,7 +10,6 @@ import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import akka.actor.{ActorSystem => ClassicActorSystem}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods._
-import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage, UpgradeToWebSocket}
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes, Uri}
 import akka.stream.Materializer
