@@ -10,7 +10,8 @@ final case class DummyLivingEntity(
     pos: Complex,
     direction: Double,
     moving: Boolean,
-    life: Double
+    life: Double,
+    colour: String
 ) extends LivingEntity
     with Moving {
 

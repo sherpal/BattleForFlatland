@@ -1,6 +1,6 @@
 package gamelogic.gamestate.gameactions
 
-import gamelogic.entities.{DummyLivingEntity, Entity}
+import gamelogic.entities.Entity
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 
@@ -10,7 +10,8 @@ final case class DummyEntityMoves(
     playerId: Entity.Id,
     newPos: Complex,
     moving: Boolean,
-    direction: Double
+    direction: Double,
+    colour: String
 ) extends GameAction {
 
   /**

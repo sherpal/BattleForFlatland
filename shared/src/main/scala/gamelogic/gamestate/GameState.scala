@@ -8,9 +8,15 @@ import gamelogic.entities.{DummyLivingEntity, Entity}
   *
   * @param time in millis
   */
-final case class GameState(time: Long, startTime: Option[Long], players: Map[Entity.Id, DummyLivingEntity]) {
+final case class GameState(
+    time: Long,
+    startTime: Option[Long],
+    endTime: Option[Long],
+    players: Map[Entity.Id, DummyLivingEntity]
+) {
 
   def started: Boolean = startTime.isDefined
+  def ended: Boolean   = endTime.isDefined
 
   /**
     * Applies the effects of all the actions in the list to this [[GameState]].
