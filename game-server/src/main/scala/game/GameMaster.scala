@@ -6,6 +6,7 @@ import akka.actor.typed.{ActorRef, Behavior}
 import akka.stream.ActorMaterializer
 import gamelogic.gamestate.gameactions.UpdateTimestamp
 import gamelogic.gamestate.{GameAction, GameState}
+import io.circe.Encoder
 import zio.ZIO
 import zio.duration.Duration.fromScala
 

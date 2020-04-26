@@ -32,4 +32,5 @@ final case class DummyEntityMoves(
           )
       )
 
+  def isLegal(gameState: GameState): Boolean = true
 }

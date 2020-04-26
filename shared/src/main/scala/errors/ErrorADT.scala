@@ -52,6 +52,11 @@ object ErrorADT {
     def httpErrorType: HTTPResultType = Internal
   }
 
+  sealed trait GameLogicError extends ErrorADT
+  case class TooOldActionException(msg: String) extends GameLogicError {
+    override def httpErrorType: HTTPResultType = Internal
+  }
+
   /** Errors that can be thrown in the backend. */
   sealed trait BackendError extends ErrorADT
   case class WrongStatusCode(code: Int) extends BackendError {

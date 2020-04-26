@@ -9,4 +9,5 @@ final case class GameStart(id: Long, time: Long, pos: Complex) extends GameActio
   def apply(gameState: GameState): GameState =
     gameState.copy(time = time, startTime = Some(time))
 
+  def isLegal(gameState: GameState): Boolean = !gameState.started
 }

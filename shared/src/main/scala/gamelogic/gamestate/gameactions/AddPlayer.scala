@@ -10,4 +10,6 @@ final case class AddPlayer(id: Long, time: Long, playerId: Entity.Id, pos: Compl
     time,
     DummyLivingEntity(playerId, pos, 0, moving = false, 100, colour)
   )
+
+  def isLegal(gameState: GameState): Boolean = !gameState.players.isDefinedAt(playerId)
 }

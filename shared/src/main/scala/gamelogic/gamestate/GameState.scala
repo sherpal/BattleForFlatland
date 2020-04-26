@@ -26,6 +26,8 @@ final case class GameState(
     nextAction(currentGameState)
   }
 
+  def isLegalAction(action: GameAction): Boolean
+
   /** Modifies the given player at the given time. */
   def withPlayer(newTime: Long, player: DummyLivingEntity): GameState =
     copy(time = newTime, players = players + (player.id -> player))
