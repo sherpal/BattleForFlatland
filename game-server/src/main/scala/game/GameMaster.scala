@@ -1,12 +1,9 @@
 package game
 
 import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.scaladsl.adapter._
 import akka.actor.typed.{ActorRef, Behavior}
-import akka.stream.ActorMaterializer
 import gamelogic.gamestate.gameactions.UpdateTimestamp
 import gamelogic.gamestate.{ActionCollector, GameAction, GameState}
-import io.circe.Encoder
 import zio.ZIO
 import zio.duration.Duration.fromScala
 

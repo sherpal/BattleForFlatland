@@ -1,6 +1,5 @@
 package models.bff.gameantichamber
 
-import gamelogic.gamestate.{GameAction, GameState}
 import io.circe.generic.extras.Configuration
 import io.circe.{Decoder, Encoder}
 import models.bff.ingame.GameUserCredentials

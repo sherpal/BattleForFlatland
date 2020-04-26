@@ -4,7 +4,6 @@ import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.LifecycleComponent
 import frontend.components.utils.tailwind._
-import io.circe.generic.auto._
 import io.circe.syntax._
 import models.bff.Routes._
 import models.bff.gameantichamber.WebSocketProtocol

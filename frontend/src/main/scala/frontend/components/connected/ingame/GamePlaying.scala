@@ -1,14 +1,14 @@
 package frontend.components.connected.ingame
 
+import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.LifecycleComponent
+import io.circe.syntax._
+import models.bff.Routes._
 import models.bff.ingame.InGameWSProtocol
 import models.users.User
 import org.scalajs.dom.html
 import utils.websocket.JsonWebSocket
-import models.bff.Routes._
-import com.raquo.laminar.api.L._
-import io.circe.syntax._
 
 final class GamePlaying private (gameId: String, user: User, token: String) extends LifecycleComponent[html.Div] {
 

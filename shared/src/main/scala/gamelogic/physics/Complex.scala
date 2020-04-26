@@ -1,7 +1,7 @@
 package gamelogic.physics
 
 import scala.language.implicitConversions
-import math._
+import scala.math._
 import scala.util.Try
 
 final case class Complex(re: Double, im: Double) {

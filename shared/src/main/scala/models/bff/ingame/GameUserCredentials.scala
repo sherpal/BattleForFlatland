@@ -14,7 +14,8 @@ package models.bff.ingame
 final case class GameUserCredentials(userId: String, gameId: String, userSecret: String)
 
 object GameUserCredentials {
-  import io.circe._, io.circe.generic.semiauto._
+  import io.circe._
+  import io.circe.generic.semiauto._
   implicit val fooDecoder: Decoder[GameUserCredentials] = deriveDecoder[GameUserCredentials]
   implicit val fooEncoder: Encoder[GameUserCredentials] = deriveEncoder[GameUserCredentials]
 

@@ -1,6 +1,6 @@
 package gamelogic.gamestate
 
-import gamelogic.gamestate.gameactions.{AddPlayer, DummyEntityMoves, EndGame, GameStart, UpdateTimestamp}
+import gamelogic.gamestate.gameactions._
 import io.circe.{Decoder, Encoder, Json}
 
 trait GameAction extends Ordered[GameAction] {
@@ -23,9 +23,9 @@ object GameAction {
 
   type Id = Long
 
+  import cats.syntax.functor._
   import io.circe.generic.auto._
   import io.circe.syntax._
-  import cats.syntax.functor._
 
   private def customEncode[A <: GameAction](a: A, name: String)(implicit encoder: Encoder[A]): Json =
     a.asJson.mapObject(_.add("action_name", Json.fromString(name)))

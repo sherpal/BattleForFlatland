@@ -3,7 +3,6 @@ package game
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import gamelogic.gamestate.GameAction
-import models.bff.gameantichamber.WebSocketProtocol
 import models.bff.ingame.InGameWSProtocol
 
 object ActionUpdateCollector {

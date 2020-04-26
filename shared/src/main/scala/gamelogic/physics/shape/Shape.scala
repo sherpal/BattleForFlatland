@@ -1,7 +1,8 @@
 package gamelogic.physics.shape
 
 import gamelogic.physics.Complex
-import Ordering.Double.TotalOrdering
+
+import scala.Ordering.Double.TotalOrdering
 
 trait Shape {
   val boundingBox: BoundingBox
