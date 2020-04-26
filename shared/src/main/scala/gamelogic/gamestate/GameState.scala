@@ -34,3 +34,9 @@ final case class GameState(
   def timeUpdate(newTime: Long): GameState = copy(time = newTime)
 
 }
+
+object GameState {
+
+  def initialGameState(time: Long): GameState = GameState(time, None, None, Map())
+
+}

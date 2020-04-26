@@ -17,6 +17,8 @@ import akka.stream.scaladsl.{Flow, Sink}
 import akka.util.Timeout
 import authentication.TokenBearer
 import errors.ErrorADT
+import game.GameMaster
+import gamelogic.gamestate.GameState
 import io.circe.parser.decode
 import io.circe.{Decoder, Encoder}
 import models.bff.ingame.GameUserCredentials
@@ -173,6 +175,9 @@ trait ServerBehavior[In, Out] {
     implicit val classic: ClassicActorSystem = context.system.toClassic
 
     val tokenBearer = context.spawn(TokenBearer(), "TokenBearer")
+
+    val gameMaster = context.spawn(GameMaster(GameState.initialGameState(System.currentTimeMillis), Nil), "GameMaster")
+    gameMaster ! GameMaster.GameLoop
 
     val serverBinding: Future[Http.ServerBinding] =
       Http().bindAndHandle(requestHandler(context, tokenBearer), host, port)
