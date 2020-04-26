@@ -17,8 +17,7 @@ import akka.stream.scaladsl.{Flow, Sink}
 import akka.util.Timeout
 import authentication.TokenBearer
 import errors.ErrorADT
-import game.GameMaster
-import gamelogic.gamestate.GameState
+import game.{ActionUpdateCollector, GameMaster}
 import io.circe.parser.decode
 import io.circe.{Decoder, Encoder}
 import models.bff.ingame.GameUserCredentials
@@ -52,7 +51,10 @@ trait ServerBehavior[In, Out] {
     * the WebSocket client.
     * Incoming In messages from the client will be sent to the output Behaviour.
     */
-  def socketActor(outerWorld: ActorRef[Out]): Behavior[In]
+  def socketActor(
+      outerWorld: ActorRef[Out],
+      actionUpdateCollector: ActorRef[ActionUpdateCollector.Message]
+  ): Behavior[In]
 
   /**
     * Flow used for the web socket route.
@@ -101,7 +103,8 @@ trait ServerBehavior[In, Out] {
 
   private def requestHandler(
       context: ActorContext[ServerMessage],
-      tokenBearer: ActorRef[TokenBearer.Message]
+      tokenBearer: ActorRef[TokenBearer.Message],
+      actionUpdateCollector: ActorRef[ActionUpdateCollector.Message]
   )(implicit decoder: Decoder[In], encoder: Encoder[Out], materializer: Materializer) = {
     implicit val ec: ExecutionContext = context.executionContext
     Flow[HttpRequest].mapAsync(1) {
@@ -146,7 +149,7 @@ trait ServerBehavior[In, Out] {
                   case Some(upgrade) =>
                     implicit val as: ActorSystem[_] = context.system
                     val actorFlow = TypedActorFlow.actorRefFromContext[In, Out](
-                      socketActor,
+                      socketActor(_, actionUpdateCollector),
                       "Connection" + UUID.randomUUID().toString,
                       context
                     )
@@ -176,11 +179,13 @@ trait ServerBehavior[In, Out] {
 
     val tokenBearer = context.spawn(TokenBearer(), "TokenBearer")
 
-    val gameMaster = context.spawn(GameMaster(GameState.initialGameState(System.currentTimeMillis), Nil), "GameMaster")
+    val actionUpdateCollector = context.spawn(ActionUpdateCollector(Nil, Nil), "ActionUpdateCollector")
+
+    val gameMaster = context.spawn(GameMaster(Nil, actionUpdateCollector), "GameMaster")
     gameMaster ! GameMaster.GameLoop
 
     val serverBinding: Future[Http.ServerBinding] =
-      Http().bindAndHandle(requestHandler(context, tokenBearer), host, port)
+      Http().bindAndHandle(requestHandler(context, tokenBearer, actionUpdateCollector), host, port)
 
     context.pipeToSelf(serverBinding) {
       case Success(_) =>

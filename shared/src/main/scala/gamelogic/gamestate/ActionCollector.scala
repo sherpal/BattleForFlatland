@@ -4,6 +4,8 @@ import errors.ErrorADT.TooOldActionException
 
 /**
   * An ActionCollector will gather all [[GameAction]]s, sort then in order and allow to recover [[GameState]]s.
+  *
+  * /!\ This implementation is currently not thread safe. A future implementation should come...
   */
 final class ActionCollector(
     val originalGameState: GameState,
@@ -30,6 +32,10 @@ final class ActionCollector(
 
   def backupState(n: Int): (GameState, List[GameAction]) = actionsAndStates(n)
 
+  /**
+    * This is used by people trusting the server, typically players and actors.
+    * Actions should first be removed before inserting these ones.
+    */
   // TODO: add all actions that share the same time all together.
   def addActions(actions: List[GameAction]): Unit = {
     actions.foreach(addAction(_, needUpdate = false))
@@ -64,23 +70,27 @@ final class ActionCollector(
       actionsFrom(oldestTime),
       actions,
       Nil
-    ).foldLeft((gameStateUpTo(oldestTime), List[Long]()))({
+    ).foldLeft((gameStateUpTo(oldestTime), List[Long]())) {
         case ((state, toRemove), action) =>
-          if (shouldKeepAction(action, state)) {
-            (action(state), toRemove)
-          } else
-            (state, action.id +: toRemove)
-      })
+          if (shouldKeepAction(action, state)) (action(state), toRemove)
+          else (state, action.id +: toRemove)
+      }
       ._2
       .reverse
 
+    // Adding the new actions without updating the GameState.
+    // This is because even new actions could have been immediately removed.
     actions.foreach(addAction(_, needUpdate = false))
     removeActions(oldestTime, actionIdsToRemove)
 
     (oldestTime, actionIdsToRemove)
   }
 
-  def removeActions(oldestTime: Long, actionIds: List[Long]): Unit = {
+  /**
+    * Remove all said actions from the list. You can opt for not updating the game state after this if you're going
+    * to add actions after that.
+    */
+  def removeActions(oldestTime: Long, actionIds: List[Long], shouldUpdateGameState: Boolean = true): Unit = {
 
     val (after, before) = actionsAndStates.span(_._1.time >= oldestTime)
 
@@ -124,7 +134,8 @@ final class ActionCollector(
       actionsAndStates = List((toBeChanged.last._1, remainingActionsAfter))
     }
 
-    updateGameState()
+    if (shouldUpdateGameState)
+      updateGameState()
   }
 
   // TODO: when adding an action, we should check for the actions coming after to see if they are still legal.

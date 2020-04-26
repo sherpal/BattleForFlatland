@@ -2,7 +2,6 @@ package gamelogic.gamestate
 
 import gamelogic.gamestate.gameactions.{AddPlayer, DummyEntityMoves, EndGame, GameStart, UpdateTimestamp}
 import io.circe.{Decoder, Encoder, Json}
-import io.circe.Json.JString
 
 trait GameAction extends Ordered[GameAction] {
 

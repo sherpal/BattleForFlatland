@@ -26,7 +26,7 @@ final case class GameState(
     nextAction(currentGameState)
   }
 
-  def isLegalAction(action: GameAction): Boolean
+  def isLegalAction(action: GameAction): Boolean = action.isLegal(this)
 
   /** Modifies the given player at the given time. */
   def withPlayer(newTime: Long, player: DummyLivingEntity): GameState =

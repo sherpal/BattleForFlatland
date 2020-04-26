@@ -2,6 +2,7 @@ package main
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
+import game.ActionUpdateCollector
 import models.bff.ingame.{GameCredentials, InGameWSProtocol}
 import services.database.db
 import services.database.gametables.GameTable
@@ -17,13 +18,20 @@ object Server extends zio.App {
 
   /** Echo server */
   private val server = new ServerBehavior[InGameWSProtocol, InGameWSProtocol] {
-    def socketActor(outerWorld: ActorRef[InGameWSProtocol]): Behavior[InGameWSProtocol] =
-      Behaviors.withTimers { timerScheduler =>
-        timerScheduler.startTimerAtFixedRate(InGameWSProtocol.HeartBeat, 5.seconds)
+    def socketActor(
+        outerWorld: ActorRef[InGameWSProtocol],
+        actionUpdateCollector: ActorRef[ActionUpdateCollector.Message]
+    ): Behavior[InGameWSProtocol] =
+      Behaviors.setup { context =>
+        actionUpdateCollector ! ActionUpdateCollector.NewExternalMember(context.self)
 
-        Behaviors.receiveMessage { message =>
-          outerWorld ! message
-          Behaviors.same
+        Behaviors.withTimers { timerScheduler =>
+          timerScheduler.startTimerAtFixedRate(InGameWSProtocol.HeartBeat, 5.seconds)
+
+          Behaviors.receiveMessage { message =>
+            outerWorld ! message
+            Behaviors.same
+          }
         }
       }
   }

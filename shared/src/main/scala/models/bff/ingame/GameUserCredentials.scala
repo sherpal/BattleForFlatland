@@ -17,4 +17,6 @@ object GameUserCredentials {
   import io.circe._, io.circe.generic.semiauto._
   implicit val fooDecoder: Decoder[GameUserCredentials] = deriveDecoder[GameUserCredentials]
   implicit val fooEncoder: Encoder[GameUserCredentials] = deriveEncoder[GameUserCredentials]
+
+  final def tupled: ((String, String, String)) => GameUserCredentials = (apply _).tupled
 }
