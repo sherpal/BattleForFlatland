@@ -77,7 +77,7 @@ trait ServerBehavior[In, Out] {
           Future.successful(TextMessage(""))
       }
       .map(_.text)
-      .wireTap(x => println(x))
+      //.wireTap(x => println(x))
       .map(decode[In])
       .alsoTo(Flow[Either[io.circe.Error, In]].collect { case Left(error) => error }.to(Sink.foreach(println)))
       .collect { case Right(in) => in }
@@ -265,7 +265,7 @@ trait ServerBehavior[In, Out] {
     for {
       _ <- ZIO
         .fromFuture { _ =>
-          ref.ask[Unit](replyTo => WarnMeWhenStopped(replyTo))(Timeout(5.seconds), ref.scheduler)
+          ref.ask[Unit](replyTo => WarnMeWhenStopped(replyTo))(Timeout(5.minutes), ref.scheduler)
         }
         .refineOrDie {
           case e: TimeoutException => e

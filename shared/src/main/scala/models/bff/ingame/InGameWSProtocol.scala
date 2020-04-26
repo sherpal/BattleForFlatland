@@ -8,15 +8,25 @@ sealed trait InGameWSProtocol
 
 object InGameWSProtocol {
 
-  case object Hello extends InGameWSProtocol
-  case object HeartBeat extends InGameWSProtocol
-  case class GameActionWrapper(gameActions: List[GameAction]) extends InGameWSProtocol
-  case class RemoveActions(oldestTime: Long, idsOfActionsToRemove: List[GameAction.Id]) extends InGameWSProtocol
+  /** Messages coming from the server to the client */
+  sealed trait Incoming extends InGameWSProtocol
+
+  /** Messages going to the server from the client */
+  sealed trait Outgoing extends InGameWSProtocol
+
+  case object Hello extends Incoming
+  case object HeartBeat extends Incoming
+
+  case class Ping(sendingTime: Long) extends Outgoing
+  case class Pong(originalSendingTime: Long, midwayDistantTime: Long) extends Incoming
+
+  case class GameActionWrapper(gameActions: List[GameAction]) extends Outgoing
+  case class RemoveActions(oldestTime: Long, idsOfActionsToRemove: List[GameAction.Id]) extends Incoming
   case class AddAndRemoveActions(
       actionsToAdd: List[GameAction],
       oldestTimeToRemove: Long,
       idsOfActionsToRemove: List[GameAction.Id]
-  ) extends InGameWSProtocol
+  ) extends Incoming
 
   import io.circe.generic.extras.semiauto._
   implicit val genDevConfig: Configuration =

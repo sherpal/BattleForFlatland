@@ -4,6 +4,8 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import gamelogic.gamestate.gameactions.UpdateTimestamp
 import gamelogic.gamestate.{ActionCollector, GameAction, GameState}
+import models.bff.ingame.InGameWSProtocol
+import models.bff.outofgame.MenuGameWithPlayers
 import zio.ZIO
 import zio.duration.Duration.fromScala
 
@@ -13,8 +15,12 @@ object GameMaster {
 
   sealed trait Message
 
-  case object GameLoop extends Message
-  case class GameActionWrapper(gameAction: GameAction) extends Message
+  sealed trait InGameMessage extends Message
+  case object GameLoop extends InGameMessage
+  case class GameActionWrapper(gameAction: GameAction) extends InGameMessage
+
+  sealed trait PreGameMessage extends Message
+  case class Ping(sendingTime: Long, respondTo: ActorRef[InGameWSProtocol.Pong.type]) extends PreGameMessage
 
   private def now = System.currentTimeMillis
 
@@ -29,8 +35,6 @@ object GameMaster {
       pendingActions: List[GameAction],
       actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage]
   ): Behavior[Message] = Behaviors.setup { implicit context =>
-    //implicit val materializer: ActorMaterializer = ActorMaterializer()(context.system.toClassic)
-
     val actionCollector = new ActionCollector(GameState.initialGameState(now))
 
     def gameState = actionCollector.currentGameState
@@ -48,7 +52,7 @@ object GameMaster {
           val startTime     = now
           val sortedActions = (UpdateTimestamp(0L, startTime) +: pendingActions).sorted
 
-          println(s"Time since last loop: ${startTime - gameState.time} ms")
+          //println(s"Time since last loop: ${startTime - gameState.time} ms")
 
           // Adding pending actions
           val (oldestToRemove, removedIds) = actionCollector.addAndRemoveActions(sortedActions)
@@ -57,12 +61,12 @@ object GameMaster {
           // todo
 
           // Sending new actions and removed illegal once
-          actionUpdateCollector ! ActionUpdateCollector.AddAndRemoveActions(sortedActions, oldestToRemove, removedIds)
+          //actionUpdateCollector ! ActionUpdateCollector.AddAndRemoveActions(sortedActions, oldestToRemove, removedIds)
 
           val timeSpent = now - startTime
 
           if (timeSpent > gameLoopTiming) context.self ! GameLoop
-          else //timerScheduler.startSingleTimer(GameLoop, (gameLoopTiming - timeSpent).millis)
+          else
             zio.Runtime.default.unsafeRunToFuture(
               gameLoopTo(context.self, (gameLoopTiming - timeSpent).millis)
             )

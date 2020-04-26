@@ -5,6 +5,7 @@ import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import game.ActionUpdateCollector
 import io.circe.generic.auto._
 import io.circe.syntax._
+import models.bff.ingame.InGameWSProtocol.{Ping, Pong}
 import models.bff.ingame.{GameCredentials, InGameWSProtocol}
 import services.database.db
 import services.database.gametables.GameTable
@@ -28,9 +29,16 @@ object Server extends zio.App {
         Behaviors.withTimers { timerScheduler =>
           timerScheduler.startTimerAtFixedRate(InGameWSProtocol.HeartBeat, 5.seconds)
 
-          Behaviors.receiveMessage { message =>
-            outerWorld ! message
-            Behaviors.same
+          Behaviors.receiveMessage {
+            case Ping(sendingTime) =>
+              outerWorld ! Pong(sendingTime, System.currentTimeMillis)
+              Behaviors.same
+            case message: InGameWSProtocol.Incoming => // incoming messages are sent to the frontend
+              outerWorld ! message
+              Behaviors.same
+            case message: InGameWSProtocol.Outgoing => // outgoing messages should be forwarded to the inner actors
+              println(s"Message comes from the frontend and should be handled: $message")
+              Behaviors.unhandled
           }
         }
       }
@@ -46,7 +54,8 @@ object Server extends zio.App {
       (for {
         _ <- putStrLn(s"Game server running for game ${config.gameId}")
         credentials <- UIO(GameCredentials(config.gameId, config.gameSecret))
-        actorSystem <- ZIO.access[Has[ActorSystem[ServerBehavior.ServerMessage]]](_.get)
+        actorSystem <- ZIO
+          .access[Has[ActorSystem[ServerBehavior.ServerMessage]]](_.get[ActorSystem[ServerBehavior.ServerMessage]])
         _ <- putStrLn("""Execute curl -X GET "http://localhost:22222/stop" to close the server.""")
         allGameInfo <- setup.fetchGameInfo(credentials, actorSystem)
         _ <- putStrLn(allGameInfo.asJson.spaces2)

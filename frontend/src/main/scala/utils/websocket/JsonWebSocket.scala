@@ -10,7 +10,7 @@ import org.scalajs.dom.raw.MessageEvent
 import org.scalajs.dom.{Event, WebSocket}
 import urldsl.language.QueryParameters.dummyErrorImpl._
 import urldsl.language._
-import zio.UIO
+import zio.{CancelableFuture, UIO}
 
 /**
   * Prepares a WebSocket to connect to the specified url.
@@ -37,6 +37,7 @@ final class JsonWebSocket[In, Out, P, Q] private (
   private val outBus: EventBus[Out]         = new EventBus
   private val closeBus: EventBus[Unit]      = new EventBus
   private val errorBus: EventBus[dom.Event] = new EventBus
+  private val openBus: EventBus[dom.Event]  = new EventBus
 
   private def openWebSocketConnection(implicit owner: Owner) =
     for {
@@ -54,6 +55,7 @@ final class JsonWebSocket[In, Out, P, Q] private (
       _ <- UIO {
         outBus.events.map(encoder.apply).map(_.noSpaces).foreach(webSocket.send)
       }
+      _ <- UIO { webSocket.onopen = (event: Event) => openBus.writer.onNext(event) }
       _ <- UIO {
         webSocket.onerror = (event: Event) => {
           if (scala.scalajs.LinkingInfo.developmentMode) {
@@ -64,7 +66,7 @@ final class JsonWebSocket[In, Out, P, Q] private (
       }
     } yield ()
 
-  def open()(implicit owner: Owner): Unit =
+  def open()(implicit owner: Owner): CancelableFuture[Unit] =
     zio.Runtime.default.unsafeRunToFuture(openWebSocketConnection)
 
   def close(): Unit = {
@@ -76,6 +78,7 @@ final class JsonWebSocket[In, Out, P, Q] private (
   val outWriter: WriteBus[Out]   = outBus.writer
   val $closed: EventStream[Unit] = closeBus.events
   val $error: EventStream[Event] = errorBus.events
+  val $open: EventStream[Event]  = openBus.events
 
 }
 
