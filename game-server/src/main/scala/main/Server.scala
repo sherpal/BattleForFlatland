@@ -2,10 +2,10 @@ package main
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
-import game.ActionUpdateCollector
+import game.{ActionTranslator, ActionUpdateCollector, AntiChamber}
 import io.circe.generic.auto._
 import io.circe.syntax._
-import models.bff.ingame.InGameWSProtocol.{Ping, Pong}
+import models.bff.ingame.InGameWSProtocol.{GameActionWrapper, Ping, Pong, Ready}
 import models.bff.ingame.{GameCredentials, InGameWSProtocol}
 import services.database.db
 import services.database.gametables.GameTable
@@ -21,17 +21,22 @@ object Server extends zio.App {
   private val server = new ServerBehavior[InGameWSProtocol, InGameWSProtocol] {
     def socketActor(
         outerWorld: ActorRef[InGameWSProtocol],
-        actionUpdateCollector: ActorRef[ActionUpdateCollector.Message]
+        antiChamber: ActorRef[AntiChamber.Message],
+        actionTranslator: ActorRef[ActionTranslator.Message]
     ): Behavior[InGameWSProtocol] =
       Behaviors.setup { context =>
-        actionUpdateCollector ! ActionUpdateCollector.NewExternalMember(context.self)
-
         Behaviors.withTimers { timerScheduler =>
           timerScheduler.startTimerAtFixedRate(InGameWSProtocol.HeartBeat, 5.seconds)
 
           Behaviors.receiveMessage {
             case Ping(sendingTime) =>
               outerWorld ! Pong(sendingTime, System.currentTimeMillis)
+              Behaviors.same
+            case Ready(userId) =>
+              antiChamber ! AntiChamber.Ready(userId, context.self)
+              Behaviors.same
+            case GameActionWrapper(gameActions) =>
+              actionTranslator ! ActionTranslator.GameActionsWrapper(gameActions)
               Behaviors.same
             case message: InGameWSProtocol.Incoming => // incoming messages are sent to the frontend
               outerWorld ! message
@@ -62,7 +67,8 @@ object Server extends zio.App {
         _ <- ZIO.effectTotal(
           actorSystem ! ServerBehavior.ReceivedCredentials(
             allGameInfo.gameInfo.players,
-            allGameInfo.allGameCredentials.allGameUserCredentials
+            allGameInfo.allGameCredentials.allGameUserCredentials,
+            allGameInfo.gameInfo
           )
         )
         _ <- server.waitForServerToStop(actorSystem)

@@ -36,17 +36,20 @@ object ActionUpdateCollector {
   /**
     * This actor is responsible for making the link between the messages the [[game.GameMaster]] will issue at the end
     * of each game loop.
-    *
+    */
+  def apply(): Behavior[Message] = receiver(Nil, Nil)
+
+  /**
     * External members are actors that are linked to their actual "masters" via web socket. Mostly the players.
     * Internal members are actors that are inside this JVM/JS and can be contacted directly.
     */
-  def apply(
+  private def receiver(
       externalMembers: List[ActorRef[InGameWSProtocol]],
       internalMembers: List[ActorRef[ExternalMessage]]
   ): Behavior[Message] =
     Behaviors.receiveMessage {
-      case NewExternalMember(actorRef) => apply(actorRef +: externalMembers, internalMembers)
-      case NewInternalMember(actorRef) => apply(externalMembers, actorRef +: internalMembers)
+      case NewExternalMember(actorRef) => receiver(actorRef +: externalMembers, internalMembers)
+      case NewInternalMember(actorRef) => receiver(externalMembers, actorRef +: internalMembers)
       case message: ExternalMessage =>
         val protocolMessage = message.toWebSocketProtocol
         externalMembers.foreach(_ ! protocolMessage)

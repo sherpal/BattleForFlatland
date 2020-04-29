@@ -3,10 +3,11 @@ package frontend.components.connected.ingame
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.LifecycleComponent
+import gamelogic.gamestate.{ActionCollector, GameState}
 import io.circe.syntax._
 import models.bff.Routes._
 import models.bff.ingame.InGameWSProtocol
-import models.bff.ingame.InGameWSProtocol.{Ping, Pong}
+import models.bff.ingame.InGameWSProtocol.{AddAndRemoveActions, HeartBeat, Ping, Pong, Ready}
 import models.users.User
 import org.scalajs.dom.html
 import utils.websocket.JsonWebSocket
@@ -17,12 +18,22 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
 
   private val layer = zio.clock.Clock.live
 
+  val actionCollector: ActionCollector = new ActionCollector(GameState.initialGameState(0))
+
   final val gameSocket = JsonWebSocket[InGameWSProtocol, InGameWSProtocol, (String, String)](
     joinGameServer,
     userIdAndTokenParams,
     (user.userId, token),
     host = "localhost:22222" // todo: change this!
   )
+
+  val $gameState: EventStream[GameState] = gameSocket.$in.collect { case msg: AddAndRemoveActions => msg }
+    .map {
+      case AddAndRemoveActions(actionsToAdd, oldestTimeToRemove, idsOfActionsToRemove) =>
+        actionsToAdd.foreach(actionCollector.addAction(_, needUpdate = false))
+        actionCollector.removeActions(oldestTimeToRemove, idsOfActionsToRemove)
+        actionCollector.currentGameState
+    }
 
   def sendPing(ping: Ping)(implicit owner: Owner): UIO[Pong] =
     for {
@@ -36,8 +47,12 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
     } yield pong
 
   val elem: ReactiveHtmlElement[html.Div] = div(
+    className := "GamePlaying",
+    GameViewContainer(actionCollector.currentGameState, $gameState),
     pre(
-      child.text <-- gameSocket.$in.fold(List[InGameWSProtocol]())(_ :+ _)
+      child.text <-- gameSocket.$in.filterNot(_ == HeartBeat)
+        .filterNot(_.isInstanceOf[InGameWSProtocol.AddAndRemoveActions])
+        .fold(List[InGameWSProtocol]())(_ :+ _)
         .map(_.map(_.asJson.spaces2))
         .map(_.mkString("\n"))
     )
@@ -53,6 +68,7 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
         EventStream.fromZIOEffect(
           programs.frontend.ingame
             .synchronizeClock(sendPing(_)(elem))
+            .zipLeft(ZIO.effectTotal(gameSocket.outWriter.onNext(Ready(user.userId))))
             .provideLayer(layer)
         )
     ).foreach(delta => println(s"Delta is: $delta"))(elem)

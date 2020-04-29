@@ -17,12 +17,13 @@ import akka.stream.scaladsl.{Flow, Sink}
 import akka.util.Timeout
 import authentication.TokenBearer
 import errors.ErrorADT
-import game.{ActionUpdateCollector, GameMaster}
+import game.{ActionTranslator, ActionUpdateCollector, AntiChamber, GameMaster}
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder}
 import models.bff.ingame.GameUserCredentials
+import models.bff.outofgame.MenuGameWithPlayers
 import models.users.User
 import urldsl.language.PathSegment.dummyErrorImpl._
 import urldsl.language.QueryParameters.simpleParamErrorImpl._
@@ -50,10 +51,14 @@ trait ServerBehavior[In, Out] {
     * The Behaviour has to sent Out messages to the `outerWorld` actor, which will then be sent to
     * the WebSocket client.
     * Incoming In messages from the client will be sent to the output Behaviour.
+    *
+    * The antiChamber will receive the [[game.AntiChamber.Ready]] message once the client is ready.
+    * The actionTranslotor will receive game messages during the game, and send them to the game master
     */
   def socketActor(
       outerWorld: ActorRef[Out],
-      actionUpdateCollector: ActorRef[ActionUpdateCollector.Message]
+      antiChamber: ActorRef[AntiChamber.Message],
+      actionTranslator: ActorRef[ActionTranslator.Message]
   ): Behavior[In]
 
   /**
@@ -104,7 +109,8 @@ trait ServerBehavior[In, Out] {
   private def requestHandler(
       context: ActorContext[ServerMessage],
       tokenBearer: ActorRef[TokenBearer.Message],
-      actionUpdateCollector: ActorRef[ActionUpdateCollector.Message]
+      antiChamber: ActorRef[AntiChamber.Message],
+      actionTranslator: ActorRef[ActionTranslator.Message]
   )(implicit decoder: Decoder[In], encoder: Encoder[Out], materializer: Materializer) = {
     implicit val ec: ExecutionContext = context.executionContext
     Flow[HttpRequest].mapAsync(1) {
@@ -149,7 +155,7 @@ trait ServerBehavior[In, Out] {
                   case Some(upgrade) =>
                     implicit val as: ActorSystem[_] = context.system
                     val actorFlow = TypedActorFlow.actorRefFromContext[In, Out](
-                      socketActor(_, actionUpdateCollector),
+                      socketActor(_, antiChamber, actionTranslator),
                       "Connection" + UUID.randomUUID().toString,
                       context
                     )
@@ -177,15 +183,14 @@ trait ServerBehavior[In, Out] {
   ): Behavior[ServerMessage] = Behaviors.setup { context =>
     implicit val classic: ClassicActorSystem = context.system.toClassic
 
-    val tokenBearer = context.spawn(TokenBearer(), "TokenBearer")
-
-    val actionUpdateCollector = context.spawn(ActionUpdateCollector(Nil, Nil), "ActionUpdateCollector")
-
-    val gameMaster = context.spawn(GameMaster(Nil, actionUpdateCollector), "GameMaster")
-    gameMaster ! GameMaster.GameLoop
+    val tokenBearer           = context.spawn(TokenBearer(), "TokenBearer")
+    val actionUpdateCollector = context.spawn(ActionUpdateCollector(), "ActionUpdateCollector")
+    val gameMaster            = context.spawn(GameMaster(actionUpdateCollector), "GameMaster")
+    val actionTranslator      = context.spawn(ActionTranslator(gameMaster), "ActionTranslator")
+    val antiChamber           = context.spawn(AntiChamber(gameMaster, actionUpdateCollector), "AntiChamber")
 
     val serverBinding: Future[Http.ServerBinding] =
-      Http().bindAndHandle(requestHandler(context, tokenBearer, actionUpdateCollector), host, port)
+      Http().bindAndHandle(requestHandler(context, tokenBearer, antiChamber, actionTranslator), host, port)
 
     context.pipeToSelf(serverBinding) {
       case Success(_) =>
@@ -204,9 +209,10 @@ trait ServerBehavior[In, Out] {
         case WarnMeWhenStarted(replyTo) =>
           replyTo ! ()
           Behaviors.same
-        case ReceivedCredentials(users, credentials) =>
+        case ReceivedCredentials(users, credentials, gameInfo) =>
           println("Forward credentials to token bearer.")
           tokenBearer ! TokenBearer.CredentialsWrapper(users, credentials)
+          antiChamber ! AntiChamber.GameInfo(gameInfo)
           Behaviors.same
         case WarnMeWhenStopped(replyTo) =>
           started(Some(replyTo))
@@ -226,8 +232,9 @@ trait ServerBehavior[In, Out] {
           Behaviors.stopped
         case WarnMeWhenStarted(replyTo) =>
           notYetStarted(Some(replyTo), waitingForStoppedNotification)
-        case ReceivedCredentials(users, credentials) =>
+        case ReceivedCredentials(users, credentials, gameInfo) =>
           tokenBearer ! TokenBearer.CredentialsWrapper(users, credentials)
+          antiChamber ! AntiChamber.GameInfo(gameInfo)
           Behaviors.same
         case WarnMeWhenStopped(replyTo) =>
           notYetStarted(waitingForStartedNotification, Some(replyTo))
@@ -284,6 +291,10 @@ object ServerBehavior {
   case object Started extends ServerMessage
   private case class WarnMeWhenStarted(replyTo: ActorRef[Unit]) extends ServerMessage
   case class WarnMeWhenStopped(replyTo: ActorRef[Unit]) extends ServerMessage
-  case class ReceivedCredentials(users: List[User], credentials: List[GameUserCredentials]) extends ServerMessage
+  case class ReceivedCredentials(
+      users: List[User],
+      credentials: List[GameUserCredentials],
+      gameInfo: MenuGameWithPlayers
+  ) extends ServerMessage
 
 }

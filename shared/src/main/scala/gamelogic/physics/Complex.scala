@@ -45,9 +45,9 @@ final case class Complex(re: Double, im: Double) {
 
   def multiply(seq: Seq[Complex]): Seq[Complex] = for (z <- seq) yield this * z
 
-  def modulus: Double = sqrt(re * re + im * im)
+  @inline def modulus: Double = math.hypot(re, im)
 
-  def modulus2: Double = re * re + im * im
+  @inline def modulus2: Double = math.pow(modulus, 2)
 
   def orthogonal: Complex = Complex(-im, re)
 

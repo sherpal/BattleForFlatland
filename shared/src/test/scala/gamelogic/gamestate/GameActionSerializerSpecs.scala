@@ -4,11 +4,12 @@ import gamelogic.gamestate.gameactions.{AddPlayer, UpdateTimestamp}
 import gamelogic.physics.Complex
 import utils.ziohelpers.failIfWith
 import zio.UIO
-import zio.test.Assertion.equalTo
+import zio.test.Assertion._
 import zio.test._
 import io.circe.syntax._
 import io.circe.parser.decode
 import zio.random.Random
+import zio.test.environment._
 
 object GameActionSerializerSpecs extends DefaultRunnableSpec {
 

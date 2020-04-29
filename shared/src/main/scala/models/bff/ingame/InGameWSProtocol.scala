@@ -1,5 +1,6 @@
 package models.bff.ingame
 
+import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction
 import io.circe.generic.extras.Configuration
 import io.circe.{Decoder, Encoder}
@@ -20,6 +21,8 @@ object InGameWSProtocol {
   case class Ping(sendingTime: Long) extends Outgoing
   case class Pong(originalSendingTime: Long, midwayDistantTime: Long) extends Incoming
 
+  case class Ready(userId: String) extends Outgoing
+
   case class GameActionWrapper(gameActions: List[GameAction]) extends Outgoing
   case class RemoveActions(oldestTime: Long, idsOfActionsToRemove: List[GameAction.Id]) extends Incoming
   case class AddAndRemoveActions(
@@ -27,6 +30,7 @@ object InGameWSProtocol {
       oldestTimeToRemove: Long,
       idsOfActionsToRemove: List[GameAction.Id]
   ) extends Incoming
+  case class YourEntityIdIs(entityId: Entity.Id) extends Incoming
 
   import io.circe.generic.extras.semiauto._
   implicit val genDevConfig: Configuration =

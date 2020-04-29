@@ -16,6 +16,7 @@ import org.scalajs.dom.html.Div
 final class App private () extends Component[dom.html.Div] {
 
   val element: ReactiveHtmlElement[Div] = div(
+    className := "App",
     child <-- Routes
       .firstOf(
         Route(entry, () => Redirect(homeRoute)),
