@@ -6,11 +6,8 @@ import scala.util.Try
 
 final case class Complex(re: Double, im: Double) {
   def +(other: Complex): Complex = Complex(re + other.re, im + other.im)
-
   def -(other: Complex): Complex = Complex(re - other.re, im - other.im)
-
   def *(other: Complex): Complex = Complex(re * other.re - im * other.im, re * other.im + im * other.re)
-
   def /(other: Complex): Complex = {
     val d = other.re * other.re + other.im * other.im
     Complex((re * other.re + im * other.im) / d, (-re * other.im + im * other.re) / d)
@@ -32,16 +29,18 @@ final case class Complex(re: Double, im: Double) {
     pow(this, other)
   }
 
-  def **(other: Double): Complex = Complex.exp(other * Complex.log(this))
-
+  def **(other: Double): Complex  = Complex.exp(other * Complex.log(this))
   def **(other: Complex): Complex = Complex.exp(other * Complex.log(this))
 
+  def pow(other: Int): Complex     = this ** other
+  def pow(other: Double): Complex  = this ** other
+  def pow(other: Complex): Complex = this ** other
+
   /** Scalar product. */
-  @inline def |*|(that: Complex): Double = this.re * that.re + this.im * that.im
+  @inline def |*|(that: Complex): Double           = this.re * that.re + this.im * that.im
+  @inline def scalarProduct(that: Complex): Double = this |*| that
 
   @inline def crossProduct(that: Complex): Double = this.re * that.im - this.im * that.re
-
-  @inline def scalarProduct(that: Complex): Double = this |*| that
 
   def multiply(seq: Seq[Complex]): Seq[Complex] = for (z <- seq) yield this * z
 
@@ -52,6 +51,8 @@ final case class Complex(re: Double, im: Double) {
   def orthogonal: Complex = Complex(-im, re)
 
   def normalized: Complex = this / modulus
+
+  def safeNormalized: Complex = if (modulus == 0) 0 else normalized
 
   def arg: Double = atan2(im, re) // arg in (-pi, pi)
 
@@ -81,7 +82,8 @@ object Complex {
 
   def apply(z: (Double, Double)): Complex = Complex(z._1, z._2)
 
-  final val i = Complex(0, 1)
+  final val i    = Complex(0, 1)
+  final val zero = ComplexIsNumeric.zero
 
   private val rnd: java.util.Random = new java.util.Random()
 
@@ -89,6 +91,7 @@ object Complex {
 
   implicit def fromDouble(d: Double): Complex          = Complex(d, 0)
   implicit def fromInt(n: Int): Complex                = Complex(n, 0)
+  implicit def fromLong(n: Long): Complex              = Complex(n, 0)
   implicit def fromTuple(z: (Double, Double)): Complex = Complex(z._1, z._2)
 
   def exp(z: Complex): Complex = math.exp(z.re) * Complex(math.cos(z.im), math.sin(z.im))

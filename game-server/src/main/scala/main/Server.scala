@@ -35,15 +35,12 @@ object Server extends zio.App {
             case Ready(userId) =>
               antiChamber ! AntiChamber.Ready(userId, context.self)
               Behaviors.same
-            case GameActionWrapper(gameActions) =>
-              actionTranslator ! ActionTranslator.GameActionsWrapper(gameActions)
+            case actionWrapper: GameActionWrapper =>
+              actionTranslator ! ActionTranslator.InGameWSProtocolWrapper(actionWrapper)
               Behaviors.same
             case message: InGameWSProtocol.Incoming => // incoming messages are sent to the frontend
               outerWorld ! message
               Behaviors.same
-            case message: InGameWSProtocol.Outgoing => // outgoing messages should be forwarded to the inner actors
-              println(s"Message comes from the frontend and should be handled: $message")
-              Behaviors.unhandled
           }
         }
       }

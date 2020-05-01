@@ -52,39 +52,46 @@ final class ActionCollector(
     * @return        The most ancient time at which actions were removed, and the list of the ids of actions that were
     *                removed
     */
-  def addAndRemoveActions(actions: List[GameAction]): (Long, List[Long]) = {
-    val oldestTime: Long = actions.head.time
+  def addAndRemoveActions(actions: List[GameAction]): (Long, List[Long]) =
+    if (actions.isEmpty) {
+      (currentGameState.time, Nil)
+    } else {
+      val oldestTime: Long = actions.head.time
 
-    @scala.annotation.tailrec
-    def mergeActions(ls1: List[GameAction], ls2: List[GameAction], accumulator: List[GameAction]): List[GameAction] =
-      if (ls1.isEmpty)
-        accumulator.reverse ++ ls2
-      else if (ls2.isEmpty)
-        accumulator.reverse ++ ls1
-      else if (ls1.head.time <= ls2.head.time)
-        mergeActions(ls1.tail, ls2, ls1.head +: accumulator)
-      else
-        mergeActions(ls1, ls2.tail, ls2.head +: accumulator)
+      @scala.annotation.tailrec
+      def mergeActions(
+          ls1: List[GameAction],
+          ls2: List[GameAction],
+          accumulator: List[GameAction]
+      ): List[GameAction] =
+        if (ls1.isEmpty)
+          accumulator.reverse ++ ls2
+        else if (ls2.isEmpty)
+          accumulator.reverse ++ ls1
+        else if (ls1.head.time <= ls2.head.time)
+          mergeActions(ls1.tail, ls2, ls1.head +: accumulator)
+        else
+          mergeActions(ls1, ls2.tail, ls2.head +: accumulator)
 
-    val actionIdsToRemove = mergeActions(
-      actionsFrom(oldestTime),
-      actions,
-      Nil
-    ).foldLeft((gameStateUpTo(oldestTime), List[Long]())) {
-        case ((state, toRemove), action) =>
-          if (shouldKeepAction(action, state)) (action(state), toRemove)
-          else (state, action.id +: toRemove)
-      }
-      ._2
-      .reverse
+      val actionIdsToRemove = mergeActions(
+        actionsFrom(oldestTime),
+        actions,
+        Nil
+      ).foldLeft((gameStateUpTo(oldestTime), List[Long]())) {
+          case ((state, toRemove), action) =>
+            if (shouldKeepAction(action, state)) (action(state), toRemove)
+            else (state, action.id +: toRemove)
+        }
+        ._2
+        .reverse
 
-    // Adding the new actions without updating the GameState.
-    // This is because even new actions could have been immediately removed.
-    actions.foreach(addAction(_, needUpdate = false))
-    removeActions(oldestTime, actionIdsToRemove)
+      // Adding the new actions without updating the GameState.
+      // This is because even new actions could have been immediately removed.
+      actions.foreach(addAction(_, needUpdate = false))
+      removeActions(oldestTime, actionIdsToRemove)
 
-    (oldestTime, actionIdsToRemove)
-  }
+      (oldestTime, actionIdsToRemove)
+    }
 
   /**
     * Remove all said actions from the list. You can opt for not updating the game state after this if you're going
@@ -203,6 +210,7 @@ final class ActionCollector(
     case Some((gs, actions)) =>
       gs.applyActions(actions.takeWhile(_.time <= time))
     case None =>
+      println("beuh", time)
       throw TooOldActionException(time.toString)
   }
 

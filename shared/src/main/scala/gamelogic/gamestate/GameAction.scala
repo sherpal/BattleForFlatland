@@ -17,6 +17,8 @@ trait GameAction extends Ordered[GameAction] {
 
   final def compare(that: GameAction): Int = this.time compare that.time
 
+  def changeId(newId: GameAction.Id): GameAction
+
 }
 
 object GameAction {

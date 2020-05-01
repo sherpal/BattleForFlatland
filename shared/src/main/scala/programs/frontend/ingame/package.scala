@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import models.bff.ingame.InGameWSProtocol.{Ping, Pong}
 import zio.clock.Clock
-import zio.{Task, UIO, ZIO}
+import zio.{UIO, ZIO}
 
 package object ingame {
 

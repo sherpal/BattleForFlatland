@@ -3,20 +3,25 @@ package frontend.components.connected.ingame
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.LifecycleComponent
+import gamelogic.entities.Entity
+import gamelogic.gamestate
 import gamelogic.gamestate.{ActionCollector, GameState}
 import io.circe.syntax._
 import models.bff.Routes._
 import models.bff.ingame.InGameWSProtocol
-import models.bff.ingame.InGameWSProtocol.{AddAndRemoveActions, HeartBeat, Ping, Pong, Ready}
+import models.bff.ingame.InGameWSProtocol.{HeartBeat, Ping, Pong, Ready, YourEntityIdIs}
 import models.users.User
 import org.scalajs.dom.html
-import utils.websocket.JsonWebSocket
-import zio.{Task, UIO, ZIO}
+import typings.pixiJs.mod.Application
+import typings.pixiJs.{AnonAntialias => ApplicationOptions}
 import utils.laminarzio.Implicits._
+import utils.websocket.JsonWebSocket
+import zio.{UIO, ZIO}
 
 final class GamePlaying private (gameId: String, user: User, token: String) extends LifecycleComponent[html.Div] {
 
   private val layer = zio.clock.Clock.live
+  val application   = new Application(ApplicationOptions(backgroundColor = 0x1099bb))
 
   val actionCollector: ActionCollector = new ActionCollector(GameState.initialGameState(0))
 
@@ -27,13 +32,18 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
     host = "localhost:22222" // todo: change this!
   )
 
-  val $gameState: EventStream[GameState] = gameSocket.$in.collect { case msg: AddAndRemoveActions => msg }
-    .map {
-      case AddAndRemoveActions(actionsToAdd, oldestTimeToRemove, idsOfActionsToRemove) =>
-        actionsToAdd.foreach(actionCollector.addAction(_, needUpdate = false))
-        actionCollector.removeActions(oldestTimeToRemove, idsOfActionsToRemove)
-        actionCollector.currentGameState
-    }
+  val $actionsFromServer: EventStream[gamestate.AddAndRemoveActions] = gameSocket.$in.collect {
+    case InGameWSProtocol.AddAndRemoveActions(actionsToAdd, oldestTimeToRemove, idsOfActionsToRemove) =>
+      gamelogic.gamestate.AddAndRemoveActions(actionsToAdd, oldestTimeToRemove, idsOfActionsToRemove)
+  }
+
+  val $playerId: EventStream[Entity.Id] =
+    EventStream
+      .combine(
+        EventStream.fromValue((), emitOnce = true), // take 1
+        gameSocket.$in.collect { case YourEntityIdIs(id) => id }
+      )
+      .map(_._2)
 
   def sendPing(ping: Ping)(implicit owner: Owner): UIO[Pong] =
     for {
@@ -48,7 +58,7 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
 
   val elem: ReactiveHtmlElement[html.Div] = div(
     className := "GamePlaying",
-    GameViewContainer(actionCollector.currentGameState, $gameState),
+    child <-- $playerId.map(id => GameViewContainer(id, $actionsFromServer, gameSocket.outWriter)),
     pre(
       child.text <-- gameSocket.$in.filterNot(_ == HeartBeat)
         .filterNot(_.isInstanceOf[InGameWSProtocol.AddAndRemoveActions])

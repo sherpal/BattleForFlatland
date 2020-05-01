@@ -1,6 +1,7 @@
 package gamelogic.gamestate.gameactions
 
 import gamelogic.entities.Entity
+import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 
@@ -11,7 +12,7 @@ final case class DummyEntityMoves(
     newPos: Complex,
     moving: Boolean,
     direction: Double,
-    colour: String
+    colour: Int
 ) extends GameAction {
 
   /**
@@ -33,4 +34,6 @@ final case class DummyEntityMoves(
       )
 
   def isLegal(gameState: GameState): Boolean = true
+
+  def changeId(newId: Id): GameAction = copy(id = newId)
 }
