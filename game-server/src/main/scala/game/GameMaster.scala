@@ -3,7 +3,7 @@ package game
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import gamelogic.entities.Entity
-import gamelogic.gamestate.gameactions.{AddPlayer, GameStart, UpdateTimestamp}
+import gamelogic.gamestate.gameactions.{AddPlayer, GameStart}
 import gamelogic.gamestate.{ActionCollector, GameAction, GameState}
 import gamelogic.physics.Complex
 import models.bff.ingame.InGameWSProtocol
@@ -12,7 +12,7 @@ import zio.ZIO
 import zio.duration.Duration.fromScala
 
 import scala.concurrent.duration._
-import scala.util.{Failure, Random, Success}
+import scala.util.Random
 
 object GameMaster {
 

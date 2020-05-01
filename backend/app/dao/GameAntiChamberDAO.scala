@@ -19,7 +19,6 @@ import services.logging._
 import utils.playzio.HasRequest
 import utils.ziohelpers.getOrFail
 import websocketkeepers.gameantichamber.GameAntiChamberTyped
-import websocketkeepers.gameantichamber.GameAntiChamberTyped.GameCredentialsWrapper
 import websocketkeepers.gameantichamber.JoinedGameDispatcherTyped.{
   GameAntiChamberManagerFor,
   HereIsMaybeTheAntiChamberManagerFor

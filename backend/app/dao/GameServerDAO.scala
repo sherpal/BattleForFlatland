@@ -6,18 +6,17 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpMethods, HttpRequest, Uri}
 import dao.GameAntiChamberDAO.askGameAntiChamberManager
 import guards.Guards
+import io.circe.syntax._
 import models.bff.ingame.{GameCredentialsWithGameInfo, GameUserCredentials}
 import play.api.mvc.{Request, RequestHeader}
 import services.actors.TypedActorProvider.TypedActorProvider
+import services.config.Configuration
 import services.database.gamecredentials.GameCredentialsDB
 import services.database.gametables._
-import websocketkeepers.gameantichamber.GameAntiChamberTyped.GameCredentialsWrapper
-import zio.{Has, UIO, ZIO}
-import io.circe.syntax._
-import io.circe.generic.auto._
-import services.config.Configuration
 import utils.playzio.HasRequest
+import websocketkeepers.gameantichamber.GameAntiChamberTyped.GameCredentialsWrapper
 import zio.clock.Clock
+import zio.{Has, UIO, ZIO}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._

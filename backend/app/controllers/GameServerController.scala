@@ -18,14 +18,13 @@ import services.database.gamecredentials.GameCredentialsDB
 import services.database.gametables.GameTable
 import services.logging.PlayLogging
 import slick.jdbc.JdbcProfile
+import utils.ReadsImplicits._
 import utils.WriteableImplicits._
 import utils.playzio.PlayZIO._
 import websocketkeepers.gameantichamber.JoinedGameDispatcherTyped
 import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeperTyped
 import zio.ZLayer
 import zio.clock.Clock
-import utils.ReadsImplicits._
-import io.circe.generic.auto._
 
 import scala.concurrent.ExecutionContext
 

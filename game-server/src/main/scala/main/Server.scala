@@ -2,7 +2,7 @@ package main
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
-import game.{ActionTranslator, ActionUpdateCollector, AntiChamber}
+import game.{ActionTranslator, AntiChamber}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import models.bff.ingame.InGameWSProtocol.{GameActionWrapper, Ping, Pong, Ready}

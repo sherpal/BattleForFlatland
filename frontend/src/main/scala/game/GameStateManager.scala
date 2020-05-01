@@ -5,7 +5,7 @@ import com.raquo.airstream.eventbus.EventBus
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.ownership.Owner
 import com.raquo.airstream.signal.{Signal, SignalViewer}
-import gamelogic.entities.{DummyLivingEntity, Entity}
+import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions.DummyEntityMoves
 import gamelogic.gamestate.{ActionCollector, AddAndRemoveActions, GameAction, GameState}
 import gamelogic.physics.Complex
@@ -13,8 +13,6 @@ import models.bff.ingame.{InGameWSProtocol, UserInput}
 import typings.pixiJs.mod.Application
 import typings.pixiJs.{AnonAntialias => ApplicationOptions}
 import utils.pixi.monkeypatching.PIXIPatching._
-
-import scala.util.Random
 
 final class GameStateManager(
     initialGameState: GameState,

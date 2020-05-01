@@ -4,8 +4,8 @@ import com.raquo.airstream.eventbus.EventBus
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.Signal
 import models.bff.ingame.{KeyboardControls, UserInput}
-import typings.std.KeyboardEvent
 import org.scalajs.dom
+import typings.std.KeyboardEvent
 
 import scala.scalajs.js
 
