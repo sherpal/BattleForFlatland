@@ -30,6 +30,9 @@ final class ActionCollector(
     */
   private var actionsAndStates: List[(GameState, List[GameAction])] = List((originalGameState, Nil))
 
+  /** This method is used in the tests. */
+  def testActionAndStates: List[(GameState, List[GameAction])] = actionsAndStates
+
   def backupState(n: Int): (GameState, List[GameAction]) = actionsAndStates(n)
 
   /**
@@ -72,14 +75,6 @@ final class ActionCollector(
           mergeActions(ls1.tail, ls2, ls1.head +: accumulator)
         else
           mergeActions(ls1, ls2.tail, ls2.head +: accumulator)
-
-      println(
-        mergeActions(
-          actionsFrom(oldestTime),
-          actions,
-          Nil
-        )
-      )
 
       val actionIdsToRemove = mergeActions(
         actionsFrom(oldestTime),

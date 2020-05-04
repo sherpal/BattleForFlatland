@@ -56,12 +56,10 @@ object GameMaster {
   def inGameBehaviour(
       pendingActions: List[GameAction],
       actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage],
+      actionCollector: ActionCollector,
       lastActionId: GameAction.Id,
       lastEntityId: Entity.Id
   ): Behavior[Message] = Behaviors.setup { implicit context =>
-    // todo: fix this -1000
-    val actionCollector = new ActionCollector(GameState.initialGameState(now - 1000))
-
     def gameState = actionCollector.currentGameState
 
     Behaviors
@@ -74,11 +72,18 @@ object GameMaster {
           inGameBehaviour(
             gameAction +: pendingActions,
             actionUpdateCollector,
+            actionCollector,
             lastActionId,
             lastEntityId
           )
         case MultipleActionsWrapper(gameActions) =>
-          inGameBehaviour(gameActions ++ pendingActions, actionUpdateCollector, lastActionId, lastEntityId)
+          inGameBehaviour(
+            gameActions ++ pendingActions,
+            actionUpdateCollector,
+            actionCollector,
+            lastActionId,
+            lastEntityId
+          )
         case GameLoop =>
           // this is quite ugly. Can I do better?
           var _lastGameActionId = lastActionId
@@ -106,8 +111,6 @@ object GameMaster {
             }
             val (oldestToRemove, removedIds) = actionCollector.addAndRemoveActions(sortedActions)
 
-            println("Currently casting: ", gameState.castingEntityInfo.mkString(", "))
-
             // Actual game logic (checking for dead things, collisions, and stuff)
             // todo
 
@@ -125,8 +128,6 @@ object GameMaster {
               )
               .flatMap(usage => usage :: usage.ability.createActions(gameState))
               .toList
-
-            println("used: ", usedAbilities)
 
             val (oldestAbilityToRemove, abilityActionsToRemove) = actionCollector.addAndRemoveActions(usedAbilities)
 
@@ -148,7 +149,7 @@ object GameMaster {
                 gameLoopTo(context.self, (gameLoopTiming - timeSpent).millis)
               )
 
-          inGameBehaviour(Nil, actionUpdateCollector, _lastGameActionId, _lastEntityId)
+          inGameBehaviour(Nil, actionUpdateCollector, actionCollector, _lastGameActionId, _lastEntityId)
 
         case _: PreGameMessage => Behaviors.unhandled
       }
@@ -186,7 +187,10 @@ object GameMaster {
               context.self ! MultipleActionsWrapper(newPlayerActions.map(_._2).toList)
 
               context.self ! GameLoop
-              inGameBehaviour(Nil, actionUpdateCollector, 0L, playerMap.size - 1)
+
+              // todo: fix this -1000
+              val actionCollector = new ActionCollector(GameState.initialGameState(now - 1000))
+              inGameBehaviour(Nil, actionUpdateCollector, actionCollector, 0L, playerMap.size - 1)
           }
 
         case _ =>
