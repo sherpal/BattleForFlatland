@@ -1,10 +1,12 @@
 package gamelogic.gamestate
 
-import gamelogic.entities.{DummyLivingEntity, Entity}
+import gamelogic.entities.{DummyLivingEntity, Entity, EntityCastingInfo, SimpleBulletBody, WithAbilities}
 
 /**
   * A [[gamelogic.gamestate.GameState]] has the complete knowledge of everything that exists in the game.
   * Having an instance of a GameState is enough to have all information about the game at that particular moment in time.
+  *
+  * An [[gamelogic.entities.Entity]] can cast only one spell at a time, hence the map.
   *
   * @param time in millis
   */
@@ -12,7 +14,9 @@ final case class GameState(
     time: Long,
     startTime: Option[Long],
     endTime: Option[Long],
-    players: Map[Entity.Id, DummyLivingEntity]
+    players: Map[Entity.Id, DummyLivingEntity],
+    simpleBullets: Map[Entity.Id, SimpleBulletBody],
+    castingEntityInfo: Map[Entity.Id, EntityCastingInfo]
 ) {
 
   def started: Boolean = startTime.isDefined
@@ -26,19 +30,17 @@ final case class GameState(
     nextAction(currentGameState)
   }
 
-  def isLegalAction(action: GameAction): Boolean = action.isLegal(this)
+  def isLegalAction(action: GameAction): Boolean = action.isLegal(gameState = this)
 
-  /** Modifies the given player at the given time. */
-  def withPlayer(newTime: Long, player: DummyLivingEntity): GameState =
-    copy(time = newTime, players = players + (player.id -> player))
+  def entityIsCasting(entityId: Entity.Id): Boolean = castingEntityInfo.isDefinedAt(entityId)
 
-  /** Modifies the timestamp of the game. */
-  def timeUpdate(newTime: Long): GameState = copy(time = newTime)
+  def withAbilityEntitiesById(entityId: Entity.Id): Option[WithAbilities] =
+    players.get(entityId) // todo: look for other kind of entity
 
 }
 
 object GameState {
 
-  def initialGameState(time: Long): GameState = GameState(time, None, None, Map())
+  def initialGameState(time: Long): GameState = GameState(time, None, None, Map(), Map(), Map())
 
 }

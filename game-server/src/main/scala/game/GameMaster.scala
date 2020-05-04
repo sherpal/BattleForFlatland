@@ -1,9 +1,10 @@
 package game
 
+import akka.actor.SupervisorStrategy
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import gamelogic.entities.Entity
-import gamelogic.gamestate.gameactions.{AddPlayer, GameStart}
+import gamelogic.gamestate.gameactions.{AddPlayer, EntityStartsCasting, GameStart, UseAbility}
 import gamelogic.gamestate.{ActionCollector, GameAction, GameState}
 import gamelogic.physics.Complex
 import models.bff.ingame.InGameWSProtocol
@@ -100,7 +101,12 @@ object GameMaster {
 
           // Adding pending actions
           try {
+            if (sortedActions.exists(_.isInstanceOf[EntityStartsCasting])) {
+              println(sortedActions)
+            }
             val (oldestToRemove, removedIds) = actionCollector.addAndRemoveActions(sortedActions)
+
+            println("Currently casting: ", gameState.castingEntityInfo.mkString(", "))
 
             // Actual game logic (checking for dead things, collisions, and stuff)
             // todo
@@ -111,18 +117,36 @@ object GameMaster {
                 .AddAndRemoveActions(sortedActions, oldestToRemove, removedIds)
             }
 
-            val timeSpent = now - startTime
+            // checking for End of casting.
+            val usedAbilities = gameState.castingEntityInfo.valuesIterator
+              .filter(castingInfo => startTime - castingInfo.startedTime >= castingInfo.ability.castingTime)
+              .map(
+                castingInfo => UseAbility(nextGameActionId(), startTime, castingInfo.casterId, 0L, castingInfo.ability)
+              )
+              .flatMap(usage => usage :: usage.ability.createActions(gameState))
+              .toList
 
-            if (timeSpent > gameLoopTiming) context.self ! GameLoop
-            else
-              zio.Runtime.default
-                .unsafeRunToFuture(
-                  gameLoopTo(context.self, (gameLoopTiming - timeSpent).millis)
-                )
+            println("used: ", usedAbilities)
+
+            val (oldestAbilityToRemove, abilityActionsToRemove) = actionCollector.addAndRemoveActions(usedAbilities)
+
+            if (usedAbilities.nonEmpty) {
+              actionUpdateCollector ! ActionUpdateCollector
+                .AddAndRemoveActions(usedAbilities, oldestAbilityToRemove, abilityActionsToRemove)
+            }
+
           } catch {
             case e: Throwable =>
               e.printStackTrace()
           }
+          val timeSpent = now - startTime
+
+          if (timeSpent > gameLoopTiming) context.self ! GameLoop
+          else
+            zio.Runtime.default
+              .unsafeRunToFuture(
+                gameLoopTo(context.self, (gameLoopTiming - timeSpent).millis)
+              )
 
           inGameBehaviour(Nil, actionUpdateCollector, _lastGameActionId, _lastEntityId)
 

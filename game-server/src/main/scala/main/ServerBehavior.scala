@@ -186,8 +186,9 @@ trait ServerBehavior[In, Out] {
     val tokenBearer           = context.spawn(TokenBearer(), "TokenBearer")
     val actionUpdateCollector = context.spawn(ActionUpdateCollector(), "ActionUpdateCollector")
     val gameMaster            = context.spawn(GameMaster(actionUpdateCollector), "GameMaster")
-    val actionTranslator      = context.spawn(ActionTranslator(gameMaster), "ActionTranslator")
-    val antiChamber           = context.spawn(AntiChamber(gameMaster, actionUpdateCollector), "AntiChamber")
+
+    val actionTranslator = context.spawn(ActionTranslator(gameMaster), "ActionTranslator")
+    val antiChamber      = context.spawn(AntiChamber(gameMaster, actionUpdateCollector), "AntiChamber")
 
     val serverBinding: Future[Http.ServerBinding] =
       Http().bindAndHandle(requestHandler(context, tokenBearer, antiChamber, actionTranslator), host, port)

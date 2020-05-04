@@ -1,6 +1,6 @@
 package game
 
-import gamelogic.entities.{DummyLivingEntity, Entity}
+import gamelogic.entities.{DummyLivingEntity, Entity, SimpleBulletBody}
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import org.scalajs.dom.html
@@ -20,6 +20,8 @@ final class GameDrawer(application: Application) {
 
   val playerContainer: Container = new Container
   stage.addChild(playerContainer)
+  val bulletContainer: Container = new Container
+  stage.addChild(bulletContainer)
 
   private val players: mutable.Map[Entity.Id, Sprite] = mutable.Map()
 
@@ -45,9 +47,23 @@ final class GameDrawer(application: Application) {
       camera.viewportManager(sprite, entity.pos, entity.shape.boundingBox)
     }
 
-  def drawGameState(gameState: GameState, cameraPosition: Complex): Unit = {
+  private val bulletSprites: mutable.Map[Entity.Id, Sprite] = mutable.Map()
+  private def drawSimpleBullets(bullets: List[SimpleBulletBody], currentTime: Long): Unit =
+    bullets.foreach { bullet =>
+      val sprite = bulletSprites.getOrElse(bullet.id, {
+        val s = new Sprite(circleTexture(0x000000, bullet.shape.radius))
+        bulletSprites += (bullet.id -> s)
+        bulletContainer.addChild(s)
+        s
+      })
+
+      camera.viewportManager(sprite, bullet.currentPosition(currentTime), bullet.shape.boundingBox)
+    }
+
+  def drawGameState(gameState: GameState, cameraPosition: Complex, currentTime: Long): Unit = {
     camera.worldCenter = cameraPosition
     drawPlayers(gameState.players.values.toList)
+    drawSimpleBullets(gameState.simpleBullets.values.toList, currentTime)
   }
 
 }

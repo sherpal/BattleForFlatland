@@ -10,9 +10,9 @@ trait Moving extends WithPosition {
   val direction: Double
   val moving: Boolean
 
-  def currentPosition(time: Long): Complex =
+  def currentPosition(currentTime: Long): Complex =
     if (moving)
-      pos + time * speed * Complex.rotation(direction) / 1000 // speed is per second, time is in millis
+      pos + (currentTime - time) * speed * Complex.rotation(direction) / 1000 // speed is per second, time is in millis
     else
       pos
 }

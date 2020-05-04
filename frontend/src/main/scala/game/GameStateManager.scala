@@ -5,8 +5,9 @@ import com.raquo.airstream.eventbus.EventBus
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.ownership.Owner
 import com.raquo.airstream.signal.{Signal, SignalViewer}
+import gamelogic.abilities.{Ability, SimpleBullet}
 import gamelogic.entities.Entity
-import gamelogic.gamestate.gameactions.DummyEntityMoves
+import gamelogic.gamestate.gameactions.{DummyEntityMoves, EntityStartsCasting}
 import gamelogic.gamestate.{ActionCollector, AddAndRemoveActions, GameAction, GameState}
 import gamelogic.physics.Complex
 import models.bff.ingame.{InGameWSProtocol, UserInput}
@@ -48,6 +49,27 @@ final class GameStateManager(
 
   val pressedUserInputSignal: SignalViewer[Set[UserInput]] = keyboard.$pressedUserInput.observe
 
+  keyboard.$downKeyEvents.filter(_.code == "KeyE").foreach { _ =>
+    println("coucou")
+
+    socketOutWriter.onNext(
+      InGameWSProtocol.GameActionWrapper(
+        EntityStartsCasting(
+          0L,
+          System.currentTimeMillis,
+          new SimpleBullet(
+            0L,
+            System.currentTimeMillis,
+            playerId,
+            1000L,
+            actionCollector.currentGameState.players.get(playerId).map(_.pos).getOrElse(Complex.zero),
+            0
+          )
+        ) :: Nil
+      )
+    )
+  }
+
   var lastTimeStamp = 0L
 
   private val ticker = (_: Double) => {
@@ -85,7 +107,11 @@ final class GameStateManager(
       // do nothing, player is dead
     }
 
-    gameDrawer.drawGameState($strictGameStates.now, 0)
+    gameDrawer.drawGameState(
+      $strictGameStates.now,
+      gameState.players.get(playerId).map(_.pos).getOrElse(Complex.zero),
+      now
+    )
   }
 
   application.ticker.add(ticker)

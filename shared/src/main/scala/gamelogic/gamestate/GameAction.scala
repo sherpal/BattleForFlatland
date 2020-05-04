@@ -1,6 +1,7 @@
 package gamelogic.gamestate
 
 import gamelogic.gamestate.gameactions._
+import gamelogic.gamestate.statetransformers.GameStateTransformer
 import io.circe.{Decoder, Encoder, Json}
 
 trait GameAction extends Ordered[GameAction] {
@@ -11,7 +12,14 @@ trait GameAction extends Ordered[GameAction] {
   val time: Long
 
   /** Describes how this action affects a given GameState. */
-  def apply(gameState: GameState): GameState
+  final def apply(gameState: GameState): GameState =
+    createGameStateTransformer(gameState)(gameState)
+
+  /**
+    * Creates the [[gamelogic.gamestate.statetransformers.GameStateTransformer]] that will effectively affect the game.
+    * If more than one building block must be used, you can compose them using their `++` method.
+    */
+  def createGameStateTransformer(gameState: GameState): GameStateTransformer
 
   def isLegal(gameState: GameState): Boolean
 
@@ -33,11 +41,14 @@ object GameAction {
     a.asJson.mapObject(_.add("action_name", Json.fromString(name)))
 
   implicit val encoder: Encoder[GameAction] = Encoder.instance {
-    case x: AddPlayer        => customEncode(x, "AddPlayer")
-    case x: DummyEntityMoves => customEncode(x, "DummyEntityMoves")
-    case x: EndGame          => customEncode(x, "EndGame")
-    case x: GameStart        => customEncode(x, "GameStart")
-    case x: UpdateTimestamp  => customEncode(x, "UpdateTimestamp")
+    case x: AddPlayer           => customEncode(x, "AddPlayer")
+    case x: DummyEntityMoves    => customEncode(x, "DummyEntityMoves")
+    case x: EndGame             => customEncode(x, "EndGame")
+    case x: EntityStartsCasting => customEncode(x, "EntityStartsCasting")
+    case x: GameStart           => customEncode(x, "GameStart")
+    case x: NewSimpleBullet     => customEncode(x, "NewSimpleBullet")
+    case x: UpdateTimestamp     => customEncode(x, "UpdateTimestamp")
+    case x: UseAbility          => customEncode(x, "UseAbility")
   }
 
   private def customDecoder[A <: GameAction](name: String)(implicit decoder: Decoder[A]): Decoder[GameAction] =
@@ -47,8 +58,11 @@ object GameAction {
     customDecoder[AddPlayer]("AddPlayer"),
     customDecoder[DummyEntityMoves]("DummyEntityMoves"),
     customDecoder[EndGame]("EndGame"),
+    customDecoder[EntityStartsCasting]("EntityStartsCasting"),
     customDecoder[GameStart]("GameStart"),
-    customDecoder[UpdateTimestamp]("UpdateTimestamp")
+    customDecoder[NewSimpleBullet]("NewSimpleBullet"),
+    customDecoder[UpdateTimestamp]("UpdateTimestamp"),
+    customDecoder[UseAbility]("UseAbility")
   ).reduceLeft(_ or _)
 
 }

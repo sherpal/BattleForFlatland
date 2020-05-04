@@ -2,6 +2,7 @@ package gamelogic.gamestate.gameactions
 
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction.Id
+import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithPlayer}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 
@@ -18,20 +19,10 @@ final case class DummyEntityMoves(
   /**
     * If that player exists, moves it to the new given position, direction, and moving state.
     */
-  def apply(gameState: GameState): GameState =
-    gameState.players
-      .get(playerId)
-      .fold(gameState)(
-        player =>
-          gameState.withPlayer(
-            time,
-            player.copy(
-              pos       = newPos,
-              direction = direction,
-              moving    = moving
-            )
-          )
-      )
+  def createGameStateTransformer(gameState: GameState): GameStateTransformer =
+    gameState.players.get(playerId).fold(GameStateTransformer.identityTransformer) { player =>
+      new WithPlayer(player.copy(pos = newPos, direction = direction, moving = moving))
+    }
 
   def isLegal(gameState: GameState): Boolean = true
 

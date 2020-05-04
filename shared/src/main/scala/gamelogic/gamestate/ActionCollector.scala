@@ -73,6 +73,14 @@ final class ActionCollector(
         else
           mergeActions(ls1, ls2.tail, ls2.head +: accumulator)
 
+      println(
+        mergeActions(
+          actionsFrom(oldestTime),
+          actions,
+          Nil
+        )
+      )
+
       val actionIdsToRemove = mergeActions(
         actionsFrom(oldestTime),
         actions,
@@ -227,7 +235,8 @@ final class ActionCollector(
     try {
       _currentGameState = actionsAndStates.head._1.applyActions(actionsAndStates.head._2)
     } catch {
-      case _: Throwable =>
+      case e: Throwable =>
+        e.printStackTrace()
         throw new ActionCollector.FailedToUpdateGameStateException(actionsAndStates)
     }
 
