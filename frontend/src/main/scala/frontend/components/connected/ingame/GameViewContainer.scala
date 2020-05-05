@@ -21,7 +21,8 @@ import org.scalajs.dom.html
 final class GameViewContainer private (
     playerId: Entity.Id,
     $actionsFromServer: EventStream[gamelogic.gamestate.AddAndRemoveActions],
-    socketOutWriter: Observer[InGameWSProtocol.Outgoing]
+    socketOutWriter: Observer[InGameWSProtocol.Outgoing],
+    deltaTimeWithServer: Long
 ) extends LifecycleComponent[html.Div] {
 
   private def container = elem.ref
@@ -36,7 +37,8 @@ final class GameViewContainer private (
     $actionsFromServer,
     socketOutWriter,
     new Keyboard(implicitly[Pointed[KeyboardControls]].unit),
-    playerId
+    playerId,
+    deltaTimeWithServer
   )(elem)
 
   override def componentDidMount(): Unit =
@@ -48,7 +50,8 @@ object GameViewContainer {
   def apply(
       playerId: Entity.Id,
       $actionsFromServer: EventStream[gamelogic.gamestate.AddAndRemoveActions],
-      socketOutWriter: Observer[InGameWSProtocol.Outgoing]
+      socketOutWriter: Observer[InGameWSProtocol.Outgoing],
+      deltaTimeWithServer: Long
   ): GameViewContainer =
-    new GameViewContainer(playerId, $actionsFromServer, socketOutWriter)
+    new GameViewContainer(playerId, $actionsFromServer, socketOutWriter, deltaTimeWithServer)
 }

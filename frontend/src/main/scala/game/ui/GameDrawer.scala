@@ -1,5 +1,6 @@
-package game
+package game.ui
 
+import game.Camera
 import gamelogic.entities.{DummyLivingEntity, Entity, SimpleBulletBody}
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex

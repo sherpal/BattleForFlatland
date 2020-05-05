@@ -5,6 +5,8 @@ import com.raquo.airstream.eventbus.EventBus
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.ownership.Owner
 import com.raquo.airstream.signal.{Signal, SignalViewer}
+import game.ui.GameDrawer
+import game.ui.gui.GUIDrawer
 import gamelogic.abilities.{Ability, SimpleBullet}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions.{DummyEntityMoves, EntityStartsCasting}
@@ -20,12 +22,16 @@ final class GameStateManager(
     $actionsFromServer: EventStream[AddAndRemoveActions],
     socketOutWriter: Observer[InGameWSProtocol.Outgoing],
     keyboard: Keyboard,
-    playerId: Entity.Id
+    playerId: Entity.Id,
+    deltaTimeWithServer: Long
 )(implicit owner: Owner) {
 
   val application: Application                 = new Application(ApplicationOptions(backgroundColor = 0x1099bb))
   private val actionCollector: ActionCollector = new ActionCollector(initialGameState)
   private val gameDrawer                       = new GameDrawer(application)
+
+  /** After [[game.ui.GameDrawer]] so that gui is on top of the game. */
+  private val guiDrawer = new GUIDrawer(playerId, application)
 
   private val gameStateBus: EventBus[GameState] = new EventBus[GameState]
 
@@ -75,7 +81,7 @@ final class GameStateManager(
 
     val playerMovement = UserInput.movingDirection(pressedUserInput)
 
-    val now       = System.currentTimeMillis
+    val now       = System.currentTimeMillis + deltaTimeWithServer
     val gameState = $strictGameStates.now
     val deltaTime = now - lastTimeStamp
     lastTimeStamp = now
@@ -110,6 +116,7 @@ final class GameStateManager(
       gameState.players.get(playerId).map(_.pos).getOrElse(Complex.zero),
       now
     )
+    guiDrawer.update(gameState, now)
   }
 
   application.ticker.add(ticker)

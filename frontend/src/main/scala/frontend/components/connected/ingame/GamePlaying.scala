@@ -45,6 +45,8 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
       )
       .map(_._2)
 
+  val deltaWithServerBus: EventBus[Long] = new EventBus
+
   def sendPing(ping: Ping)(implicit owner: Owner): UIO[Pong] =
     for {
       pongFiber <- ZIO
@@ -58,14 +60,9 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
 
   val elem: ReactiveHtmlElement[html.Div] = div(
     className := "GamePlaying",
-    child <-- $playerId.map(id => GameViewContainer(id, $actionsFromServer, gameSocket.outWriter)),
-    pre(
-      child.text <-- gameSocket.$in.filterNot(_ == HeartBeat)
-        .filterNot(_.isInstanceOf[InGameWSProtocol.AddAndRemoveActions])
-        .fold(List[InGameWSProtocol]())(_ :+ _)
-        .map(_.map(_.asJson.spaces2))
-        .map(_.mkString("\n"))
-    )
+    child <-- $playerId.combineWith(deltaWithServerBus.events).map {
+      case (id, delta) => GameViewContainer(id, $actionsFromServer, gameSocket.outWriter, delta)
+    }
   )
 
   override def componentDidMount(): Unit = {
@@ -81,7 +78,10 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
             .zipLeft(ZIO.effectTotal(gameSocket.outWriter.onNext(Ready(user.userId))))
             .provideLayer(layer)
         )
-    ).foreach(delta => println(s"Delta is: $delta"))(elem)
+    ).foreach(delta => {
+      println(s"Delta is: $delta")
+      deltaWithServerBus.writer.onNext(delta.toLong)
+    })(elem)
 
   }
 
