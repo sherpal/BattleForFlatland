@@ -3,6 +3,7 @@ package game
 import akka.actor.SupervisorStrategy
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
+import gamelogic.abilities.Ability
 import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions.{AddPlayer, EntityStartsCasting, GameStart, UseAbility}
 import gamelogic.gamestate.{ActionCollector, GameAction, GameState}
@@ -98,6 +99,8 @@ object GameMaster {
             _lastGameActionId
           }
 
+          def nextAbilityUseId(): Ability.UseId = 0L // todo: change this
+
           val startTime = now
           val sortedActions = pendingActions.sorted
             .map(_.changeId(nextGameActionId()))
@@ -124,10 +127,18 @@ object GameMaster {
             val usedAbilities = gameState.castingEntityInfo.valuesIterator
               .filter(castingInfo => startTime - castingInfo.startedTime >= castingInfo.ability.castingTime)
               .map(
-                castingInfo => UseAbility(nextGameActionId(), startTime, castingInfo.casterId, 0L, castingInfo.ability)
+                castingInfo =>
+                  UseAbility(
+                    0L,
+                    startTime,
+                    castingInfo.casterId,
+                    0L,
+                    castingInfo.ability.copyWithNewTimeAndId(startTime, nextAbilityUseId())
+                  )
               )
               .flatMap(usage => usage :: usage.ability.createActions(gameState))
               .toList
+              .map(x => { println(x); x })
 
             val (oldestAbilityToRemove, abilityActionsToRemove) = actionCollector.addAndRemoveActions(usedAbilities)
 

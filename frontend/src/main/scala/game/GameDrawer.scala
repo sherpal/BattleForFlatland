@@ -10,7 +10,8 @@ import typings.pixiJs.mod._
 import scala.collection.mutable
 
 /**
-  * This class can
+  * This class is used to draw the game state at any moment in time.
+  * The implementation is full of side effects, probably in the wrong fear of less good performance.
   */
 final class GameDrawer(application: Application) {
 
@@ -18,10 +19,10 @@ final class GameDrawer(application: Application) {
 
   val camera: Camera = new Camera(application.view.asInstanceOf[html.Canvas])
 
-  val playerContainer: Container = new Container
-  stage.addChild(playerContainer)
   val bulletContainer: Container = new Container
   stage.addChild(bulletContainer)
+  val playerContainer: Container = new Container
+  stage.addChild(playerContainer)
 
   private val players: mutable.Map[Entity.Id, Sprite] = mutable.Map()
 
@@ -39,6 +40,7 @@ final class GameDrawer(application: Application) {
     entities.foreach { entity =>
       val sprite = players.getOrElse(entity.id, {
         val s = new Sprite(circleTexture(entity.colour, entity.shape.radius))
+        s.anchor.set(0.5, 0.5)
         players += (entity.id -> s)
         playerContainer.addChild(s)
         s
@@ -52,6 +54,7 @@ final class GameDrawer(application: Application) {
     bullets.foreach { bullet =>
       val sprite = bulletSprites.getOrElse(bullet.id, {
         val s = new Sprite(circleTexture(0x000000, bullet.shape.radius))
+        s.anchor.set(0.5, 0.5)
         bulletSprites += (bullet.id -> s)
         bulletContainer.addChild(s)
         s

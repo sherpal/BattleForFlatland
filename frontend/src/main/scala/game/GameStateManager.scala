@@ -50,8 +50,6 @@ final class GameStateManager(
   val pressedUserInputSignal: SignalViewer[Set[UserInput]] = keyboard.$pressedUserInput.observe
 
   keyboard.$downKeyEvents.filter(_.code == "KeyE").foreach { _ =>
-    println("coucou")
-
     socketOutWriter.onNext(
       InGameWSProtocol.GameActionWrapper(
         EntityStartsCasting(
