@@ -5,6 +5,20 @@ import errors.ErrorADT.TooOldActionException
 /**
   * An ActionCollector will gather all [[GameAction]]s, sort then in order and allow to recover [[GameState]]s.
   *
+  * actionsAndStates remembers the [[GameState]]s from the past and the actions from one to the other.
+  * An element of the list is a couple GameState, List[GameAction] where the list is sorted from oldest to
+  * newest, and are the actions between that GameState and the next one. The GameStates, however, are sorted
+  * from newest to oldest.
+  *
+  * It means that if
+  * gs1 = actionsAndStates(n)._1
+  * gs2 = actionsAndStates(n-1)._1
+  * actions = actionsAndStates(n)._2
+  * then we have
+  * gs2 = gs1(actions)
+  *
+  * This property is maintained in the addAction method.
+  *
   * /!\ This implementation is currently not thread safe. A future implementation should come...
   */
 final class ActionCollector(

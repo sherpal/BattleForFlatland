@@ -1,6 +1,5 @@
 package game
 
-import akka.actor.SupervisorStrategy
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import gamelogic.abilities.Ability
@@ -8,6 +7,7 @@ import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions.{AddPlayer, EntityStartsCasting, GameStart, UseAbility}
 import gamelogic.gamestate.{ActionCollector, GameAction, GameState}
 import gamelogic.physics.Complex
+import gamelogic.utils.{AbilityUseIdGenerator, EntityIdGenerator, GameActionIdGenerator}
 import models.bff.ingame.InGameWSProtocol
 import models.bff.outofgame.MenuGameWithPlayers
 import zio.ZIO
@@ -59,7 +59,8 @@ object GameMaster {
       actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage],
       actionCollector: ActionCollector,
       lastActionId: GameAction.Id,
-      lastEntityId: Entity.Id
+      lastEntityId: Entity.Id,
+      lastAbilityUseId: Ability.UseId
   ): Behavior[Message] = Behaviors.setup { implicit context =>
     def gameState = actionCollector.currentGameState
 
@@ -75,7 +76,8 @@ object GameMaster {
             actionUpdateCollector,
             actionCollector,
             lastActionId,
-            lastEntityId
+            lastEntityId,
+            lastAbilityUseId
           )
         case MultipleActionsWrapper(gameActions) =>
           inGameBehaviour(
@@ -83,27 +85,20 @@ object GameMaster {
             actionUpdateCollector,
             actionCollector,
             lastActionId,
-            lastEntityId
+            lastEntityId,
+            lastAbilityUseId
           )
         case GameLoop =>
           // this is quite ugly. Can I do better?
-          var _lastGameActionId = lastActionId
-          def nextGameActionId(): GameAction.Id = {
-            _lastGameActionId += 1
-            _lastGameActionId
-          }
-
-          var _lastEntityId = lastEntityId
-          def nextEntityId(): Entity.Id = {
-            _lastEntityId += 1
-            _lastGameActionId
-          }
+          val gameActionIdGenerator = new GameActionIdGenerator(lastActionId + 1)
+          val entityIdGenerator     = new EntityIdGenerator(lastEntityId + 1)
+          val abilityUseIdGenerator = new AbilityUseIdGenerator(lastAbilityUseId)
 
           def nextAbilityUseId(): Ability.UseId = 0L // todo: change this
 
           val startTime = now
           val sortedActions = pendingActions.sorted
-            .map(_.changeId(nextGameActionId()))
+            .map(_.changeId(gameActionIdGenerator()))
 
           //println(s"Time since last loop: ${startTime - gameState.time} ms")
 
@@ -136,9 +131,8 @@ object GameMaster {
                     castingInfo.ability.copyWithNewTimeAndId(startTime, nextAbilityUseId())
                   )
               )
-              .flatMap(usage => usage :: usage.ability.createActions(gameState))
+              .flatMap(usage => usage :: usage.ability.createActions(gameState, entityIdGenerator))
               .toList
-              .map(x => { println(x); x })
 
             val (oldestAbilityToRemove, abilityActionsToRemove) = actionCollector.addAndRemoveActions(usedAbilities)
 
@@ -160,7 +154,14 @@ object GameMaster {
                 gameLoopTo(context.self, (gameLoopTiming - timeSpent).millis)
               )
 
-          inGameBehaviour(Nil, actionUpdateCollector, actionCollector, _lastGameActionId, _lastEntityId)
+          inGameBehaviour(
+            Nil,
+            actionUpdateCollector,
+            actionCollector,
+            gameActionIdGenerator.currentValue,
+            entityIdGenerator.currentValue,
+            abilityUseIdGenerator.currentValue
+          )
 
         case _: PreGameMessage => Behaviors.unhandled
       }
@@ -201,7 +202,7 @@ object GameMaster {
 
               // todo: fix this -1000
               val actionCollector = new ActionCollector(GameState.initialGameState(now - 1000))
-              inGameBehaviour(Nil, actionUpdateCollector, actionCollector, 0L, playerMap.size - 1)
+              inGameBehaviour(Nil, actionUpdateCollector, actionCollector, 0L, playerMap.size - 1, 0L)
           }
 
         case _ =>

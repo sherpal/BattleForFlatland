@@ -31,7 +31,7 @@ object ActionCollectorSpecs extends DefaultRunnableSpec {
       val gameStart = GameStart(0, 1)
 
       val newPlayer           = AddPlayer(1, 1, 0L, Complex.zero, 0)
-      val entityStartsCasting = EntityStartsCasting(2L, 2, SimpleBullet(0L, 2, 0L, 1L, Complex.zero, 0))
+      val entityStartsCasting = EntityStartsCasting(2L, 2, SimpleBullet(0L, 2, 0L, Complex.zero, 0))
 
       collector.addAndRemoveActions(List(gameStart, newPlayer, entityStartsCasting))
 

@@ -65,7 +65,6 @@ final class GameStateManager(
             0L,
             System.currentTimeMillis,
             playerId,
-            1000L,
             actionCollector.currentGameState.players.get(playerId).map(_.pos).getOrElse(Complex.zero),
             0
           )
