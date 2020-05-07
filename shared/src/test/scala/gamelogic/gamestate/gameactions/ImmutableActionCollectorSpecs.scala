@@ -66,6 +66,15 @@ object ImmutableActionCollectorSpecs extends DefaultRunnableSpec {
         actionsInOrder <- UIO(afterFirstPlayer.actionsAndStates.head._2)
         result <- assertM(UIO(actionsInOrder))(equalTo(List(firstPlayer))) // only first player should be there
       } yield result
+    },
+    testM("Adding one player and starting game together") {
+      val collector   = ImmutableActionCollector(GameState.initialGameState(0L))
+      val gameStart   = GameStart(0, 2)
+      val firstPlayer = AddPlayer(0, 1, 0L, 0, 0)
+
+      val (after, _, toRemove) = collector.masterAddAndRemoveActions(List(firstPlayer, gameStart))
+
+      assertM(UIO(after.currentGameState.players.size))(equalTo(1))
     }
   )
 }

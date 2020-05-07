@@ -15,6 +15,36 @@ object ImmutableActionCollector {
   )
 }
 
+/**
+  * Create a complete picture of the game at time T, with its full history up to `timeToOldestGameState` millis earlier.
+  *
+  * `actionsAndStates` remembers the [[GameState]]s from the past and the actions from one to the other.
+  * An element of the list is a couple GameState, List[GameAction] where the list is sorted from oldest to
+  * newest, and are the actions between that GameState and the next one. The GameStates, however, are sorted
+  * from newest to oldest.
+  *
+  * It means that if
+  * ```
+  * gs1 = actionsAndStates(n)._1
+  * gs2 = actionsAndStates(n-1)._1
+  * actions = actionsAndStates(n)._2
+  * ```
+  * then we have
+  * ```
+  * gs2 = gs1(actions)
+  * ```
+  *
+  * This property is maintained in the addAction method.
+  *
+  * @param currentGameState game state as it is now
+  * @param actionsAndStates history of some [[gamelogic.gamestate.GameState]] and [[gamelogic.gamestate.GameAction]]
+  *                         between them
+  * @param timeBetweenGameStates time between two game states. This value should typically be of the order magnitude you
+  *                               are willing to accept going back in time (with a small margin). Expressed in game
+  *                               units (millis for BFF). Defaults to 2000.
+  * @param timeToOldestGameState time during which you want to keep the history in memory. Expressed in game time units
+  *                               (millis for BFF). Defaults to 60000.
+  */
 final class ImmutableActionCollector private (
     val currentGameState: GameState,
     val actionsAndStates: List[(GameState, List[GameAction])],
@@ -48,6 +78,7 @@ final class ImmutableActionCollector private (
         addAction(nextAction, asAndSs)
       }
     )
+
     new ImmutableActionCollector(
       updatedActionsAndStates.head._1.applyActions(updatedActionsAndStates.head._2),
       updatedActionsAndStates,
@@ -87,7 +118,7 @@ final class ImmutableActionCollector private (
 
       val actionIdsToRemove = mergeActions(
         actionsFrom(oldestTime),
-        actionsToAdd,
+        actionsToAdd.sorted,
         Nil
       ).foldLeft((gameStateUpTo(oldestTime), List[Long]())) {
           case ((state, toRemove), action) =>
@@ -165,7 +196,7 @@ final class ImmutableActionCollector private (
       action: GameAction,
       currentActionsAndStates: List[(GameState, List[GameAction])]
   ): List[(GameState, List[GameAction])] =
-    if (action.time > actionsAndStates.head._1.time + timeBetweenGameStates) {
+    if (action.time > currentActionsAndStates.head._1.time + timeBetweenGameStates) {
       val temp = (currentGameState, List(action)) +: currentActionsAndStates
       if (timeToOldestGameState < temp.head._1.time - temp.last._1.time) {
         temp.dropRight(1)
@@ -177,7 +208,7 @@ final class ImmutableActionCollector private (
         @scala.annotation.tailrec
         def insertAcc(action: GameAction, treated: List[GameAction], remaining: List[GameAction]): List[GameAction] =
           if (remaining.isEmpty) (action +: treated).reverse
-          else if (remaining.head.time > action.time) treated.reverse ++ (action +: remaining)
+          else if (remaining.head > action) treated.reverse ++ (action +: remaining)
           else insertAcc(action, remaining.head +: treated, remaining.tail)
 
         insertAcc(action, Nil, list)
@@ -196,10 +227,10 @@ final class ImmutableActionCollector private (
         }
 
       try {
-        add(action, actionsAndStates)
+        add(action, currentActionsAndStates)
       } catch {
         case e: Throwable =>
-          println("gs time " + actionsAndStates.head._1.time)
+          println("gs time " + currentActionsAndStates.head._1.time)
           println("action time " + action.time)
           throw e
       }

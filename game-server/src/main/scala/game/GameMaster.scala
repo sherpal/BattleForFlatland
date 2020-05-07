@@ -2,10 +2,9 @@ package game
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import gamelogic.abilities.Ability
-import gamelogic.entities.Entity
-import gamelogic.gamestate.gameactions.{AddPlayer, EntityStartsCasting, GameStart, UseAbility}
-import gamelogic.gamestate.{ActionCollector, GameAction, GameState}
+import gamelogic.gamestate.gameactions.{AddPlayer, GameStart}
+import gamelogic.gamestate.serveractions.{ManageUsedAbilities, ServerAction}
+import gamelogic.gamestate.{GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
 import gamelogic.utils.{AbilityUseIdGenerator, EntityIdGenerator, GameActionIdGenerator}
 import models.bff.ingame.InGameWSProtocol
@@ -51,19 +50,19 @@ object GameMaster {
       _ <- ZIO.effectTotal(to ! GameLoop)
     } yield ()
 
+  private val serverAction = new ManageUsedAbilities
+
   def apply(actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage]): Behavior[Message] =
     setupBehaviour(actionUpdateCollector)
 
   def inGameBehaviour(
       pendingActions: List[GameAction],
       actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage],
-      actionCollector: ActionCollector,
-      lastActionId: GameAction.Id,
-      lastEntityId: Entity.Id,
-      lastAbilityUseId: Ability.UseId
+      actionCollector: ImmutableActionCollector,
+      gameActionIdGenerator: GameActionIdGenerator,
+      entityIdGenerator: EntityIdGenerator,
+      abilityUseIdGenerator: AbilityUseIdGenerator
   ): Behavior[Message] = Behaviors.setup { implicit context =>
-    def gameState = actionCollector.currentGameState
-
     Behaviors
       .receiveMessage[Message] {
         case GameActionWrapper(gameAction) =>
@@ -75,76 +74,47 @@ object GameMaster {
             gameAction +: pendingActions,
             actionUpdateCollector,
             actionCollector,
-            lastActionId,
-            lastEntityId,
-            lastAbilityUseId
+            gameActionIdGenerator,
+            entityIdGenerator,
+            abilityUseIdGenerator
           )
         case MultipleActionsWrapper(gameActions) =>
           inGameBehaviour(
             gameActions ++ pendingActions,
             actionUpdateCollector,
             actionCollector,
-            lastActionId,
-            lastEntityId,
-            lastAbilityUseId
+            gameActionIdGenerator,
+            entityIdGenerator,
+            abilityUseIdGenerator
           )
         case GameLoop =>
-          // this is quite ugly. Can I do better?
-          val gameActionIdGenerator = new GameActionIdGenerator(lastActionId + 1)
-          val entityIdGenerator     = new EntityIdGenerator(lastEntityId + 1)
-          val abilityUseIdGenerator = new AbilityUseIdGenerator(lastAbilityUseId)
-
-          def nextAbilityUseId(): Ability.UseId = 0L // todo: change this
-
           val startTime = now
           val sortedActions = pendingActions.sorted
             .map(_.changeId(gameActionIdGenerator()))
 
-          //println(s"Time since last loop: ${startTime - gameState.time} ms")
-
-          // Adding pending actions
-          try {
-            if (sortedActions.exists(_.isInstanceOf[EntityStartsCasting])) {
-              println(sortedActions)
-            }
-            val (oldestToRemove, removedIds) = actionCollector.addAndRemoveActions(sortedActions)
-
-            // Actual game logic (checking for dead things, collisions, and stuff)
-            // todo
-
-            // Sending new actions and removed illegal once
-            if (sortedActions.nonEmpty || removedIds.nonEmpty) {
-              actionUpdateCollector ! ActionUpdateCollector
-                .AddAndRemoveActions(sortedActions, oldestToRemove, removedIds)
-            }
-
-            // checking for End of casting.
-            val usedAbilities = gameState.castingEntityInfo.valuesIterator
-              .filter(castingInfo => startTime - castingInfo.startedTime >= castingInfo.ability.castingTime)
-              .map(
-                castingInfo =>
-                  UseAbility(
-                    0L,
-                    startTime,
-                    castingInfo.casterId,
-                    0L,
-                    castingInfo.ability.copyWithNewTimeAndId(startTime, nextAbilityUseId())
-                  )
+          val (nextCollector, oldestTimeToRemove, idsToRemove) =
+            actionCollector.masterAddAndRemoveActions(sortedActions)
+          val (finalCollector, output) = serverAction(
+            nextCollector,
+            gameActionIdGenerator,
+            entityIdGenerator,
+            abilityUseIdGenerator,
+            () => System.currentTimeMillis
+          )
+          val finalOutput = ServerAction.ServerActionOutput(
+            sortedActions,
+            oldestTimeToRemove,
+            idsToRemove
+          ) merge output
+          if (finalOutput.createdActions.nonEmpty) {
+            actionUpdateCollector ! ActionUpdateCollector
+              .AddAndRemoveActions(
+                finalOutput.createdActions,
+                finalOutput.oldestTimeToRemove,
+                finalOutput.idsOfIdsToRemove
               )
-              .flatMap(usage => usage :: usage.ability.createActions(gameState, entityIdGenerator))
-              .toList
-
-            val (oldestAbilityToRemove, abilityActionsToRemove) = actionCollector.addAndRemoveActions(usedAbilities)
-
-            if (usedAbilities.nonEmpty) {
-              actionUpdateCollector ! ActionUpdateCollector
-                .AddAndRemoveActions(usedAbilities, oldestAbilityToRemove, abilityActionsToRemove)
-            }
-
-          } catch {
-            case e: Throwable =>
-              e.printStackTrace()
           }
+
           val timeSpent = now - startTime
 
           if (timeSpent > gameLoopTiming) context.self ! GameLoop
@@ -157,10 +127,10 @@ object GameMaster {
           inGameBehaviour(
             Nil,
             actionUpdateCollector,
-            actionCollector,
-            gameActionIdGenerator.currentValue,
-            entityIdGenerator.currentValue,
-            abilityUseIdGenerator.currentValue
+            finalCollector,
+            gameActionIdGenerator,
+            entityIdGenerator,
+            abilityUseIdGenerator
           )
 
         case _: PreGameMessage => Behaviors.unhandled
@@ -201,8 +171,15 @@ object GameMaster {
               context.self ! GameLoop
 
               // todo: fix this -1000
-              val actionCollector = new ActionCollector(GameState.initialGameState(now - 1000))
-              inGameBehaviour(Nil, actionUpdateCollector, actionCollector, 0L, playerMap.size - 1, 0L)
+              val actionCollector = ImmutableActionCollector(GameState.initialGameState(now - 1000))
+              inGameBehaviour(
+                Nil,
+                actionUpdateCollector,
+                actionCollector,
+                new GameActionIdGenerator(0L),
+                new EntityIdGenerator(playerMap.size - 1),
+                new AbilityUseIdGenerator(0L)
+              )
           }
 
         case _ =>

@@ -21,9 +21,17 @@ trait GameAction extends Ordered[GameAction] {
     */
   def createGameStateTransformer(gameState: GameState): GameStateTransformer
 
+  /**
+    * Returns whether this action is legal at that particular point in time, i.e., for that
+    * [[gamelogic.gamestate.GameState]].
+    */
   def isLegal(gameState: GameState): Boolean
 
-  final def compare(that: GameAction): Int = this.time compare that.time
+  /** We compare ids if the time are the same so that there never is ambiguity. */
+  final def compare(that: GameAction): Int = this.time compare that.time match {
+    case 0 => this.id compare that.id
+    case x => x
+  }
 
   def changeId(newId: GameAction.Id): GameAction
 

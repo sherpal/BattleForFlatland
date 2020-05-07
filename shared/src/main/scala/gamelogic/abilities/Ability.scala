@@ -32,7 +32,7 @@ trait Ability {
 
   /**
     * Generates all actions that this ability generates when completed.
-    *These actions may depend on the [[gamelogic.gamestate.GameState]] at the time the ability is completed.
+    * These actions may depend on the [[gamelogic.gamestate.GameState]] at the time the ability is completed.
     */
   def createActions(gameState: GameState, entityIdGenerator: EntityIdGenerator): List[GameAction]
 
