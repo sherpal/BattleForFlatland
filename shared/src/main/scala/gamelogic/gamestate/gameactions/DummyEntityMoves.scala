@@ -21,7 +21,7 @@ final case class DummyEntityMoves(
     */
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     gameState.players.get(playerId).fold(GameStateTransformer.identityTransformer) { player =>
-      new WithPlayer(player.copy(pos = newPos, direction = direction, moving = moving))
+      new WithPlayer(player.copy(time = time, pos = newPos, direction = direction, moving = moving))
     }
 
   def isLegal(gameState: GameState): Boolean = true

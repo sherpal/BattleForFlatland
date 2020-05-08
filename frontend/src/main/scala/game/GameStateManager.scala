@@ -7,10 +7,10 @@ import com.raquo.airstream.ownership.Owner
 import com.raquo.airstream.signal.{Signal, SignalViewer}
 import game.ui.GameDrawer
 import game.ui.gui.GUIDrawer
-import gamelogic.abilities.{Ability, SimpleBullet}
+import gamelogic.abilities.SimpleBullet
 import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions.{DummyEntityMoves, EntityStartsCasting}
-import gamelogic.gamestate.{ActionCollector, AddAndRemoveActions, GameAction, GameState}
+import gamelogic.gamestate.{AddAndRemoveActions, GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
 import models.bff.ingame.{InGameWSProtocol, UserInput}
 import typings.pixiJs.mod.Application
@@ -26,9 +26,9 @@ final class GameStateManager(
     deltaTimeWithServer: Long
 )(implicit owner: Owner) {
 
-  val application: Application                 = new Application(ApplicationOptions(backgroundColor = 0x1099bb))
-  private val actionCollector: ActionCollector = new ActionCollector(initialGameState)
-  private val gameDrawer                       = new GameDrawer(application)
+  val application: Application = new Application(ApplicationOptions(backgroundColor = 0x1099bb))
+  private var actionCollector  = ImmutableActionCollector(initialGameState)
+  private val gameDrawer       = new GameDrawer(application)
 
   /** After [[game.ui.GameDrawer]] so that gui is on top of the game. */
   private val guiDrawer = new GUIDrawer(playerId, application)
@@ -45,8 +45,7 @@ final class GameStateManager(
 
   $actionsFromServer.foreach {
     case AddAndRemoveActions(actionsToAdd, oldestTimeToRemove, idsOfActionsToRemove) =>
-      actionsToAdd.foreach(actionCollector.addAction(_, needUpdate = false))
-      actionCollector.removeActions(oldestTimeToRemove, idsOfActionsToRemove)
+      actionCollector = actionCollector.slaveAddAndRemoveActions(actionsToAdd, oldestTimeToRemove, idsOfActionsToRemove)
 
       unconfirmedActions = unconfirmedActions.dropWhile(_.time < actionCollector.currentGameState.time)
 
@@ -110,9 +109,10 @@ final class GameStateManager(
       // do nothing, player is dead
     }
 
+    val gameStateToDraw = $strictGameStates.now
     gameDrawer.drawGameState(
-      $strictGameStates.now,
-      gameState.players.get(playerId).map(_.pos).getOrElse(Complex.zero),
+      gameStateToDraw,
+      gameStateToDraw.players.get(playerId).map(_.pos).getOrElse(Complex.zero),
       now
     )
     guiDrawer.update(gameState, now)

@@ -3,7 +3,7 @@ package game
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import gamelogic.gamestate.gameactions.{AddPlayer, GameStart}
-import gamelogic.gamestate.serveractions.{ManageUsedAbilities, ServerAction}
+import gamelogic.gamestate.serveractions.{ManageStopCastingMovements, ManageUsedAbilities, ServerAction}
 import gamelogic.gamestate.{GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
 import gamelogic.utils.{AbilityUseIdGenerator, EntityIdGenerator, GameActionIdGenerator}
@@ -50,7 +50,8 @@ object GameMaster {
       _ <- ZIO.effectTotal(to ! GameLoop)
     } yield ()
 
-  private val serverAction = new ManageUsedAbilities
+  // todo: add other server actions.
+  private val serverAction = new ManageUsedAbilities ++ new ManageStopCastingMovements
 
   def apply(actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage]): Behavior[Message] =
     setupBehaviour(actionUpdateCollector)
@@ -92,8 +93,11 @@ object GameMaster {
           val sortedActions = pendingActions.sorted
             .map(_.changeId(gameActionIdGenerator()))
 
+          /** First adding actions from entities */
           val (nextCollector, oldestTimeToRemove, idsToRemove) =
             actionCollector.masterAddAndRemoveActions(sortedActions)
+
+          /** Making all the server specific checks */
           val (finalCollector, output) = serverAction(
             nextCollector,
             gameActionIdGenerator,
@@ -101,6 +105,8 @@ object GameMaster {
             abilityUseIdGenerator,
             () => System.currentTimeMillis
           )
+
+          /** Sending outcome back to entities. */
           val finalOutput = ServerAction.ServerActionOutput(
             sortedActions,
             oldestTimeToRemove,
@@ -115,8 +121,8 @@ object GameMaster {
               )
           }
 
+          /** Set up for next loop. */
           val timeSpent = now - startTime
-
           if (timeSpent > gameLoopTiming) context.self ! GameLoop
           else
             zio.Runtime.default

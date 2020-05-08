@@ -49,14 +49,15 @@ object GameAction {
     a.asJson.mapObject(_.add("action_name", Json.fromString(name)))
 
   implicit val encoder: Encoder[GameAction] = Encoder.instance {
-    case x: AddPlayer           => customEncode(x, "AddPlayer")
-    case x: DummyEntityMoves    => customEncode(x, "DummyEntityMoves")
-    case x: EndGame             => customEncode(x, "EndGame")
-    case x: EntityStartsCasting => customEncode(x, "EntityStartsCasting")
-    case x: GameStart           => customEncode(x, "GameStart")
-    case x: NewSimpleBullet     => customEncode(x, "NewSimpleBullet")
-    case x: UpdateTimestamp     => customEncode(x, "UpdateTimestamp")
-    case x: UseAbility          => customEncode(x, "UseAbility")
+    case x: AddPlayer                => customEncode(x, "AddPlayer")
+    case x: DummyEntityMoves         => customEncode(x, "DummyEntityMoves")
+    case x: EndGame                  => customEncode(x, "EndGame")
+    case x: EntityCastingInterrupted => customEncode(x, "EntityCastingInterrupted")
+    case x: EntityStartsCasting      => customEncode(x, "EntityStartsCasting")
+    case x: GameStart                => customEncode(x, "GameStart")
+    case x: NewSimpleBullet          => customEncode(x, "NewSimpleBullet")
+    case x: UpdateTimestamp          => customEncode(x, "UpdateTimestamp")
+    case x: UseAbility               => customEncode(x, "UseAbility")
   }
 
   private def customDecoder[A <: GameAction](name: String)(implicit decoder: Decoder[A]): Decoder[GameAction] =
@@ -66,6 +67,7 @@ object GameAction {
     customDecoder[AddPlayer]("AddPlayer"),
     customDecoder[DummyEntityMoves]("DummyEntityMoves"),
     customDecoder[EndGame]("EndGame"),
+    customDecoder[EntityCastingInterrupted]("EntityCastingInterrupted"),
     customDecoder[EntityStartsCasting]("EntityStartsCasting"),
     customDecoder[GameStart]("GameStart"),
     customDecoder[NewSimpleBullet]("NewSimpleBullet"),
