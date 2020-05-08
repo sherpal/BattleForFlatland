@@ -2,7 +2,8 @@ package game
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import gamelogic.gamestate.GameAction
+import game.ai.AIManager
+import gamelogic.gamestate.{GameAction, GameState}
 import models.bff.ingame.InGameWSProtocol
 
 object ActionUpdateCollector {
@@ -14,59 +15,53 @@ object ActionUpdateCollector {
     */
   case class NewExternalMember(actorRef: ActorRef[InGameWSProtocol.Incoming]) extends Message
 
-  /** A new internal actor (IA) will need to be notified by the new messages.
-    * These will arrive during the game, when new AI are created.
-    */
-  case class NewInternalMember(actorRef: ActorRef[ExternalMessage]) extends Message
-
   /**
-    * An existing internal member doesn't need to be notified anymore.
-    * This may arrive when an IA is removed from the game.
+    * Tells the [[game.ActionUpdateCollector]] who is the [[game.ai.AIManager]], so that it can send it
+    * messages as well.
     */
-  case class RemoveInternalMember(actorRef: ActorRef[ExternalMessage]) extends Message
+  case class HereIsTheAIManager(actorRef: ActorRef[AIManager.Message]) extends Message
 
-  sealed trait ExternalMessage extends Message {
-    def toWebSocketProtocol: InGameWSProtocol.Incoming
-  }
-  case class ActionsWereRemoved(oldestTime: Long, idsOfActionsToRemove: List[GameAction.Id]) extends ExternalMessage {
-    override def toWebSocketProtocol: InGameWSProtocol.Incoming =
-      InGameWSProtocol.RemoveActions(oldestTime, idsOfActionsToRemove)
-  }
+  sealed trait ExternalMessage extends Message
+
   case class AddAndRemoveActions(
       actionsToAdd: List[GameAction],
       oldestTimeToRemove: Long,
       idsOfActionsToRemove: List[GameAction.Id]
   ) extends ExternalMessage {
-    override def toWebSocketProtocol: InGameWSProtocol.Incoming = InGameWSProtocol.AddAndRemoveActions(
+    def toWebSocketProtocol: InGameWSProtocol.Incoming = InGameWSProtocol.AddAndRemoveActions(
       actionsToAdd,
       oldestTimeToRemove,
       idsOfActionsToRemove
     )
   }
 
+  case class GameStateWrapper(gameState: GameState) extends ExternalMessage
+
   /**
     * This actor is responsible for making the link between the messages the [[game.GameMaster]] will issue at the end
     * of each game loop.
     */
-  def apply(): Behavior[Message] = receiver(Nil, Nil)
+  def apply(): Behavior[Message] = receiver(None, Nil)
 
   /**
     * External members are actors that are linked to their actual "masters" via web socket. Mostly the players.
     * Internal members are actors that are inside this JVM/JS and can be contacted directly.
     */
   private def receiver(
-      externalMembers: List[ActorRef[InGameWSProtocol.Incoming]],
-      internalMembers: List[ActorRef[ExternalMessage]]
+      aiManager: Option[ActorRef[AIManager.Message]],
+      externalMembers: List[ActorRef[InGameWSProtocol.Incoming]]
   ): Behavior[Message] =
     Behaviors.receiveMessage {
-      case NewExternalMember(actorRef)    => receiver(actorRef +: externalMembers, internalMembers)
-      case NewInternalMember(actorRef)    => receiver(externalMembers, actorRef +: internalMembers)
-      case RemoveInternalMember(actorRef) => receiver(externalMembers, internalMembers.filterNot(_ == actorRef))
-      case message: ExternalMessage =>
+      case message: AddAndRemoveActions =>
         val protocolMessage = message.toWebSocketProtocol
         externalMembers.foreach(_ ! protocolMessage)
-        internalMembers.foreach(_ ! message)
+        aiManager.foreach(_ ! AIManager.HereAreNewActions(message.actionsToAdd, message.idsOfActionsToRemove))
         Behaviors.same
+      case GameStateWrapper(gameState) =>
+        aiManager.foreach(_ ! AIManager.HereIsTheGameState(gameState))
+        Behaviors.same
+      case NewExternalMember(actorRef)  => receiver(aiManager, actorRef +: externalMembers)
+      case HereIsTheAIManager(actorRef) => receiver(Some(actorRef), externalMembers)
     }
 
 }

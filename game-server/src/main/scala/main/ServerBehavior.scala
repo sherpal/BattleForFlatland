@@ -17,6 +17,7 @@ import akka.stream.scaladsl.{Flow, Sink}
 import akka.util.Timeout
 import authentication.TokenBearer
 import errors.ErrorADT
+import game.ai.AIManager
 import game.{ActionTranslator, ActionUpdateCollector, AntiChamber, GameMaster}
 import io.circe.generic.auto._
 import io.circe.parser.decode
@@ -188,7 +189,9 @@ trait ServerBehavior[In, Out] {
     val gameMaster            = context.spawn(GameMaster(actionUpdateCollector), "GameMaster")
 
     val actionTranslator = context.spawn(ActionTranslator(gameMaster), "ActionTranslator")
-    val antiChamber      = context.spawn(AntiChamber(gameMaster, actionUpdateCollector), "AntiChamber")
+    val aiManager        = context.spawn(AIManager(actionTranslator), "AIManager")
+    actionUpdateCollector ! ActionUpdateCollector.HereIsTheAIManager(aiManager)
+    val antiChamber = context.spawn(AntiChamber(gameMaster, actionUpdateCollector), "AntiChamber")
 
     val serverBinding: Future[Http.ServerBinding] =
       Http().bindAndHandle(requestHandler(context, tokenBearer, antiChamber, actionTranslator), host, port)

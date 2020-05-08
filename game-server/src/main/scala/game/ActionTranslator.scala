@@ -11,6 +11,7 @@ import models.bff.ingame.InGameWSProtocol
   * He is responsible for
   * - forwarding messages to the [[game.GameMaster]], translating them correctly if need be
   * - be sure that messages coming from outside belong to the right person (you can't move someone else's entity)
+  * //todo
   */
 object ActionTranslator {
 

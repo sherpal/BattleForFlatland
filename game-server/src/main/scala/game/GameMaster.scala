@@ -119,6 +119,8 @@ object GameMaster {
                 finalOutput.oldestTimeToRemove,
                 finalOutput.idsOfIdsToRemove
               )
+
+            actionUpdateCollector ! ActionUpdateCollector.GameStateWrapper(finalCollector.currentGameState)
           }
 
           /** Set up for next loop. */
