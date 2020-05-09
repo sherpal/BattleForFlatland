@@ -11,6 +11,7 @@ import models.bff.Routes._
 import models.bff.ingame.InGameWSProtocol
 import models.bff.ingame.InGameWSProtocol.{HeartBeat, Ping, Pong, Ready, YourEntityIdIs}
 import models.users.User
+import org.scalajs.dom
 import org.scalajs.dom.html
 import typings.pixiJs.mod.Application
 import typings.pixiJs.{AnonAntialias => ApplicationOptions}
@@ -69,6 +70,8 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
     println(s"Game id: $gameId.")
     gameSocket
       .open()(elem)
+
+    gameSocket.$closed.foreach(_ => dom.document.location.href = "")(elem)
 
     gameSocket.$open.flatMap(
       _ =>

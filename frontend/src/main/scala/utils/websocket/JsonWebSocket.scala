@@ -10,7 +10,7 @@ import org.scalajs.dom.raw.MessageEvent
 import org.scalajs.dom.{Event, WebSocket}
 import urldsl.language.QueryParameters.dummyErrorImpl._
 import urldsl.language._
-import zio.{CancelableFuture, UIO}
+import zio.{CancelableFuture, UIO, ZIO}
 
 /**
   * Prepares a WebSocket to connect to the specified url.
@@ -62,6 +62,11 @@ final class JsonWebSocket[In, Out, P, Q] private (
             dom.console.error(event)
           }
           errorBus.writer.onNext(event)
+        }
+      }
+      _ <- ZIO.effectTotal {
+        webSocket.onclose = (_: Event) => {
+          closeBus.writer.onNext(())
         }
       }
     } yield ()

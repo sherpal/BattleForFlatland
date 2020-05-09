@@ -2,7 +2,7 @@ package game
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import gamelogic.gamestate.gameactions.{AddDummyMob, AddPlayer, GameStart}
+import gamelogic.gamestate.gameactions.{AddDummyMob, AddPlayer, DummyMobMoves, GameStart}
 import gamelogic.gamestate.serveractions.{ManageStopCastingMovements, ManageUsedAbilities, ServerAction}
 import gamelogic.gamestate.{GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex

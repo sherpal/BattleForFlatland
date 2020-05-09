@@ -3,6 +3,7 @@ package game.ai
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import game.ActionTranslator
+import gamelogic.gamestate.gameactions.AddDummyMob
 import gamelogic.gamestate.{GameAction, GameState}
 
 /**
@@ -41,33 +42,78 @@ object AIManager {
     */
   case class HereAreNewActions(newActions: List[GameAction], idsToRemove: List[Long]) extends Message
 
+  private case class ControllerDied(ref: ActorRef[Nothing]) extends Message
+
   def apply(actionTranslator: ActorRef[ActionTranslator.Message]): Behavior[Message] = receiver(
     ReceiverInfo(
       actionTranslator,
-      GameState.initialGameState(0) // dummy game state when initialized
+      GameState.initialGameState(0), // dummy game state when initialized
+      Set.empty
     )
   )
 
   /**
     * This class carries all the information the `receiver` needs.
     * Changing the receiver can thus be done much more easily.
+    *
+    * This class has facility methods for updating its content, all of which using the underlying `copy` method under
+    * the hood. This allows to add more semantic in the receiver implementation.
     */
   private case class ReceiverInfo(
       actionTranslator: ActorRef[ActionTranslator.Message],
-      lastGameState: GameState
-  )
+      lastGameState: GameState,
+      entityControllers: Set[ActorRef[AIControllerMessage]]
+  ) {
+
+    def withGameState(gameState: GameState): ReceiverInfo = copy(lastGameState = gameState)
+
+    def addEntityControllers(newEntityControllers: Iterable[ActorRef[AIControllerMessage]]): ReceiverInfo =
+      copy(entityControllers = newEntityControllers.toSet ++ entityControllers)
+
+    def removeEntityController(ref: ActorRef[Nothing]): ReceiverInfo =
+      copy(entityControllers = entityControllers - ref.unsafeUpcast[AIControllerMessage])
+
+  }
 
   private def receiver(
       receiverInfo: ReceiverInfo
   ): Behavior[Message] = Behaviors.receive { (context, message) =>
+    def broadcastMessage(message: AIControllerMessage): Unit =
+      receiverInfo.entityControllers.foreach(_ ! message)
+
     message match {
       case HereIsTheGameState(gameState) =>
-        receiver(receiverInfo.copy(lastGameState = gameState))
+        broadcastMessage(AIControllerMessage.GameStateWrapper(gameState))
+
+        receiver(receiverInfo.withGameState(gameState))
       case HereAreNewActions(newActions, idsToRemove) =>
-        // we should first filter to keep only the actions we care about
-        val unRemovedActions = newActions.filterNot(actions => idsToRemove.contains(actions.id))
-        // todo
-        Behaviors.same
+        val unRemovedActions = newActions
+          .filterNot(actions => idsToRemove.contains(actions.id))
+
+        val newEntityControllers = unRemovedActions.collect {
+          case action: AddDummyMob =>
+            val ref =
+              context.spawn(
+                DummyMobController(receiverInfo.actionTranslator, action),
+                s"DummyMob-${action.entityId}"
+              )
+
+            context.watchWith(ref, ControllerDied(ref))
+
+            ref
+        }.toSet
+
+        newEntityControllers.foreach(_ ! AIControllerMessage.GameStateWrapper(receiverInfo.lastGameState))
+        if (newActions.nonEmpty) {
+          broadcastMessage(AIControllerMessage.NewActions(unRemovedActions))
+        }
+
+        if (newEntityControllers.isEmpty) Behaviors.same
+        else
+          receiver(receiverInfo.addEntityControllers(newEntityControllers))
+
+      case ControllerDied(ref) =>
+        receiver(receiverInfo.removeEntityController(ref))
     }
   }
 

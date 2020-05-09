@@ -81,6 +81,7 @@ final class GameDrawer(application: Application) {
         s
       })
 
+      sprite.rotation = -entity.rotation // orientation is reversed...
       camera.viewportManager(sprite, entity.pos, entity.shape.boundingBox)
     }
 
@@ -94,7 +95,6 @@ final class GameDrawer(application: Application) {
         bulletContainer.addChild(s)
         s
       })
-
       camera.viewportManager(sprite, bullet.currentPosition(currentTime), bullet.shape.boundingBox)
     }
 
