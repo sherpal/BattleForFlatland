@@ -2,7 +2,7 @@ package game
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import gamelogic.gamestate.gameactions.{AddPlayer, GameStart}
+import gamelogic.gamestate.gameactions.{AddDummyMob, AddPlayer, GameStart}
 import gamelogic.gamestate.serveractions.{ManageStopCastingMovements, ManageUsedAbilities, ServerAction}
 import gamelogic.gamestate.{GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
@@ -49,6 +49,20 @@ object GameMaster {
       _ <- fiber.join
       _ <- ZIO.effectTotal(to ! GameLoop)
     } yield ()
+
+  private def spawnMobLoop(
+      to: ActorRef[GameActionWrapper],
+      each: FiniteDuration,
+      entityIdGenerator: EntityIdGenerator
+  ) =
+    (for {
+      fiber <- zio.clock.sleep(fromScala(each)).fork
+      _ <- fiber.join
+      real <- zio.random.nextGaussian
+      imag <- zio.random.nextGaussian
+      pos = 100 * Complex(real, imag)
+      _ <- ZIO.effectTotal(to ! GameActionWrapper(AddDummyMob(0L, now, entityIdGenerator(), pos)))
+    } yield ()).forever
 
   // todo: add other server actions.
   private val serverAction = new ManageUsedAbilities ++ new ManageStopCastingMovements
@@ -147,7 +161,7 @@ object GameMaster {
   }
 
   /** In millis */
-  final val gameLoopTiming = 1000L / 120L
+  final val gameLoopTiming = 1000L / 100L
 
   def setupBehaviour(actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage]): Behavior[Message] =
     Behaviors.receive { (context, message) =>
@@ -178,6 +192,10 @@ object GameMaster {
 
               context.self ! GameLoop
 
+              val entityIdGenerator = new EntityIdGenerator(playerMap.size)
+
+              zio.Runtime.default.unsafeRunAsync(spawnMobLoop(context.self, 5.seconds, entityIdGenerator))(println(_))
+
               // todo: fix this -1000
               val actionCollector = ImmutableActionCollector(GameState.initialGameState(now - 1000))
               inGameBehaviour(
@@ -185,7 +203,7 @@ object GameMaster {
                 actionUpdateCollector,
                 actionCollector,
                 new GameActionIdGenerator(0L),
-                new EntityIdGenerator(playerMap.size - 1),
+                entityIdGenerator,
                 new AbilityUseIdGenerator(0L)
               )
           }

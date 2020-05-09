@@ -1,7 +1,7 @@
 package game.ui
 
 import game.Camera
-import gamelogic.entities.{DummyLivingEntity, Entity, SimpleBulletBody}
+import gamelogic.entities.{DummyLivingEntity, DummyMob, Entity, SimpleBulletBody}
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import org.scalajs.dom.html
@@ -9,6 +9,8 @@ import typings.pixiJs.PIXI
 import typings.pixiJs.mod._
 
 import scala.collection.mutable
+import scala.scalajs.js.JSConverters._
+import scala.scalajs.js.|
 
 /**
   * This class is used to draw the game state at any moment in time.
@@ -24,8 +26,8 @@ final class GameDrawer(application: Application) {
   stage.addChild(bulletContainer)
   val playerContainer: Container = new Container
   stage.addChild(playerContainer)
-
-  private val players: mutable.Map[Entity.Id, Sprite] = mutable.Map()
+  val dummyMobContainer: Container = new Container
+  stage.addChild(dummyMobContainer)
 
   private def circleTexture(colour: Int, radius: Double): PIXI.RenderTexture = {
     val graphics = new Graphics
@@ -37,6 +39,24 @@ final class GameDrawer(application: Application) {
     application.renderer.generateTexture(graphics, 1, 1)
   }
 
+  private def polygonTexture(colour: Int, shape: gamelogic.physics.shape.Polygon): PIXI.RenderTexture = {
+    val graphics = new Graphics
+    graphics
+      .lineStyle(0)
+      .beginFill(colour, 1)
+      .drawPolygon(
+        shape.vertices
+          .map {
+            case Complex(re, im) => new Point(re, im)
+          }
+          .toJSArray
+          .asInstanceOf[scala.scalajs.js.Array[Double | typings.pixiJs.PIXI.Point]]
+      )
+
+    application.renderer.generateTexture(graphics, 1, 1)
+  }
+
+  private val players: mutable.Map[Entity.Id, Sprite] = mutable.Map()
   private def drawPlayers(entities: List[DummyLivingEntity]): Unit =
     entities.foreach { entity =>
       val sprite = players.getOrElse(entity.id, {
@@ -44,6 +64,20 @@ final class GameDrawer(application: Application) {
         s.anchor.set(0.5, 0.5)
         players += (entity.id -> s)
         playerContainer.addChild(s)
+        s
+      })
+
+      camera.viewportManager(sprite, entity.pos, entity.shape.boundingBox)
+    }
+
+  private val dummyMobSprites: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
+  private def drawDummyMobs(entities: List[DummyMob]): Unit =
+    entities.foreach { entity =>
+      val sprite = dummyMobSprites.getOrElse(entity.id, {
+        val s = new Sprite(polygonTexture(0xc0c0c0, entity.shape))
+        s.anchor.set(0.5, 0.5)
+        dummyMobSprites += (entity.id -> s)
+        dummyMobContainer.addChild(s)
         s
       })
 
@@ -68,6 +102,7 @@ final class GameDrawer(application: Application) {
     camera.worldCenter = cameraPosition
     drawPlayers(gameState.players.values.toList)
     drawSimpleBullets(gameState.simpleBullets.values.toList, currentTime)
+    drawDummyMobs(gameState.dummyMobs.values.toList)
   }
 
 }

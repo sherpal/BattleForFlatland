@@ -1,6 +1,6 @@
 package gamelogic.gamestate
 
-import gamelogic.entities.{DummyLivingEntity, Entity, EntityCastingInfo, SimpleBulletBody, WithAbilities}
+import gamelogic.entities.{DummyLivingEntity, DummyMob, Entity, EntityCastingInfo, SimpleBulletBody, WithAbilities}
 
 /**
   * A [[gamelogic.gamestate.GameState]] has the complete knowledge of everything that exists in the game.
@@ -15,6 +15,7 @@ final case class GameState(
     startTime: Option[Long],
     endTime: Option[Long],
     players: Map[Entity.Id, DummyLivingEntity],
+    dummyMobs: Map[Entity.Id, DummyMob],
     simpleBullets: Map[Entity.Id, SimpleBulletBody],
     castingEntityInfo: Map[Entity.Id, EntityCastingInfo]
 ) {
@@ -41,6 +42,6 @@ final case class GameState(
 
 object GameState {
 
-  def initialGameState(time: Long): GameState = GameState(time, None, None, Map(), Map(), Map())
+  def initialGameState(time: Long): GameState = GameState(time, None, None, Map(), Map(), Map(), Map())
 
 }

@@ -29,12 +29,12 @@ final case class Complex(re: Double, im: Double) {
     pow(this, other)
   }
 
-  def **(other: Double): Complex  = Complex.exp(other * Complex.log(this))
-  def **(other: Complex): Complex = Complex.exp(other * Complex.log(this))
+  @inline def **(other: Double): Complex  = Complex.exp(other * Complex.log(this))
+  @inline def **(other: Complex): Complex = Complex.exp(other * Complex.log(this))
 
-  def pow(other: Int): Complex     = this ** other
-  def pow(other: Double): Complex  = this ** other
-  def pow(other: Complex): Complex = this ** other
+  @inline def pow(other: Int): Complex     = this ** other
+  @inline def pow(other: Double): Complex  = this ** other
+  @inline def pow(other: Complex): Complex = this ** other
 
   /** Scalar product. */
   @inline def |*|(that: Complex): Double           = this.re * that.re + this.im * that.im
@@ -46,8 +46,14 @@ final case class Complex(re: Double, im: Double) {
 
   @inline def modulus: Double = math.hypot(re, im)
 
-  @inline def modulus2: Double = math.pow(modulus, 2)
+  @inline def modulus2: Double = re * re + im * im
 
+  /**
+    * Returns the unique complex such that
+    * - this scalaProduct that == 0,
+    * - this crossProduct that > 0, and
+    * - |this| == |that|
+    */
   def orthogonal: Complex = Complex(-im, re)
 
   def normalized: Complex = this / modulus
