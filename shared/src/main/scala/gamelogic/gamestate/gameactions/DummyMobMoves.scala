@@ -12,12 +12,15 @@ final case class DummyMobMoves(
     entityId: Entity.Id,
     position: Complex,
     direction: Double,
-    rotation: Double
+    rotation: Double,
+    moving: Boolean
 ) extends GameAction {
 
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     gameState.dummyMobs.get(entityId).fold(GameStateTransformer.identityTransformer) { mob =>
-      new WithDummyMob(mob.copy(time = time, pos = position, direction = direction, rotation = rotation))
+      new WithDummyMob(
+        mob.copy(time = time, pos = position, direction = direction, rotation = rotation, moving = moving)
+      )
     }
 
   /**

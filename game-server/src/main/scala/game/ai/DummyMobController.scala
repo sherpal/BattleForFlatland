@@ -55,7 +55,7 @@ object DummyMobController {
 
         if (math.abs(rotation - me.rotation) > 1e-6) {
           actionTranslator ! ActionTranslator.GameActionsWrapper(
-            DummyMobMoves(0L, startTime, myId, currentPosition, 0.0, rotation) :: Nil
+            DummyMobMoves(0L, startTime, myId, currentPosition, rotation, rotation, moving = true) :: Nil
           )
         }
 

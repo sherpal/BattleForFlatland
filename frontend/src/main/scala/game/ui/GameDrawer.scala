@@ -71,7 +71,7 @@ final class GameDrawer(application: Application) {
     }
 
   private val dummyMobSprites: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
-  private def drawDummyMobs(entities: List[DummyMob]): Unit =
+  private def drawDummyMobs(entities: List[DummyMob], now: Long): Unit =
     entities.foreach { entity =>
       val sprite = dummyMobSprites.getOrElse(entity.id, {
         val s = new Sprite(polygonTexture(0xc0c0c0, entity.shape))
@@ -82,7 +82,7 @@ final class GameDrawer(application: Application) {
       })
 
       sprite.rotation = -entity.rotation // orientation is reversed...
-      camera.viewportManager(sprite, entity.pos, entity.shape.boundingBox)
+      camera.viewportManager(sprite, entity.currentPosition(now), entity.shape.boundingBox)
     }
 
   private val bulletSprites: mutable.Map[Entity.Id, Sprite] = mutable.Map()
@@ -102,7 +102,7 @@ final class GameDrawer(application: Application) {
     camera.worldCenter = cameraPosition
     drawPlayers(gameState.players.values.toList)
     drawSimpleBullets(gameState.simpleBullets.values.toList, currentTime)
-    drawDummyMobs(gameState.dummyMobs.values.toList)
+    drawDummyMobs(gameState.dummyMobs.values.toList, currentTime)
   }
 
 }

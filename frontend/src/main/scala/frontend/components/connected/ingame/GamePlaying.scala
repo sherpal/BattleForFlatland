@@ -71,7 +71,9 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
     gameSocket
       .open()(elem)
 
-    gameSocket.$closed.foreach(_ => dom.document.location.href = "")(elem)
+    gameSocket.$closed.foreach(_ => dom.document.location.href = dom.document.location.origin.asInstanceOf[String])(
+      elem
+    )
 
     gameSocket.$open.flatMap(
       _ =>
