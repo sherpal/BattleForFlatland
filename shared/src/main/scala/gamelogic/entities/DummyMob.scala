@@ -16,8 +16,11 @@ final case class DummyMob(
     rotation: Double
 ) extends LivingEntity
     with MovingBody {
-  val life: Double         = 100.0
-  val shape: ConvexPolygon = DummyMob.shape
+  val life: Double    = 100.0
+  val maxLife: Double = 100.0
+
+  protected def patchLifeTotal(newLife: Double): DummyMob = this // this is dumb, but we kinda don't care.
+  val shape: ConvexPolygon                                = DummyMob.shape
 }
 
 object DummyMob {

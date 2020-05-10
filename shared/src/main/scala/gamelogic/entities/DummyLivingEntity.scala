@@ -33,6 +33,10 @@ final case class DummyLivingEntity(
   )
 
   val rotation: Double = 0.0
+
+  val maxLife: Double = 100.0
+
+  protected def patchLifeTotal(newLife: Double): DummyLivingEntity = copy(life = newLife)
 }
 
 object DummyLivingEntity {

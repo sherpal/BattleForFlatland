@@ -6,9 +6,9 @@ import gamelogic.physics.Complex
   * A Moving Entity has a speed (which is its norm) and a direction towards which it moves.
   */
 trait Moving extends WithPosition {
-  val speed: Double
-  val direction: Double
-  val moving: Boolean
+  def speed: Double
+  def direction: Double
+  def moving: Boolean
 
   def currentPosition(currentTime: Long): Complex =
     if (moving)

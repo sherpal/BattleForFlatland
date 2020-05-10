@@ -7,9 +7,9 @@ import gamelogic.physics.shape.Shape
   * A Body has a [[gamelogic.physics.shape.Shape]] attached to it and can collide other Bodies.
   */
 trait Body extends WithPosition {
-  val shape: Shape
+  def shape: Shape
 
-  val rotation: Double
+  def rotation: Double
 
   def collides(that: Body): Boolean =
     shape.collides(pos, rotation, that.shape, that.pos, that.rotation)
