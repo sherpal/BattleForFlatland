@@ -1,5 +1,6 @@
 package game
 
+import assets.Asset
 import assets.ingame.gui.bars.{LiteStepBar, XeonBar}
 import com.raquo.airstream.eventbus.EventBus
 import game.GameAssetLoader.ProgressData
@@ -23,7 +24,8 @@ final class GameAssetLoader(application: Application) {
 
   final val $progressData = progressBus.events
 
-  val loadAssets: ZIO[Any, Nothing, Map[String, LoaderResource]] = for {
+  // todo: handle errors when loading
+  val loadAssets: ZIO[Any, Nothing, PartialFunction[Asset, LoaderResource]] = for {
     fiber <- ZIO
       .effectAsync[Any, Nothing, Map[String, LoaderResource]] { callback =>
         assets
@@ -38,8 +40,11 @@ final class GameAssetLoader(application: Application) {
           })
       }
       .fork
-    result <- fiber.join
-  } yield result
+    resources <- fiber.join
+    fn <- UIO({
+      case asset: Asset if resources.isDefinedAt(asset) => resources(asset)
+    }: PartialFunction[Asset, LoaderResource])
+  } yield fn
 
 }
 

@@ -33,7 +33,11 @@ final case class GameState(
 
   def isLegalAction(action: GameAction): Boolean = action.isLegal(gameState = this)
 
-  def entityIsCasting(entityId: Entity.Id): Boolean = castingEntityInfo.isDefinedAt(entityId)
+  def entityIsCasting(entityId: Entity.Id): Boolean = entityIsCasting(entityId, 0L)
+  def entityIsCasting(entityId: Entity.Id, delay: Long): Boolean = castingEntityInfo.get(entityId).fold(true) {
+    castingInfo =>
+      time + delay - castingInfo.startedTime >= castingInfo.castingTime
+  }
 
   def withAbilityEntitiesById(entityId: Entity.Id): Option[WithAbilities] =
     players.get(entityId) // todo: look for other kind of entity

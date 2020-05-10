@@ -21,6 +21,7 @@ object AntiChamber {
 
   case class GameInfo(menuGameWithPlayers: MenuGameWithPlayers) extends Message
   case class Ready(userId: String, actorRef: ActorRef[InGameWSProtocol]) extends Message
+  case class ReadyToStart(userId: String) extends Message
   private case object ShouldWeStart extends Message
 
   def apply(
@@ -28,8 +29,6 @@ object AntiChamber {
       actionUpdateCollector: ActorRef[ActionUpdateCollector.Message]
   ): Behavior[Message] =
     waitingForGameInfo(gameMaster, actionUpdateCollector, Nil)
-
-  private def endOfLife: Behavior[Message] = Behaviors.unhandled[Message]
 
   private def waitingForPlayers(
       gameMaster: ActorRef[GameMaster.Message],
@@ -44,9 +43,12 @@ object AntiChamber {
 
         context.self ! ShouldWeStart
         waitingForPlayers(gameMaster, menuGameWithPlayers, actionUpdateCollector, connected + (userId -> actorRef))
+      case ReadyToStart(userId) =>
+        gameMaster ! GameMaster.IAmReadyToStart(userId)
+        Behaviors.same
       case ShouldWeStart if connected.size == menuGameWithPlayers.players.length =>
         gameMaster ! GameMaster.EveryoneIsReady(connected, menuGameWithPlayers)
-        endOfLife
+        Behaviors.same
       case ShouldWeStart => // still waiting for players
         Behaviors.same
     }
@@ -64,6 +66,9 @@ object AntiChamber {
       case ready: Ready =>
         waitingForGameInfo(gameMaster, actionUpdateCollector, ready +: pendingReadyStates)
       case ShouldWeStart =>
+        Behaviors.unhandled
+      case ReadyToStart(_) =>
+        // can't happen before going to waiting for players
         Behaviors.unhandled
     }
 

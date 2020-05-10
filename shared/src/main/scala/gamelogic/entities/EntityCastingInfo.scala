@@ -17,5 +17,6 @@ final case class EntityCastingInfo(
     casterId: Entity.Id,
     positionWhenStarted: Complex,
     startedTime: Long,
+    castingTime: Long, // casting time can be changed at particular time the ability is cast
     ability: Ability
 )

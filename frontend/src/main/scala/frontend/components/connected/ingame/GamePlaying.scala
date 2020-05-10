@@ -62,7 +62,7 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
   val elem: ReactiveHtmlElement[html.Div] = div(
     className := "GamePlaying",
     child <-- $playerId.combineWith(deltaWithServerBus.events).map {
-      case (id, delta) => GameViewContainer(id, $actionsFromServer, gameSocket.outWriter, delta)
+      case (id, delta) => GameViewContainer(user, id, $actionsFromServer, gameSocket.outWriter, delta)
     }
   )
 

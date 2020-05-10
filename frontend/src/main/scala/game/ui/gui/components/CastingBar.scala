@@ -2,24 +2,30 @@ package game.ui.gui.components
 
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
-import typings.pixiJs.PIXI.RenderTexture
-import typings.pixiJs.mod.{Application, Container, Sprite, Texture}
+import typings.pixiJs.PIXI.Texture
+import typings.pixiJs.mod.{Application, Container, Graphics, Sprite}
 
 final class CastingBar(
     entityId: Entity.Id,
     uiContainer: Container,
-    frameTexture: RenderTexture,
-    innerTexture: RenderTexture
+    frameTexture: Texture,
+    innerTexture: Texture
 ) {
 
   private val frameSprite = new Sprite(frameTexture)
   private val innerSprite = new Sprite(innerTexture)
+  innerSprite.tint   = 0xFF0000
+  innerSprite.width  = frameSprite.width
+  innerSprite.height = frameSprite.height
+  private val mask = new Graphics()
+  innerSprite.mask = mask
 
   val containerSprite: Container = {
     val s = new Container
     uiContainer.addChild(s)
     s.addChild(innerSprite)
     s.addChild(frameSprite)
+    s.addChild(mask)
     s
   }
 
@@ -31,7 +37,7 @@ final class CastingBar(
         val currentCastTime    = (currentTime - castingInfo.startedTime).toDouble
         val castingProgression = currentCastTime / castingInfo.ability.castingTime
 
-        innerSprite.scale.x = castingProgression
+        mask.clear().beginFill(0xc0c0c0).drawRect(0, 0, innerSprite.width * castingProgression, innerSprite.height)
 
       case None =>
         containerSprite.visible = false

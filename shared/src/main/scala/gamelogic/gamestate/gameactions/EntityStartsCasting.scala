@@ -8,15 +8,23 @@ import gamelogic.gamestate.statetransformers.{EntityStartsCastingTransformer, Ga
 import gamelogic.physics.Complex
 
 /** An entity starts casting now. */
-final case class EntityStartsCasting(id: GameAction.Id, time: Long, ability: Ability) extends GameAction {
+final case class EntityStartsCasting(id: GameAction.Id, time: Long, castingTime: Long, ability: Ability)
+    extends GameAction {
 
   /**
     * Testing that the entity is not already casting something, and that it exists.
     * Testing in that order because the first one is most likely the one which is going to fail.
     */
-  def isLegal(gameState: GameState): Boolean = true
-//    !gameState.entityIsCasting(ability.casterId) &&
-//      gameState.withAbilityEntitiesById(ability.casterId).exists(_.canUseAbility(ability.abilityId, time))
+  def isLegal(gameState: GameState): Boolean =
+    !gameState.entityIsCasting(ability.casterId) &&
+      gameState.withAbilityEntitiesById(ability.casterId).exists(_.canUseAbility(ability.abilityId, time))
+
+  /**
+    * Checks whether the caster will be authorized to cast this ability in `delay` milliseconds.
+    */
+  def isLegalDelay(gameState: GameState, delay: Long): Boolean =
+    gameState.withAbilityEntitiesById(ability.casterId).exists(_.canUseAbility(ability.abilityId, time + delay)) &&
+      !gameState.entityIsCasting(ability.casterId, delay)
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 
@@ -33,6 +41,7 @@ final case class EntityStartsCasting(id: GameAction.Id, time: Long, ability: Abi
           ability.casterId,
           gameState.withAbilityEntitiesById(ability.casterId).map(_.pos).getOrElse(Complex.zero),
           time,
+          castingTime,
           ability
         )
       )

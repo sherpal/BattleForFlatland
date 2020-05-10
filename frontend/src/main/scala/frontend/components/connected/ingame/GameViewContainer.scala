@@ -3,12 +3,17 @@ package frontend.components.connected.ingame
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.LifecycleComponent
-import game.{GameStateManager, Keyboard}
+import game.{GameAssetLoader, GameStateManager, Keyboard}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
+import models.bff.ingame.InGameWSProtocol.ReadyToStart
 import models.bff.ingame.{InGameWSProtocol, KeyboardControls}
 import models.syntax.Pointed
+import models.users.User
 import org.scalajs.dom.html
+import typings.pixiJs.mod.Application
+import zio.ZIO
+import typings.pixiJs.{AnonAntialias => ApplicationOptions}
 
 /**
   * The GameViewContainer is responsible for creating th instance of the [[game.GameStateManager]].
@@ -19,6 +24,7 @@ import org.scalajs.dom.html
   * It will most likely be drawing on a canvas using Pixi, and perhaps using svg for life bars and stuff.
   */
 final class GameViewContainer private (
+    me: User,
     playerId: Entity.Id,
     $actionsFromServer: EventStream[gamelogic.gamestate.AddAndRemoveActions],
     socketOutWriter: Observer[InGameWSProtocol.Outgoing],
@@ -31,27 +37,45 @@ final class GameViewContainer private (
     className := "GameViewContainer"
   )
 
-  // todo: remove hardcoded stuff
-  val gameStateManager: GameStateManager = new GameStateManager(
-    GameState.initialGameState(0L),
-    $actionsFromServer,
-    socketOutWriter,
-    new Keyboard(implicitly[Pointed[KeyboardControls]].unit),
-    playerId,
-    deltaTimeWithServer
-  )(elem)
+  val application: Application = new Application(ApplicationOptions(backgroundColor = 0x1099bb))
+  val loader                   = new GameAssetLoader(application)
+
+  private def mountEffect(gameContainer: html.Div, owner: Owner) =
+    for {
+      resources <- loader.loadAssets
+      // todo: remove hardcoded stuff
+      _ = new GameStateManager(
+        application,
+        GameState.initialGameState(0L),
+        $actionsFromServer,
+        socketOutWriter,
+        new Keyboard(implicitly[Pointed[KeyboardControls]].unit),
+        playerId,
+        deltaTimeWithServer,
+        resources
+      )(owner)
+      _ <- ZIO.effectTotal(
+        socketOutWriter.onNext(ReadyToStart(me.userId))
+      )
+      _ <- ZIO.effectTotal {
+        gameContainer.appendChild(application.view.asInstanceOf[html.Canvas])
+      }
+    } yield ()
 
   override def componentDidMount(): Unit =
-    container.appendChild(gameStateManager.application.view.asInstanceOf[html.Canvas])
+    zio.Runtime.default.unsafeRunAsync(
+      mountEffect(container, elem)
+    )(println(_))
 
 }
 
 object GameViewContainer {
   def apply(
+      me: User,
       playerId: Entity.Id,
       $actionsFromServer: EventStream[gamelogic.gamestate.AddAndRemoveActions],
       socketOutWriter: Observer[InGameWSProtocol.Outgoing],
       deltaTimeWithServer: Long
   ): GameViewContainer =
-    new GameViewContainer(playerId, $actionsFromServer, socketOutWriter, deltaTimeWithServer)
+    new GameViewContainer(me, playerId, $actionsFromServer, socketOutWriter, deltaTimeWithServer)
 }

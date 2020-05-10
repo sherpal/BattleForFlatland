@@ -1,5 +1,6 @@
 package game
 
+import assets.Asset
 import com.raquo.airstream.core.Observer
 import com.raquo.airstream.eventbus.EventBus
 import com.raquo.airstream.eventstream.EventStream
@@ -13,25 +14,27 @@ import gamelogic.gamestate.gameactions.{DummyEntityMoves, EntityStartsCasting}
 import gamelogic.gamestate.{AddAndRemoveActions, GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
 import models.bff.ingame.{InGameWSProtocol, UserInput}
+import org.scalajs.dom
 import typings.pixiJs.mod.Application
-import typings.pixiJs.{AnonAntialias => ApplicationOptions}
+import typings.pixiJs.PIXI.LoaderResource
 import utils.pixi.monkeypatching.PIXIPatching._
 
 final class GameStateManager(
+    application: Application,
     initialGameState: GameState,
     $actionsFromServer: EventStream[AddAndRemoveActions],
     socketOutWriter: Observer[InGameWSProtocol.Outgoing],
     keyboard: Keyboard,
     playerId: Entity.Id,
-    deltaTimeWithServer: Long
+    deltaTimeWithServer: Long,
+    resources: PartialFunction[Asset, LoaderResource]
 )(implicit owner: Owner) {
 
-  val application: Application = new Application(ApplicationOptions(backgroundColor = 0x1099bb))
-  private var actionCollector  = ImmutableActionCollector(initialGameState)
-  private val gameDrawer       = new GameDrawer(application)
+  private var actionCollector = ImmutableActionCollector(initialGameState)
+  private val gameDrawer      = new GameDrawer(application)
 
   /** After [[game.ui.GameDrawer]] so that gui is on top of the game. */
-  private val guiDrawer = new GUIDrawer(playerId, application)
+  private val guiDrawer = new GUIDrawer(playerId, application, resources)
 
   private val gameStateBus: EventBus[GameState] = new EventBus[GameState]
 
@@ -55,21 +58,30 @@ final class GameStateManager(
   val pressedUserInputSignal: SignalViewer[Set[UserInput]] = keyboard.$pressedUserInput.observe
 
   keyboard.$downKeyEvents.filter(_.code == "KeyE").foreach { _ =>
-    socketOutWriter.onNext(
-      InGameWSProtocol.GameActionWrapper(
-        EntityStartsCasting(
-          0L,
-          System.currentTimeMillis,
-          new SimpleBullet(
-            0L,
-            System.currentTimeMillis,
-            playerId,
-            actionCollector.currentGameState.players.get(playerId).map(_.pos).getOrElse(Complex.zero),
-            0
-          )
-        ) :: Nil
-      )
+    val ability = new SimpleBullet(
+      0L,
+      System.currentTimeMillis,
+      playerId,
+      actionCollector.currentGameState.players.get(playerId).map(_.pos).getOrElse(Complex.zero),
+      0
     )
+
+    val action = EntityStartsCasting(
+      0L,
+      System.currentTimeMillis,
+      ability.castingTime,
+      ability
+    )
+
+    if (action.isLegalDelay($strictGameStates.now, deltaTimeWithServer + 100)) {
+      socketOutWriter.onNext(
+        InGameWSProtocol.GameActionWrapper(
+          action :: Nil
+        )
+      )
+    } else if (scala.scalajs.LinkingInfo.developmentMode) {
+      dom.console.warn("Entity already casting.")
+    }
   }
 
   var lastTimeStamp = 0L

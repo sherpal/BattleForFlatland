@@ -5,7 +5,7 @@ import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import game.{ActionTranslator, AntiChamber}
 import io.circe.generic.auto._
 import io.circe.syntax._
-import models.bff.ingame.InGameWSProtocol.{GameActionWrapper, Ping, Pong, Ready}
+import models.bff.ingame.InGameWSProtocol.{GameActionWrapper, Ping, Pong, Ready, ReadyToStart}
 import models.bff.ingame.{GameCredentials, InGameWSProtocol}
 import services.database.db
 import services.database.gametables.GameTable
@@ -34,6 +34,9 @@ object Server extends zio.App {
               Behaviors.same
             case Ready(userId) =>
               antiChamber ! AntiChamber.Ready(userId, context.self)
+              Behaviors.same
+            case ReadyToStart(userId) =>
+              antiChamber ! AntiChamber.ReadyToStart(userId)
               Behaviors.same
             case actionWrapper: GameActionWrapper =>
               actionTranslator ! ActionTranslator.InGameWSProtocolWrapper(actionWrapper)
