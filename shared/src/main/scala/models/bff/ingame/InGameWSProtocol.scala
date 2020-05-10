@@ -15,13 +15,21 @@ object InGameWSProtocol {
   /** Messages going to the server from the client */
   sealed trait Outgoing extends InGameWSProtocol
 
-  case object Hello extends Incoming
+  /**
+    * Received from time to time to keep the connection open. Probably useless given that game messages are constantly
+    * sent.
+    */
   case object HeartBeat extends Incoming
 
+  /** A small Ping-Pong protocole is used before beginning the game to sync the clocks between client and server. */
   case class Ping(sendingTime: Long) extends Outgoing
   case class Pong(originalSendingTime: Long, midwayDistantTime: Long) extends Incoming
 
+  /** Sent when the user is connected and the web socket is open */
   case class Ready(userId: String) extends Outgoing
+
+  /** Sent when the user received their entity id, and all assets have been loaded. */
+  case class ReadyToStart(userId: String) extends Outgoing
 
   case class GameActionWrapper(gameActions: List[GameAction]) extends Outgoing
   case class RemoveActions(oldestTime: Long, idsOfActionsToRemove: List[GameAction.Id]) extends Incoming
@@ -30,6 +38,8 @@ object InGameWSProtocol {
       oldestTimeToRemove: Long,
       idsOfActionsToRemove: List[GameAction.Id]
   ) extends Incoming
+
+  /** Received just before the beginning of the game so that the client knows what entity they control. */
   case class YourEntityIdIs(entityId: Entity.Id) extends Incoming
 
   import io.circe.generic.extras.semiauto._

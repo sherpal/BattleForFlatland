@@ -33,18 +33,23 @@ object ActionTranslator {
     receiver(gameMaster, makeQueue(gameMaster))
   }
 
+  private final val messageGroupingTime = 20.millis
+
   /**
     * Messages from AI will come in a very high through put, and it's useless that the [[game.GameMaster]] receives
     * one message for every one of them.
     *
-    * Messages are thus grouped within 33 milliseconds and then sent to the game master.
+    * Messages are thus grouped within a duration `messageGroupingTime` and then sent to the game master.
+    *
+    * Overflow in message is dropped. I think it's a safe be as entities will issue new commands very quickly afterwards
+    * and should take the same decision if they don't see changes in game state.
     */
   private def makeQueue(
       to: ActorRef[GameMaster.Message]
   )(implicit materializer: Materializer): SourceQueueWithComplete[List[GameAction]] =
     Source
       .queue[List[GameAction]](10, OverflowStrategy.dropNew)
-      .groupedWithin(20, 33.millis)
+      .groupedWithin(20, messageGroupingTime)
       .map(_.flatten.toList)
       .map(GameMaster.MultipleActionsWrapper)
       .to(ActorSink.actorRef(to, GameMaster.MultipleActionsWrapper(Nil), _ => GameMaster.MultipleActionsWrapper(Nil)))

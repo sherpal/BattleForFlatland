@@ -1,5 +1,6 @@
 package frontend
 
+import assets.Asset
 import com.raquo.laminar.api.L._
 import org.scalajs.dom
 import zio.{UIO, ZIO}
@@ -20,6 +21,8 @@ object Main {
   println("css", IndexCSS)
   println("Tailwind", Tailwind)
 
+  Asset
+
   final val addPageTitle = ZIO.effectTotal {
     dom.document.title = globals.projectName
   }
@@ -32,14 +35,14 @@ object Main {
     _ <- ZIO.effectTotal(head.appendChild(style))
   } yield ()
 
-  final val createElement = ZIO.effect(
-    Option(dom.document.getElementById("root")).getOrElse {
+  final val createElement = ZIO
+    .fromOption(Option(dom.document.getElementById("root")))
+    .catchAll { _ =>
       val elem = dom.document.createElement("div")
       elem.id = "root"
       dom.document.body.appendChild(elem)
-      elem
+      UIO(elem)
     }
-  )
 
   final val emptyContainer = ZIO.effect {
     if (scala.scalajs.LinkingInfo.developmentMode) {

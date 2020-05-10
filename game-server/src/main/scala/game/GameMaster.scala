@@ -2,7 +2,7 @@ package game
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import gamelogic.gamestate.gameactions.{AddDummyMob, AddPlayer, DummyMobMoves, GameStart}
+import gamelogic.gamestate.gameactions.{AddDummyMob, AddPlayer, GameStart}
 import gamelogic.gamestate.serveractions.{ManageStopCastingMovements, ManageUsedAbilities, ServerAction}
 import gamelogic.gamestate.{GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
@@ -41,6 +41,14 @@ object GameMaster {
   case class EveryoneIsReady(playerMap: Map[String, ActorRef[InGameWSProtocol]], gameInfo: MenuGameWithPlayers)
       extends PreGameMessage
 
+  /**
+    * Once every one is connected and this game master received the `EveryoneIsReady` message, it sends their entity id
+    * to each client.
+    * Each client will then do stuff accordingly, and send this message back to the game master in order to actually
+    * start the game.
+    */
+  case class IAmReadyToStart(userId: String) extends PreGameMessage
+
   private def now = System.currentTimeMillis
 
   private def gameLoopTo(to: ActorRef[GameLoop.type], delay: FiniteDuration) =
@@ -68,7 +76,7 @@ object GameMaster {
   private val serverAction = new ManageUsedAbilities ++ new ManageStopCastingMovements
 
   def apply(actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage]): Behavior[Message] =
-    setupBehaviour(actionUpdateCollector)
+    setupBehaviour(actionUpdateCollector, None, Set.empty, None)
 
   def inGameBehaviour(
       pendingActions: List[GameAction],
@@ -163,14 +171,19 @@ object GameMaster {
   /** In millis */
   final val gameLoopTiming = 1000L / 100L
 
-  def setupBehaviour(actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage]): Behavior[Message] =
+  private def setupBehaviour(
+      actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage],
+      maybeGameInfo: Option[MenuGameWithPlayers],
+      readyPlayers: Set[String], // set of user ids that are now ready.
+      maybePreGameActions: Option[List[GameAction]]
+  ): Behavior[Message] =
     Behaviors.receive { (context, message) =>
       message match {
         case message: PreGameMessage =>
           message match {
-            case EveryoneIsReady(playerMap, _) =>
+            case EveryoneIsReady(playerMap, gameInfo) =>
+              // first message that kick off the actor and will trigger others
               val n = now
-              context.self ! GameActionWrapper(GameStart(0L, n))
 
               val newPlayerActions = playerMap.values.zipWithIndex.map {
                 case (ref, idx) =>
@@ -188,24 +201,37 @@ object GameMaster {
                   ref ! InGameWSProtocol.YourEntityIdIs(player.playerId)
               }
 
-              context.self ! MultipleActionsWrapper(newPlayerActions.map(_._2).toList)
-
-              context.self ! GameLoop
-
-              val entityIdGenerator = new EntityIdGenerator(playerMap.size)
-
-              zio.Runtime.default.unsafeRunAsync(spawnMobLoop(context.self, 5.seconds, entityIdGenerator))(println(_))
-
-              // todo: fix this -1000
-              val actionCollector = ImmutableActionCollector(GameState.initialGameState(now - 1000))
-              inGameBehaviour(
-                Nil,
+              setupBehaviour(
                 actionUpdateCollector,
-                actionCollector,
-                new GameActionIdGenerator(0L),
-                entityIdGenerator,
-                new AbilityUseIdGenerator(0L)
+                Some(gameInfo),
+                Set(),
+                Some(newPlayerActions.map(_._2).toList :+ GameStart(0L, now))
               )
+
+            case IAmReadyToStart(userId) =>
+              val newReadyPlayers = readyPlayers + userId
+
+              if (maybeGameInfo.map(_.players.length).contains(newReadyPlayers.size)) {
+
+                context.self ! MultipleActionsWrapper(maybePreGameActions.get)
+                context.self ! GameLoop
+
+                val entityIdGenerator = new EntityIdGenerator(readyPlayers.size)
+
+                zio.Runtime.default.unsafeRunAsync(spawnMobLoop(context.self, 5.seconds, entityIdGenerator))(println(_))
+
+                val actionCollector = ImmutableActionCollector(GameState.initialGameState(0L))
+                inGameBehaviour(
+                  Nil,
+                  actionUpdateCollector,
+                  actionCollector,
+                  new GameActionIdGenerator(0L),
+                  entityIdGenerator,
+                  new AbilityUseIdGenerator(0L)
+                )
+              } else {
+                setupBehaviour(actionUpdateCollector, maybeGameInfo, newReadyPlayers, maybePreGameActions)
+              }
           }
 
         case _ =>
