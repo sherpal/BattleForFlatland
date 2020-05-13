@@ -6,8 +6,13 @@ import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{CasterUsesAbility, GameStateTransformer}
 
-final case class UseAbility(id: GameAction.Id, time: Long, casterId: Entity.Id, useId: Ability.UseId, ability: Ability)
-    extends GameAction {
+final case class UseAbility(
+    id: GameAction.Id,
+    time: Long,
+    casterId: Entity.Id,
+    useId: Ability.UseId,
+    ability: Ability
+) extends GameAction {
 
   /**
     * Important: the time of the ability <strong>has</strong> to be changed by the game master when it's actually

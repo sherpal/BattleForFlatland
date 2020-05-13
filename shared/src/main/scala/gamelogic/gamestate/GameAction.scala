@@ -55,7 +55,9 @@ object GameAction {
     case x: DummyMobMoves            => customEncode(x, "DummyMobMoves")
     case x: EndGame                  => customEncode(x, "EndGame")
     case x: EntityCastingInterrupted => customEncode(x, "EntityCastingInterrupted")
+    case x: EntityGetsHealed         => customEncode(x, "EntityGetsHealed")
     case x: EntityStartsCasting      => customEncode(x, "EntityStartsCasting")
+    case x: EntityTakesDamage        => customEncode(x, "EntityTakesDamage")
     case x: GameStart                => customEncode(x, "GameStart")
     case x: NewSimpleBullet          => customEncode(x, "NewSimpleBullet")
     case x: UpdateTimestamp          => customEncode(x, "UpdateTimestamp")
@@ -72,7 +74,9 @@ object GameAction {
     customDecoder[DummyMobMoves]("DummyMobMoves"),
     customDecoder[EndGame]("EndGame"),
     customDecoder[EntityCastingInterrupted]("EntityCastingInterrupted"),
+    customDecoder[EntityGetsHealed]("EntityGetsHealed"),
     customDecoder[EntityStartsCasting]("EntityStartsCasting"),
+    customDecoder[EntityTakesDamage]("EntityTakesDamage"),
     customDecoder[GameStart]("GameStart"),
     customDecoder[NewSimpleBullet]("NewSimpleBullet"),
     customDecoder[UpdateTimestamp]("UpdateTimestamp"),

@@ -1,10 +1,20 @@
 package gamelogic.abilities
 
-import gamelogic.entities.Entity
+import gamelogic.entities.Resource.ResourceAmount
+import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.EntityIdGenerator
 import io.circe.{Decoder, Encoder, Json}
 
+/**
+  * A [[gamelogic.abilities.Ability]] represents an action that an entity can take besides moving.
+  *
+  * Each "class" has its own set of abilities that they can use. The abilities of a given class are implemented in a
+  * dedicated package that has the name of the class. Abilities in two different classes can be very similar, basically
+  * only changing the constants of the effect.
+  *
+  * Each ability has a unique id that is given in the code itself.
+  */
 trait Ability {
 
   /** Unique id given manually to each ability. */
@@ -30,6 +40,12 @@ trait Ability {
   /** Game Time (in millis) at which the ability's casting is complete.  */
   val time: Long
 
+  /** Cost of the ability. */
+  def cost: ResourceAmount
+
+  /** Type of resource needed to use the ability. */
+  final def resource: Resource = cost.resourceType
+
   /**
     * Generates all actions that this ability generates when completed.
     * These actions may depend on the [[gamelogic.gamestate.GameState]] at the time the ability is completed.
@@ -47,7 +63,9 @@ object Ability {
 
   type AbilityId = Int
 
-  final val simpleBulletId: AbilityId = 1
+  final val simpleBulletId: AbilityId      = 1
+  final val hexagonFlashHealId: AbilityId  = 2
+  final val hexagonHexagonHotId: AbilityId = 2
 
   /** Encoding. Replace this by more performant stuff in the future. */
   import cats.syntax.functor._
@@ -58,13 +76,17 @@ object Ability {
     a.asJson.mapObject(_.add("ability_name", Json.fromString(name)))
 
   implicit val encoder: Encoder[Ability] = Encoder.instance {
-    case x: SimpleBullet => customEncode(x, "SimpleBullet")
+    case x: hexagon.FlashHeal  => customEncode(x, "hexagon.FlashHeal")
+    case x: hexagon.HexagonHot => customEncode(x, "hexagon.HexagonHot")
+    case x: SimpleBullet       => customEncode(x, "SimpleBullet")
   }
 
   private def customDecoder[A <: Ability](name: String)(implicit decoder: Decoder[A]): Decoder[Ability] =
     decoder.validate(_.get[String]("ability_name").contains(name), s"Not a $name instance").widen
 
   implicit val decoder: Decoder[Ability] = List[Decoder[Ability]](
+    customDecoder[hexagon.FlashHeal]("hexagon.FlashHeal"),
+    customDecoder[hexagon.HexagonHot]("hexagon.HexagonHot"),
     customDecoder[SimpleBullet]("SimpleBullet")
   ).reduceLeft(_ or _)
 

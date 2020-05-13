@@ -15,4 +15,7 @@ trait Buff {
   /** Time (in millis) that the buff will last. */
   val duration: Long
 
+  /** Game Time at which the buff appeared. */
+  val appearanceTime: Long
+
 }

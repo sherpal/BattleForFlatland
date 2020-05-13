@@ -1,10 +1,29 @@
 package gamelogic.entities
 
+import gamelogic.entities.WithThreat.ThreatAmount
+
+/**
+  * A [[WithThreat]] [[gamelogic.entities.Entity]] remembers the "threat" that each enemy entity poses on itself.
+  *
+  * Each time an enemy deals damage to this entity, a proportional amount is added to that entity threat. And each time
+  * an enemy is healed, the threat posed by their healers also increases.
+  *
+  * The threat is used by the entity to decide
+  */
 trait WithThreat {
 
+  /** Maps each entity id to the amount of threat it produced due to healing. */
+  def healingThreats: Map[Entity.Id, ThreatAmount]
+
   /**
-    * This map remembers the threats that each entity has against this [[WithThreat]].
+    * Maps each entity id to the amount of threat it produced due to damage dealt to this [[gamelogic.entities.Entity]]
     */
-  val threats: Map[ActionSource, Map[Entity.Id, Double]]
+  def damageThreats: Map[Entity.Id, ThreatAmount]
+
+}
+
+object WithThreat {
+
+  type ThreatAmount = Double
 
 }

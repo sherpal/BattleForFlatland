@@ -4,6 +4,7 @@ import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Circle, Shape}
+import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 
 /**
   * Represents a small living entity with a given position and direction towards which this entity is heading.
@@ -28,13 +29,15 @@ final case class DummyLivingEntity(
     Ability.simpleBulletId
   )
 
-  def useAbility(ability: Ability): WithAbilities = copy(
+  def useAbility(ability: Ability): DummyLivingEntity = copy(
     relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability)
   )
 
   val rotation: Double = 0.0
 
   val maxLife: Double = 100.0
+
+  def resourceAmount: ResourceAmount = ResourceAmount(0.0, NoResource)
 
   protected def patchLifeTotal(newLife: Double): DummyLivingEntity = copy(life = newLife)
 }

@@ -22,9 +22,6 @@ import zio.{UIO, ZIO}
 final class GamePlaying private (gameId: String, user: User, token: String) extends LifecycleComponent[html.Div] {
 
   private val layer = zio.clock.Clock.live
-  val application   = new Application(ApplicationOptions(backgroundColor = 0x1099bb))
-
-  val actionCollector: ActionCollector = new ActionCollector(GameState.initialGameState(0))
 
   final val gameSocket = JsonWebSocket[InGameWSProtocol, InGameWSProtocol, (String, String)](
     joinGameServer,

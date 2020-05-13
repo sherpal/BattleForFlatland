@@ -1,12 +1,23 @@
 package gamelogic.gamestate
 
-import gamelogic.entities.{DummyLivingEntity, DummyMob, Entity, EntityCastingInfo, SimpleBulletBody, WithAbilities}
+import gamelogic.buffs.Buff
+import gamelogic.entities.{
+  DummyLivingEntity,
+  DummyMob,
+  Entity,
+  EntityCastingInfo,
+  LivingEntity,
+  SimpleBulletBody,
+  WithAbilities
+}
 
 /**
   * A [[gamelogic.gamestate.GameState]] has the complete knowledge of everything that exists in the game.
   * Having an instance of a GameState is enough to have all information about the game at that particular moment in time.
   *
   * An [[gamelogic.entities.Entity]] can cast only one spell at a time, hence the map.
+  * An entity can have on it any number of [[gamelogic.buffs.Buff]] on it. We map the entity id to each of the buffs
+  * attached to it, so that we can easily find them, and it's going to be more efficient when updating someones buffs.
   *
   * @param time in millis
   */
@@ -17,7 +28,8 @@ final case class GameState(
     players: Map[Entity.Id, DummyLivingEntity],
     dummyMobs: Map[Entity.Id, DummyMob],
     simpleBullets: Map[Entity.Id, SimpleBulletBody],
-    castingEntityInfo: Map[Entity.Id, EntityCastingInfo]
+    castingEntityInfo: Map[Entity.Id, EntityCastingInfo],
+    buffs: Map[Entity.Id, List[Buff]]
 ) {
 
   def started: Boolean = startTime.isDefined
@@ -42,10 +54,13 @@ final case class GameState(
   def withAbilityEntitiesById(entityId: Entity.Id): Option[WithAbilities] =
     players.get(entityId) // todo: look for other kind of entity
 
+  def livingEntityById(entityId: Entity.Id): Option[LivingEntity] = // todo: add other kinds of entity
+    players.get(entityId).orElse(dummyMobs.get(entityId))
+
 }
 
 object GameState {
 
-  def initialGameState(time: Long): GameState = GameState(time, None, None, Map(), Map(), Map(), Map())
+  def empty: GameState = GameState(0L, None, None, Map(), Map(), Map(), Map(), Map())
 
 }

@@ -11,7 +11,7 @@ import zio.test._
 object ImmutableActionCollectorSpecs extends DefaultRunnableSpec {
   def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] = suite("Action Collector behaviour")(
     testM("Adding a GameStart action to an initial game state") {
-      val collector = ImmutableActionCollector(GameState.initialGameState(0))
+      val collector = ImmutableActionCollector(GameState.empty(0))
       val gameStart = GameStart(0, 1)
       val endGame   = EndGame(1, 2)
 
@@ -28,7 +28,7 @@ object ImmutableActionCollectorSpecs extends DefaultRunnableSpec {
 
     },
     testM("Entity starts casting") {
-      val collector = ImmutableActionCollector(GameState.initialGameState(0))
+      val collector = ImmutableActionCollector(GameState.empty(0))
       val gameStart = GameStart(0, 1)
 
       val newPlayer           = AddPlayer(1, 1, 0L, Complex.zero, 0)
@@ -40,7 +40,7 @@ object ImmutableActionCollectorSpecs extends DefaultRunnableSpec {
       assertM(UIO(collectorAfterActions.currentGameState.castingEntityInfo.keys.toList))(equalTo(List(0L)))
     },
     testM("Adding player out of order") {
-      val collector    = ImmutableActionCollector(GameState.initialGameState(0L))
+      val collector    = ImmutableActionCollector(GameState.empty(0L))
       val gameStart    = GameStart(0, 1)
       val firstPlayer  = AddPlayer(0, 3, 0L, 0, 0)
       val secondPlayer = AddPlayer(1L, 2L, 1L, Complex.i, 2)
@@ -54,7 +54,7 @@ object ImmutableActionCollectorSpecs extends DefaultRunnableSpec {
       } yield result
     },
     testM("Actions separated by more than the limit") {
-      val collector    = ImmutableActionCollector(GameState.initialGameState(0L), timeBetweenGameStates = 3L)
+      val collector    = ImmutableActionCollector(GameState.empty(0L), timeBetweenGameStates = 3L)
       val gameStart    = GameStart(0, 1)
       val firstPlayer  = AddPlayer(0, 4, 0L, 0, 0)
       val secondPlayer = AddPlayer(1L, 2L, 1L, Complex.i, 2)
@@ -68,7 +68,7 @@ object ImmutableActionCollectorSpecs extends DefaultRunnableSpec {
       } yield result
     },
     testM("Adding one player and starting game together") {
-      val collector   = ImmutableActionCollector(GameState.initialGameState(0L))
+      val collector   = ImmutableActionCollector(GameState.empty(0L))
       val gameStart   = GameStart(0, 2)
       val firstPlayer = AddPlayer(0, 1, 0L, 0, 0)
 

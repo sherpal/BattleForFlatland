@@ -46,7 +46,7 @@ final class GameViewContainer private (
       // todo: remove hardcoded stuff
       _ = new GameStateManager(
         application,
-        GameState.initialGameState(0L),
+        GameState.empty,
         $actionsFromServer,
         socketOutWriter,
         new Keyboard(implicitly[Pointed[KeyboardControls]].unit),

@@ -47,7 +47,7 @@ object AIManager {
   def apply(actionTranslator: ActorRef[ActionTranslator.Message]): Behavior[Message] = receiver(
     ReceiverInfo(
       actionTranslator,
-      GameState.initialGameState(0), // dummy game state when initialized
+      GameState.empty, // dummy game state when initialized
       Set.empty
     )
   )

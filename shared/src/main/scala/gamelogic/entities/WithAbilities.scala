@@ -1,6 +1,7 @@
 package gamelogic.entities
 
 import gamelogic.abilities.Ability
+import gamelogic.entities.Resource.ResourceAmount
 
 /**
   * A [[WithAbilities]] [[Entity]] have a position because we need to check that they don't move while casting.
@@ -11,7 +12,15 @@ trait WithAbilities extends WithPosition {
   /** List of [[gamelogic.abilities.Ability]] that is entity has. */
   val abilities: Set[Ability.AbilityId]
 
+  /**
+    * Copies this [[WithAbilities]] by changing it after using the ability.
+    * This would also involve reduce the value `resourceAmount`.
+    */
   def useAbility(ability: Ability): WithAbilities
+
+  /** Type of resource, and amount, that this entity has. */
+  def resourceAmount: ResourceAmount
+  final def resourceType: Resource = resourceAmount.resourceType
 
   /** Returns whether this entity has the given ability. */
   final def hasAbility(abilityId: Ability.AbilityId): Boolean = abilities.contains(abilityId)

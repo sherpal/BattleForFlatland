@@ -1,7 +1,8 @@
 package gamelogic.abilities
 
 import gamelogic.abilities.Ability.{AbilityId, UseId}
-import gamelogic.entities.Entity
+import gamelogic.entities.Resource.{NoResource, ResourceAmount}
+import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.NewSimpleBullet
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
@@ -31,8 +32,10 @@ final case class SimpleBullet(
     )
   )
 
-  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
+  def copyWithNewTimeAndId(newTime: Long, newId: UseId): SimpleBullet =
     copy(useId = newId, time = newTime)
+
+  val cost: ResourceAmount = ResourceAmount(0.0, NoResource)
 }
 
 object SimpleBullet {

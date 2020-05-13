@@ -220,7 +220,7 @@ object GameMaster {
 
                 zio.Runtime.default.unsafeRunAsync(spawnMobLoop(context.self, 5.seconds, entityIdGenerator))(println(_))
 
-                val actionCollector = ImmutableActionCollector(GameState.initialGameState(0L))
+                val actionCollector = ImmutableActionCollector(GameState.empty)
                 inGameBehaviour(
                   Nil,
                   actionUpdateCollector,
