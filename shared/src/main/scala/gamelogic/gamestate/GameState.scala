@@ -1,15 +1,7 @@
 package gamelogic.gamestate
 
 import gamelogic.buffs.Buff
-import gamelogic.entities.{
-  DummyLivingEntity,
-  DummyMob,
-  Entity,
-  EntityCastingInfo,
-  LivingEntity,
-  SimpleBulletBody,
-  WithAbilities
-}
+import gamelogic.entities._
 
 /**
   * A [[gamelogic.gamestate.GameState]] has the complete knowledge of everything that exists in the game.
@@ -29,7 +21,7 @@ final case class GameState(
     dummyMobs: Map[Entity.Id, DummyMob],
     simpleBullets: Map[Entity.Id, SimpleBulletBody],
     castingEntityInfo: Map[Entity.Id, EntityCastingInfo],
-    buffs: Map[Entity.Id, List[Buff]]
+    buffs: Map[Entity.Id, Map[Buff.Id, Buff]]
 ) {
 
   def started: Boolean = startTime.isDefined
@@ -57,6 +49,7 @@ final case class GameState(
   def livingEntityById(entityId: Entity.Id): Option[LivingEntity] = // todo: add other kinds of entity
     players.get(entityId).orElse(dummyMobs.get(entityId))
 
+  def withThreatEntityById(entityId: Entity.Id): Option[WithThreat] = None // todo: add other kinds of entity
 }
 
 object GameState {

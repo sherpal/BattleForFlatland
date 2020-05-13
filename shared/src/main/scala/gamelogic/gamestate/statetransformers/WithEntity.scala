@@ -1,6 +1,6 @@
 package gamelogic.gamestate.statetransformers
 
-import gamelogic.entities.{DummyLivingEntity, DummyMob, Entity, LivingEntity, WithPosition}
+import gamelogic.entities.{DummyLivingEntity, DummyMob, Entity}
 import gamelogic.gamestate.GameState
 
 final class WithEntity(entity: Entity) extends GameStateTransformer {

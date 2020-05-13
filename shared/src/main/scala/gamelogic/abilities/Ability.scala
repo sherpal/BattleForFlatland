@@ -3,7 +3,7 @@ package gamelogic.abilities
 import gamelogic.entities.Resource.ResourceAmount
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.EntityIdGenerator
+import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator}
 import io.circe.{Decoder, Encoder, Json}
 
 /**
@@ -50,7 +50,9 @@ trait Ability {
     * Generates all actions that this ability generates when completed.
     * These actions may depend on the [[gamelogic.gamestate.GameState]] at the time the ability is completed.
     */
-  def createActions(gameState: GameState, entityIdGenerator: EntityIdGenerator): List[GameAction]
+  def createActions(
+      gameState: GameState
+  )(implicit entityIdGenerator: EntityIdGenerator, buffIdGenerator: BuffIdGenerator): List[GameAction]
 
   /** Change the time and id of this ability, without changing the rest. */
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): Ability

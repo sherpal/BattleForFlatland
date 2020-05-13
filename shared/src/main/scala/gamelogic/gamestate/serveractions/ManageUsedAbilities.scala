@@ -2,15 +2,17 @@ package gamelogic.gamestate.serveractions
 
 import gamelogic.gamestate.ImmutableActionCollector
 import gamelogic.gamestate.gameactions.UseAbility
-import gamelogic.utils.{AbilityUseIdGenerator, EntityIdGenerator, GameActionIdGenerator}
+import gamelogic.utils.{AbilityUseIdGenerator, BuffIdGenerator, EntityIdGenerator, GameActionIdGenerator}
 
 final class ManageUsedAbilities extends ServerAction {
   def apply(
       currentState: ImmutableActionCollector,
-      gameActionIdGenerator: GameActionIdGenerator,
+      nowGenerator: () => Long
+  )(
+      implicit gameActionIdGenerator: GameActionIdGenerator,
       entityIdGenerator: EntityIdGenerator,
       abilityUseIdGenerator: AbilityUseIdGenerator,
-      nowGenerator: () => Long
+      buffIdGenerator: BuffIdGenerator
   ): (ImmutableActionCollector, ServerAction.ServerActionOutput) = {
     val startTime = nowGenerator()
     val gameState = currentState.currentGameState
@@ -27,7 +29,7 @@ final class ManageUsedAbilities extends ServerAction {
             castingInfo.ability.copyWithNewTimeAndId(startTime, abilityUseIdGenerator())
           )
       )
-      .flatMap(usage => usage :: usage.ability.createActions(gameState, entityIdGenerator))
+      .flatMap(usage => usage :: usage.ability.createActions(gameState))
       .toList
 
     val (nextCollector, oldestTime, idsToRemove) = currentState.masterAddAndRemoveActions(usedAbilities)

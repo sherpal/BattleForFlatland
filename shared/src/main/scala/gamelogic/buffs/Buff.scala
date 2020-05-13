@@ -9,6 +9,9 @@ import gamelogic.entities.Entity
   */
 trait Buff {
 
+  /** Unique id of this buff during the game. */
+  val buffId: Buff.Id
+
   /** Id of the entity at which the buff is attached. */
   val bearerId: Entity.Id
 
@@ -17,5 +20,11 @@ trait Buff {
 
   /** Game Time at which the buff appeared. */
   val appearanceTime: Long
+
+}
+
+object Buff {
+
+  type Id = Long
 
 }

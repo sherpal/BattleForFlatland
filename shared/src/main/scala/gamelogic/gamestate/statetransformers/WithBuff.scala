@@ -5,10 +5,10 @@ import gamelogic.gamestate.GameState
 
 final class WithBuff(buff: Buff) extends GameStateTransformer {
   def apply(gameState: GameState): GameState = {
-    val newBuffList = gameState.buffs.getOrElse(buff.bearerId, Nil)
+    val newBuffMap = gameState.buffs.getOrElse(buff.bearerId, Map())
     gameState.copy(
       time  = buff.appearanceTime,
-      buffs = gameState.buffs + (buff.bearerId -> newBuffList)
+      buffs = gameState.buffs + (buff.bearerId -> (newBuffMap + (buff.buffId -> buff)))
     )
   }
 }

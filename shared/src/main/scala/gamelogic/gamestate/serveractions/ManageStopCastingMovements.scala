@@ -1,7 +1,7 @@
 package gamelogic.gamestate.serveractions
 import gamelogic.gamestate.ImmutableActionCollector
 import gamelogic.gamestate.gameactions.EntityCastingInterrupted
-import gamelogic.utils.{AbilityUseIdGenerator, EntityIdGenerator, GameActionIdGenerator}
+import gamelogic.utils.{AbilityUseIdGenerator, BuffIdGenerator, EntityIdGenerator, GameActionIdGenerator}
 
 /**
   * Entities that are casting, but moving, should stop casting.
@@ -9,10 +9,12 @@ import gamelogic.utils.{AbilityUseIdGenerator, EntityIdGenerator, GameActionIdGe
 final class ManageStopCastingMovements extends ServerAction {
   def apply(
       currentState: ImmutableActionCollector,
-      gameActionIdGenerator: GameActionIdGenerator,
+      nowGenerator: () => Long
+  )(
+      implicit gameActionIdGenerator: GameActionIdGenerator,
       entityIdGenerator: EntityIdGenerator,
       abilityUseIdGenerator: AbilityUseIdGenerator,
-      nowGenerator: () => Long
+      buffIdGenerator: BuffIdGenerator
   ): (ImmutableActionCollector, ServerAction.ServerActionOutput) = {
     val startTime = nowGenerator()
     val gameState = currentState.currentGameState

@@ -6,7 +6,7 @@ import gamelogic.gamestate.gameactions.{AddDummyMob, AddPlayer, GameStart}
 import gamelogic.gamestate.serveractions.{ManageStopCastingMovements, ManageUsedAbilities, ServerAction}
 import gamelogic.gamestate.{GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
-import gamelogic.utils.{AbilityUseIdGenerator, EntityIdGenerator, GameActionIdGenerator}
+import gamelogic.utils.{AbilityUseIdGenerator, BuffIdGenerator, EntityIdGenerator, GameActionIdGenerator}
 import models.bff.ingame.InGameWSProtocol
 import models.bff.outofgame.MenuGameWithPlayers
 import zio.ZIO
@@ -81,10 +81,12 @@ object GameMaster {
   def inGameBehaviour(
       pendingActions: List[GameAction],
       actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage],
-      actionCollector: ImmutableActionCollector,
-      gameActionIdGenerator: GameActionIdGenerator,
+      actionCollector: ImmutableActionCollector
+  )(
+      implicit gameActionIdGenerator: GameActionIdGenerator,
       entityIdGenerator: EntityIdGenerator,
-      abilityUseIdGenerator: AbilityUseIdGenerator
+      abilityUseIdGenerator: AbilityUseIdGenerator,
+      buffIdGenerator: BuffIdGenerator
   ): Behavior[Message] = Behaviors.setup { implicit context =>
     Behaviors
       .receiveMessage[Message] {
@@ -96,19 +98,13 @@ object GameMaster {
           inGameBehaviour(
             gameAction +: pendingActions,
             actionUpdateCollector,
-            actionCollector,
-            gameActionIdGenerator,
-            entityIdGenerator,
-            abilityUseIdGenerator
+            actionCollector
           )
         case MultipleActionsWrapper(gameActions) =>
           inGameBehaviour(
             gameActions ++ pendingActions,
             actionUpdateCollector,
-            actionCollector,
-            gameActionIdGenerator,
-            entityIdGenerator,
-            abilityUseIdGenerator
+            actionCollector
           )
         case GameLoop =>
           val startTime = now
@@ -122,9 +118,6 @@ object GameMaster {
           /** Making all the server specific checks */
           val (finalCollector, output) = serverAction(
             nextCollector,
-            gameActionIdGenerator,
-            entityIdGenerator,
-            abilityUseIdGenerator,
             () => System.currentTimeMillis
           )
 
@@ -154,14 +147,7 @@ object GameMaster {
                 gameLoopTo(context.self, (gameLoopTiming - timeSpent).millis)
               )
 
-          inGameBehaviour(
-            Nil,
-            actionUpdateCollector,
-            finalCollector,
-            gameActionIdGenerator,
-            entityIdGenerator,
-            abilityUseIdGenerator
-          )
+          inGameBehaviour(Nil, actionUpdateCollector, finalCollector)
 
         case _: PreGameMessage => Behaviors.unhandled
       }
@@ -224,10 +210,12 @@ object GameMaster {
                 inGameBehaviour(
                   Nil,
                   actionUpdateCollector,
-                  actionCollector,
+                  actionCollector
+                )(
                   new GameActionIdGenerator(0L),
                   entityIdGenerator,
-                  new AbilityUseIdGenerator(0L)
+                  new AbilityUseIdGenerator(0L),
+                  new BuffIdGenerator(0L)
                 )
               } else {
                 setupBehaviour(actionUpdateCollector, maybeGameInfo, newReadyPlayers, maybePreGameActions)

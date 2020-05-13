@@ -5,7 +5,7 @@ import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.entities.Resource.{Mana, ResourceAmount}
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.EntityIdGenerator
+import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator}
 
 final case class HexagonHot(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
     extends Ability {
@@ -15,7 +15,11 @@ final case class HexagonHot(useId: Ability.UseId, time: Long, casterId: Entity.I
 
   def cost: Resource.ResourceAmount = ResourceAmount(15, Mana)
 
-  def createActions(gameState: GameState, entityIdGenerator: EntityIdGenerator): List[GameAction] = ???
+  def createActions(
+      gameState: GameState
+  )(implicit entityIdGenerator: EntityIdGenerator, buffIdGenerator: BuffIdGenerator): List[GameAction] = ???
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
 }
+
+object HexagonHot {}

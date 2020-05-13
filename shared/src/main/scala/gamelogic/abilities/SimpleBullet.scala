@@ -6,7 +6,7 @@ import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.NewSimpleBullet
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
-import gamelogic.utils.EntityIdGenerator
+import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator}
 
 final case class SimpleBullet(
     useId: Ability.UseId,
@@ -19,7 +19,9 @@ final case class SimpleBullet(
   val cooldown: Long       = 0L
   val castingTime: Long    = 1500L
 
-  def createActions(gameState: GameState, entityIdGenerator: EntityIdGenerator): List[GameAction] = List(
+  def createActions(
+      gameState: GameState
+  )(implicit entityIdGenerator: EntityIdGenerator, buffIdGenerator: BuffIdGenerator): List[GameAction] = List(
     NewSimpleBullet(
       0L,
       time,
