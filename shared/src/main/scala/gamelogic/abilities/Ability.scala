@@ -14,6 +14,9 @@ import io.circe.{Decoder, Encoder, Json}
   * only changing the constants of the effect.
   *
   * Each ability has a unique id that is given in the code itself.
+  *
+  * Note: if an ability is though to have no cooldown nor casting time, it is best to set the cooldown to a minimal
+  * amount, in order to have a GCD. perhaps in the future, this should be handled automatically.
   */
 trait Ability {
 
@@ -57,6 +60,8 @@ trait Ability {
   /** Change the time and id of this ability, without changing the rest. */
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): Ability
 
+  def isInRange(gameState: GameState, time: Long): Boolean = true
+
 }
 
 object Ability {
@@ -67,7 +72,8 @@ object Ability {
 
   final val simpleBulletId: AbilityId      = 1
   final val hexagonFlashHealId: AbilityId  = 2
-  final val hexagonHexagonHotId: AbilityId = 2
+  final val hexagonHexagonHotId: AbilityId = 3
+  final val squareTauntId: AbilityId       = 4
 
   /** Encoding. Replace this by more performant stuff in the future. */
   import cats.syntax.functor._

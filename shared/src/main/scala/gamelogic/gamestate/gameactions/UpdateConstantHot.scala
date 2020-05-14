@@ -1,6 +1,6 @@
 package gamelogic.gamestate.gameactions
 
-import gamelogic.buffs.{Buff, HoT}
+import gamelogic.buffs.{Buff, HoT, TickerBuff}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
@@ -22,19 +22,7 @@ final case class UpdateConstantHot(
 ) extends GameAction {
 
   def createGameStateTransformer(gameState: GameState): GameStateTransformer = new WithBuff(
-    new HoT {
-      val buffId: Id = _buffId
-
-      val sourceId: Id = _sourceId
-
-      def healPerTick(timeSinceBeginning: Id): Double = healOnTick
-
-      val tickRate: Long       = _tickRate
-      val bearerId: Entity.Id  = targetId
-      val duration: Long       = _duration
-      val appearanceTime: Long = _appearanceTime
-      val lastTickTime: Long   = time // should a ticker tick when it pops? I don't think so
-    }
+    HoT.constantHot(time, targetId, _buffId, _duration, _tickRate, healOnTick, _sourceId, _appearanceTime)
   )
 
   def isLegal(gameState: GameState): Boolean = gameState.livingEntityById(targetId).isDefined

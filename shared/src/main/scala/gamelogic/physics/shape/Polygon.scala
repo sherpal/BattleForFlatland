@@ -18,8 +18,7 @@ trait Polygon extends Shape {
       thatTranslation: Complex,
       thatRotation: Double
   ): Boolean =
-    if (!boundingBox.intersect(that.boundingBox, thisTranslation, thatTranslation)) false
-    else {
+    boundingBox.intersect(that.boundingBox, thisTranslation, thatTranslation) && {
       that match {
         case that: Polygon =>
           this.triangulation.exists(

@@ -43,13 +43,18 @@ final case class GameState(
       time + delay - castingInfo.startedTime >= castingInfo.castingTime
   }
 
+  // todo: look for other kind of entity in all of methods below.
+  // Is there something better?
   def withAbilityEntitiesById(entityId: Entity.Id): Option[WithAbilities] =
-    players.get(entityId) // todo: look for other kind of entity
+    players.get(entityId)
 
-  def livingEntityById(entityId: Entity.Id): Option[LivingEntity] = // todo: add other kinds of entity
+  def livingEntityById(entityId: Entity.Id): Option[LivingEntity] =
     players.get(entityId).orElse(dummyMobs.get(entityId))
 
-  def withThreatEntityById(entityId: Entity.Id): Option[WithThreat] = None // todo: add other kinds of entity
+  def withThreatEntityById(entityId: Entity.Id): Option[WithThreat] = None
+
+  def withPositionEntityById(entityId: Entity.Id): Option[WithPosition] =
+    players.get(entityId).orElse(dummyMobs.get(entityId))
 }
 
 object GameState {

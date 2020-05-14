@@ -18,6 +18,7 @@ object Resource {
 
   case object Mana extends Resource
   case object Energy extends Resource
+  case object Rage extends Resource
 
   case object NoResource extends Resource
 

@@ -23,4 +23,6 @@ trait TickerBuff extends Buff {
   /** Time at which the ticker ticked the last time. */
   val lastTickTime: Long
 
+  def changeLastTickTime(time: Long): TickerBuff
+
 }

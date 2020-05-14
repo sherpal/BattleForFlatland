@@ -3,7 +3,7 @@ package game
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import gamelogic.gamestate.gameactions.{AddDummyMob, AddPlayer, GameStart}
-import gamelogic.gamestate.serveractions.{ManageStopCastingMovements, ManageUsedAbilities, ServerAction}
+import gamelogic.gamestate.serveractions._
 import gamelogic.gamestate.{GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
 import gamelogic.utils.{AbilityUseIdGenerator, BuffIdGenerator, EntityIdGenerator, GameActionIdGenerator}
@@ -73,7 +73,8 @@ object GameMaster {
     } yield ()).forever
 
   // todo: add other server actions.
-  private val serverAction = new ManageUsedAbilities ++ new ManageStopCastingMovements
+  private val serverAction = new ManageUsedAbilities ++ new ManageStopCastingMovements ++ new ManageTickerBuffs ++
+    new ManageBuffsToBeRemoved
 
   def apply(actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage]): Behavior[Message] =
     setupBehaviour(actionUpdateCollector, None, Set.empty, None)
@@ -155,7 +156,7 @@ object GameMaster {
   }
 
   /** In millis */
-  final val gameLoopTiming = 1000L / 100L
+  final val gameLoopTiming = 1000L / 60L
 
   private def setupBehaviour(
       actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage],

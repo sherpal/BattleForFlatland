@@ -10,7 +10,7 @@ trait Moving extends WithPosition {
   def direction: Double
   def moving: Boolean
 
-  def currentPosition(currentTime: Long): Complex =
+  override def currentPosition(currentTime: Long): Complex =
     if (moving)
       pos + (currentTime - time) * speed * Complex.rotation(direction) / 1000 // speed is per second, time is in millis
     else

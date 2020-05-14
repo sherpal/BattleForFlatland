@@ -10,7 +10,7 @@ import gamelogic.entities.Resource.ResourceAmount
 trait WithAbilities extends WithPosition {
 
   /** List of [[gamelogic.abilities.Ability]] that is entity has. */
-  val abilities: Set[Ability.AbilityId]
+  def abilities: Set[Ability.AbilityId]
 
   /**
     * Copies this [[WithAbilities]] by changing it after using the ability.

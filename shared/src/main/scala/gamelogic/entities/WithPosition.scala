@@ -7,4 +7,6 @@ import gamelogic.physics.Complex
   */
 trait WithPosition extends Entity {
   val pos: Complex
+
+  def currentPosition(time: Long): Complex = pos
 }

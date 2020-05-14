@@ -25,7 +25,7 @@ final case class DummyLivingEntity(
   val speed: Double = DummyLivingEntity.speed
 
   val shape: Shape = DummyLivingEntity.shape
-  val abilities: Set[AbilityId] = Set(
+  def abilities: Set[AbilityId] = Set(
     Ability.simpleBulletId
   )
 

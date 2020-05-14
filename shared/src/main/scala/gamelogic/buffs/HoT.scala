@@ -1,6 +1,7 @@
 package gamelogic.buffs
 
 import gamelogic.entities.Entity
+import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.gameactions.EntityGetsHealed
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.EntityIdGenerator
@@ -22,5 +23,42 @@ trait HoT extends TickerBuff {
   ): List[GameAction] = List(
     EntityGetsHealed(0L, time, bearerId, healPerTick(time - appearanceTime), sourceId)
   )
+
+}
+
+object HoT {
+
+  def constantHot(
+      currentTime: Long,
+      targetId: Entity.Id,
+      _buffId: Buff.Id,
+      _duration: Long,
+      _tickRate: Long,
+      healOnTick: Double,
+      _sourceId: Entity.Id,
+      _appearanceTime: Long
+  ): HoT = new HoT {
+    val buffId: Id = _buffId
+
+    val sourceId: Id = _sourceId
+
+    def healPerTick(timeSinceBeginning: Id): Double = healOnTick
+
+    val tickRate: Long       = _tickRate
+    val bearerId: Entity.Id  = targetId
+    val duration: Long       = _duration
+    val appearanceTime: Long = _appearanceTime
+    val lastTickTime: Long   = currentTime // should a ticker tick when it pops? I don't think so
+    def changeLastTickTime(time: Id): TickerBuff = constantHot(
+      time,
+      targetId,
+      _buffId,
+      _duration,
+      _tickRate,
+      healOnTick,
+      _sourceId,
+      _appearanceTime
+    )
+  }
 
 }
