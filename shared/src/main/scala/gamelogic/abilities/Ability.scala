@@ -74,6 +74,9 @@ object Ability {
   final val hexagonFlashHealId: AbilityId  = 2
   final val hexagonHexagonHotId: AbilityId = 3
   final val squareTauntId: AbilityId       = 4
+  final val squareHammerHit: AbilityId     = 5
+
+  @inline final def gcd = 200L
 
   /** Encoding. Replace this by more performant stuff in the future. */
   import cats.syntax.functor._
@@ -86,6 +89,8 @@ object Ability {
   implicit val encoder: Encoder[Ability] = Encoder.instance {
     case x: hexagon.FlashHeal  => customEncode(x, "hexagon.FlashHeal")
     case x: hexagon.HexagonHot => customEncode(x, "hexagon.HexagonHot")
+    case x: square.HammerHit   => customEncode(x, "square.HammerHit")
+    case x: square.Taunt       => customEncode(x, "square.Taunt")
     case x: SimpleBullet       => customEncode(x, "SimpleBullet")
   }
 
@@ -95,6 +100,8 @@ object Ability {
   implicit val decoder: Decoder[Ability] = List[Decoder[Ability]](
     customDecoder[hexagon.FlashHeal]("hexagon.FlashHeal"),
     customDecoder[hexagon.HexagonHot]("hexagon.HexagonHot"),
+    customDecoder[square.HammerHit]("square.HammerHit"),
+    customDecoder[square.Taunt]("square.Taunt"),
     customDecoder[SimpleBullet]("SimpleBullet")
   ).reduceLeft(_ or _)
 

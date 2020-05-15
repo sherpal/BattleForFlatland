@@ -12,19 +12,17 @@ import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
 final case class TickerBuffTicks(id: GameAction.Id, time: Long, buffId: Buff.Id, bearerId: Entity.Id)
     extends GameAction {
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
-    gameState.buffs
-      .get(bearerId)
-      .flatMap(_.get(buffId))
-      .collect { case ticker: TickerBuff => ticker.changeLastTickTime(time) }
-      .fold(GameStateTransformer.identityTransformer) { buff =>
-        new WithBuff(buff)
-      }
+    (for {
+      bearerBuffs <- gameState.tickerBuffs.get(bearerId)
+      buff <- bearerBuffs.get(buffId)
+      tickedBuff = buff.changeLastTickTime(time)
+    } yield tickedBuff).fold(GameStateTransformer.identityTransformer)(new WithBuff(_))
 
   def isLegal(gameState: GameState): Boolean =
-    gameState.buffs
-      .get(bearerId)
-      .flatMap(_.get(buffId))
-      .exists(_.isInstanceOf[TickerBuff])
+    (for {
+      bearerBuffs <- gameState.tickerBuffs.get(bearerId)
+      _ <- bearerBuffs.get(buffId)
+    } yield ()).isDefined
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

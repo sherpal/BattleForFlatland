@@ -60,7 +60,9 @@ object GameAction {
     case x: EntityTakesDamage        => customEncode(x, "EntityTakesDamage")
     case x: GameStart                => customEncode(x, "GameStart")
     case x: NewSimpleBullet          => customEncode(x, "NewSimpleBullet")
+    case x: RemoveBuff               => customEncode(x, "RemoveBuff")
     case x: ThreatToEntityChange     => customEncode(x, "ThreatToEntityChange")
+    case x: TickerBuffTicks          => customEncode(x, "TickerBuffTicks")
     case x: UpdateConstantHot        => customEncode(x, "UpdateConstantHot")
     case x: UpdateTimestamp          => customEncode(x, "UpdateTimestamp")
     case x: UseAbility               => customEncode(x, "UseAbility")
@@ -81,7 +83,9 @@ object GameAction {
     customDecoder[EntityTakesDamage]("EntityTakesDamage"),
     customDecoder[GameStart]("GameStart"),
     customDecoder[NewSimpleBullet]("NewSimpleBullet"),
+    customDecoder[RemoveBuff]("RemoveBuff"),
     customDecoder[ThreatToEntityChange]("ThreatToEntityChange"),
+    customDecoder[TickerBuffTicks]("TickerBuffTicks"),
     customDecoder[UpdateConstantHot]("UpdateConstantHot"),
     customDecoder[UpdateTimestamp]("UpdateTimestamp"),
     customDecoder[UseAbility]("UseAbility")

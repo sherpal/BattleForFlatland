@@ -22,12 +22,10 @@ final class ManageTickerBuffs extends ServerAction {
     val startTime = nowGenerator()
     val gameState = currentState.currentGameState
 
-    val tickActions = gameState.buffs
+    val tickActions = gameState.tickerBuffs
       .flatMap(_._2)
       .values
-      .collect {
-        case ticker: TickerBuff if startTime - ticker.lastTickTime > ticker.tickRate => ticker
-      }
+      .filter(ticker => startTime - ticker.lastTickTime >= ticker.tickRate)
       .flatMap(
         ticker =>
           TickerBuffTicks(0L, ticker.lastTickTime + ticker.tickRate, ticker.buffId, ticker.bearerId) +: ticker

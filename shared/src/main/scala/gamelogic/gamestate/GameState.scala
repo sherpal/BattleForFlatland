@@ -1,6 +1,6 @@
 package gamelogic.gamestate
 
-import gamelogic.buffs.Buff
+import gamelogic.buffs.{Buff, PassiveBuff, TickerBuff}
 import gamelogic.entities._
 
 /**
@@ -10,6 +10,8 @@ import gamelogic.entities._
   * An [[gamelogic.entities.Entity]] can cast only one spell at a time, hence the map.
   * An entity can have on it any number of [[gamelogic.buffs.Buff]] on it. We map the entity id to each of the buffs
   * attached to it, so that we can easily find them, and it's going to be more efficient when updating someones buffs.
+  *
+  * Ticker and passive buffs have very different behaviours, and that's why we separate them below.
   *
   * @param time in millis
   */
@@ -21,7 +23,8 @@ final case class GameState(
     dummyMobs: Map[Entity.Id, DummyMob],
     simpleBullets: Map[Entity.Id, SimpleBulletBody],
     castingEntityInfo: Map[Entity.Id, EntityCastingInfo],
-    buffs: Map[Entity.Id, Map[Buff.Id, Buff]]
+    passiveBuffs: Map[Entity.Id, Map[Buff.Id, PassiveBuff]],
+    tickerBuffs: Map[Entity.Id, Map[Buff.Id, TickerBuff]]
 ) {
 
   def started: Boolean = startTime.isDefined
@@ -55,10 +58,18 @@ final case class GameState(
 
   def withPositionEntityById(entityId: Entity.Id): Option[WithPosition] =
     players.get(entityId).orElse(dummyMobs.get(entityId))
+
+  def buffById(entityId: Entity.Id, buffId: Buff.Id): Option[Buff] =
+    tickerBuffs
+      .get(entityId)
+      .flatMap(_.get(buffId))
+      .orElse(passiveBuffs.get(entityId).flatMap(_.get(buffId)))
+
+  def allBuffs: Iterable[Buff] = tickerBuffs.flatMap(_._2).values ++ passiveBuffs.flatMap(_._2).values
 }
 
 object GameState {
 
-  def empty: GameState = GameState(0L, None, None, Map(), Map(), Map(), Map(), Map())
+  def empty: GameState = GameState(0L, None, None, Map(), Map(), Map(), Map(), Map(), Map())
 
 }

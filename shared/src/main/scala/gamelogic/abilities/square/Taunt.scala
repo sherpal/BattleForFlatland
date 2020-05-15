@@ -11,13 +11,11 @@ import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator}
 
 /**
   * Increases the damage threat level this caster has towards the target.
-  *
-  * // todo: should it also increase the healing threat? I don't think so...
   */
 final case class Taunt(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
     extends WithTargetAbility {
   val abilityId: AbilityId = Ability.squareTauntId
-  val cooldown: Long       = 200L // acts like a gcd
+  val cooldown: Long       = Ability.gcd
   val castingTime: Long    = 0L
 
   def cost: Resource.ResourceAmount = ResourceAmount(10, Rage)
