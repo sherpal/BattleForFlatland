@@ -34,10 +34,6 @@ final case class MenuGame(
 
 object MenuGame {
 
-  def empty: MenuGame = MenuGame("", "", None, User.empty, LocalDateTime.now)
-
-  implicit val pointedMenuGame: Pointed[MenuGame] = Pointed.factory(empty)
-
   val validator: FieldsValidator[MenuGame, ErrorADT] = FieldsValidator(
     Map(
       "gameName" -> nonEmptyString.contraMap(_.gameName),

@@ -16,7 +16,8 @@ object SharedSettings {
       "dev.zio" %%% "zio-streams" % zioVersion,
       "be.doeraene" %%% "url-dsl" % "0.1.4",
       "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-RC5",
-      "com.lihaoyi" %%% "scalatags" % "0.8.2"
+      "com.lihaoyi" %%% "scalatags" % "0.8.2",
+      "com.propensive" %%% "magnolia" % "0.12.7"
     ) ++ Seq( // circe for json serialisation
       "io.circe" %%% "circe-core",
       "io.circe" %%% "circe-generic",

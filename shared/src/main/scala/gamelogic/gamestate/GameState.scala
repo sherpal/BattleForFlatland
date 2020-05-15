@@ -2,6 +2,7 @@ package gamelogic.gamestate
 
 import gamelogic.buffs.{Buff, PassiveBuff, TickerBuff}
 import gamelogic.entities._
+import models.syntax.Pointed
 
 /**
   * A [[gamelogic.gamestate.GameState]] has the complete knowledge of everything that exists in the game.
@@ -70,6 +71,6 @@ final case class GameState(
 
 object GameState {
 
-  def empty: GameState = GameState(0L, None, None, Map(), Map(), Map(), Map(), Map(), Map())
+  def empty: GameState = Pointed[GameState].unit
 
 }

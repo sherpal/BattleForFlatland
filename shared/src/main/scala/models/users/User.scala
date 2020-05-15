@@ -19,21 +19,6 @@ final case class User(
     */
   def forgetPassword: User = copy(hashedPassword = "")
 
-  def onlyName: User = User.empty.copy(userId = userId, userName = userName)
-
-}
-
-object User {
-
-  def empty: User = User(
-    "",
-    "",
-    "",
-    "",
-    LocalDateTime.now,
-    Nil
-  )
-
-  implicit val pointed: Pointed[User] = Pointed.factory(empty)
+  def onlyName: User = Pointed[User].unit.copy(userId = userId, userName = userName)
 
 }
