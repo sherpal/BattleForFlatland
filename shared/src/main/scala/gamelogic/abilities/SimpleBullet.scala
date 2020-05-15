@@ -1,8 +1,8 @@
 package gamelogic.abilities
 
 import gamelogic.abilities.Ability.{AbilityId, UseId}
+import gamelogic.entities.Entity
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
-import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.NewSimpleBullet
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex

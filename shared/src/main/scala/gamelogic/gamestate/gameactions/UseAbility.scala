@@ -2,9 +2,9 @@ package gamelogic.gamestate.gameactions
 
 import gamelogic.abilities.Ability
 import gamelogic.entities.Entity
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{CasterUsesAbility, GameStateTransformer}
+import gamelogic.gamestate.{GameAction, GameState}
 
 final case class UseAbility(
     id: GameAction.Id,

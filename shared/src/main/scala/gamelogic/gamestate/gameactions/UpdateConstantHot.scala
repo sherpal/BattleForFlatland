@@ -1,10 +1,10 @@
 package gamelogic.gamestate.gameactions
 
-import gamelogic.buffs.{Buff, HoT, TickerBuff}
+import gamelogic.buffs.{Buff, HoT}
 import gamelogic.entities.Entity
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
+import gamelogic.gamestate.{GameAction, GameState}
 
 /**
   * Adds or updates a [[gamelogic.buffs.HoT]] with constant healing to the given entity.

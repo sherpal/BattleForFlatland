@@ -1,9 +1,9 @@
 package gamelogic.gamestate.gameactions
 
 import gamelogic.entities.{Entity, SimpleBulletBody}
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithSimpleBullet}
+import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 
 /** Adds a bullet to the game. */

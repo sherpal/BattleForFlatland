@@ -1,10 +1,10 @@
 package gamelogic.gamestate.gameactions
 
-import gamelogic.buffs.{Buff, TickerBuff}
+import gamelogic.buffs.Buff
 import gamelogic.entities.Entity
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
+import gamelogic.gamestate.{GameAction, GameState}
 
 /**
   * Each time a ticker buff ticks, we need to change the last time it actually ticked.

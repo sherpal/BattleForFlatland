@@ -2,9 +2,9 @@ package gamelogic.gamestate.gameactions
 
 import gamelogic.abilities.Ability
 import gamelogic.entities.EntityCastingInfo
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{EntityStartsCastingTransformer, GameStateTransformer}
+import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 
 /** An entity starts casting now. */

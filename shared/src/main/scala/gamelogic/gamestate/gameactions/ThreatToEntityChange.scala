@@ -1,9 +1,9 @@
 package gamelogic.gamestate.gameactions
 
 import gamelogic.entities.{Entity, WithThreat}
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
+import gamelogic.gamestate.{GameAction, GameState}
 
 /**
   * Changes the threat level that the `sourceId` has towards the `entityId`.

@@ -2,8 +2,8 @@ package gamelogic.abilities.hexagon
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.{AbilityId, UseId}
-import gamelogic.entities.Resource.{Mana, ResourceAmount}
 import gamelogic.entities.Entity
+import gamelogic.entities.Resource.{Mana, ResourceAmount}
 import gamelogic.gamestate.gameactions.EntityGetsHealed
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator}

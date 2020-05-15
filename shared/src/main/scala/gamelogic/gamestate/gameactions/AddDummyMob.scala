@@ -1,9 +1,9 @@
 package gamelogic.gamestate.gameactions
 
 import gamelogic.entities.{DummyMob, Entity}
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithDummyMob}
+import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 
 final case class AddDummyMob(

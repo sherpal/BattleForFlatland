@@ -2,9 +2,9 @@ package gamelogic.entities
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
+import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Circle, Shape}
-import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 
 /**
   * Represents a small living entity with a given position and direction towards which this entity is heading.

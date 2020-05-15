@@ -1,6 +1,5 @@
 package gamelogic.gamestate.serveractions
 
-import gamelogic.buffs.TickerBuff
 import gamelogic.gamestate.ImmutableActionCollector
 import gamelogic.gamestate.gameactions.TickerBuffTicks
 import gamelogic.utils.{AbilityUseIdGenerator, BuffIdGenerator, EntityIdGenerator, GameActionIdGenerator}
