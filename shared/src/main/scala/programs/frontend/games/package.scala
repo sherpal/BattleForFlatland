@@ -76,7 +76,7 @@ package object games {
   def pokingPresence(gameId: String): ZIO[Routing with HttpClient, ErrorADT, Int] =
     postIgnore(iAmStilThere, gameIdParam)(gameId)
       .refineOrDie(ErrorADT.onlyErrorADT)
-      .flatMapError(error => moveTo(homeRoute).as(error))
+      .tapError(_ => moveTo(homeRoute))
 
   def iAmLeaving(gameId: String): ZIO[HttpClient, ErrorADT, Int] =
     postIgnore(leaveGame, gameIdParam)(gameId).refineOrDie(ErrorADT.onlyErrorADT)

@@ -8,9 +8,7 @@ import java.time.LocalDateTime
   * special point.
   */
 trait Pointed[A] {
-
   def unit: A
-
 }
 
 object Pointed {

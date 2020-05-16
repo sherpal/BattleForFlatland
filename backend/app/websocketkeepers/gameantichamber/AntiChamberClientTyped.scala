@@ -66,7 +66,7 @@ object AntiChamberClientTyped {
       context.self ! Broken
     }
 
-    joinedGameDispatcherRef ! JoinedGameDispatcherTyped.NewClient(gameId, user.userId, context.self)
+    joinedGameDispatcherRef ! JoinedGameDispatcherTyped.NewClient(gameId, user, context.self)
 
     Behaviors
       .receiveMessagePartial[Message] {

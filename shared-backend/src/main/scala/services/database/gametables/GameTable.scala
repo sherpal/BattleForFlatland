@@ -5,9 +5,12 @@ import errors.ErrorADT.{
   GameExists,
   InconsistentMenuGameInDB,
   IncorrectGamePassword,
-  UserAlreadyPlaying
+  UserAlreadyPlaying,
+  YouAreNotInGame
 }
+import io.circe.Encoder
 import models.bff.outofgame.{DBMenuGame, MenuGame, MenuGameWithPlayers}
+import models.syntax.Pointed
 import models.users.User
 import services.crypto._
 import services.database.db.Database
@@ -17,6 +20,8 @@ import utils.database.models.UserInGameTable
 import utils.ziohelpers._
 import zio.clock._
 import zio.{Task, UIO, ZIO, ZLayer}
+import io.circe.syntax._
+import models.bff.outofgame.gameconfig.{GameConfiguration, PlayerInfo}
 
 object GameTable {
 
@@ -28,6 +33,9 @@ object GameTable {
       * Adds the [[models.bff.outofgame.DBMenuGame]] to the database.
       */
     protected def newDBGame(dbMenuGame: DBMenuGame): Task[Int]
+
+    /** Modifies the [[models.bff.outofgame.DBMenuGame]] by updating its gameConfiguration field. */
+    protected def modifyGameConfiguration(gameId: String, configuration: GameConfiguration): Task[Int]
 
     /** Returns the [[models.bff.outofgame.MenuGame]] with the given name if it exists. */
     def selectGameByName(gameName: String): Task[Option[MenuGame]]
@@ -84,6 +92,8 @@ object GameTable {
         creatorId: String,
         creatorName: String,
         rawPassword: Option[String]
+    )(
+        implicit gameConfigurationPointed: Pointed[GameConfiguration]
     ): ZIO[Crypto with Clock, Throwable, String] =
       for {
         userPlayingFiber <- userAlreadyPlaying(creatorId).fork
@@ -98,7 +108,7 @@ object GameTable {
         _ <- failIfWith(alreadyExists, GameExists(gameName))
         userPlaying <- userPlayingFiber.join
         _ <- failIfWith(userPlaying.isDefined, UserAlreadyPlaying(creatorName))
-        dbGame = DBMenuGame(id, gameName, hashed, creatorId, now)
+        dbGame = DBMenuGame(id, gameName, hashed, creatorId, now, gameConfigurationPointed.unit.json)
         _ <- newDBGame(dbGame)
       } yield id
 
@@ -123,7 +133,16 @@ object GameTable {
         now <- currentDateTime.map(_.toLocalDateTime)
         userInGameTable <- UIO(UserInGameTable(gameId, user.userId, now))
         added <- addUsersInGameTables(userInGameTable)
+        _ <- modifyGameConfiguration(gameId, game.gameConfiguration.addPlayer(user.userName))
       } yield added
+
+    final def modifyPlayerInfo(gameId: String, user: User, playerInfo: PlayerInfo): ZIO[Any, Throwable, Unit] =
+      for {
+        game <- gameWithPlayersById(gameId)
+        playerInGame <- UIO(game.players.exists(_.userId == user.userId))
+        _ <- failIfWith(!playerInGame, YouAreNotInGame(gameId))
+        _ <- modifyGameConfiguration(gameId, game.game.gameConfiguration.modifyPlayer(playerInfo))
+      } yield ()
 
     /**
       * Fetches game and players information for the game id.
@@ -149,9 +168,16 @@ object GameTable {
         game <- ZIO.fromOption(maybeGame).flatMapError(_ => UIO(GameDoesNotExist(gameId)))
         _ <- if (game.gameCreator.userId == userId) deleteGame(game.gameName)
         else
-          removeUsersInGameTables(
-            UserInGameTable.now(gameId, userId)
-          )
+          for {
+            userNameFiber <- playersInGameWithId(gameId).map(_.find(_.userId == userId).map(_.userName)).fork
+            _ <- removeUsersInGameTables(
+              UserInGameTable.now(gameId, userId)
+            )
+            maybeUserName <- userNameFiber.join
+            _ <- maybeUserName.fold(Task(0))(
+              userName => modifyGameConfiguration(gameId, game.gameConfiguration.removePlayer(userName))
+            )
+          } yield ()
       } yield game.gameCreator.userId == userId
 
   }

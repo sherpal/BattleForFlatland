@@ -4,6 +4,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import com.google.inject.Provides
 import models.bff.gameantichamber.WebSocketProtocol.GameCancelled
+import models.users.User
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.ActorModule
@@ -22,11 +23,13 @@ import scala.concurrent.duration._
 
 object JoinedGameDispatcherTyped extends ActorModule {
 
+  final val name = "JoinedGameDispatcherTyped"
+
   import GameAntiChamberTyped._
 
   sealed trait Message
 
-  case class NewClient(gameId: String, userId: String, ref: ActorRef[AntiChamberClientTyped.Message]) extends Message
+  case class NewClient(gameId: String, user: User, ref: ActorRef[AntiChamberClientTyped.Message]) extends Message
   case class DidNotClose(ref: ActorRef[GameAntiChamberTyped.PlayerConnected]) extends Message
   case class CancelGame(ref: ActorRef[YouCanCleanUpCancel.type]) extends Message
   private case object SendHeartBeat extends Message
@@ -59,7 +62,7 @@ object JoinedGameDispatcherTyped extends ActorModule {
 
   def behavior(info: BehaviorInfo): Behavior[Message] = Behaviors.receive { (context, message) =>
     message match {
-      case NewClient(gameId, userId, ref) =>
+      case NewClient(gameId, user, ref) =>
         info.gameActors.get(gameId) match {
           case Some(info)
               if info.gameIsCancelling || info.isClosing => // game already cancelling, we directly notify the client
@@ -68,10 +71,10 @@ object JoinedGameDispatcherTyped extends ActorModule {
             Behaviors.same
           case Some(info)
               if !info.isClosing => // this game is already taken care of, and not closing, we notify the actor
-            info.ref ! GameAntiChamberTyped.PlayerConnected(ref, userId)
+            info.ref ! GameAntiChamberTyped.PlayerConnected(ref, user)
             Behaviors.same
           case None => // this game does not exist, we create it and start over
-            context.self ! NewClient(gameId, userId, ref)
+            context.self ! NewClient(gameId, user, ref)
             val antiChamber = context.spawn(
               GameAntiChamberTyped(gameId, context.self, info.layer),
               "AntiChamber-" + gameId.filterNot(_ == '-')

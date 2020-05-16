@@ -1,7 +1,10 @@
 package services.database
 
 import errors.ErrorADT.InconsistentMenuGameInDB
+import io.circe.Encoder
+import models.bff.outofgame.gameconfig.{GameConfiguration, PlayerInfo}
 import models.bff.outofgame.{MenuGame, MenuGameWithPlayers}
+import models.syntax.Pointed
 import models.users.User
 import services.crypto.Crypto
 import zio.clock.Clock
@@ -21,6 +24,8 @@ package object gametables {
       creatorId: String,
       creatorName: String,
       rawPassword: Option[String]
+  )(
+      implicit gameConfigurationPointed: Pointed[GameConfiguration]
   ): ZIO[GameTable with Crypto with Clock, Throwable, String] =
     ZIO.accessM(_.get[GameTable.Service].newGame(gameName, creatorId, creatorName, rawPassword))
 
@@ -44,6 +49,9 @@ package object gametables {
       maybePassword: Option[String]
   ): ZIO[GameTable with Clock with Crypto, Throwable, Int] =
     ZIO.accessM(_.get[GameTable.Service].addUserToGame(user, gameId, maybePassword))
+
+  final def modifyPlayerInfo(gameId: String, user: User, playerInfo: PlayerInfo): ZIO[GameTable, Throwable, Unit] =
+    ZIO.accessM(_.get[GameTable.Service].modifyPlayerInfo(gameId, user, playerInfo))
 
   def gameWithPlayersById(gameId: String): GameTableTask[MenuGameWithPlayers] =
     ZIO.accessM(_.get[GameTable.Service].gameWithPlayersById(gameId))

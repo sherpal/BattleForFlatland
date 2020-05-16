@@ -9,6 +9,7 @@ import models.bff.Routes._
 import models.bff.gameantichamber.WebSocketProtocol
 import models.bff.ingame.GameUserCredentials
 import models.bff.outofgame.MenuGameWithPlayers
+import models.bff.outofgame.gameconfig.PlayerInfo
 import models.users.{RouteDefinitions, User}
 import org.scalajs.dom.html
 import programs.frontend.games._
@@ -32,6 +33,7 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
 
   private val fetchingGameInfo = fetchGameInfo(gameId).provideLayer(layer)
 
+  /** Sends a message to the server proving that we are still connected to the game. */
   private val pokingHandle: SetIntervalHandle = setInterval(10.seconds) {
     zio.Runtime.default.unsafeRunToFuture(pokingPresence(gameId).provideLayer(layer)) onComplete {
       case Success(_) =>
@@ -41,18 +43,21 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
 
   private val receivedCredentials: Var[List[GameUserCredentials]] = Var(List())
 
+  /** Fetch game information each time the game has changed in some way. */
   val $gameInfo: EventStream[MenuGameWithPlayers] =
     EventStream
       .merge(
         socket.$in.collect { case WebSocketProtocol.GameStatusUpdated => () }
-          .debounce(1000)
+          .debounce(500)
           .flatMap(_ => EventStream.fromZIOEffect(fetchingGameInfo)),
         EventStream.fromZIOEffect(fetchingGameInfo)
       )
       .collect { case Some(info) => info }
 
+  /** Indicates whether the creator of the game is the current user. If yes, we display the cancel game button. */
   val $amICreator: EventStream[Boolean] = $gameInfo.map(_.game.gameCreator.userId == me.userId)
 
+  /** Each time the game is cancelled (at most once), the game cancelled message is issued. */
   val $gameCancelled: EventStream[Unit] = socket.$in.collect { case WebSocketProtocol.GameCancelled => () }
 
   val $shouldMoveBackToHome: EventStream[Unit] = EventStream
@@ -70,6 +75,10 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
     receivedCredentials.update(_ :+ creds)
   }
 
+  /**
+    * Connecting to the game server requires a one-time credentials that the server is going to provide.
+    * The following observable emits each time the credentials come back from the web socket.
+    */
   val $tokenForWebSocket: EventStream[String] = socket.$in.collect {
     case WebSocketProtocol.GameUserCredentialsWrapper(gameUserCredentials) =>
       gameUserCredentials
@@ -111,7 +120,20 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
         className := s"text-$primaryColour-$primaryColourDark",
         child.text <-- $gameInfo.map(_.game.gameName).map("Game " + _)
       ),
-      PlayerList($gameInfo.map(_.players)),
+      child <-- EventStream
+        .fromZIOEffect(fetchingGameInfo)
+        .map(_.flatMap(_.game.gameConfiguration.playersInfo.get(me.userName)))
+        .collect { case Some(value) => value }
+        .map(
+          info =>
+            PlayerInfoOptionPanel(
+              info,
+              socket.outWriter.contramap[PlayerInfo](
+                WebSocketProtocol.UpdateMyInfo(me.userId, _)
+              )
+            )
+        ),
+      PlayerList($gameInfo.map(_.game.gameConfiguration.playersInfo.values.toList)),
       div(
         child <-- $amICreator.map {
           if (_)
@@ -119,7 +141,8 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
               btn,
               primaryButton,
               "Launch game!",
-              onClick.mapTo(()) --> startGameBus
+              onClick.mapTo(()) --> startGameBus,
+              disabled <-- $gameInfo.map(!_.game.everyBodyReady)
             )
           else emptyNode
         },

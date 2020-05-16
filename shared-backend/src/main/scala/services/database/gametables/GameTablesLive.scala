@@ -1,6 +1,8 @@
 package services.database.gametables
 
 import errors.ErrorADT.InconsistentMenuGameInDB
+import io.circe.Encoder
+import models.bff.outofgame.gameconfig.GameConfiguration
 import models.bff.outofgame.{DBMenuGame, MenuGame}
 import models.users.User
 import services.database.db.Database.runAsTask
@@ -31,6 +33,13 @@ final class GameTablesLive(
     } yield games
 
   protected def newDBGame(dbMenuGame: DBMenuGame): Task[Int] = runAsTask(gameTableQuery += dbMenuGame)
+
+  protected def modifyGameConfiguration(gameId: String, configuration: GameConfiguration): Task[Int] =
+    runAsTask(
+      gameTableQuery
+        .map(game => (game.gameId, game.gameConfigurationAsString))
+        .update(gameId -> configuration.json)
+    )
 
   def deleteGame(gameName: String): Task[Int] =
     runAsTask(gameTableQuery.filter(_.gameName === gameName).delete)

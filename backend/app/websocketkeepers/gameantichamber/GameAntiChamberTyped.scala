@@ -10,12 +10,14 @@ import models.bff.gameantichamber.WebSocketProtocol
 import models.bff.gameantichamber.WebSocketProtocol.{GameCancelled, GameStatusUpdated, GameUserCredentialsWrapper}
 import models.bff.ingame.AllGameCredentials
 import models.bff.outofgame.MenuGame
+import models.users.User
 import services.actors.TypedActorProvider
 import services.config.Configuration
 import services.crypto.Crypto
 import services.database.gametables._
 import services.logging.{log, Logging}
 import utils.ziohelpers.getOrFail
+import websocketkeepers.gameantichamber.GameAntiChamberTyped.protocol
 import websocketkeepers.gameantichamber.JoinedGameDispatcherTyped.DidNotClose
 import zio.clock.Clock
 import zio.{Has, UIO, ZIO, ZLayer}
@@ -47,7 +49,7 @@ object GameAntiChamberTyped {
   private case object Dummy extends Message
 
   sealed trait MessageFromOutside extends Message
-  case class PlayerConnected(ref: ActorRef[AntiChamberClientTyped.Message], userId: String) extends MessageFromOutside
+  case class PlayerConnected(ref: ActorRef[AntiChamberClientTyped.Message], user: User) extends MessageFromOutside
   case class SeenAlive(userId: String) extends MessageFromOutside
   case class PlayerLeavesGame(userId: String) extends MessageFromOutside
   case object SendHeartBeat extends MessageFromOutside
@@ -55,7 +57,7 @@ object GameAntiChamberTyped {
   case object CancelGame extends MessageFromOutside
   case class GameCredentialsWrapper(gameCredentials: AllGameCredentials) extends MessageFromOutside
 
-  private case class ClientInfo(ref: ActorRef[Nothing], userId: String, lastTimeSeenAlive: LocalDateTime)
+  private case class ClientInfo(ref: ActorRef[Nothing], user: User, lastTimeSeenAlive: LocalDateTime)
 
   private def protocol(protocolMessage: WebSocketProtocol) =
     AntiChamberClientTyped.WebSocketProtocolWrapper(protocolMessage, AntiChamberClientTyped.GameAntiChamberSender)
@@ -85,20 +87,37 @@ object GameAntiChamberTyped {
     Behaviors.receive { (context, message) =>
       message match {
         case _: MessageWaitingGameInfo => Behaviors.unhandled
-        case WebSocketProtocolWrapper(protocol, sender) =>
-          protocol match {
+        case WebSocketProtocolWrapper(protocolMsg, sender) =>
+          protocolMsg match {
             case WebSocketProtocol.GameStatusUpdated => Behaviors.same
             case WebSocketProtocol.GameCancelled     => Behaviors.same
             case WebSocketProtocol.HeartBeat         => Behaviors.same
             case WebSocketProtocol.PlayerLeavesGame(userId) =>
               players.get(sender) match {
                 case None => Behaviors.same
-                case Some(ClientInfo(_, senderUserId, _)) if senderUserId == userId =>
+                case Some(ClientInfo(_, senderUser, _)) if senderUser.userId == userId =>
                   context.self ! PlayerLeavesGame(userId)
                   Behaviors.same
                 case _ => Behaviors.same
               }
             case WebSocketProtocol.GameUserCredentialsWrapper(_) => Behaviors.same
+            case WebSocketProtocol.UpdateMyInfo(userId, playerInfo) =>
+              players.values.map(_.user).find(_.userId == userId).fold(Behaviors.same[Message]) { user =>
+                zio.Runtime.default.unsafeRun(
+                  (for {
+                    _ <- services.database.gametables.modifyPlayerInfo(menuGame.gameId, user, playerInfo)
+                    maybeGameInfo <- services.database.gametables.selectGameById(menuGame.gameId)
+                    gameInfo <- getOrFail(maybeGameInfo, new Exception("weird"))
+                    _ <- ZIO.effectTotal(clients.foreach(_ ! protocol(GameStatusUpdated)))
+                  } yield behavior(
+                    gameInfo,
+                    players,
+                    parent,
+                    layer
+                  )).orDie.provideLayer(layer)
+                )
+              }
+
           }
         case SendHeartBeat =>
           // keeping connection alive
@@ -137,8 +156,8 @@ object GameAntiChamberTyped {
         case GameCredentialsWrapper(credentials) =>
           for {
             userCreds <- credentials.allGameUserCredentials
-            (clientRef, ClientInfo(_, userId, _)) <- players
-            if userCreds.userId == userId
+            (clientRef, ClientInfo(_, user, _)) <- players
+            if userCreds.userId == user.userId
           } clientRef ! AntiChamberClientTyped.WebSocketProtocolWrapper(
             GameUserCredentialsWrapper(userCreds),
             AntiChamberClientTyped.GameAntiChamberSender
@@ -148,10 +167,10 @@ object GameAntiChamberTyped {
 
         case SeenAlive(userId) =>
           players
-            .find(_._2.userId == userId)
+            .find(_._2.user.userId == userId)
             .map {
               case (ref, info) =>
-                behavior(menuGame, players + (ref -> ClientInfo(info.ref, userId, now)), parent, layer)
+                behavior(menuGame, players + (ref -> ClientInfo(info.ref, info.user, now)), parent, layer)
             }
             .getOrElse(Behaviors.same)
         case CheckAlive =>
@@ -163,7 +182,9 @@ object GameAntiChamberTyped {
                 GameAntiChamberDAO
                   .kickInactivePlayers(
                     menuGame.gameId,
-                    players.values.map { case ClientInfo(_, userId, lastTimeSeenAlive) => userId -> lastTimeSeenAlive }.toMap
+                    players.values.map {
+                      case ClientInfo(_, user, lastTimeSeenAlive) => user.userId -> lastTimeSeenAlive
+                    }.toMap
                   )
                   .map {
                     case (creatorWasKicked, peopleWereKicked) =>
@@ -197,7 +218,7 @@ object GameAntiChamberTyped {
           Behaviors.same
         case PlayerLeavesGame(userId) =>
           players
-            .find(_._2.userId == userId)
+            .find(_._2.user.userId == userId)
             .map {
               case (ref, _) =>
                 zio.Runtime.default.unsafeRun(

@@ -3,7 +3,8 @@ package models.bff.outofgame
 import java.time.LocalDateTime
 
 import errors.ErrorADT
-import models.syntax.{Pointed, Validated}
+import models.bff.outofgame.gameconfig.GameConfiguration
+import models.syntax.Validated
 import models.users.User
 import models.validators.FieldsValidator
 import models.validators.StringValidators._
@@ -13,7 +14,8 @@ final case class MenuGame(
     gameName: String,
     maybeHashedPassword: Option[String],
     gameCreator: User,
-    createdOn: LocalDateTime
+    createdOn: LocalDateTime,
+    gameConfiguration: GameConfiguration
 ) {
 
   /**
@@ -29,6 +31,8 @@ final case class MenuGame(
     maybeHashedPassword = maybeHashedPassword.map(_ => ""),
     gameCreator         = gameCreator.onlyName
   )
+
+  def everyBodyReady: Boolean = gameConfiguration.playersInfo.values.forall(_.isReady)
 
 }
 

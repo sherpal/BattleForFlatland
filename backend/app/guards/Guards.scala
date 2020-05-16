@@ -121,11 +121,11 @@ object Guards {
       header <- zioRequestHeader
       gameIdHeaderValue <- ZIO
         .fromOption(header.headers.get(GameServerIdHeader.name))
-        .mapError(_ => MissingGameServerAuthHeader(GameServerIdHeader.name))
+        .orElseFail(MissingGameServerAuthHeader(GameServerIdHeader.name))
       gameId = GameServerIdHeader(gameIdHeaderValue)
       gameSecretHeaderValue <- ZIO
         .fromOption(header.headers.get(GameServerSecretHeader.name))
-        .mapError(_ => MissingGameServerAuthHeader(GameServerSecretHeader.name))
+        .orElseFail(MissingGameServerAuthHeader(GameServerSecretHeader.name))
       gameSecret = GameServerSecretHeader(gameSecretHeaderValue)
       allCredentials <- retrieveUsersCredentials(GameCredentials(gameId.value, gameSecret.value))
     } yield allCredentials
