@@ -3,6 +3,7 @@ package gamelogic.entities
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Circle, Shape}
 
@@ -40,6 +41,16 @@ final case class DummyLivingEntity(
   def resourceAmount: ResourceAmount = ResourceAmount(0.0, NoResource)
 
   protected def patchLifeTotal(newLife: Double): DummyLivingEntity = copy(life = newLife)
+
+  def move(
+      time: Long,
+      position: Complex,
+      direction: Angle,
+      rotation: Angle,
+      speed: Double,
+      moving: Boolean
+  ): DummyLivingEntity =
+    copy(time = time, pos = position, direction = direction, moving = moving)
 }
 
 object DummyLivingEntity {

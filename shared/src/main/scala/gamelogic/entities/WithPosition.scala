@@ -10,3 +10,9 @@ trait WithPosition extends Entity {
 
   def currentPosition(time: Long): Complex = pos
 }
+
+object WithPosition {
+
+  type Angle = Double
+
+}

@@ -1,6 +1,7 @@
 package game.ui
 
 import game.Camera
+import gamelogic.entities.classes.PlayerClass
 import gamelogic.entities.{DummyLivingEntity, DummyMob, Entity, SimpleBulletBody}
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
@@ -57,18 +58,33 @@ final class GameDrawer(application: Application) {
   }
 
   private val players: mutable.Map[Entity.Id, Sprite] = mutable.Map()
-  private def drawPlayers(entities: List[DummyLivingEntity]): Unit =
+
+  private def drawPlayers(entities: List[PlayerClass]): Unit =
     entities.foreach { entity =>
       val sprite = players.getOrElse(entity.id, {
-        val s = new Sprite(circleTexture(entity.colour, entity.shape.radius))
+        val s = new Sprite(polygonTexture(entity.colour, entity.shape))
         s.anchor.set(0.5, 0.5)
         players += (entity.id -> s)
         playerContainer.addChild(s)
         s
       })
 
+      sprite.rotation = -entity.rotation
       camera.viewportManager(sprite, entity.pos, entity.shape.boundingBox)
     }
+
+//  private def drawDummyLivingEntity(entities: List[DummyLivingEntity]): Unit =
+//    entities.foreach { entity =>
+//      val sprite = players.getOrElse(entity.id, {
+//        val s = new Sprite(circleTexture(entity.colour, entity.shape.radius))
+//        s.anchor.set(0.5, 0.5)
+//        players += (entity.id -> s)
+//        playerContainer.addChild(s)
+//        s
+//      })
+//
+//      camera.viewportManager(sprite, entity.pos, entity.shape.boundingBox)
+//    }
 
   private val dummyMobSprites: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
   private def drawDummyMobs(entities: List[DummyMob], now: Long): Unit =

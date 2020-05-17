@@ -1,5 +1,6 @@
 package gamelogic.entities
 
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.physics.Complex
 
 /**
@@ -7,7 +8,7 @@ import gamelogic.physics.Complex
   */
 trait Moving extends WithPosition {
   def speed: Double
-  def direction: Double
+  def direction: Angle
   def moving: Boolean
 
   override def currentPosition(currentTime: Long): Complex =

@@ -25,8 +25,7 @@ final case class EntityStartsCasting(id: GameAction.Id, time: Long, castingTime:
     */
   def isLegalDelay(gameState: GameState, delay: Long): Boolean =
     gameState.withAbilityEntitiesById(ability.casterId).exists(_.canUseAbility(ability.abilityId, time + delay)) &&
-      !gameState.entityIsCasting(ability.casterId, delay) &&
-      ability.isInRange(gameState, time)
+      !gameState.entityIsCasting(ability.casterId, delay) && ability.isInRange(gameState, time)
 
   def changeId(newId: Id): EntityStartsCasting = copy(id = newId)
 

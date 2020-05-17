@@ -3,7 +3,7 @@ package frontend.components.connected.ingame
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.LifecycleComponent
-import game.{GameAssetLoader, GameStateManager, Keyboard}
+import game.{GameAssetLoader, GameStateManager, Keyboard, Mouse}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import models.bff.ingame.InGameWSProtocol.ReadyToStart
@@ -50,6 +50,7 @@ final class GameViewContainer private (
         $actionsFromServer,
         socketOutWriter,
         new Keyboard(implicitly[Pointed[KeyboardControls]].unit),
+        new Mouse(application.view.asInstanceOf[html.Canvas]),
         playerId,
         deltaTimeWithServer,
         resources

@@ -18,13 +18,14 @@ val scalaCompilerOptions = List(
   //"-Ywarn-dead-code"
 )
 
+scalacOptions in ThisBuild := scalaCompilerOptions
+
 lazy val `shared` = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
   .disablePlugins(HerokuPlugin) // no need of Heroku for shared project
   .settings(
     SharedSettings(),
     scalaVersion := "2.13.1",
-    scalacOptions := scalaCompilerOptions,
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )
   .jvmSettings(

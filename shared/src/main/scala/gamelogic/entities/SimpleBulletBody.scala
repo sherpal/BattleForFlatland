@@ -1,4 +1,5 @@
 package gamelogic.entities
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Circle, Shape}
 
@@ -20,6 +21,16 @@ final case class SimpleBulletBody(
   val shape: Shape     = new Circle(radius)
   val rotation: Double = 0.0 // doesn't matter, it's a disk
   val moving: Boolean  = true
+
+  def move(
+      time: Long,
+      position: Complex,
+      direction: Angle,
+      rotation: Angle,
+      speed: Double,
+      moving: Boolean
+  ): MovingBody =
+    copy(time = time, pos = position, direction = direction, speed = speed)
 }
 
 object SimpleBulletBody {

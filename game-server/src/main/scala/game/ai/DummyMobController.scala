@@ -4,7 +4,9 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import game.ActionTranslator
 import gamelogic.gamestate.GameState
-import gamelogic.gamestate.gameactions.{AddDummyMob, DummyMobMoves}
+import gamelogic.gamestate.gameactions.{AddDummyMob, MovingBodyMoves}
+
+import Ordering.Double.TotalOrdering
 
 import scala.concurrent.duration._
 
@@ -55,7 +57,7 @@ object DummyMobController {
 
         if (math.abs(rotation - me.rotation) > 1e-6) {
           actionTranslator ! ActionTranslator.GameActionsWrapper(
-            DummyMobMoves(0L, startTime, myId, currentPosition, rotation, rotation, moving = true) :: Nil
+            MovingBodyMoves(0L, startTime, myId, currentPosition, rotation, rotation, me.speed, moving = true) :: Nil
           )
         }
 

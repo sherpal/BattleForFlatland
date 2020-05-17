@@ -1,5 +1,6 @@
 package gamelogic.entities
 
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.Shape
 
@@ -9,7 +10,7 @@ import gamelogic.physics.shape.Shape
 trait Body extends WithPosition {
   def shape: Shape
 
-  def rotation: Double
+  def rotation: Angle
 
   def collides(that: Body): Boolean =
     shape.collides(pos, rotation, that.shape, that.pos, that.rotation)
@@ -25,7 +26,7 @@ trait Body extends WithPosition {
     * @param precision Steps by which trying.
     * @return          First position where this body will have no collision.
     */
-  def firstValidPosition(rotation: Double, bodies: Iterable[Body], precision: Int = 5): Complex = {
+  def firstValidPosition(rotation: Angle, bodies: Iterable[Body], precision: Int = 5): Complex = {
     val dir = Complex.rotation(rotation)
 
     @scala.annotation.tailrec

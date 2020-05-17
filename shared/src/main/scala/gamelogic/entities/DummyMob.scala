@@ -1,4 +1,5 @@
 package gamelogic.entities
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{ConvexPolygon, Shape}
 
@@ -12,8 +13,8 @@ final case class DummyMob(
     pos: Complex,
     speed: Double,
     moving: Boolean,
-    direction: Double,
-    rotation: Double
+    direction: Angle,
+    rotation: Angle
 ) extends LivingEntity
     with MovingBody {
   val life: Double    = 100.0
@@ -21,6 +22,9 @@ final case class DummyMob(
 
   protected def patchLifeTotal(newLife: Double): DummyMob = this // this is dumb, but we kinda don't care.
   val shape: ConvexPolygon                                = DummyMob.shape
+
+  def move(time: Long, position: Complex, direction: Angle, rotation: Angle, speed: Double, moving: Boolean): DummyMob =
+    copy(time = time, pos = position, moving = moving, direction = direction, rotation = rotation)
 }
 
 object DummyMob {

@@ -174,8 +174,6 @@ object GameAntiChamberTyped {
             }
             .getOrElse(Behaviors.same)
         case CheckAlive =>
-          logInfo("About to kick people")
-
           context.pipeToSelf(
             zio.Runtime.default
               .unsafeRunToFuture(
@@ -201,7 +199,6 @@ object GameAntiChamberTyped {
 
           Behaviors.same
         case Dummy =>
-          logInfo("Nobody was kicked")
           Behaviors.same
         case PeopleWereKicked =>
           logInfo("People were Kicked, notifying remaining ones.")

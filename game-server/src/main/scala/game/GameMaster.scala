@@ -2,7 +2,7 @@ package game
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import gamelogic.gamestate.gameactions.{AddDummyMob, AddPlayer, GameStart}
+import gamelogic.gamestate.gameactions.{AddDummyMob, AddPlayer, AddPlayerByClass, GameStart, MovingBodyMoves}
 import gamelogic.gamestate.serveractions._
 import gamelogic.gamestate.{GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
@@ -172,28 +172,38 @@ object GameMaster {
               // first message that kick off the actor and will trigger others
               val n = now
 
-              val newPlayerActions = playerMap.values.zipWithIndex.map {
-                case (ref, idx) =>
-                  ref -> AddPlayer(
-                    0,
-                    n - 1,
-                    idx.toLong,
-                    100 * Complex.rotation(idx * 2 * math.Pi / playerMap.size),
-                    Random.nextInt(0xFFFFFF)
-                  )
-              }
+              try {
+                val refsByName = gameInfo.players.map(user => user.userName -> playerMap(user.userId)).toMap
 
-              newPlayerActions.foreach {
-                case (ref, player) =>
-                  ref ! InGameWSProtocol.YourEntityIdIs(player.playerId)
-              }
+                val newPlayerActions = gameInfo.game.gameConfiguration.playersInfo.values.zipWithIndex.map {
+                  case (info, idx) =>
+                    refsByName(info.playerName) -> AddPlayerByClass(
+                      0L,
+                      n - 1,
+                      idx.toLong,
+                      100 * Complex.rotation(idx * 2 * math.Pi / playerMap.size),
+                      info.playerClass,
+                      info.playerColour.intColour
+                    )
+                }
 
-              setupBehaviour(
-                actionUpdateCollector,
-                Some(gameInfo),
-                Set(),
-                Some(newPlayerActions.map(_._2).toList :+ GameStart(0L, now))
-              )
+                newPlayerActions.foreach {
+                  case (ref, player) =>
+                    ref ! InGameWSProtocol.YourEntityIdIs(player.entityId)
+                }
+
+                setupBehaviour(
+                  actionUpdateCollector,
+                  Some(gameInfo),
+                  Set(),
+                  Some(newPlayerActions.map(_._2).toList :+ GameStart(0L, now))
+                )
+
+              } catch {
+                case e: Throwable =>
+                  e.printStackTrace()
+                  throw e
+              }
 
             case IAmReadyToStart(userId) =>
               val newReadyPlayers = readyPlayers + userId
@@ -203,7 +213,7 @@ object GameMaster {
                 context.self ! MultipleActionsWrapper(maybePreGameActions.get)
                 context.self ! GameLoop
 
-                val entityIdGenerator = new EntityIdGenerator(readyPlayers.size)
+                val entityIdGenerator = new EntityIdGenerator(readyPlayers.size + 1)
 
                 zio.Runtime.default.unsafeRunAsync(spawnMobLoop(context.self, 5.seconds, entityIdGenerator))(println(_))
 

@@ -1,5 +1,6 @@
 package gamelogic.entities
 
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.physics.Complex
 
 trait MovingBody extends Moving with Body {
@@ -22,5 +23,10 @@ trait MovingBody extends Moving with Body {
 
   def collides(that: Body, thisTime: Long): Boolean =
     shape.collides(currentPosition(thisTime), rotation, that.shape, that.pos, that.rotation)
+
+  /**
+    * Moves this MovingBody at the current time, with the all moving body related attributes.
+    */
+  def move(time: Long, position: Complex, direction: Angle, rotation: Angle, speed: Double, moving: Boolean): MovingBody
 
 }

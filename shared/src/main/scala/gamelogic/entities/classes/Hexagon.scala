@@ -2,10 +2,11 @@ package gamelogic.entities.classes
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
-import gamelogic.entities.Resource.ResourceAmount
+import gamelogic.entities.Resource.{Mana, ResourceAmount}
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.{LivingEntity, MovingBody, WithAbilities}
 import gamelogic.physics.Complex
-import gamelogic.physics.shape.Shape
+import gamelogic.physics.shape.{Polygon, Shape}
 
 /**
   * The [[gamelogic.entities.classes.Hexagon]] is the healer class available to players.
@@ -16,27 +17,39 @@ final case class Hexagon(
     id: Long,
     time: Long,
     pos: Complex,
-    direction: Double,
+    direction: Angle,
     moving: Boolean,
-    rotation: Double,
+    rotation: Angle,
     life: Double,
     colour: Int,
     relevantUsedAbilities: Map[AbilityId, Ability],
     maxLife: Double,
     speed: Double,
     resourceAmount: ResourceAmount
-) extends LivingEntity
-    with MovingBody
-    with WithAbilities {
+) extends PlayerClass {
 
   protected def patchLifeTotal(newLife: Double): LivingEntity = copy(life = newLife)
 
-  def abilities: Set[AbilityId] = Set(Ability.hexagonFlashHealId, Ability.hexagonHexagonHotId)
+  def abilities: Set[AbilityId] = Set(Ability.hexagonFlashHealId, Ability.hexagonHexagonHotId, Ability.simpleBulletId)
 
   def useAbility(ability: Ability): Hexagon = copy(
     relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability),
     resourceAmount        = resourceAmount - ability.cost
   )
 
-  def shape: Shape = Shape.regularPolygon(6, Constants.playerRadius)
+  def shape: Polygon = Shape.regularPolygon(6, Constants.playerRadius)
+
+  def move(
+      time: Long,
+      position: Complex,
+      direction: Angle,
+      rotation: Angle,
+      speed: Double,
+      moving: Boolean
+  ): Hexagon =
+    copy(time = time, pos = position, direction = direction, rotation = rotation, speed = speed, moving = moving)
+}
+
+object Hexagon {
+  def initialResourceAmount: ResourceAmount = ResourceAmount(300, Mana)
 }

@@ -51,14 +51,15 @@ object GameAction {
   implicit val encoder: Encoder[GameAction] = Encoder.instance {
     case x: AddDummyMob              => customEncode(x, "AddDummyMob")
     case x: AddPlayer                => customEncode(x, "AddPlayer")
+    case x: AddPlayerByClass         => customEncode(x, "AddPlayerByClass")
     case x: DummyEntityMoves         => customEncode(x, "DummyEntityMoves")
-    case x: DummyMobMoves            => customEncode(x, "DummyMobMoves")
     case x: EndGame                  => customEncode(x, "EndGame")
     case x: EntityCastingInterrupted => customEncode(x, "EntityCastingInterrupted")
     case x: EntityGetsHealed         => customEncode(x, "EntityGetsHealed")
     case x: EntityStartsCasting      => customEncode(x, "EntityStartsCasting")
     case x: EntityTakesDamage        => customEncode(x, "EntityTakesDamage")
     case x: GameStart                => customEncode(x, "GameStart")
+    case x: MovingBodyMoves          => customEncode(x, "MovingBodyMoves")
     case x: NewSimpleBullet          => customEncode(x, "NewSimpleBullet")
     case x: RemoveBuff               => customEncode(x, "RemoveBuff")
     case x: ThreatToEntityChange     => customEncode(x, "ThreatToEntityChange")
@@ -74,14 +75,15 @@ object GameAction {
   implicit val decoder: Decoder[GameAction] = List[Decoder[GameAction]](
     customDecoder[AddDummyMob]("AddDummyMob"),
     customDecoder[AddPlayer]("AddPlayer"),
+    customDecoder[AddPlayerByClass]("AddPlayerByClass"),
     customDecoder[DummyEntityMoves]("DummyEntityMoves"),
-    customDecoder[DummyMobMoves]("DummyMobMoves"),
     customDecoder[EndGame]("EndGame"),
     customDecoder[EntityCastingInterrupted]("EntityCastingInterrupted"),
     customDecoder[EntityGetsHealed]("EntityGetsHealed"),
     customDecoder[EntityStartsCasting]("EntityStartsCasting"),
     customDecoder[EntityTakesDamage]("EntityTakesDamage"),
     customDecoder[GameStart]("GameStart"),
+    customDecoder[MovingBodyMoves]("MovingBodyMoves"),
     customDecoder[NewSimpleBullet]("NewSimpleBullet"),
     customDecoder[RemoveBuff]("RemoveBuff"),
     customDecoder[ThreatToEntityChange]("ThreatToEntityChange"),

@@ -10,7 +10,8 @@ import game.ui.GameDrawer
 import game.ui.gui.GUIDrawer
 import gamelogic.abilities.SimpleBullet
 import gamelogic.entities.Entity
-import gamelogic.gamestate.gameactions.{DummyEntityMoves, EntityStartsCasting}
+import gamelogic.entities.WithPosition.Angle
+import gamelogic.gamestate.gameactions.{DummyEntityMoves, EntityStartsCasting, MovingBodyMoves}
 import gamelogic.gamestate.{AddAndRemoveActions, GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
 import models.bff.ingame.{InGameWSProtocol, UserInput}
@@ -25,6 +26,7 @@ final class GameStateManager(
     $actionsFromServer: EventStream[AddAndRemoveActions],
     socketOutWriter: Observer[InGameWSProtocol.Outgoing],
     keyboard: Keyboard,
+    mouse: Mouse,
     playerId: Entity.Id,
     deltaTimeWithServer: Long,
     resources: PartialFunction[Asset, LoaderResource]
@@ -40,6 +42,14 @@ final class GameStateManager(
 
   val $gameStates: Signal[GameState] = gameStateBus.events.startWith(initialGameState)
   private val $strictGameStates      = $gameStates.observe
+
+  val $gameMousePosition: SignalViewer[Complex] = mouse.$effectiveMousePosition.map(gameDrawer.camera.mousePosToWorld)
+    .startWith(Complex.zero)
+    .observe
+  val $mouseAngleWithPosition: SignalViewer[Angle] = $gameMousePosition.map { mousePosition =>
+    val myPositionNow = $strictGameStates.now.players.get(playerId).fold(Complex.zero)(_.pos)
+    (mousePosition - myPositionNow).arg
+  }.observe
 
   private var unconfirmedActions: List[GameAction] = Nil
 
@@ -58,12 +68,14 @@ final class GameStateManager(
   val pressedUserInputSignal: SignalViewer[Set[UserInput]] = keyboard.$pressedUserInput.observe
 
   keyboard.$downKeyEvents.filter(_.code == "KeyE").foreach { _ =>
+    val direction = $mouseAngleWithPosition.now
+
     val ability = new SimpleBullet(
       0L,
       System.currentTimeMillis,
       playerId,
-      actionCollector.currentGameState.players.get(playerId).map(_.pos).getOrElse(Complex.zero),
-      0
+      $strictGameStates.now.players.get(playerId).map(_.pos).getOrElse(Complex.zero),
+      direction
     )
 
     val action = EntityStartsCasting(
@@ -98,18 +110,20 @@ final class GameStateManager(
 
     gameState.players.get(playerId) match {
       case Some(entity) =>
-        val nextPos = entity.pos + entity.speed * playerMovement * deltaTime / 1000
-        val moving  = playerMovement != Complex.zero
+        val nextPos  = entity.pos + entity.speed * playerMovement * deltaTime / 1000
+        val moving   = playerMovement != Complex.zero
+        val rotation = $mouseAngleWithPosition.now
 
-        if (moving || entity.moving != moving) {
-          val newAction = DummyEntityMoves(
+        if (moving || entity.moving != moving || rotation != entity.rotation) {
+          val newAction = MovingBodyMoves(
             0L,
             now,
             playerId,
             nextPos,
-            moving,
             entity.direction,
-            entity.colour
+            rotation,
+            entity.speed,
+            moving
           )
           unconfirmedActions = unconfirmedActions :+ newAction
 

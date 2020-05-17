@@ -2,6 +2,7 @@ package gamelogic.gamestate
 
 import gamelogic.buffs.{Buff, PassiveBuff, TickerBuff}
 import gamelogic.entities._
+import gamelogic.entities.classes.PlayerClass
 import models.syntax.Pointed
 
 /**
@@ -20,7 +21,7 @@ final case class GameState(
     time: Long,
     startTime: Option[Long],
     endTime: Option[Long],
-    players: Map[Entity.Id, DummyLivingEntity],
+    players: Map[Entity.Id, PlayerClass],
     dummyMobs: Map[Entity.Id, DummyMob],
     simpleBullets: Map[Entity.Id, SimpleBulletBody],
     castingEntityInfo: Map[Entity.Id, EntityCastingInfo],
@@ -42,7 +43,7 @@ final case class GameState(
   def isLegalAction(action: GameAction): Boolean = action.isLegal(gameState = this)
 
   def entityIsCasting(entityId: Entity.Id): Boolean = entityIsCasting(entityId, 0L)
-  def entityIsCasting(entityId: Entity.Id, delay: Long): Boolean = castingEntityInfo.get(entityId).fold(true) {
+  def entityIsCasting(entityId: Entity.Id, delay: Long): Boolean = castingEntityInfo.get(entityId).fold(false) {
     castingInfo =>
       time + delay - castingInfo.startedTime >= castingInfo.castingTime
   }
@@ -58,6 +59,9 @@ final case class GameState(
   def withThreatEntityById(entityId: Entity.Id): Option[WithThreat] = None
 
   def withPositionEntityById(entityId: Entity.Id): Option[WithPosition] =
+    players.get(entityId).orElse(dummyMobs.get(entityId))
+
+  def movingBodyEntityById(entityId: Entity.Id): Option[MovingBody] =
     players.get(entityId).orElse(dummyMobs.get(entityId))
 
   def buffById(entityId: Entity.Id, buffId: Buff.Id): Option[Buff] =
