@@ -54,6 +54,7 @@ final class GUIDrawer(
     }
 
     playerFrameGridContainer.currentElements.foreach(_.update(gameState))
+    playerFrameGridContainer.display()
   }
 
 }

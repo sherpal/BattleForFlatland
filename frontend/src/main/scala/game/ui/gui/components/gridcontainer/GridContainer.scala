@@ -66,7 +66,7 @@ final class GridContainer[T <: GUIComponent](
     coordinateForNextLine
   }
 
-  private def display(): Unit =
+  def display(): Unit =
     elementsByLine.foldLeft(0.0) { (coordinate, line) =>
       displayLine(line, coordinate)
     }
