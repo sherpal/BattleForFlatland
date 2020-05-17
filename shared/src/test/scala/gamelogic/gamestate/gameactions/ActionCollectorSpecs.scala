@@ -11,7 +11,7 @@ import zio.test._
 object ActionCollectorSpecs extends DefaultRunnableSpec {
   def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] = suite("Action Collector behaviour")(
     testM("Adding a GameStart action to an initial game state") {
-      val collector = new ActionCollector(GameState.empty(0))
+      val collector = new ActionCollector(GameState.empty)
       val gameStart = GameStart(0, 1)
       val endGame   = EndGame(1, 2)
 
@@ -27,18 +27,18 @@ object ActionCollectorSpecs extends DefaultRunnableSpec {
 
     },
     testM("Entity starts casting") {
-      val collector = new ActionCollector(GameState.empty(0))
+      val collector = new ActionCollector(GameState.empty)
       val gameStart = GameStart(0, 1)
 
       val newPlayer           = AddPlayer(1, 1, 0L, Complex.zero, 0)
-      val entityStartsCasting = EntityStartsCasting(2L, 2, SimpleBullet(0L, 2, 0L, Complex.zero, 0))
+      val entityStartsCasting = EntityStartsCasting(2L, 2, 1500L, SimpleBullet(0L, 2, 0L, Complex.zero, 0))
 
       collector.addAndRemoveActions(List(gameStart, newPlayer, entityStartsCasting))
 
       assertM(UIO(collector.currentGameState.castingEntityInfo.keys.toList))(equalTo(List(0L)))
     },
     testM("Adding player out of order") {
-      val collector    = new ActionCollector(GameState.empty(0L))
+      val collector    = new ActionCollector(GameState.empty)
       val gameStart    = GameStart(0, 1)
       val firstPlayer  = AddPlayer(0, 3, 0L, 0, 0)
       val secondPlayer = AddPlayer(1L, 2L, 1L, Complex.i, 2)
@@ -52,7 +52,7 @@ object ActionCollectorSpecs extends DefaultRunnableSpec {
       } yield result
     },
     testM("Actions separated by more than the limit") {
-      val collector    = new ActionCollector(GameState.empty(0L), timeBetweenGameStates = 3L)
+      val collector    = new ActionCollector(GameState.empty, timeBetweenGameStates = 3L)
       val gameStart    = GameStart(0, 1)
       val firstPlayer  = AddPlayer(0, 4, 0L, 0, 0)
       val secondPlayer = AddPlayer(1L, 2L, 1L, Complex.i, 2)

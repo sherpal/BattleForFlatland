@@ -2,8 +2,9 @@ package game.ui.gui.components
 
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
+import typings.pixiJs.AnonAlign
 import typings.pixiJs.PIXI.Texture
-import typings.pixiJs.mod.{Graphics, Sprite}
+import typings.pixiJs.mod.{Graphics, Sprite, Text, TextStyle}
 
 /**
   * Creates a container whose content is attached to the player with given id.
@@ -12,7 +13,7 @@ import typings.pixiJs.mod.{Graphics, Sprite}
   * update you should call the update method.
   */
 final class PlayerFrame(
-    entityId: Entity.Id,
+    val entityId: Entity.Id,
     entityShapeTexture: Texture,
     lifeTexture: Texture,
     resourceTexture: Texture,
@@ -33,7 +34,16 @@ final class PlayerFrame(
   private val resourceMask   = new Graphics()
   resourceSprite.mask = resourceMask
 
-  List(shapeSprite, lifeSprite, lifeMask, resourceSprite, resourceMask).foreach(container.addChild)
+  private val playerNameText = new Text(
+    "",
+    new TextStyle(
+      AnonAlign(
+        fontSize = 10.0
+      )
+    )
+  )
+
+  List(shapeSprite, lifeSprite, lifeMask, resourceSprite, resourceMask, playerNameText).foreach(container.addChild)
 
   private var _isSetup: Boolean = false
 
@@ -47,9 +57,6 @@ final class PlayerFrame(
       lifeSprite.tint     = 0x00FF00
       resourceSprite.tint = entity.resourceType.colour.intColour
 
-      //container.width  = width
-      //container.height = height
-
       shapeSprite.width  = height
       shapeSprite.height = height
 
@@ -57,14 +64,20 @@ final class PlayerFrame(
       lifeSprite.width = width - height
       lifeMask.x       = height
 
-      lifeSprite.height = height * 0.7
+      val lifeProportion = 0.8
+      lifeSprite.height = height * lifeProportion
+
+      playerNameText.x    = height + 4
+      playerNameText.y    = 2
+      playerNameText.tint = 0xFFFFFF
+      playerNameText.text = entity.name
 
       resourceSprite.x      = height
-      resourceSprite.y      = height * 0.7
+      resourceSprite.y      = height * lifeProportion
       resourceSprite.width  = width - height
-      resourceSprite.height = height * 0.3
+      resourceSprite.height = height * (1 - lifeProportion)
       resourceMask.x        = height
-      resourceMask.y        = height * 0.7
+      resourceMask.y        = height * lifeProportion
 
   }
 

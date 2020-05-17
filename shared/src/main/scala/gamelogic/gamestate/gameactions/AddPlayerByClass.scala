@@ -5,7 +5,7 @@ import gamelogic.entities.Resource.ResourceAmount
 import gamelogic.entities.classes.{Constants, Hexagon, Square}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
-import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithPlayer}
+import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity, WithPlayer}
 import gamelogic.physics.Complex
 import models.bff.outofgame.PlayerClasses
 
@@ -18,7 +18,7 @@ final case class AddPlayerByClass(
     colour: Int,
     playerName: String
 ) extends GameAction {
-  def createGameStateTransformer(gameState: GameState): GameStateTransformer = new WithPlayer(
+  def createGameStateTransformer(gameState: GameState): GameStateTransformer = new WithEntity(
     playerClass match {
       case PlayerClasses.Square =>
         Square(

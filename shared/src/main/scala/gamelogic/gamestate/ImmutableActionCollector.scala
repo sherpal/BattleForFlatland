@@ -74,9 +74,11 @@ final class ImmutableActionCollector private (
     val updatedActionsAndStates = removeActions(
       oldestTimeToRemove,
       idsOfActionsToRemove,
-      actionsToAdd.foldLeft(actionsAndStates) { (asAndSs, nextAction) =>
-        addAction(nextAction, asAndSs)
-      }
+      actionsToAdd
+        .foldLeft(actionsAndStates) {
+          case (asAndSs, nextAction) =>
+            addAction(nextAction, asAndSs)
+        }
     )
 
     new ImmutableActionCollector(
@@ -191,13 +193,14 @@ final class ImmutableActionCollector private (
     * already added.
     *
     * @param action     the [[GameAction]] to add
+    * @param currentActionsAndStates list of past actions and game state to add the action to
     */
   private def addAction(
       action: GameAction,
       currentActionsAndStates: List[(GameState, List[GameAction])]
   ): List[(GameState, List[GameAction])] =
-    if (action.time > currentActionsAndStates.head._1.time + timeBetweenGameStates) {
-      val temp = (currentGameState, List(action)) +: currentActionsAndStates
+    if (action.time > currentActionsAndStates.head._1.time + timeBetweenGameStates) { //} && currentActionsAndStates.length > 3) {
+      val temp = (currentActionsAndStates.head._1.applyActions(currentActionsAndStates.head._2), List(action)) +: currentActionsAndStates
       if (timeToOldestGameState < temp.head._1.time - temp.last._1.time) {
         temp.dropRight(1)
       } else temp
