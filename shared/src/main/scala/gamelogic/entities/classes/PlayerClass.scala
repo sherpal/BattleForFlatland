@@ -6,5 +6,7 @@ import gamelogic.physics.shape.Polygon
 trait PlayerClass extends LivingEntity with MovingBody with WithAbilities {
   def colour: Int
 
+  def name: String
+
   def shape: Polygon
 }

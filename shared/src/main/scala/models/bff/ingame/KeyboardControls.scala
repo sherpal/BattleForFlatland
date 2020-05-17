@@ -25,10 +25,10 @@ object KeyboardControls {
 
   implicit val pointed: Pointed[KeyboardControls] = Pointed.factory(
     KeyboardControls(
-      "ArrowUp",
-      "ArrowDown",
-      "ArrowLeft",
-      "ArrowRight"
+      "KeyW",
+      "KeyS",
+      "KeyA",
+      "KeyD"
     )
   )
 

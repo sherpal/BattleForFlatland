@@ -15,7 +15,8 @@ final case class AddPlayerByClass(
     entityId: Entity.Id,
     position: Complex,
     playerClass: PlayerClasses,
-    colour: Int
+    colour: Int,
+    playerName: String
 ) extends GameAction {
   def createGameStateTransformer(gameState: GameState): GameStateTransformer = new WithPlayer(
     playerClass match {
@@ -32,7 +33,8 @@ final case class AddPlayerByClass(
           Map(),
           100,
           Constants.playerSpeed,
-          Square.initialResourceAmount
+          Square.initialResourceAmount,
+          playerName
         )
       case PlayerClasses.Hexagon =>
         Hexagon(
@@ -47,7 +49,8 @@ final case class AddPlayerByClass(
           Map(),
           100,
           Constants.playerSpeed,
-          Hexagon.initialResourceAmount
+          Hexagon.initialResourceAmount,
+          playerName
         )
     }
   )

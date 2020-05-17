@@ -183,7 +183,8 @@ object GameMaster {
                       idx.toLong,
                       100 * Complex.rotation(idx * 2 * math.Pi / playerMap.size),
                       info.playerClass,
-                      info.playerColour.intColour
+                      info.playerColour.intColour,
+                      info.playerName
                     )
                 }
 
