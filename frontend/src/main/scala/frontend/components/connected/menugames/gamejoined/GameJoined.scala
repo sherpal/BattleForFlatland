@@ -139,7 +139,9 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
           if (_)
             button(
               btn,
-              primaryButton,
+              className <-- $gameInfo.map(_.game.everyBodyReady)
+                .startWith(false)
+                .map(if (_) primaryButtonContent else primaryButtonDisabledContent),
               "Launch game!",
               onClick.mapTo(()) --> startGameBus,
               disabled <-- $gameInfo.map(!_.game.everyBodyReady)
