@@ -2,7 +2,7 @@ package game
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import gamelogic.gamestate.gameactions.{AddDummyMob, AddPlayer, AddPlayerByClass, GameStart, MovingBodyMoves}
+import gamelogic.gamestate.gameactions.{AddDummyMob, AddPlayerByClass, GameStart}
 import gamelogic.gamestate.serveractions._
 import gamelogic.gamestate.{GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
@@ -13,7 +13,6 @@ import zio.ZIO
 import zio.duration.Duration.fromScala
 
 import scala.concurrent.duration._
-import scala.util.Random
 
 object GameMaster {
 

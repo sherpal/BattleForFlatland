@@ -8,7 +8,7 @@ import errors.ErrorADT.{
   UserAlreadyPlaying,
   YouAreNotInGame
 }
-import io.circe.Encoder
+import models.bff.outofgame.gameconfig.{GameConfiguration, PlayerInfo}
 import models.bff.outofgame.{DBMenuGame, MenuGame, MenuGameWithPlayers}
 import models.syntax.Pointed
 import models.users.User
@@ -20,8 +20,6 @@ import utils.database.models.UserInGameTable
 import utils.ziohelpers._
 import zio.clock._
 import zio.{Task, UIO, ZIO, ZLayer}
-import io.circe.syntax._
-import models.bff.outofgame.gameconfig.{GameConfiguration, PlayerInfo}
 
 object GameTable {
 

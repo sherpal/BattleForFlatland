@@ -5,7 +5,7 @@ import assets.ingame.gui.bars.{LiteStepBar, XeonBar}
 import com.raquo.airstream.eventbus.EventBus
 import game.GameAssetLoader.ProgressData
 import typings.pixiJs.PIXI.LoaderResource
-import typings.pixiJs.mod.{Application, Loader}
+import typings.pixiJs.mod.Application
 import typings.pixiJs.pixiJsStrings
 import zio.{UIO, ZIO}
 

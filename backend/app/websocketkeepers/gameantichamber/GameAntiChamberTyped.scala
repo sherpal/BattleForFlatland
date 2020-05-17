@@ -17,7 +17,6 @@ import services.crypto.Crypto
 import services.database.gametables._
 import services.logging.{log, Logging}
 import utils.ziohelpers.getOrFail
-import websocketkeepers.gameantichamber.GameAntiChamberTyped.protocol
 import websocketkeepers.gameantichamber.JoinedGameDispatcherTyped.DidNotClose
 import zio.clock.Clock
 import zio.{Has, UIO, ZIO, ZLayer}

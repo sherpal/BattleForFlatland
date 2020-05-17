@@ -11,13 +11,13 @@ import game.ui.gui.GUIDrawer
 import gamelogic.abilities.SimpleBullet
 import gamelogic.entities.Entity
 import gamelogic.entities.WithPosition.Angle
-import gamelogic.gamestate.gameactions.{DummyEntityMoves, EntityStartsCasting, MovingBodyMoves}
+import gamelogic.gamestate.gameactions.{EntityStartsCasting, MovingBodyMoves}
 import gamelogic.gamestate.{AddAndRemoveActions, GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
 import models.bff.ingame.{InGameWSProtocol, UserInput}
 import org.scalajs.dom
-import typings.pixiJs.mod.Application
 import typings.pixiJs.PIXI.LoaderResource
+import typings.pixiJs.mod.Application
 import utils.pixi.monkeypatching.PIXIPatching._
 
 final class GameStateManager(

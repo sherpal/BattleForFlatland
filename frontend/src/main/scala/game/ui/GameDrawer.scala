@@ -2,7 +2,7 @@ package game.ui
 
 import game.Camera
 import gamelogic.entities.classes.PlayerClass
-import gamelogic.entities.{DummyLivingEntity, DummyMob, Entity, SimpleBulletBody}
+import gamelogic.entities.{DummyMob, Entity, SimpleBulletBody}
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import org.scalajs.dom.html

@@ -3,7 +3,7 @@ package game.ui.gui.components
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.Texture
-import typings.pixiJs.mod.{Application, Container, Graphics, Sprite}
+import typings.pixiJs.mod.{Container, Graphics, Sprite}
 
 final class CastingBar(
     entityId: Entity.Id,

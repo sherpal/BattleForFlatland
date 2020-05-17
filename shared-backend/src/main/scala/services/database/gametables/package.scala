@@ -1,7 +1,6 @@
 package services.database
 
 import errors.ErrorADT.InconsistentMenuGameInDB
-import io.circe.Encoder
 import models.bff.outofgame.gameconfig.{GameConfiguration, PlayerInfo}
 import models.bff.outofgame.{MenuGame, MenuGameWithPlayers}
 import models.syntax.Pointed

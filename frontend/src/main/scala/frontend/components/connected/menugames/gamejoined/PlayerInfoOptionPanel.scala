@@ -2,16 +2,16 @@ package frontend.components.connected.menugames.gamejoined
 
 import com.raquo.airstream.core.Observer
 import com.raquo.airstream.eventbus.EventBus
+import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
+import frontend.components.utils.ToggleButton
 import models.bff.outofgame.PlayerClasses
+import models.bff.outofgame.gameconfig.PlayerStatus.{NotReady, Ready}
 import models.bff.outofgame.gameconfig.{PlayerInfo, PlayerStatus}
 import org.scalajs.dom.html
 import org.scalajs.dom.html.{Element, Select}
 import utils.misc.RGBColour
-import com.raquo.laminar.api.L._
-import frontend.components.utils.ToggleButton
-import models.bff.outofgame.gameconfig.PlayerStatus.{NotReady, Ready}
 
 final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, playerInfoWriter: Observer[PlayerInfo])
     extends Component[html.Element] {

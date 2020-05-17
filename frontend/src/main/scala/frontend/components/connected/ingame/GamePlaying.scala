@@ -5,16 +5,12 @@ import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.LifecycleComponent
 import gamelogic.entities.Entity
 import gamelogic.gamestate
-import gamelogic.gamestate.{ActionCollector, GameState}
-import io.circe.syntax._
 import models.bff.Routes._
 import models.bff.ingame.InGameWSProtocol
-import models.bff.ingame.InGameWSProtocol.{HeartBeat, Ping, Pong, Ready, YourEntityIdIs}
+import models.bff.ingame.InGameWSProtocol.{Ping, Pong, Ready, YourEntityIdIs}
 import models.users.User
 import org.scalajs.dom
 import org.scalajs.dom.html
-import typings.pixiJs.mod.Application
-import typings.pixiJs.{AnonAntialias => ApplicationOptions}
 import utils.laminarzio.Implicits._
 import utils.websocket.JsonWebSocket
 import zio.{UIO, ZIO}

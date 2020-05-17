@@ -1,7 +1,6 @@
 package services.database.gametables
 
 import errors.ErrorADT.InconsistentMenuGameInDB
-import io.circe.Encoder
 import models.bff.outofgame.gameconfig.GameConfiguration
 import models.bff.outofgame.{DBMenuGame, MenuGame}
 import models.users.User

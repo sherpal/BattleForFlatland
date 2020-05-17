@@ -2,7 +2,7 @@ package modules
 
 import com.google.inject.AbstractModule
 import play.api.libs.concurrent.AkkaGuiceSupport
-import websocketkeepers.gameantichamber.{JoinedGameDispatcherTyped}
+import websocketkeepers.gameantichamber.JoinedGameDispatcherTyped
 import websocketkeepers.gamemenuroom.{GameMenuRoomBookKeeper, GameMenuRoomBookKeeperTyped}
 
 final class ActorModule extends AbstractModule with AkkaGuiceSupport {

@@ -6,8 +6,7 @@ import game.ActionTranslator
 import gamelogic.gamestate.GameState
 import gamelogic.gamestate.gameactions.{AddDummyMob, MovingBodyMoves}
 
-import Ordering.Double.TotalOrdering
-
+import scala.Ordering.Double.TotalOrdering
 import scala.concurrent.duration._
 
 object DummyMobController {

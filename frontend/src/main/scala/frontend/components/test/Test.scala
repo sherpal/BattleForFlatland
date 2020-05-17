@@ -8,8 +8,8 @@ import org.scalajs.dom
 import typings.pixiJs.mod.{Application, Container, Graphics, Sprite}
 import zio.ZIO
 
-import scala.scalajs.js.timers._
 import scala.concurrent.duration._
+import scala.scalajs.js.timers._
 
 object Test {
 

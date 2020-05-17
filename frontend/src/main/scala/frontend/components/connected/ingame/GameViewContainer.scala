@@ -12,8 +12,8 @@ import models.syntax.Pointed
 import models.users.User
 import org.scalajs.dom.html
 import typings.pixiJs.mod.Application
-import zio.ZIO
 import typings.pixiJs.{AnonAntialias => ApplicationOptions}
+import zio.ZIO
 
 /**
   * The GameViewContainer is responsible for creating th instance of the [[game.GameStateManager]].
