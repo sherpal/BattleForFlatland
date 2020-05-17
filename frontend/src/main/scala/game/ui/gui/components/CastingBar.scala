@@ -10,7 +10,7 @@ final class CastingBar(
     uiContainer: Container,
     frameTexture: Texture,
     innerTexture: Texture
-) {
+) extends GUIComponent {
 
   private val frameSprite = new Sprite(frameTexture)
   private val innerSprite = new Sprite(innerTexture)
@@ -22,12 +22,14 @@ final class CastingBar(
 
   val containerSprite: Container = {
     val s = new Container
-    uiContainer.addChild(s)
+    container.addChild(s)
     s.addChild(innerSprite)
     s.addChild(frameSprite)
     s.addChild(mask)
     s
   }
+
+  uiContainer.addChild(container)
 
   def update(gameState: GameState, currentTime: Long): Unit =
     gameState.castingEntityInfo.get(entityId) match {

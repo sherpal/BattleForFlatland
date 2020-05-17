@@ -26,6 +26,7 @@ final case class Hexagon(
     maxLife: Double,
     speed: Double,
     resourceAmount: ResourceAmount,
+    maxResourceAmount: Double,
     name: String
 ) extends PlayerClass {
 

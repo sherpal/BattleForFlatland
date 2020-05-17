@@ -1,6 +1,6 @@
 package assets
 
-import assets.ingame.gui.bars.{LiteStepBar, XeonBar}
+import assets.ingame.gui.bars.{LiteStepBar, MinimalistBar, XeonBar}
 
 import scala.language.implicitConversions
 import scala.scalajs.js
@@ -15,5 +15,6 @@ object Asset {
   ScalaLogo
   XeonBar
   LiteStepBar
+  MinimalistBar
 
 }

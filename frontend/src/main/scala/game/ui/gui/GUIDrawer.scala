@@ -1,8 +1,8 @@
 package game.ui.gui
 
 import assets.Asset
-import assets.ingame.gui.bars.LiteStepBar
-import game.ui.gui.components.CastingBar
+import assets.ingame.gui.bars.{LiteStepBar, MinimalistBar}
+import game.ui.gui.components.{CastingBar, PlayerFrame}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.LoaderResource
@@ -26,7 +26,21 @@ final class GUIDrawer(
     application.renderer.generateTexture(graphics, 1, 1)
   }, resources(LiteStepBar).texture)
 
-  def update(gameState: GameState, currentTime: Long): Unit =
+  val myMainFrame = new PlayerFrame(playerId, {
+    val graphics = new Graphics
+
+    graphics.lineStyle(2, 0xccc).beginFill(0, 0).drawRect(0, 0, 15, 15).endFill()
+
+    application.renderer.generateTexture(graphics, 1, 1)
+  }, resources(MinimalistBar).texture, resources(MinimalistBar).texture, 120, 15)
+
+  myMainFrame.container.x = 0
+  myMainFrame.container.y = 150
+  guiContainer.addChild(myMainFrame.container)
+
+  def update(gameState: GameState, currentTime: Long): Unit = {
     castingBar.update(gameState, currentTime)
+    myMainFrame.update(gameState)
+  }
 
 }

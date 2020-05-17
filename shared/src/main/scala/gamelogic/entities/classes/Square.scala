@@ -24,6 +24,7 @@ final case class Square(
     maxLife: Double,
     speed: Double,
     resourceAmount: ResourceAmount,
+    maxResourceAmount: Double,
     name: String
 ) extends PlayerClass {
   protected def patchLifeTotal(newLife: Double): LivingEntity = copy(life = newLife)

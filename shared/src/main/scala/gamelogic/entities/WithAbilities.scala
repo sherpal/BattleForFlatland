@@ -21,6 +21,7 @@ trait WithAbilities extends WithPosition {
   /** Type of resource, and amount, that this entity has. */
   def resourceAmount: ResourceAmount
   final def resourceType: Resource = resourceAmount.resourceType
+  def maxResourceAmount: Double
 
   /** Returns whether this entity has the given ability. */
   final def hasAbility(abilityId: Ability.AbilityId): Boolean = abilities.contains(abilityId)

@@ -1,8 +1,11 @@
 package gamelogic.entities
 
 import io.circe.{Decoder, Encoder}
+import utils.misc.RGBColour
 
-sealed trait Resource
+sealed trait Resource {
+  def colour: RGBColour
+}
 
 object Resource {
 
@@ -16,11 +19,19 @@ object Resource {
       else this
   }
 
-  case object Mana extends Resource
-  case object Energy extends Resource
-  case object Rage extends Resource
+  case object Mana extends Resource {
+    def colour: RGBColour = RGBColour.fromIntColour(0x0000FF)
+  }
+  case object Energy extends Resource {
+    def colour: RGBColour = RGBColour.fromIntColour(0xFFFF00)
+  }
+  case object Rage extends Resource {
+    def colour: RGBColour = RGBColour.fromIntColour(0xFF0000)
+  }
 
-  case object NoResource extends Resource
+  case object NoResource extends Resource {
+    def colour: RGBColour = RGBColour.fromIntColour(0)
+  }
 
   final val resources: Map[String, Resource] = Map(
     Mana.toString -> Mana,

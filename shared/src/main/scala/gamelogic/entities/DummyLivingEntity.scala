@@ -39,6 +39,7 @@ final case class DummyLivingEntity(
   val maxLife: Double = 100.0
 
   def resourceAmount: ResourceAmount = ResourceAmount(0.0, NoResource)
+  def maxResourceAmount: Double      = 0.0
 
   protected def patchLifeTotal(newLife: Double): DummyLivingEntity = copy(life = newLife)
 

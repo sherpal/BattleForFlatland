@@ -34,6 +34,7 @@ final case class AddPlayerByClass(
           100,
           Constants.playerSpeed,
           Square.initialResourceAmount,
+          Square.initialResourceAmount.amount,
           playerName
         )
       case PlayerClasses.Hexagon =>
@@ -50,6 +51,7 @@ final case class AddPlayerByClass(
           100,
           Constants.playerSpeed,
           Hexagon.initialResourceAmount,
+          Hexagon.initialResourceAmount.amount,
           playerName
         )
     }

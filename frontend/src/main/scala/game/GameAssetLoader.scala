@@ -1,7 +1,7 @@
 package game
 
 import assets.Asset
-import assets.ingame.gui.bars.{LiteStepBar, XeonBar}
+import assets.ingame.gui.bars.{LiteStepBar, MinimalistBar, XeonBar}
 import com.raquo.airstream.eventbus.EventBus
 import game.GameAssetLoader.ProgressData
 import typings.pixiJs.PIXI.LoaderResource
@@ -19,7 +19,8 @@ final class GameAssetLoader(application: Application) {
 
   val assets: List[String] = List(
     XeonBar,
-    LiteStepBar
+    LiteStepBar,
+    MinimalistBar
   )
 
   final val $progressData = progressBus.events
