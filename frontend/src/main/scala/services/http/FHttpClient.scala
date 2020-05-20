@@ -7,7 +7,7 @@ import io.circe.{Decoder, Encoder, Error}
 import org.scalajs.dom
 import services.http.HttpClient.{csrfTokenName, Path, Query, Service}
 import sttp.client._
-import sttp.model.{Header, MediaType, MultiQueryParams, Uri}
+import sttp.model.{Header, MediaType, QueryParams, Uri}
 import zio._
 
 import scala.concurrent.Future
@@ -39,7 +39,7 @@ object FHttpClient {
     ): UIO[Uri] =
       origin
         .map(_.path(HttpClient.apiPrefix +: path.createSegments(t).map(_.content)))
-        .map(_.params(MultiQueryParams.fromMultiMap(query.createParamsMap(q))))
+        .map(_.params(new QueryParams(query.createParamsMap(q).toList)))
 
     private def simplePath[T](p: Path[T], origin: UIO[Uri] = defaultOrigin)(t: T): UIO[Uri] =
       origin.map(_.path(HttpClient.apiPrefix +: p.createSegments(t).map(_.content)))

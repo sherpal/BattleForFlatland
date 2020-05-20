@@ -9,7 +9,7 @@ import frontend.components.utils.ToggleButton
 import frontend.components.utils.tailwind._
 import frontend.components.utils.tailwind.forms._
 import frontend.components.utils.tailwind.modal._
-import frontend.components.{LifecycleComponent, ModalWindow}
+import frontend.components.{Component, ModalWindow}
 import models.bff.outofgame.MenuGame
 import models.common.PasswordWrapper
 import models.syntax.{Pointed, Validated}
@@ -24,7 +24,7 @@ final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
     implicit
     menuGamePointed: Pointed[MenuGame],
     validated: Validated[MenuGame, ErrorADT]
-) extends LifecycleComponent[html.Div]
+) extends Component[html.Div]
     with SimpleForm[MenuGame, ErrorOr[Int]] {
 
   val initialData: MenuGame                          = menuGamePointed.unit
@@ -41,10 +41,7 @@ final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
 
   val createdBus: EventBus[Unit] = new EventBus
 
-  override def componentDidMount(): Unit =
-    createdBus.writer.onNext(())
-
-  val elem: ReactiveHtmlElement[html.Div] = div(
+  val element: ReactiveHtmlElement[html.Div] = div(
     modalContainer,
     width := "800px",
     h1(className := s"text-lg text-$primaryColour-$primaryColourDark", "New game"),
@@ -115,7 +112,8 @@ final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
           )
         )
       )
-    )
+    ),
+    onMountCallback(_ => createdBus.writer.onNext(()))
   )
 
   def submitProgram(formData: MenuGame): UIO[ErrorOr[Int]] =
@@ -128,7 +126,6 @@ final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
       .either
       .provideLayer(layer)
 
-  init()
 }
 
 object NewGame {

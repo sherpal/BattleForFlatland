@@ -7,17 +7,18 @@ object SharedSettings {
 
   val circeVersion = "0.13.0"
   val catsVersion  = "2.1.2"
-  val zioVersion   = "1.0.0-RC18-2"
+  val zioVersion   = "1.0.0-RC19"
 
   def apply(): Seq[Def.Setting[_]] = settings(
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.client" %%% "core" % "2.0.6", // http requests
+      "com.softwaremill.sttp.client" %%% "core" % "2.1.2", // http requests
       "dev.zio" %%% "zio" % zioVersion,
       "dev.zio" %%% "zio-streams" % zioVersion,
-      "be.doeraene" %%% "url-dsl" % "0.1.4",
+      "be.doeraene" %%% "url-dsl" % "0.2.0",
       "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-RC5",
-      "com.lihaoyi" %%% "scalatags" % "0.8.2",
-      "com.propensive" %%% "magnolia" % "0.12.7"
+      "com.lihaoyi" %%% "scalatags" % "0.9.1",
+      "com.propensive" %%% "magnolia" % "0.16.0",
+      "org.scala-lang" % "scala-reflect" % "2.13.1" % Provided
     ) ++ Seq( // circe for json serialisation
       "io.circe" %%% "circe-core",
       "io.circe" %%% "circe-generic",
@@ -42,7 +43,7 @@ object SharedSettings {
 
   def jsSettings: Seq[Def.Setting[_]] = settings(
     libraryDependencies ++= Seq(
-      "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0-RC3_2019a"
+      "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0"
     )
   )
 

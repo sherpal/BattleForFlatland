@@ -17,6 +17,14 @@ object Resource {
     def -[R1 <: Resource](that: ResourceAmount): ResourceAmount =
       if (this.resourceType == that.resourceType) ResourceAmount(this.amount - that.amount, resourceType)
       else this
+
+    def max(x: Double): ResourceAmount = ResourceAmount(x max amount, resourceType)
+    def min(x: Double): ResourceAmount = ResourceAmount(x min amount, resourceType)
+
+    /**
+      * Returns a [[ResourceAmount]] whose amount is between 0 and `maxValue`.
+      */
+    def clampTo(maxValue: Double): ResourceAmount = ResourceAmount((amount max 0) min maxValue, resourceType)
   }
 
   case object Mana extends Resource {

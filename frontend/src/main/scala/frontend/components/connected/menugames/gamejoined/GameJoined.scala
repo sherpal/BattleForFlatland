@@ -2,7 +2,7 @@ package frontend.components.connected.menugames.gamejoined
 
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import frontend.components.LifecycleComponent
+import frontend.components.Component
 import frontend.components.utils.tailwind._
 import io.circe.syntax._
 import models.bff.Routes._
@@ -25,7 +25,7 @@ import scala.concurrent.duration._
 import scala.scalajs.js.timers.{clearInterval, setInterval, SetIntervalHandle}
 import scala.util.{Failure, Success}
 
-final class GameJoined private (gameId: String, me: User) extends LifecycleComponent[html.Element] {
+final class GameJoined private (gameId: String, me: User) extends Component[html.Element] {
 
   private val layer = FHttpClient.live ++ FRouting.live ++ FLogging.live ++ Clock.live
 
@@ -105,7 +105,7 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
   val $leaveGame: EventStream[Int] =
     leaveGameBus.events.flatMap(_ => EventStream.fromZIOEffect(iAmLeaving(gameId).provideLayer(layer)))
 
-  val elem: ReactiveHtmlElement[html.Element] = section(
+  val element: ReactiveHtmlElement[html.Element] = section(
     mainContentContainer,
     className <-- $shouldMoveBackToHome.mapTo(""), // kicking off stream
     className <-- $cancelGame.mapTo(""), // kicking off stream
@@ -164,16 +164,13 @@ final class GameJoined private (gameId: String, me: User) extends LifecycleCompo
         child.text <-- receivedCredentials.signal.map(_.asJson.spaces2),
         child.text <-- $tokenForWebSocket
       )
-    )
+    ),
+    onMountCallback(ctx => socket.open()(ctx.owner)),
+    onUnmountCallback { _ =>
+      socket.close()
+      clearInterval(pokingHandle)
+    }
   )
-
-  override def componentDidMount(): Unit =
-    socket.open()(elem)
-
-  override def componentWillUnmount(): Unit = {
-    socket.close()
-    clearInterval(pokingHandle)
-  }
 
 }
 

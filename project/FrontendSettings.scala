@@ -45,7 +45,6 @@ object FrontendSettings {
       "stylelint-config-recommended" -> "3.0.0",
       "extract-css-chunks-webpack-plugin" -> "4.7.4"
     ),
-    scalacOptions += "-P:scalajs:sjsDefinedByDefault",
     version in webpack := "4.40.2",
     version in startWebpackDevServer := "3.4.1",
     webpackResources := baseDirectory.value / "webpack" * "*",
@@ -56,7 +55,7 @@ object FrontendSettings {
     webpackBundlingMode in fastOptJS := BundlingMode.LibraryOnly(),
     requireJsDomEnv in Test := true,
     // laminar
-    libraryDependencies += "com.raquo" %%% "laminar" % "0.7.2"
+    libraryDependencies += "com.raquo" %%% "laminar" % "0.9.0"
   )
 
 }

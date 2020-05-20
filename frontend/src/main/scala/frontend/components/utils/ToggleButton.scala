@@ -16,8 +16,8 @@ final class ToggleButton private (toggleWriter: ToggleWriter, start: Boolean) ex
 
   val $colour: Signal[String] = $internalToggles.map(if (_) "green-500" else "red-500")
 
-  val element: ReactiveHtmlElement[html.Span] = {
-    implicit val s: ReactiveHtmlElement[html.Span] = span(
+  val element: ReactiveHtmlElement[html.Span] =
+    span(
       className := "rounded-full w-8 h-4 flex",
       className <-- $internalToggles.map(if (_) "justify-start" else "justify-end"),
       className <-- $colour.map("bg-" + _),
@@ -25,13 +25,9 @@ final class ToggleButton private (toggleWriter: ToggleWriter, start: Boolean) ex
         className := "rounded-full w-4 h-4 bg-white border-2",
         className <-- $colour.map("border-" + _)
       ),
-      onClick.mapTo(()) --> internalToggleBus
+      onClick.mapTo(()) --> internalToggleBus,
+      $internalToggles --> toggleWriter
     )
-
-    $internalToggles.foreach(toggleWriter.onNext)
-
-    s
-  }
 
 }
 

@@ -106,7 +106,6 @@ final class LoginForm private () extends Component[html.Form] with SimpleForm[Lo
     )
   )
 
-  init()
 }
 
 object LoginForm {

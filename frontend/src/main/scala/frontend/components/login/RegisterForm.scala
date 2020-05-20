@@ -133,7 +133,6 @@ final class RegisterForm extends Component[html.Form] with SimpleForm[NewUser, E
     }
   )
 
-  init()
 }
 
 object RegisterForm {

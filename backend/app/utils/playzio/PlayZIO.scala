@@ -5,15 +5,16 @@ import errors.ErrorADT
 import play.api.mvc.WebSocket.MessageFlowTransformer
 import play.api.mvc._
 import utils.playzio.ErrorsTransformer._
-import zio.{Has, Runtime, Tagged, ZIO, ZLayer}
+import zio.{Has, Runtime, ZIO, ZLayer}
+import izumi.reflect.Tag
 
 object PlayZIO {
 
-  def zioRequest[R[_], A](implicit tagged: Tagged[HasRequest[R, A]]): ZIO[Has[HasRequest[R, A]], Nothing, R[A]] =
+  def zioRequest[R[_], A](implicit tagged: Tag[HasRequest[R, A]]): ZIO[Has[HasRequest[R, A]], Nothing, R[A]] =
     ZIO.accessM(_.get.request)
 
   def simpleZIORequest[A](
-      implicit tagged: Tagged[HasRequest[Request, A]]
+      implicit tagged: Tag[HasRequest[Request, A]]
   ): ZIO[Has[HasRequest[Request, A]], Nothing, Request[A]] =
     ZIO.accessM(_.get.request)
 
@@ -22,7 +23,7 @@ object PlayZIO {
   final implicit class ZIOAction[R[_], B](actionBuilder: ActionBuilder[R, B]) {
 
     private def run[A](request: R[A], block: ZIO[Has[HasRequest[R, A]], ErrorADT, Result])(
-        implicit tagged: Tagged[HasRequest[R, A]]
+        implicit tagged: Tag[HasRequest[R, A]]
     ) =
       Runtime.default.unsafeRunToFuture(
         block
@@ -37,12 +38,12 @@ object PlayZIO {
 
     def zio[A](
         bodyParser: BodyParser[A]
-    )(block: ZIO[Has[HasRequest[R, A]], ErrorADT, Result])(implicit tagged: Tagged[HasRequest[R, A]]): Action[A] =
+    )(block: ZIO[Has[HasRequest[R, A]], ErrorADT, Result])(implicit tagged: Tag[HasRequest[R, A]]): Action[A] =
       actionBuilder.async(bodyParser) { run(_, block) }
 
     def zio(
         block: ZIO[Has[HasRequest[R, B]], ErrorADT, Result]
-    )(implicit tagged: Tagged[HasRequest[R, B]]): Action[B] =
+    )(implicit tagged: Tag[HasRequest[R, B]]): Action[B] =
       actionBuilder.async { run(_, block) }
 
   }

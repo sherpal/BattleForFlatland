@@ -42,18 +42,14 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
     s
   }
 
-  val element: ReactiveHtmlElement[Element] = {
-    val elem = section(
+  val element: ReactiveHtmlElement[Element] =
+    section(
       "Ready: ",
       ToggleButton(readyStateWriter.contramap(if (_) Ready else NotReady), initialPlayerInfo.isReady),
       "Chose a class:",
-      classSelector
+      classSelector,
+      $playerInfo --> playerInfoWriter
     )
-
-    $playerInfo.foreach(playerInfoWriter.onNext)(elem)
-
-    elem
-  }
 }
 
 object PlayerInfoOptionPanel {

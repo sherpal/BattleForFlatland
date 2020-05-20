@@ -2,7 +2,7 @@ package frontend.components.connected.ingame
 
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import frontend.components.LifecycleComponent
+import frontend.components.Component
 import gamelogic.entities.Entity
 import gamelogic.gamestate
 import models.bff.Routes._
@@ -15,7 +15,7 @@ import utils.laminarzio.Implicits._
 import utils.websocket.JsonWebSocket
 import zio.{UIO, ZIO}
 
-final class GamePlaying private (gameId: String, user: User, token: String) extends LifecycleComponent[html.Div] {
+final class GamePlaying private (gameId: String, user: User, token: String) extends Component[html.Div] {
 
   private val layer = zio.clock.Clock.live
 
@@ -52,34 +52,35 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
       pong <- pongFiber.join
     } yield pong
 
-  val elem: ReactiveHtmlElement[html.Div] = div(
+  val element: ReactiveHtmlElement[html.Div] = div(
     className := "GamePlaying",
     child <-- $playerId.combineWith(deltaWithServerBus.events).map {
       case (id, delta) => GameViewContainer(user, id, $actionsFromServer, gameSocket.outWriter, delta)
-    }
+    },
+    onMountCallback(ctx => componentDidMount(ctx.owner))
   )
 
-  override def componentDidMount(): Unit = {
+  def componentDidMount(owner: Owner): Unit = {
     println(s"Game id: $gameId.")
     gameSocket
-      .open()(elem)
+      .open()(owner)
 
     gameSocket.$closed.foreach(_ => dom.document.location.href = dom.document.location.origin.asInstanceOf[String])(
-      elem
+      owner
     )
 
     gameSocket.$open.flatMap(
       _ =>
         EventStream.fromZIOEffect(
           programs.frontend.ingame
-            .synchronizeClock(sendPing(_)(elem))
+            .synchronizeClock(sendPing(_)(owner))
             .zipLeft(ZIO.effectTotal(gameSocket.outWriter.onNext(Ready(user.userId))))
             .provideLayer(layer)
         )
     ).foreach(delta => {
       println(s"Delta is: $delta")
       deltaWithServerBus.writer.onNext(delta.toLong)
-    })(elem)
+    })(owner)
 
   }
 

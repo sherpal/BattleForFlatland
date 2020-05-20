@@ -2,7 +2,7 @@ package frontend.components.connected.ingame
 
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import frontend.components.LifecycleComponent
+import frontend.components.Component
 import game.{GameAssetLoader, GameStateManager, Keyboard, Mouse}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
@@ -29,12 +29,13 @@ final class GameViewContainer private (
     $actionsFromServer: EventStream[gamelogic.gamestate.AddAndRemoveActions],
     socketOutWriter: Observer[InGameWSProtocol.Outgoing],
     deltaTimeWithServer: Long
-) extends LifecycleComponent[html.Div] {
+) extends Component[html.Div] {
 
-  private def container = elem.ref
+  private def container = element.ref
 
-  val elem: ReactiveHtmlElement[html.Div] = div(
-    className := "GameViewContainer"
+  val element: ReactiveHtmlElement[html.Div] = div(
+    className := "GameViewContainer",
+    onMountCallback(ctx => componentDidMount(ctx.owner))
   )
 
   val application: Application = new Application(ApplicationOptions(backgroundColor = 0x1099bb))
@@ -63,9 +64,9 @@ final class GameViewContainer private (
       }
     } yield ()
 
-  override def componentDidMount(): Unit =
+  def componentDidMount(owner: Owner): Unit =
     zio.Runtime.default.unsafeRunAsync(
-      mountEffect(container, elem)
+      mountEffect(container, owner)
     )(println(_))
 
 }

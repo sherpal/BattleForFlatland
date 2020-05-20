@@ -99,7 +99,7 @@ object App {
     ),
     section(
       h2("Pixi works"),
-      div(id := "canvas-container")
+      div(idAttr := "canvas-container")
     )
 //    section(
 //      h2("Database works?"),

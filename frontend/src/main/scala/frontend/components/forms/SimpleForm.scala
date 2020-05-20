@@ -6,12 +6,10 @@ import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.Signal
 import com.raquo.domtypes.jsdom.defs.events.TypedTargetEvent
 import com.raquo.laminar.api.L._
-import com.raquo.laminar.emitter.EventPropEmitter
-import com.raquo.laminar.nodes.ReactiveElement
+import com.raquo.laminar.modifiers.EventPropBinder
 import errors.ErrorADT
 import frontend.components.Component
 import models.validators.FieldsValidator
-import org.scalajs.dom
 import org.scalajs.dom.html.Form
 import utils.laminarzio.Implicits._
 import zio.UIO
@@ -45,67 +43,82 @@ import zio.UIO
   */
 trait SimpleForm[FormData, SubmitReturn] { self: Component[_] =>
 
-  private var isInit: Boolean = false
-
-  implicit private def owner: Owner = self.element
-
   type FormDataChanger = FormData => FormData
 
+  /** FormData instance to use at the beginning. Typically given by an implicit [[models.syntax.Pointed]]. */
   val initialData: FormData
 
+  /**
+    * Validator used to returns errors on FormData changes.
+    * See [[models.validators.FieldsValidator]] for more details.
+    */
   val validator: FieldsValidator[FormData, ErrorADT]
 
   private val dataChangers = new EventBus[FormDataChanger]()
 
+  /** Signal emitting the current value of the FormData. Computed by event sourcing changes in the form. */
   lazy val $formData: Signal[FormData] = dataChangers.events.fold(initialData) {
     case (data, changer) => changer(data)
   }
 
-  lazy val $errors: EventStream[Map[String, List[ErrorADT]]] = $formData.changes.debounce(200).map(validator.validate)
+  /** Emits errors in the FormData on changes. */
+  lazy val $errors: EventStream[Map[String, List[ErrorADT]]] =
+    $formData.changes.debounce(200).map(validator.validate)
 
+  /** Can be used to display the FormData when on development mode. */
   lazy val $debug: EventStream[FormData] = $formData.changes.filter(_ => scala.scalajs.LinkingInfo.developmentMode)
 
+  /**
+    * Creates an observer for changing the FormData on user inputs.
+    * This is typically used for each field in the form, explaining how the form will update the current data.
+    *
+    * @example
+    *          ```
+    *          case class User(name: String, age: Int)
+    *
+    *          val nameChanger: Observer[String] = makeDataChanger(newName => _.copy(name = newName))
+    *          val ageChanger: Observer[Int] = makeDataChanger(newAge => _.copy(age = newAge))
+    *
+    *          input(inContext(elem => onChange.mapTo(elem.ref.value) --> nameChanger))
+    *          input(
+    *            inContext(
+    *              elem => onChange.mapTo(Try(elem.ref.value.toInt)).collect { case Success(v) => v} --> ageChanger
+    *            )
+    *           )
+    *          ```
+    * @param dataChanger describes how the form data should be changed given an instance of T
+    * @return [[com.raquo.airstream.core.Observer]] to feed from form inputs.
+    */
   def makeDataChanger[T](dataChanger: T => FormDataChanger): Observer[T] =
     dataChangers.writer.contramap(dataChanger)
 
   private val submitBus: EventBus[Unit] = new EventBus
-  val submit: EventPropEmitter[TypedTargetEvent[Form], Unit, ReactiveElement[dom.Element]] = onSubmit.preventDefault
-    .mapTo(()) --> submitBus.writer
 
-  private lazy val $formDataView = $formData.observe
+  /** The <form> reactive element should add this modifier to kick off submitting. */
+  val submit: EventPropBinder[TypedTargetEvent[Form]] = onSubmit.preventDefault.mapTo(()) --> submitBus.writer
 
-  def formDataNow: FormData = {
-    if (scala.scalajs.LinkingInfo.developmentMode && !isInit) {
-      dom.console.error("SimpleForm not initialized")
-      throw new Exception("SimpleForm not initialized.")
-    }
-    $formDataView.now
-  }
-
+  /** ZIO program to be ran on submit events. */
   def submitProgram(formData: FormData): UIO[SubmitReturn]
 
-  val $submitEvents: EventStream[SubmitReturn] = submitBus.events
-    .mapTo(formDataNow)
+  /**
+    * Runs the submitProgram and return its value on each submit event.
+    */
+  lazy val $submitEvents: EventStream[SubmitReturn] = submitBus.events
+    .withCurrentValueOf($formData)
+    .map(_._2)
     .map(submitProgram)
     .flatMap(EventStream.fromZIOEffect)
 
-  final val $isSubmitting = EventStream.merge(
+  /** Stream indicating whether the stream is currently submitting. */
+  final lazy val $isSubmitting: EventStream[Boolean] = EventStream.merge(
     submitBus.events.mapTo(true),
     $submitEvents.mapTo(false)
   )
 
   /**
-    * Concrete implementations need to call this in order to start the stream.
-    */
-  def init(): Unit = {
-    isInit = true
-    formDataNow // kicking off streams.
-  }
-
-  /**
     * Prints the data passing through the form if in dev mode.
     */
-  def initDebug(): Unit =
-    $debug.foreach(println)
+  def initDebug(owner: Owner): Unit =
+    $debug.foreach(println)(owner)
 
 }

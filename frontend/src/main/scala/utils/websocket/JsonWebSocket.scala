@@ -2,7 +2,7 @@ package utils.websocket
 
 import com.raquo.airstream.eventbus.{EventBus, WriteBus}
 import com.raquo.airstream.eventstream.EventStream
-import com.raquo.airstream.ownership.Owner
+import com.raquo.airstream.ownership.{DynamicOwner, Owner}
 import io.circe.parser.decode
 import io.circe.{Decoder, Encoder}
 import org.scalajs.dom

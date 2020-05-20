@@ -57,8 +57,6 @@ object Test {
     }
   } yield ())
 
-  assetLoader.$progressData.foreach(println(_))(container)
-
   def apply() = div(
     button(
       btn,

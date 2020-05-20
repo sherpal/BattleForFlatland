@@ -8,7 +8,7 @@ import frontend.components.forms.SimpleForm
 import frontend.components.utils.tailwind._
 import frontend.components.utils.tailwind.forms._
 import frontend.components.utils.tailwind.modal._
-import frontend.components.{LifecycleComponent, ModalWindow}
+import frontend.components.{Component, ModalWindow}
 import models.bff.outofgame.MenuGame
 import models.common.PasswordWrapper
 import models.syntax.Pointed
@@ -21,7 +21,7 @@ import zio.UIO
 
 final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.CloseWriter)(
     implicit pwPointed: Pointed[PasswordWrapper]
-) extends LifecycleComponent[html.Element]
+) extends Component[html.Element]
     with SimpleForm[PasswordWrapper, ErrorOr[Int]] {
 
   private val layer = FHttpClient.live ++ FRouting.live
@@ -39,7 +39,7 @@ final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.Clos
     $submitEvents.map(_.swap.toOption)
   )
 
-  val elem: ReactiveHtmlElement[html.Element] = aside(
+  val element: ReactiveHtmlElement[html.Element] = aside(
     modalContainer,
     h1(
       className := s"text-xl text-$primaryColour-$primaryColourDark",
@@ -108,7 +108,6 @@ final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.Clos
   def submitProgram(formData: PasswordWrapper): UIO[ErrorOr[Int]] =
     joinGameProgram(game, formData).refineOrDie(ErrorADT.onlyErrorADT).either.provideLayer(layer)
 
-  init()
 }
 
 object JoinGameModal {
