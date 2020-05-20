@@ -1,10 +1,12 @@
 package frontend.components.test
 
-import assets.ingame.gui.bars.{LiteStepBar, XeonBar}
+import assets.Asset.ingame.gui.bars._
 import com.raquo.laminar.api.L._
+import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.utils.tailwind._
 import game.GameAssetLoader
 import org.scalajs.dom
+import org.scalajs.dom.html
 import typings.pixiJs.mod.{Application, Container, Graphics, Sprite}
 import zio.ZIO
 
@@ -24,7 +26,7 @@ object Test {
       container.ref.appendChild(application.view.asInstanceOf[dom.html.Canvas])
     )
     _ <- ZIO.effectTotal {
-      val sprite = new Sprite(resources(XeonBar).texture)
+      val sprite = new Sprite(resources(xeonBar).texture)
       application.stage.addChild(sprite)
       sprite.tint = 0xFF0000
     }
@@ -33,7 +35,7 @@ object Test {
       application.stage.addChild(container)
       container.y = 50
 
-      val sprite = new Sprite(resources(LiteStepBar).texture)
+      val sprite = new Sprite(resources(liteStepBar).texture)
       container.addChild(sprite)
       sprite.tint = 0x00FF00
 
@@ -57,7 +59,7 @@ object Test {
     }
   } yield ())
 
-  def apply() = div(
+  def apply(): ReactiveHtmlElement[html.Div] = div(
     button(
       btn,
       btnBlue,

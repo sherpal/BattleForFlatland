@@ -1,7 +1,7 @@
 package game.ui.gui
 
 import assets.Asset
-import assets.ingame.gui.bars.{LiteStepBar, MinimalistBar}
+import assets.Asset.ingame.gui.bars._
 import game.ui.gui.components.gridcontainer.GridContainer
 import game.ui.gui.components.{CastingBar, PlayerFrame}
 import gamelogic.entities.Entity
@@ -25,7 +25,7 @@ final class GUIDrawer(
     graphics.lineStyle(2, 0xccc).beginFill(0, 0).drawRect(0, 0, 200, 15).endFill()
 
     application.renderer.generateTexture(graphics, 1, 1)
-  }, resources(LiteStepBar).texture)
+  }, resources(liteStepBar).texture)
 
   implicit private val playerFrameOrdering: Ordering[PlayerFrame] = Ordering.by(_.entityId)
   val playerFrameGridContainer = new GridContainer[PlayerFrame](
@@ -49,7 +49,7 @@ final class GUIDrawer(
             graphics.lineStyle(2, 0xccc).beginFill(0, 0).drawRect(0, 0, 15, 15).endFill()
 
             application.renderer.generateTexture(graphics, 1, 1)
-          }, resources(MinimalistBar).texture, resources(MinimalistBar).texture, 120, 30)
+          }, resources(minimalistBar).texture, resources(minimalistBar).texture, 120, 30)
         )
     }
 
