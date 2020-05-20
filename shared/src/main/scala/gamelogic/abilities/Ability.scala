@@ -21,27 +21,27 @@ import io.circe.{Decoder, Encoder, Json}
 trait Ability {
 
   /** Unique id given manually to each ability. */
-  val abilityId: Ability.AbilityId
+  def abilityId: Ability.AbilityId
 
   /** Id created for each use. */
-  val useId: Ability.UseId
+  def useId: Ability.UseId
 
   /** Duration (in millis) before this ability  */
-  val cooldown: Long
+  def cooldown: Long
 
   /**
     * Duration (in millis) the caster needs to stay still before the ability is cast
     * Note: can be 0 for instant casting time, in which case it can be activated while moving.
     */
-  val castingTime: Long
+  def castingTime: Long
 
   /**
     * Id of the entity that cast the spell.
     */
-  val casterId: Entity.Id
+  def casterId: Entity.Id
 
   /** Game Time (in millis) at which the ability's casting is complete.  */
-  val time: Long
+  def time: Long
 
   /** Cost of the ability. */
   def cost: ResourceAmount
@@ -75,6 +75,8 @@ object Ability {
   final val hexagonHexagonHotId: AbilityId = 3
   final val squareTauntId: AbilityId       = 4
   final val squareHammerHit: AbilityId     = 5
+  final val boss101BigHitId: AbilityId     = 6
+  final val boss101BigDotId: AbilityId     = 7
 
   @inline final def gcd = 200L
 
@@ -87,17 +89,21 @@ object Ability {
     a.asJson.mapObject(_.add("ability_name", Json.fromString(name)))
 
   implicit val encoder: Encoder[Ability] = Encoder.instance {
-    case x: hexagon.FlashHeal  => customEncode(x, "hexagon.FlashHeal")
-    case x: hexagon.HexagonHot => customEncode(x, "hexagon.HexagonHot")
-    case x: square.HammerHit   => customEncode(x, "square.HammerHit")
-    case x: square.Taunt       => customEncode(x, "square.Taunt")
-    case x: SimpleBullet       => customEncode(x, "SimpleBullet")
+    case x: boss.boss101.BigDot => customEncode(x, "boss.boss101.BigDot")
+    case x: boss.boss101.BigHit => customEncode(x, "boss.boss101.BigHit")
+    case x: hexagon.FlashHeal   => customEncode(x, "hexagon.FlashHeal")
+    case x: hexagon.HexagonHot  => customEncode(x, "hexagon.HexagonHot")
+    case x: square.HammerHit    => customEncode(x, "square.HammerHit")
+    case x: square.Taunt        => customEncode(x, "square.Taunt")
+    case x: SimpleBullet        => customEncode(x, "SimpleBullet")
   }
 
   private def customDecoder[A <: Ability](name: String)(implicit decoder: Decoder[A]): Decoder[Ability] =
     decoder.validate(_.get[String]("ability_name").contains(name), s"Not a $name instance").widen
 
   implicit val decoder: Decoder[Ability] = List[Decoder[Ability]](
+    customDecoder[boss.boss101.BigDot]("boss.boss101.BigDot"),
+    customDecoder[boss.boss101.BigHit]("boss.boss101.BigHit"),
     customDecoder[hexagon.FlashHeal]("hexagon.FlashHeal"),
     customDecoder[hexagon.HexagonHot]("hexagon.HexagonHot"),
     customDecoder[square.HammerHit]("square.HammerHit"),

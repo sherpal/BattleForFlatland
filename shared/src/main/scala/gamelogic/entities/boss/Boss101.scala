@@ -39,7 +39,7 @@ final case class Boss101(
 
   def shape: Circle = Boss101.shape
 
-  def abilities: Set[AbilityId] = Set.empty
+  def abilities: Set[AbilityId] = Set(Ability.boss101BigDotId, Ability.boss101BigHitId)
 
   def useAbility(ability: Ability): Boss101 = copy(
     relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability)

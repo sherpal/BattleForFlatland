@@ -11,8 +11,7 @@ object Asset {
   object ingame {
     object gui {
       object bars {
-        @js.native
-        @JSImport("resources/assets/in-game/gui/bars/LiteStep.png", JSImport.Default)
+        @js.native @JSImport("resources/assets/in-game/gui/bars/LiteStep.png", JSImport.Default)
         val liteStepBar: Asset = js.native
 
         @js.native @JSImport("resources/assets/in-game/gui/bars/Minimalist.png", JSImport.Default)
