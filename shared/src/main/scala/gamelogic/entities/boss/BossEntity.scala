@@ -39,3 +39,14 @@ trait BossEntity extends LivingEntity with MovingBody with WithAbilities with Wi
   def shape: Circle
 
 }
+
+object BossEntity {
+
+  private def allBossesFactories: List[BossFactory] = List(Boss101)
+
+  final def allBossesNames: List[String] = allBossesFactories.map(_.name)
+
+  final def maybeInitialBossByName(name: String, entityId: Entity.Id, time: Long): Option[BossEntity] =
+    allBossesFactories.find(_.name == name).map(_.initialBoss(entityId, time))
+
+}

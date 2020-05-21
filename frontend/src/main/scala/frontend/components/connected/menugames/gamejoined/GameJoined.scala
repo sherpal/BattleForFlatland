@@ -105,6 +105,8 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
   val $leaveGame: EventStream[Int] =
     leaveGameBus.events.flatMap(_ => EventStream.fromZIOEffect(iAmLeaving(gameId).provideLayer(layer)))
 
+  val $initialGameInfo = EventStream.fromZIOEffect(fetchingGameInfo)
+
   val element: ReactiveHtmlElement[html.Element] = section(
     mainContentContainer,
     className <-- $shouldMoveBackToHome.mapTo(""), // kicking off stream
@@ -120,8 +122,7 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
         className := s"text-$primaryColour-$primaryColourDark",
         child.text <-- $gameInfo.map(_.game.gameName).map("Game " + _)
       ),
-      child <-- EventStream
-        .fromZIOEffect(fetchingGameInfo)
+      child <-- $initialGameInfo
         .map(_.flatMap(_.game.gameConfiguration.playersInfo.get(me.userName)))
         .collect { case Some(value) => value }
         .map(
@@ -133,6 +134,8 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
               )
             )
         ),
+        child <-- $initialGameInfo.collect { case Some(info) if info.game.gameCreator.userName == me.userName => info }
+        .mapTo(GameOptionPanel()),
       PlayerList($gameInfo.map(_.game.gameConfiguration.playersInfo.values.toList)),
       div(
         child <-- $amICreator.map {

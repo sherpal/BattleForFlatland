@@ -9,6 +9,7 @@ import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.Circle
+import models.syntax.Pointed
 
 /**
   * Very first boss to be coded. Probably not the most exiting one but the goal was to have a first proof of concept
@@ -40,7 +41,7 @@ final case class Boss101(
     damageThreats: Map[Id, ThreatAmount]
 ) extends BossEntity {
 
-  def name: String = "Boss 101"
+  def name: String = Boss101.name
 
   def shape: Circle = Boss101.shape
 
@@ -68,9 +69,13 @@ final case class Boss101(
     copy(healingThreats = healingThreats + (threatId -> (healingThreats.getOrElse(threatId, 0.0) + delta)))
 }
 
-object Boss101 {
+object Boss101 extends BossFactory {
   final val shape: Circle = new Circle(30.0)
 
   final val meleeRange: Distance = shape.radius + 20.0
   final val rangeRange: Distance = 2000.0 // basically infinite distance
+
+  final val name: String = "Boss 101"
+
+  def initialBoss(entityId: Entity.Id, time: Long): Boss101 = Pointed[Boss101].unit.copy(id = entityId, time = time)
 }

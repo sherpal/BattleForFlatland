@@ -23,6 +23,8 @@ final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.Clos
     implicit pwPointed: Pointed[PasswordWrapper]
 ) extends Component[html.Element]
     with SimpleForm[PasswordWrapper, ErrorOr[Int]] {
+  val initialData: PasswordWrapper                          = pwPointed.unit
+  val validator: FieldsValidator[PasswordWrapper, ErrorADT] = FieldsValidator.allowAllValidator
 
   private val layer = FHttpClient.live ++ FRouting.live
 
@@ -47,6 +49,7 @@ final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.Clos
     ),
     form(
       submit,
+      className <-- $formData.map(_ => ""),
       game.maybeHashedPassword match {
         case Some(_) =>
           fieldSet(
@@ -59,7 +62,8 @@ final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.Clos
                 inContext(elem => onChange.mapTo(elem.ref.value) --> passwordChanger),
                 onFocus.mapTo(()) --> passwordTouchedBus,
                 className <-- $maybePasswordErrors.map(_.isDefined).map(if (_) "border-red-500" else ""),
-                focus <-- $submitEvents.mapTo(false)
+                focus <-- $submitEvents.mapTo(false),
+                onMountFocus,
               )
             )
           )
@@ -102,8 +106,6 @@ final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.Clos
       )
     )
   )
-  val initialData: PasswordWrapper                          = pwPointed.unit
-  val validator: FieldsValidator[PasswordWrapper, ErrorADT] = FieldsValidator.allowAllValidator
 
   def submitProgram(formData: PasswordWrapper): UIO[ErrorOr[Int]] =
     joinGameProgram(game, formData).refineOrDie(ErrorADT.onlyErrorADT).either.provideLayer(layer)

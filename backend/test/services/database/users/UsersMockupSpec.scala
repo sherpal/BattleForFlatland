@@ -36,4 +36,3 @@ object UsersMockupSpec extends DefaultRunnableSpec {
     ).provideLayer(layer)
 
 }
-0

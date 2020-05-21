@@ -37,6 +37,7 @@ object Pointed {
   implicit val stringPointed: Pointed[String]                              = factory("")
   implicit def numericPointed[A](implicit numeric: Numeric[A]): Pointed[A] = factory(numeric.zero)
   implicit def localDateTimePointed: Pointed[LocalDateTime]                = factory(LocalDateTime.now)
+  implicit def booleanPointed: Pointed[Boolean] = factory(false) // This is though.
 
   implicit def listPointed[A]: Pointed[List[A]]     = factory(Nil)
   implicit def mapPointed[K, V]: Pointed[Map[K, V]] = factory(Map())
