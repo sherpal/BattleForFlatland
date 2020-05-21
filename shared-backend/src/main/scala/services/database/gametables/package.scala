@@ -52,6 +52,12 @@ package object gametables {
   final def modifyPlayerInfo(gameId: String, user: User, playerInfo: PlayerInfo): ZIO[GameTable, Throwable, Unit] =
     ZIO.accessM(_.get[GameTable.Service].modifyPlayerInfo(gameId, user, playerInfo))
 
+  final def updateGameConfiguration(
+      gameId: String,
+      configChanger: GameConfiguration => GameConfiguration
+  ): ZIO[GameTable, Throwable, Unit] =
+    ZIO.accessM(_.get[GameTable.Service].updateGameConfiguration(gameId, configChanger))
+
   def gameWithPlayersById(gameId: String): GameTableTask[MenuGameWithPlayers] =
     ZIO.accessM(_.get[GameTable.Service].gameWithPlayersById(gameId))
 

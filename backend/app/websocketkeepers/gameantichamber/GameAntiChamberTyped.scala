@@ -10,6 +10,7 @@ import models.bff.gameantichamber.WebSocketProtocol
 import models.bff.gameantichamber.WebSocketProtocol.{GameCancelled, GameStatusUpdated, GameUserCredentialsWrapper}
 import models.bff.ingame.AllGameCredentials
 import models.bff.outofgame.MenuGame
+import models.bff.outofgame.gameconfig.GameConfiguration
 import models.users.User
 import services.actors.TypedActorProvider
 import services.config.Configuration
@@ -83,6 +84,19 @@ object GameAntiChamberTyped {
     def logInfo(message: String): Unit = zio.Runtime.default.unsafeRun(log.info(message).provideLayer(layer))
     //def logWarning(message: String): Unit = zio.Runtime.default.unsafeRun(log.warn(message).provideLayer(layer))
 
+    def updateGameConfiguration(gameConfigChanger: GameConfiguration => GameConfiguration) =
+      (for {
+        _ <- services.database.gametables.updateGameConfiguration(menuGame.gameId, gameConfigChanger)
+        maybeGameInfo <- services.database.gametables.selectGameById(menuGame.gameId)
+        gameInfo <- getOrFail(maybeGameInfo, new Exception("weird"))
+        _ <- ZIO.effectTotal(clients.foreach(_ ! protocol(GameStatusUpdated)))
+      } yield behavior(
+        gameInfo,
+        players,
+        parent,
+        layer
+      )).orDie.provideLayer(layer)
+
     Behaviors.receive { (context, message) =>
       message match {
         case _: MessageWaitingGameInfo => Behaviors.unhandled
@@ -103,19 +117,14 @@ object GameAntiChamberTyped {
             case WebSocketProtocol.UpdateMyInfo(userId, playerInfo) =>
               players.values.map(_.user).find(_.userId == userId).fold(Behaviors.same[Message]) { user =>
                 zio.Runtime.default.unsafeRun(
-                  (for {
-                    _ <- services.database.gametables.modifyPlayerInfo(menuGame.gameId, user, playerInfo)
-                    maybeGameInfo <- services.database.gametables.selectGameById(menuGame.gameId)
-                    gameInfo <- getOrFail(maybeGameInfo, new Exception("weird"))
-                    _ <- ZIO.effectTotal(clients.foreach(_ ! protocol(GameStatusUpdated)))
-                  } yield behavior(
-                    gameInfo,
-                    players,
-                    parent,
-                    layer
-                  )).orDie.provideLayer(layer)
+                  updateGameConfiguration(_.modifyPlayer(playerInfo))
                 )
+
               }
+            case WebSocketProtocol.UpdateBossName(newBossName) =>
+              zio.Runtime.default.unsafeRun(
+                updateGameConfiguration(_.withBossName(newBossName))
+              )
 
           }
         case SendHeartBeat =>

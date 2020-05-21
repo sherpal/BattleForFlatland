@@ -37,8 +37,7 @@ object App {
     .map(postNumber)
     .flatMap(EventStream.fromZIOEffect)
 
-  val amISuperUser = getStatus(root / "users" / "am-i-super-user")
-    .flatMap(x => ZIO.effect(println(x)))
+  val amISuperUser: ZIO[Any, Throwable, Int] = getStatus(root / "users" / "am-i-super-user")
     .provideLayer(FHttpClient.live)
 
   implicit def scalaDurationToZIODuration(duration: scala.concurrent.duration.Duration): zio.duration.Duration =

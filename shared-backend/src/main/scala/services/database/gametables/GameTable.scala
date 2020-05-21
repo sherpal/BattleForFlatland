@@ -142,6 +142,15 @@ object GameTable {
         _ <- modifyGameConfiguration(gameId, game.game.gameConfiguration.modifyPlayer(playerInfo))
       } yield ()
 
+    final def updateGameConfiguration(
+        gameId: String,
+        configChanger: GameConfiguration => GameConfiguration
+    ): ZIO[Any, Throwable, Unit] =
+      for {
+        game <- gameWithPlayersById(gameId)
+        _ <- modifyGameConfiguration(gameId, configChanger(game.game.gameConfiguration))
+      } yield ()
+
     /**
       * Fetches game and players information for the game id.
       */

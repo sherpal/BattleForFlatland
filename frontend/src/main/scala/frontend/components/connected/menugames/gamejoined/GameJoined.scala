@@ -144,7 +144,7 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
               child <-- EventStream
                 .fromValue(info, emitOnce = false)
                 .filter(_.game.gameCreator.userName == me.userName)
-                .mapTo(GameOptionPanel()),
+                .mapTo(GameOptionPanel(socket.outWriter)),
               PlayerList($gameInfo.map(_.game.gameConfiguration.playersInfo.values.toList)),
               div(
                 child <-- $amICreator.map {

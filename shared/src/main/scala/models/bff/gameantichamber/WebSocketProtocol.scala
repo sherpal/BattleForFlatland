@@ -15,6 +15,7 @@ object WebSocketProtocol {
   case class PlayerLeavesGame(userId: String) extends WebSocketProtocol
   case class GameUserCredentialsWrapper(gameUserCredentials: GameUserCredentials) extends WebSocketProtocol
   case class UpdateMyInfo(userId: String, playerInfo: PlayerInfo) extends WebSocketProtocol
+  case class UpdateBossName(newBossName: String) extends WebSocketProtocol
 
   import io.circe.generic.extras.semiauto._
   implicit val genDevConfig: Configuration =

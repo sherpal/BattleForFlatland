@@ -20,7 +20,8 @@ import io.circe.syntax._
   * @param playersInfo Map from player name to their information.
   */
 final case class GameConfiguration(
-    playersInfo: Map[String, PlayerInfo]
+    playersInfo: Map[String, PlayerInfo],
+    maybeBossName: Option[String]
 ) {
 
   /** Gives back a new instance of the game configuration with the new player added. */
@@ -36,6 +37,8 @@ final case class GameConfiguration(
   def removePlayer(playerName: String): GameConfiguration = copy(
     playersInfo = playersInfo - playerName
   )
+
+  def withBossName(bossName: String): GameConfiguration = copy(maybeBossName = Some(bossName))
 
   def json: String = this.asJson.noSpaces
 
