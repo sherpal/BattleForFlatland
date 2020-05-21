@@ -27,7 +27,7 @@ trait WithThreat extends Entity {
   def changeDamageThreats(threatId: Entity.Id, delta: ThreatAmount): WithThreat
 
   /** Concrete classes must implement this so that we can change the healing threat of the entity. */
-  def changeHealingThreats(threadId: Entity.Id, delta: ThreatAmount): WithThreat
+  def changeHealingThreats(threatId: Entity.Id, delta: ThreatAmount): WithThreat
 
   /** Calls either of the changing threats function depending on the value of `isDamageThreat`. */
   final def changeThreats(threatId: Entity.Id, delta: ThreatAmount, isDamageThreat: Boolean): WithThreat =

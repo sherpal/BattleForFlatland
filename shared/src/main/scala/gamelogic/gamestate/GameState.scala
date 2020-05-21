@@ -2,6 +2,7 @@ package gamelogic.gamestate
 
 import gamelogic.buffs.{Buff, PassiveBuff, TickerBuff}
 import gamelogic.entities._
+import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.classes.PlayerClass
 import models.syntax.Pointed
 
@@ -22,6 +23,7 @@ final case class GameState(
     startTime: Option[Long],
     endTime: Option[Long],
     players: Map[Entity.Id, PlayerClass],
+    bosses: Map[Entity.Id, BossEntity],
     dummyMobs: Map[Entity.Id, DummyMob],
     simpleBullets: Map[Entity.Id, SimpleBulletBody],
     castingEntityInfo: Map[Entity.Id, EntityCastingInfo],
@@ -62,23 +64,30 @@ final case class GameState(
   def entityById(entityId: Entity.Id): Option[Entity] =
     players
       .get(entityId)
+      .orElse(bosses.get(entityId))
       .orElse(dummyMobs.get(entityId))
       .orElse(simpleBullets.get(entityId))
 
   // Is there something better?
   def withAbilityEntitiesById(entityId: Entity.Id): Option[WithAbilities] =
-    players.get(entityId)
+    players
+      .get(entityId)
+      .orElse(bosses.get(entityId))
 
   def livingEntityById(entityId: Entity.Id): Option[LivingEntity] =
-    players.get(entityId).orElse(dummyMobs.get(entityId))
+    players
+      .get(entityId)
+      .orElse(bosses.get(entityId))
+      .orElse(dummyMobs.get(entityId))
 
-  def withThreatEntityById(entityId: Entity.Id): Option[WithThreat] = None
+  def withThreatEntityById(entityId: Entity.Id): Option[WithThreat] =
+    bosses.get(entityId)
 
   def withPositionEntityById(entityId: Entity.Id): Option[WithPosition] =
-    players.get(entityId).orElse(dummyMobs.get(entityId))
+    players.get(entityId).orElse(bosses.get(entityId)).orElse(dummyMobs.get(entityId))
 
   def movingBodyEntityById(entityId: Entity.Id): Option[MovingBody] =
-    players.get(entityId).orElse(dummyMobs.get(entityId))
+    players.get(entityId).orElse(bosses.get(entityId)).orElse(dummyMobs.get(entityId))
 
   def buffById(entityId: Entity.Id, buffId: Buff.Id): Option[Buff] =
     tickerBuffs

@@ -3,8 +3,10 @@ import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
-import gamelogic.entities.Entity
+import gamelogic.entities.{Entity, WithThreat}
+import gamelogic.entities.Entity.Id
 import gamelogic.entities.WithPosition.Angle
+import gamelogic.entities.WithThreat.ThreatAmount
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.Circle
 
@@ -33,7 +35,9 @@ final case class Boss101(
     moving: Boolean,
     life: Double,
     maxLife: Double,
-    relevantUsedAbilities: Map[AbilityId, Ability]
+    relevantUsedAbilities: Map[AbilityId, Ability],
+    healingThreats: Map[Id, ThreatAmount],
+    damageThreats: Map[Id, ThreatAmount]
 ) extends BossEntity {
 
   def name: String = "Boss 101"
@@ -57,6 +61,11 @@ final case class Boss101(
 
   def teamId: Entity.TeamId = Entity.teams.mobTeam
 
+  def changeDamageThreats(threatId: Id, delta: ThreatAmount): WithThreat =
+    copy(damageThreats = damageThreats + (threatId -> (damageThreats.getOrElse(threatId, 0.0) + delta)))
+
+  def changeHealingThreats(threatId: Id, delta: ThreatAmount): WithThreat =
+    copy(healingThreats = healingThreats + (threatId -> (healingThreats.getOrElse(threatId, 0.0) + delta)))
 }
 
 object Boss101 {
