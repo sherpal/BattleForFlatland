@@ -1,7 +1,8 @@
 package gamelogic.abilities.hexagon
 
-import gamelogic.abilities.Ability
+import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.abilities.Ability.{AbilityId, UseId}
+import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.entities.Resource.{Mana, ResourceAmount}
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.UpdateConstantHot
@@ -9,7 +10,7 @@ import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator}
 
 final case class HexagonHot(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
-    extends Ability {
+    extends WithTargetAbility {
   val abilityId: AbilityId = Ability.hexagonHexagonHotId
   val cooldown: Long       = 4000L
   val castingTime: Long    = 0L
@@ -33,6 +34,11 @@ final case class HexagonHot(useId: Ability.UseId, time: Long, casterId: Entity.I
   )
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
+
+  def canBeCast(gameState: GameState, time: UseId): Boolean =
+    canBeCastFriendlyOnly(gameState) && isInRange(gameState, time)
+
+  def range: Distance = WithTargetAbility.healRange
 }
 
 object HexagonHot {

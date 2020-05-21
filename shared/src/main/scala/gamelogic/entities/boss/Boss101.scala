@@ -1,6 +1,7 @@
 package gamelogic.entities.boss
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
+import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.Entity
 import gamelogic.entities.WithPosition.Angle
@@ -54,8 +55,13 @@ final case class Boss101(
   protected def patchLifeTotal(newLife: Double): Boss101 =
     copy(life = newLife)
 
+  def teamId: Entity.TeamId = Entity.teams.mobTeam
+
 }
 
 object Boss101 {
   final val shape: Circle = new Circle(30.0)
+
+  final val meleeRange: Distance = shape.radius + 20.0
+  final val rangeRange: Distance = 2000.0 // basically infinite distance
 }

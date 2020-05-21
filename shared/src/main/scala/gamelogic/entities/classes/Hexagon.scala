@@ -4,7 +4,7 @@ import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.entities.Resource.{Mana, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
-import gamelogic.entities.{LivingEntity, MovingBody, WithAbilities}
+import gamelogic.entities.{Entity, LivingEntity, MovingBody, WithAbilities}
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 
@@ -50,6 +50,8 @@ final case class Hexagon(
       moving: Boolean
   ): Hexagon =
     copy(time = time, pos = position, direction = direction, rotation = rotation, speed = speed, moving = moving)
+
+  def teamId: Entity.TeamId = Entity.teams.playerTeam
 }
 
 object Hexagon {

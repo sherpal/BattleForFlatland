@@ -1,15 +1,18 @@
 package gamelogic.abilities.boss.boss101
 
-import gamelogic.abilities.Ability
+import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.abilities.Ability.{AbilityId, UseId}
+import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.entities.Entity
 import gamelogic.entities.Resource
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
+import gamelogic.entities.boss.Boss101
 import gamelogic.gamestate.gameactions.PutConstantDot
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator}
 
-final case class BigDot(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id) extends Ability {
+final case class BigDot(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
+    extends WithTargetAbility {
   def abilityId: AbilityId = Ability.boss101BigDotId
 
   def cooldown: Long = 20000L
@@ -35,6 +38,11 @@ final case class BigDot(useId: Ability.UseId, time: Long, casterId: Entity.Id, t
     )
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
+
+  def range: Distance = Boss101.rangeRange
+
+  def canBeCast(gameState: GameState, time: Long): Boolean =
+    canBeCastEnemyOnly(gameState) && isInRange(gameState, time)
 }
 
 object BigDot {

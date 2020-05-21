@@ -48,7 +48,23 @@ final case class GameState(
       time + delay - castingInfo.startedTime >= castingInfo.castingTime
   }
 
+  /**
+    * Returns whether the two entities given ids are in the same team.
+    * If either of the entities does not exist, returns None instead.
+    */
+  def areTheyFromSameTeam(entityId1: Entity.Id, entityId2: Entity.Id): Option[Boolean] =
+    for {
+      entity1 <- entityById(entityId1)
+      entity2 <- entityById(entityId2)
+    } yield entity1.teamId == entity2.teamId
+
   // todo: look for other kind of entity in all of methods below.
+  def entityById(entityId: Entity.Id): Option[Entity] =
+    players
+      .get(entityId)
+      .orElse(dummyMobs.get(entityId))
+      .orElse(simpleBullets.get(entityId))
+
   // Is there something better?
   def withAbilityEntitiesById(entityId: Entity.Id): Option[WithAbilities] =
     players.get(entityId)

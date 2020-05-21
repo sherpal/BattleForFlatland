@@ -52,6 +52,8 @@ final case class DummyLivingEntity(
       moving: Boolean
   ): DummyLivingEntity =
     copy(time = time, pos = position, direction = direction, moving = moving)
+
+  def teamId: Entity.TeamId = Entity.teams.playerTeam
 }
 
 object DummyLivingEntity {

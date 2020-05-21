@@ -60,7 +60,7 @@ trait Ability {
   /** Change the time and id of this ability, without changing the rest. */
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): Ability
 
-  def isInRange(gameState: GameState, time: Long): Boolean = true
+  def canBeCast(gameState: GameState, time: Long): Boolean
 
 }
 

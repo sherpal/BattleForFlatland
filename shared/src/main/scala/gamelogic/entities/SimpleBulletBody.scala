@@ -31,6 +31,9 @@ final case class SimpleBulletBody(
       moving: Boolean
   ): MovingBody =
     copy(time = time, pos = position, direction = direction, speed = speed)
+
+  // Let's make it neutral, it was only intended to test.
+  def teamId: Entity.TeamId = Entity.teams.neutralTeam
 }
 
 object SimpleBulletBody {

@@ -85,6 +85,8 @@ addCommandAlias("dev", ";frontend/fastOptJS::startWebpackDevServer;~frontend/fas
 
 addCommandAlias("build", "frontend/fullOptJS::webpack")
 
+addCommandAlias("compileShared", ";sharedJS/compile;sharedJVM/compile")
+
 stage := {
   val webpackValue = (frontend / Compile / fullOptJS / webpack).value
   println(s"Webpack value is $webpackValue")

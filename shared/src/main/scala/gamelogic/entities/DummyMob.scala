@@ -25,6 +25,8 @@ final case class DummyMob(
 
   def move(time: Long, position: Complex, direction: Angle, rotation: Angle, speed: Double, moving: Boolean): DummyMob =
     copy(time = time, pos = position, moving = moving, direction = direction, rotation = rotation)
+
+  def teamId: Entity.TeamId = Entity.teams.mobTeam
 }
 
 object DummyMob {

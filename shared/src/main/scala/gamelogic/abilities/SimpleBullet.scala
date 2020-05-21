@@ -38,6 +38,8 @@ final case class SimpleBullet(
     copy(useId = newId, time = newTime)
 
   val cost: ResourceAmount = ResourceAmount(0.0, NoResource)
+
+  def canBeCast(gameState: GameState, time: UseId): Boolean = true
 }
 
 object SimpleBullet {

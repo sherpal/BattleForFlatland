@@ -25,6 +25,10 @@ final case class HammerHit(useId: Ability.UseId, time: Long, casterId: Entity.Id
     List(EntityTakesDamage(0L, time, targetId, HammerHit.damage, casterId))
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
+
+  def canBeCast(gameState: GameState, time: Long): Boolean =
+    canBeCastEnemyOnly(gameState) && isInRange(gameState, time)
+
 }
 
 object HammerHit {
