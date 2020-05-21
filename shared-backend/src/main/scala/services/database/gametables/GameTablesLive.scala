@@ -36,6 +36,7 @@ final class GameTablesLive(
   protected def modifyGameConfiguration(gameId: String, configuration: GameConfiguration): Task[Int] =
     runAsTask(
       gameTableQuery
+        .filter(_.gameId === gameId)
         .map(game => (game.gameId, game.gameConfigurationAsString))
         .update(gameId -> configuration.json)
     )

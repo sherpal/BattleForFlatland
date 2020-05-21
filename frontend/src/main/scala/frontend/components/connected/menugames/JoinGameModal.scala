@@ -20,10 +20,9 @@ import services.routing.FRouting
 import zio.UIO
 
 final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.CloseWriter)(
-    implicit pwPointed: Pointed[PasswordWrapper]
+    val initialData: PasswordWrapper
 ) extends Component[html.Element]
     with SimpleForm[PasswordWrapper, ErrorOr[Int]] {
-  val initialData: PasswordWrapper                          = pwPointed.unit
   val validator: FieldsValidator[PasswordWrapper, ErrorADT] = FieldsValidator.allowAllValidator
 
   private val layer = FHttpClient.live ++ FRouting.live
@@ -115,5 +114,5 @@ final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.Clos
 object JoinGameModal {
   def apply(game: MenuGame, closeWriter: ModalWindow.CloseWriter)(
       implicit pwPointed: Pointed[PasswordWrapper]
-  ) = new JoinGameModal(game, closeWriter)
+  ) = new JoinGameModal(game, closeWriter)(pwPointed.unit)
 }

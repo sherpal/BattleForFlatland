@@ -13,11 +13,12 @@ import models.bff.outofgame.gameconfig.PlayerInfo
 import models.users.{RouteDefinitions, User}
 import org.scalajs.dom.html
 import programs.frontend.games._
-import services.http.FHttpClient
-import services.logging.FLogging
+import services.http.{FHttpClient, HttpClient}
+import services.logging.{FLogging, Logging}
 import services.routing.{FRouting, _}
 import utils.laminarzio.Implicits._
 import utils.websocket.JsonWebSocket
+import zio.ZLayer
 import zio.clock.Clock
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -27,7 +28,9 @@ import scala.util.{Failure, Success}
 
 final class GameJoined private (gameId: String, me: User) extends Component[html.Element] {
 
-  private val layer = FHttpClient.live ++ FRouting.live ++ FLogging.live ++ Clock.live
+  private val layer: ZLayer[Any, Nothing, HttpClient with Routing with Logging with Clock] =
+    (FHttpClient.live ++ FRouting.live ++ FLogging.live ++ Clock.live)
+      .asInstanceOf[ZLayer[Any, Nothing, HttpClient with Routing with Logging with Clock]]
 
   private val socket = JsonWebSocket[WebSocketProtocol, WebSocketProtocol, String](gameJoinedWS, gameIdParam, gameId)
 
@@ -105,8 +108,6 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
   val $leaveGame: EventStream[Int] =
     leaveGameBus.events.flatMap(_ => EventStream.fromZIOEffect(iAmLeaving(gameId).provideLayer(layer)))
 
-  val $initialGameInfo = EventStream.fromZIOEffect(fetchingGameInfo)
-
   val element: ReactiveHtmlElement[html.Element] = section(
     mainContentContainer,
     className <-- $shouldMoveBackToHome.mapTo(""), // kicking off stream
@@ -122,47 +123,57 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
         className := s"text-$primaryColour-$primaryColourDark",
         child.text <-- $gameInfo.map(_.game.gameName).map("Game " + _)
       ),
-      child <-- $initialGameInfo
-        .map(_.flatMap(_.game.gameConfiguration.playersInfo.get(me.userName)))
-        .collect { case Some(value) => value }
+      child <-- socket.$open.flatMap(_ => EventStream.fromZIOEffect[Option[MenuGameWithPlayers]](fetchingGameInfo))
+        .collect { case Some(info) => info }
         .map(
           info =>
-            PlayerInfoOptionPanel(
-              info,
-              socket.outWriter.contramap[PlayerInfo](
-                WebSocketProtocol.UpdateMyInfo(me.userId, _)
+            div(
+              child <-- EventStream
+                .fromValue(info, emitOnce = false)
+                .map(_.game.gameConfiguration.playersInfo.get(me.userName))
+                .collect { case Some(playerInfo) => playerInfo }
+                .map(
+                  playerInfo =>
+                    PlayerInfoOptionPanel(
+                      playerInfo,
+                      socket.outWriter.contramap[PlayerInfo](
+                        WebSocketProtocol.UpdateMyInfo(me.userId, _)
+                      )
+                    )
+                ),
+              child <-- EventStream
+                .fromValue(info, emitOnce = false)
+                .filter(_.game.gameCreator.userName == me.userName)
+                .mapTo(GameOptionPanel()),
+              PlayerList($gameInfo.map(_.game.gameConfiguration.playersInfo.values.toList)),
+              div(
+                child <-- $amICreator.map {
+                  if (_)
+                    button(
+                      btn,
+                      className <-- $gameInfo.map(_.game.everyBodyReady)
+                        .startWith(false)
+                        .map(if (_) primaryButtonContent else primaryButtonDisabledContent),
+                      "Launch game!",
+                      onClick.mapTo(()) --> startGameBus,
+                      disabled <-- $gameInfo.map(!_.game.everyBodyReady)
+                    )
+                  else emptyNode
+                },
+                child <-- $amICreator.map {
+                  if (_)
+                    button(btn, secondaryButton, "Cancel game", onClick.mapTo(()) --> cancelGameBus)
+                  else
+                    button(
+                      btn,
+                      secondaryButton,
+                      "Leave game",
+                      onClick.mapTo(WebSocketProtocol.PlayerLeavesGame(me.userId)) --> socket.outWriter
+                    )
+                }
               )
             )
         ),
-        child <-- $initialGameInfo.collect { case Some(info) if info.game.gameCreator.userName == me.userName => info }
-        .mapTo(GameOptionPanel()),
-      PlayerList($gameInfo.map(_.game.gameConfiguration.playersInfo.values.toList)),
-      div(
-        child <-- $amICreator.map {
-          if (_)
-            button(
-              btn,
-              className <-- $gameInfo.map(_.game.everyBodyReady)
-                .startWith(false)
-                .map(if (_) primaryButtonContent else primaryButtonDisabledContent),
-              "Launch game!",
-              onClick.mapTo(()) --> startGameBus,
-              disabled <-- $gameInfo.map(!_.game.everyBodyReady)
-            )
-          else emptyNode
-        },
-        child <-- $amICreator.map {
-          if (_)
-            button(btn, secondaryButton, "Cancel game", onClick.mapTo(()) --> cancelGameBus)
-          else
-            button(
-              btn,
-              secondaryButton,
-              "Leave game",
-              onClick.mapTo(WebSocketProtocol.PlayerLeavesGame(me.userId)) --> socket.outWriter
-            )
-        }
-      ),
       pre(
         child.text <-- receivedCredentials.signal.map(_.asJson.spaces2),
         child.text <-- $tokenForWebSocket

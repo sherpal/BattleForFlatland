@@ -87,6 +87,9 @@ object ErrorADT {
   case class PendingRegistrationDoesNotExist(registrationKey: String) extends DatabaseError {
     def httpErrorType: HTTPResultType = BadRequest
   }
+  case class RawDatabaseError(message: String) extends DatabaseError {
+    def httpErrorType: HTTPResultType = Internal
+  }
 
   sealed trait MenuGameError extends BackendError
   case class InconsistentMenuGameInDB(gameId: String, gameName: String) extends MenuGameError {

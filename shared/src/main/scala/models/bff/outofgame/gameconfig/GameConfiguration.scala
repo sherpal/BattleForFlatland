@@ -16,6 +16,8 @@ import io.circe.syntax._
   *
   * In the database, this information will simply be inserted as the JSON (or other encoder) so that we don't need
   * to model it using SQL tables. In the future, this could perhaps be handled using Elastic Search or MongoDB.
+  *
+  * @param playersInfo Map from player name to their information.
   */
 final case class GameConfiguration(
     playersInfo: Map[String, PlayerInfo]

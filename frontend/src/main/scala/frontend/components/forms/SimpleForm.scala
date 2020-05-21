@@ -45,7 +45,12 @@ trait SimpleForm[FormData, SubmitReturn] { self: Component[_] =>
 
   type FormDataChanger = FormData => FormData
 
-  /** FormData instance to use at the beginning. Typically given by an implicit [[models.syntax.Pointed]]. */
+  /** 
+   * FormData instance to use at the beginning. Typically given by an implicit [[models.syntax.Pointed]]. 
+   * 
+   * IMPORTANT: the initialData has to be defined at the very beginning (or even better, in the constructor) for the
+   * extending concrete classes, otherwise you expose yourself to NPEs...
+   */
   val initialData: FormData
 
   /**

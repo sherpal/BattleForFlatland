@@ -6,6 +6,7 @@ import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
 import frontend.components.utils.ToggleButton
+import frontend.components.utils.tailwind.{primaryColour, primaryColourDark}
 import models.bff.outofgame.PlayerClasses
 import models.bff.outofgame.gameconfig.PlayerStatus.{NotReady, Ready}
 import models.bff.outofgame.gameconfig.{PlayerInfo, PlayerStatus}
@@ -28,22 +29,24 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
     changer(info)
   }
 
-  val classSelector: ReactiveHtmlElement[Select] = {
-    val s = select(
-      PlayerClasses.allChoices.map(_.toString).map(cls => option(value := cls, cls)),
-      inContext(
-        elem =>
-          onChange.mapTo(elem.ref.value).map(PlayerClasses.playerClassByName).collect {
-            case Some(value) => value
-          } --> playerClassWriter
-      )
-    )
-    s.ref.value = initialPlayerInfo.playerClass.toString
-    s
-  }
+  val classSelector: ReactiveHtmlElement[Select] = select(
+    PlayerClasses.allChoices.map(_.toString).map(cls => option(value := cls, cls)),
+    inContext(
+      elem =>
+        onChange.mapTo(elem.ref.value).map(PlayerClasses.playerClassByName).collect {
+          case Some(value) => value
+        } --> playerClassWriter
+    ),
+    onMountSet(_ => value := initialPlayerInfo.playerClass.toString)
+  )
 
   val element: ReactiveHtmlElement[Element] =
     section(
+      h2(
+        className := "text-2xl",
+        className := s"text-$primaryColour-$primaryColourDark",
+        "Player Options"
+      ),
       "Ready: ",
       ToggleButton(readyStateWriter.contramap(if (_) Ready else NotReady), initialPlayerInfo.isReady),
       "Chose a class:",
