@@ -7,7 +7,7 @@ import zio.ZIO
 /**
   * Messages sent to any AI controller.
   *
-  * All these actors need to now the last [[gamelogic.gamestate.GameState]], and (potentially) all actions that
+  * All these actors need to know the last [[gamelogic.gamestate.GameState]], and (potentially) all actions that
   * occur (not sure if this is necessary, though...).
   *
   * This, in particular, means that nothing in the type system will remember what type of the actor ref the

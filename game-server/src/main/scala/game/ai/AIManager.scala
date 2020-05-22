@@ -3,7 +3,9 @@ package game.ai
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import game.ActionTranslator
-import gamelogic.gamestate.gameactions.AddDummyMob
+import game.ai.boss.Boss101Controller
+import gamelogic.entities.boss.Boss101
+import gamelogic.gamestate.gameactions.{AddDummyMob, SpawnBoss}
 import gamelogic.gamestate.{GameAction, GameState}
 
 /**
@@ -12,7 +14,7 @@ import gamelogic.gamestate.{GameAction, GameState}
   *
   * The idea is that each [[gamelogic.entities.Entity]] (that must take actions, so not a
   * [[gamelogic.entities.SimpleBulletBody]], for example) will be handled by a different actor. If some entities have
-  * a very similar behaviour, or if they need to be coordinated, they could handled together by a single actor.
+  * a very similar behaviour, or if they need to be coordinated, they could be handled together by a single actor.
   *
   * AI actors will typically run at around 30 fps, which is way more than enough to have a meaningful behaviour.
   *
@@ -20,6 +22,9 @@ import gamelogic.gamestate.{GameAction, GameState}
   * dispatch the information to every AI actor there is.
   */
 object AIManager {
+
+  /** in millis */
+  final val loopRate = 1000L / 30L
 
   sealed trait Message
 
@@ -97,6 +102,15 @@ object AIManager {
                 DummyMobController(receiverInfo.actionTranslator, action),
                 s"DummyMob-${action.entityId}"
               )
+
+            context.watchWith(ref, ControllerDied(ref))
+
+            ref
+          case action: SpawnBoss if action.bossName == Boss101.name =>
+            val ref = context.spawn(
+              Boss101Controller(receiverInfo.actionTranslator, action),
+              s"Boss101-${action.entityId}"
+            )
 
             context.watchWith(ref, ControllerDied(ref))
 

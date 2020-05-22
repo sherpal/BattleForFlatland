@@ -5,6 +5,7 @@ import akka.actor.typed.{ActorRef, Behavior}
 import game.ActionTranslator
 import gamelogic.gamestate.GameState
 import gamelogic.gamestate.gameactions.{AddDummyMob, MovingBodyMoves}
+import game.ai.AIManager.loopRate
 
 import scala.Ordering.Double.TotalOrdering
 import scala.concurrent.duration._
@@ -12,9 +13,6 @@ import scala.concurrent.duration._
 object DummyMobController {
 
   @inline private def now = System.currentTimeMillis
-
-  /** in millis */
-  private final val loopRate = 1000L / 30L
 
   def apply(
       actionTranslator: ActorRef[ActionTranslator.Message],

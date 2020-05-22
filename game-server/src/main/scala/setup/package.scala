@@ -10,19 +10,22 @@ import models.bff.ingame.{GameCredentials, GameCredentialsWithGameInfo}
 import services.database.gametables._
 import utils.customheader.{GameServerIdHeader, GameServerSecretHeader}
 import zio.ZIO
-import zio.console.putStrLn
+import zio.console.{putStrLn, Console}
 
 import scala.concurrent.duration._
 
 package object setup {
 
-  def fetchGameInfo(gameId: String) =
+  def fetchGameInfo(gameId: String): ZIO[Console with GameTable, Throwable, Unit] =
     for {
       game <- gameWithPlayersById(gameId)
       _ <- putStrLn(game.toString)
     } yield ()
 
-  def fetchGameInfo(gameCredentials: GameCredentials, actorSystem: ActorSystem[_]) = {
+  def fetchGameInfo(
+      gameCredentials: GameCredentials,
+      actorSystem: ActorSystem[_]
+  ): ZIO[Any, Throwable, GameCredentialsWithGameInfo] = {
     implicit val classicSystem: actor.ActorSystem = actorSystem.toClassic
     for {
       response <- ZIO.fromFuture { _ =>

@@ -81,8 +81,9 @@ object Boss101 extends BossFactory {
   def initialBoss(entityId: Entity.Id, time: Long): Boss101 =
     Pointed[Boss101].unit
       .copy(
-        id   = entityId,
-        time = time,
+        id    = entityId,
+        time  = time,
+        speed = 300.0,
         relevantUsedAbilities = Map(
           Ability.boss101BigDotId -> Pointed[BigDot].unit.copy(time = time - BigDot.timeToFirstBigDot)
         )
