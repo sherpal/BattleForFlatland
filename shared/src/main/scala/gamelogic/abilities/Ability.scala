@@ -3,7 +3,7 @@ package gamelogic.abilities
 import gamelogic.entities.Resource.ResourceAmount
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator}
+import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator, IdGeneratorContainer}
 import io.circe.{Decoder, Encoder, Json}
 
 /**
@@ -55,7 +55,7 @@ trait Ability {
     */
   def createActions(
       gameState: GameState
-  )(implicit entityIdGenerator: EntityIdGenerator, buffIdGenerator: BuffIdGenerator): List[GameAction]
+  )(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction]
 
   /** Change the time and id of this ability, without changing the rest. */
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): Ability

@@ -9,7 +9,7 @@ import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.boss.Boss101
 import gamelogic.gamestate.gameactions.PutConstantDot
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator}
+import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator, IdGeneratorContainer}
 
 final case class BigDot(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
     extends WithTargetAbility {
@@ -23,7 +23,7 @@ final case class BigDot(useId: Ability.UseId, time: Long, casterId: Entity.Id, t
 
   def createActions(
       gameState: GameState
-  )(implicit entityIdGenerator: EntityIdGenerator, buffIdGenerator: BuffIdGenerator): List[GameAction] =
+  )(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
     List(
       PutConstantDot(
         0L,
@@ -33,7 +33,7 @@ final case class BigDot(useId: Ability.UseId, time: Long, casterId: Entity.Id, t
         BigDot.damageOnTick,
         BigDot.duration,
         BigDot.tickRate,
-        buffIdGenerator()
+        idGeneratorContainer.buffIdGenerator()
       )
     )
 

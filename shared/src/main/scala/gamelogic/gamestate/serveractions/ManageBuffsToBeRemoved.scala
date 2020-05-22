@@ -3,7 +3,13 @@ package gamelogic.gamestate.serveractions
 import gamelogic.buffs.{Buff, PassiveBuff, TickerBuff}
 import gamelogic.gamestate.ImmutableActionCollector
 import gamelogic.gamestate.gameactions.RemoveBuff
-import gamelogic.utils.{AbilityUseIdGenerator, BuffIdGenerator, EntityIdGenerator, GameActionIdGenerator}
+import gamelogic.utils.{
+  AbilityUseIdGenerator,
+  BuffIdGenerator,
+  EntityIdGenerator,
+  GameActionIdGenerator,
+  IdGeneratorContainer
+}
 
 final class ManageBuffsToBeRemoved extends ServerAction {
 
@@ -11,10 +17,7 @@ final class ManageBuffsToBeRemoved extends ServerAction {
     RemoveBuff(0L, buff.appearanceTime + buff.duration, buff.bearerId, buff.buffId)
 
   def apply(currentState: ImmutableActionCollector, nowGenerator: () => Long)(
-      implicit gameActionIdGenerator: GameActionIdGenerator,
-      entityIdGenerator: EntityIdGenerator,
-      abilityUseIdGenerator: AbilityUseIdGenerator,
-      buffIdGenerator: BuffIdGenerator
+      implicit idGeneratorContainer: IdGeneratorContainer
   ): (ImmutableActionCollector, ServerAction.ServerActionOutput) = {
     val startTime = nowGenerator()
     val gameState = currentState.currentGameState

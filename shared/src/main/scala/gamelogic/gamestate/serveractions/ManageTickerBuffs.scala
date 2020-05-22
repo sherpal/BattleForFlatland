@@ -2,7 +2,13 @@ package gamelogic.gamestate.serveractions
 
 import gamelogic.gamestate.ImmutableActionCollector
 import gamelogic.gamestate.gameactions.TickerBuffTicks
-import gamelogic.utils.{AbilityUseIdGenerator, BuffIdGenerator, EntityIdGenerator, GameActionIdGenerator}
+import gamelogic.utils.{
+  AbilityUseIdGenerator,
+  BuffIdGenerator,
+  EntityIdGenerator,
+  GameActionIdGenerator,
+  IdGeneratorContainer
+}
 
 /**
   * This [[gamelogic.gamestate.serveractions.ServerAction]] triggers the actions of all the ticker buffs in the game
@@ -13,10 +19,7 @@ import gamelogic.utils.{AbilityUseIdGenerator, BuffIdGenerator, EntityIdGenerato
   */
 final class ManageTickerBuffs extends ServerAction {
   def apply(currentState: ImmutableActionCollector, nowGenerator: () => Long)(
-      implicit gameActionIdGenerator: GameActionIdGenerator,
-      entityIdGenerator: EntityIdGenerator,
-      abilityUseIdGenerator: AbilityUseIdGenerator,
-      buffIdGenerator: BuffIdGenerator
+      implicit idGeneratorContainer: IdGeneratorContainer
   ): (ImmutableActionCollector, ServerAction.ServerActionOutput) = {
     val startTime = nowGenerator()
     val gameState = currentState.currentGameState
@@ -28,7 +31,7 @@ final class ManageTickerBuffs extends ServerAction {
       .flatMap(
         ticker =>
           TickerBuffTicks(0L, ticker.lastTickTime + ticker.tickRate, ticker.buffId, ticker.bearerId) +: ticker
-            .tickEffect(gameState, startTime, entityIdGenerator)
+            .tickEffect(gameState, startTime, idGeneratorContainer.entityIdGenerator)
       )
       .toList
 

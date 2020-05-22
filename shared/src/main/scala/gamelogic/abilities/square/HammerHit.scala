@@ -7,7 +7,7 @@ import gamelogic.entities.Resource.{Rage, ResourceAmount}
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator}
+import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator, IdGeneratorContainer}
 
 final case class HammerHit(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
     extends WithTargetAbility {
@@ -21,7 +21,7 @@ final case class HammerHit(useId: Ability.UseId, time: Long, casterId: Entity.Id
 
   def createActions(
       gameState: GameState
-  )(implicit entityIdGenerator: EntityIdGenerator, buffIdGenerator: BuffIdGenerator): List[GameAction] =
+  )(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
     List(EntityTakesDamage(0L, time, targetId, HammerHit.damage, casterId))
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)

@@ -2,7 +2,13 @@ package gamelogic.gamestate.serveractions
 
 import gamelogic.gamestate.serveractions.ServerAction.ServerActionOutput
 import gamelogic.gamestate.{GameAction, ImmutableActionCollector}
-import gamelogic.utils.{AbilityUseIdGenerator, BuffIdGenerator, EntityIdGenerator, GameActionIdGenerator}
+import gamelogic.utils.{
+  AbilityUseIdGenerator,
+  BuffIdGenerator,
+  EntityIdGenerator,
+  GameActionIdGenerator,
+  IdGeneratorContainer
+}
 
 trait ServerAction {
 
@@ -10,10 +16,7 @@ trait ServerAction {
       currentState: ImmutableActionCollector,
       nowGenerator: () => Long
   )(
-      implicit gameActionIdGenerator: GameActionIdGenerator,
-      entityIdGenerator: EntityIdGenerator,
-      abilityUseIdGenerator: AbilityUseIdGenerator,
-      buffIdGenerator: BuffIdGenerator
+      implicit idGeneratorContainer: IdGeneratorContainer
   ): (ImmutableActionCollector, ServerAction.ServerActionOutput)
 
   /** Isn't this Kleisli? */
@@ -23,10 +26,7 @@ trait ServerAction {
         currentState: ImmutableActionCollector,
         nowGenerator: () => Long
     )(
-        implicit gameActionIdGenerator: GameActionIdGenerator,
-        entityIdGenerator: EntityIdGenerator,
-        abilityUseIdGenerator: AbilityUseIdGenerator,
-        buffIdGenerator: BuffIdGenerator
+        implicit idGeneratorContainer: IdGeneratorContainer
     ): (ImmutableActionCollector, ServerAction.ServerActionOutput) = {
       val (nextCollector, firstOutput) =
         this.apply(currentState, nowGenerator)
@@ -38,10 +38,7 @@ trait ServerAction {
 
     new ServerAction {
       def apply(currentState: ImmutableActionCollector, nowGenerator: () => Long)(
-          implicit gameActionIdGenerator: GameActionIdGenerator,
-          entityIdGenerator: EntityIdGenerator,
-          abilityUseIdGenerator: AbilityUseIdGenerator,
-          buffIdGenerator: BuffIdGenerator
+          implicit idGeneratorContainer: IdGeneratorContainer
       ): (ImmutableActionCollector, ServerActionOutput) =
         app(currentState, nowGenerator)
     }

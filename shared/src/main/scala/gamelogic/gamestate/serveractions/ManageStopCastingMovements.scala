@@ -1,7 +1,13 @@
 package gamelogic.gamestate.serveractions
 import gamelogic.gamestate.ImmutableActionCollector
 import gamelogic.gamestate.gameactions.EntityCastingInterrupted
-import gamelogic.utils.{AbilityUseIdGenerator, BuffIdGenerator, EntityIdGenerator, GameActionIdGenerator}
+import gamelogic.utils.{
+  AbilityUseIdGenerator,
+  BuffIdGenerator,
+  EntityIdGenerator,
+  GameActionIdGenerator,
+  IdGeneratorContainer
+}
 
 /**
   * Entities that are casting, but moving, should stop casting.
@@ -11,10 +17,7 @@ final class ManageStopCastingMovements extends ServerAction {
       currentState: ImmutableActionCollector,
       nowGenerator: () => Long
   )(
-      implicit gameActionIdGenerator: GameActionIdGenerator,
-      entityIdGenerator: EntityIdGenerator,
-      abilityUseIdGenerator: AbilityUseIdGenerator,
-      buffIdGenerator: BuffIdGenerator
+      implicit idGeneratorContainer: IdGeneratorContainer
   ): (ImmutableActionCollector, ServerAction.ServerActionOutput) = {
     val startTime = nowGenerator()
     val gameState = currentState.currentGameState
@@ -26,7 +29,7 @@ final class ManageStopCastingMovements extends ServerAction {
         case (id, Some(withAbility), position) if position != withAbility.pos => Some(id)
         case _                                                                => None
       }
-      .map(id => EntityCastingInterrupted(gameActionIdGenerator(), startTime, id))
+      .map(id => EntityCastingInterrupted(idGeneratorContainer.gameActionIdGenerator(), startTime, id))
       .toList
 
     val (nextCollector, oldestTime, idsToRemove) = currentState.masterAddAndRemoveActions(entityStoppedCastingActions)

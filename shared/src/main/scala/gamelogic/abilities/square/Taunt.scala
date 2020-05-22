@@ -7,7 +7,7 @@ import gamelogic.entities.Resource.{Rage, ResourceAmount}
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.ThreatToEntityChange
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator}
+import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator, IdGeneratorContainer}
 
 /**
   * Increases the damage threat level this caster has towards the target.
@@ -22,7 +22,7 @@ final case class Taunt(useId: Ability.UseId, time: Long, casterId: Entity.Id, ta
 
   def createActions(
       gameState: GameState
-  )(implicit entityIdGenerator: EntityIdGenerator, buffIdGenerator: BuffIdGenerator): List[GameAction] = List(
+  )(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
     ThreatToEntityChange(
       0L,
       time,

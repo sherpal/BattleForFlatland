@@ -6,7 +6,7 @@ import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.gamestate.gameactions.NewSimpleBullet
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
-import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator}
+import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator, IdGeneratorContainer}
 
 final case class SimpleBullet(
     useId: Ability.UseId,
@@ -21,11 +21,11 @@ final case class SimpleBullet(
 
   def createActions(
       gameState: GameState
-  )(implicit entityIdGenerator: EntityIdGenerator, buffIdGenerator: BuffIdGenerator): List[GameAction] = List(
+  )(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
     NewSimpleBullet(
       0L,
       time,
-      entityIdGenerator(),
+      idGeneratorContainer.entityIdGenerator(),
       startingPosition,
       SimpleBullet.speed,
       direction,

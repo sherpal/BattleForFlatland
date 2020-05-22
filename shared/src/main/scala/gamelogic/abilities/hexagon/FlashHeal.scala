@@ -8,7 +8,7 @@ import gamelogic.entities.Resource.{Mana, ResourceAmount}
 import gamelogic.entities.classes.{Constants, Hexagon}
 import gamelogic.gamestate.gameactions.EntityGetsHealed
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator}
+import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator, IdGeneratorContainer}
 
 final case class FlashHeal(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
     extends WithTargetAbility {
@@ -18,7 +18,7 @@ final case class FlashHeal(useId: Ability.UseId, time: Long, casterId: Entity.Id
 
   def createActions(
       gameState: GameState
-  )(implicit entityIdGenerator: EntityIdGenerator, buffIdGenerator: BuffIdGenerator): List[GameAction] =
+  )(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
     List(EntityGetsHealed(0L, time, targetId, FlashHeal.healAmount, casterId))
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): FlashHeal = copy(time = newTime, useId = newId)

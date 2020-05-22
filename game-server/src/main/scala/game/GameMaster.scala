@@ -2,11 +2,18 @@ package game
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
+import gamelogic.entities.boss.BossEntity
 import gamelogic.gamestate.gameactions.{AddDummyMob, AddPlayerByClass, GameStart}
 import gamelogic.gamestate.serveractions._
 import gamelogic.gamestate.{GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
-import gamelogic.utils.{AbilityUseIdGenerator, BuffIdGenerator, EntityIdGenerator, GameActionIdGenerator}
+import gamelogic.utils.{
+  AbilityUseIdGenerator,
+  BuffIdGenerator,
+  EntityIdGenerator,
+  GameActionIdGenerator,
+  IdGeneratorContainer
+}
 import models.bff.ingame.InGameWSProtocol
 import models.bff.outofgame.MenuGameWithPlayers
 import zio.ZIO
@@ -76,17 +83,15 @@ object GameMaster {
     new ManageBuffsToBeRemoved
 
   def apply(actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage]): Behavior[Message] =
-    setupBehaviour(actionUpdateCollector, None, Set.empty, None)
+    setupBehaviour(actionUpdateCollector, None, Set.empty, None)(IdGeneratorContainer.initialIdGeneratorContainer)
 
   def inGameBehaviour(
       pendingActions: List[GameAction],
       actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage],
       actionCollector: ImmutableActionCollector
   )(
-      implicit gameActionIdGenerator: GameActionIdGenerator,
-      entityIdGenerator: EntityIdGenerator,
-      abilityUseIdGenerator: AbilityUseIdGenerator,
-      buffIdGenerator: BuffIdGenerator
+      implicit
+      idGeneratorContainer: IdGeneratorContainer
   ): Behavior[Message] = Behaviors.setup { implicit context =>
     Behaviors
       .receiveMessage[Message] {
@@ -109,7 +114,7 @@ object GameMaster {
         case GameLoop =>
           val startTime = now
           val sortedActions = pendingActions.sorted
-            .map(_.changeId(gameActionIdGenerator()))
+            .map(_.changeId(idGeneratorContainer.gameActionIdGenerator()))
 
           /** First adding actions from entities */
           val (nextCollector, oldestTimeToRemove, idsToRemove) =
@@ -162,7 +167,7 @@ object GameMaster {
       maybeGameInfo: Option[MenuGameWithPlayers],
       readyPlayers: Set[String], // set of user ids that are now ready.
       maybePreGameActions: Option[List[GameAction]]
-  ): Behavior[Message] =
+  )(implicit idGeneratorContainer: IdGeneratorContainer): Behavior[Message] =
     Behaviors.receive { (context, message) =>
       message match {
         case message: PreGameMessage =>
@@ -179,13 +184,19 @@ object GameMaster {
                     refsByName(info.playerName) -> AddPlayerByClass(
                       0L,
                       n - 1,
-                      idx.toLong,
+                      idGeneratorContainer.entityIdGenerator(),
                       100 * Complex.rotation(idx * 2 * math.Pi / playerMap.size),
                       info.playerClass,
                       info.playerColour.intColour,
                       info.playerName
                     )
                 }
+
+//                gameInfo.game.gameConfiguration.maybeBossName.flatMap(
+//                  BossEntity.maybeInitialBossByName(
+//                    _
+//                  )
+//                )
 
                 newPlayerActions.foreach {
                   case (ref, player) =>
@@ -215,18 +226,11 @@ object GameMaster {
 
                 val entityIdGenerator = new EntityIdGenerator(readyPlayers.size + 1)
 
-                zio.Runtime.default.unsafeRunAsync(spawnMobLoop(context.self, 5.seconds, entityIdGenerator))(println(_))
-
                 val actionCollector = ImmutableActionCollector(GameState.empty)
                 inGameBehaviour(
                   Nil,
                   actionUpdateCollector,
                   actionCollector
-                )(
-                  new GameActionIdGenerator(0L),
-                  entityIdGenerator,
-                  new AbilityUseIdGenerator(0L),
-                  new BuffIdGenerator(0L)
                 )
               } else {
                 setupBehaviour(actionUpdateCollector, maybeGameInfo, newReadyPlayers, maybePreGameActions)

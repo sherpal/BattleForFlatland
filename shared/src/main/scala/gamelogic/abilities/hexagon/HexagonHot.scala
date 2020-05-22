@@ -7,7 +7,7 @@ import gamelogic.entities.Resource.{Mana, ResourceAmount}
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.UpdateConstantHot
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator}
+import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator, IdGeneratorContainer}
 
 final case class HexagonHot(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
     extends WithTargetAbility {
@@ -19,12 +19,12 @@ final case class HexagonHot(useId: Ability.UseId, time: Long, casterId: Entity.I
 
   def createActions(
       gameState: GameState
-  )(implicit entityIdGenerator: EntityIdGenerator, buffIdGenerator: BuffIdGenerator): List[GameAction] = List(
+  )(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
     UpdateConstantHot(
       0L,
       time,
       targetId,
-      buffIdGenerator(),
+      idGeneratorContainer.buffIdGenerator(),
       HexagonHot.duration,
       HexagonHot.tickRate,
       HexagonHot.healOnTick,

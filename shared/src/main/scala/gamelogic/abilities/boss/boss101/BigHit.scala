@@ -5,7 +5,7 @@ import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.entities.Entity
 import gamelogic.entities.Resource
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator}
+import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator, IdGeneratorContainer}
 import gamelogic.entities.Resource.ResourceAmount
 import gamelogic.entities.Resource.NoResource
 import gamelogic.entities.boss.Boss101
@@ -24,7 +24,7 @@ final case class BigHit(useId: Ability.UseId, time: Long, casterId: Entity.Id, t
 
   def createActions(
       gameState: GameState
-  )(implicit entityIdGenerator: EntityIdGenerator, buffIdGenerator: BuffIdGenerator): List[GameAction] =
+  )(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
     List(
       EntityTakesDamage(
         0L,
