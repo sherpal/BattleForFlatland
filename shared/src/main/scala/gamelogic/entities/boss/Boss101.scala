@@ -2,11 +2,11 @@ package gamelogic.entities.boss
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
-import gamelogic.entities.Resource.{NoResource, ResourceAmount}
-import gamelogic.entities.{Entity, WithThreat}
 import gamelogic.entities.Entity.Id
+import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
+import gamelogic.entities.{Entity, WithThreat}
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.Circle
 import models.syntax.Pointed

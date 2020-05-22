@@ -2,13 +2,7 @@ package gamelogic.gamestate.serveractions
 
 import gamelogic.gamestate.serveractions.ServerAction.ServerActionOutput
 import gamelogic.gamestate.{GameAction, ImmutableActionCollector}
-import gamelogic.utils.{
-  AbilityUseIdGenerator,
-  BuffIdGenerator,
-  EntityIdGenerator,
-  GameActionIdGenerator,
-  IdGeneratorContainer
-}
+import gamelogic.utils.IdGeneratorContainer
 
 trait ServerAction {
 

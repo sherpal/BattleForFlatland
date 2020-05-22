@@ -2,10 +2,9 @@ package gamelogic.entities.classes
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
-import gamelogic.entities.Entity.TeamId
 import gamelogic.entities.Resource.{Rage, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
-import gamelogic.entities.{Entity, LivingEntity, MovingBody, WithAbilities}
+import gamelogic.entities.{Entity, LivingEntity, WithAbilities}
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 

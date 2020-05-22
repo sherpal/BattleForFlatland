@@ -3,13 +3,7 @@ package gamelogic.gamestate.serveractions
 import gamelogic.buffs.{Buff, PassiveBuff, TickerBuff}
 import gamelogic.gamestate.ImmutableActionCollector
 import gamelogic.gamestate.gameactions.RemoveBuff
-import gamelogic.utils.{
-  AbilityUseIdGenerator,
-  BuffIdGenerator,
-  EntityIdGenerator,
-  GameActionIdGenerator,
-  IdGeneratorContainer
-}
+import gamelogic.utils.IdGeneratorContainer
 
 final class ManageBuffsToBeRemoved extends ServerAction {
 

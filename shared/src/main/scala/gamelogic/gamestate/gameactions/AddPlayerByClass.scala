@@ -1,11 +1,10 @@
 package gamelogic.gamestate.gameactions
 
 import gamelogic.entities.Entity
-import gamelogic.entities.Resource.ResourceAmount
 import gamelogic.entities.classes.{Constants, Hexagon, Square}
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
-import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity, WithPlayer}
+import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
+import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import models.bff.outofgame.PlayerClasses
 

@@ -2,9 +2,9 @@ package gamelogic.gamestate.gameactions
 
 import gamelogic.entities.Entity
 import gamelogic.entities.WithPosition.Angle
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
+import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 
 final case class MovingBodyMoves(

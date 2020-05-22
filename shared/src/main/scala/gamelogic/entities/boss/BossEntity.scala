@@ -1,6 +1,6 @@
 package gamelogic.entities.boss
 
-import gamelogic.entities.{Entity, LivingEntity, MovingBody, WithAbilities, WithThreat}
+import gamelogic.entities._
 import gamelogic.physics.shape.Circle
 
 /**

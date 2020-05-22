@@ -3,7 +3,7 @@ package gamelogic.abilities
 import gamelogic.entities.Resource.ResourceAmount
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator, IdGeneratorContainer}
+import gamelogic.utils.IdGeneratorContainer
 import io.circe.{Decoder, Encoder, Json}
 
 /**

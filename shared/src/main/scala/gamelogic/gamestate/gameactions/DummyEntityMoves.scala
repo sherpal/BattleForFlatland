@@ -2,7 +2,7 @@ package gamelogic.gamestate.gameactions
 
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction.Id
-import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithPlayer}
+import gamelogic.gamestate.statetransformers.GameStateTransformer
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 

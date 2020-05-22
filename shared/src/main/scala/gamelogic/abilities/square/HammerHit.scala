@@ -7,7 +7,7 @@ import gamelogic.entities.Resource.{Rage, ResourceAmount}
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator, IdGeneratorContainer}
+import gamelogic.utils.IdGeneratorContainer
 
 final case class HammerHit(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
     extends WithTargetAbility {

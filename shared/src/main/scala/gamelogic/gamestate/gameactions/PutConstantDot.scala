@@ -2,9 +2,9 @@ package gamelogic.gamestate.gameactions
 
 import gamelogic.buffs.{Buff, DoT}
 import gamelogic.entities.Entity
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
+import gamelogic.gamestate.{GameAction, GameState}
 
 final case class PutConstantDot(
     id: GameAction.Id,

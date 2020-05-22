@@ -1,13 +1,7 @@
 package gamelogic.gamestate.serveractions
 import gamelogic.gamestate.ImmutableActionCollector
 import gamelogic.gamestate.gameactions.EntityCastingInterrupted
-import gamelogic.utils.{
-  AbilityUseIdGenerator,
-  BuffIdGenerator,
-  EntityIdGenerator,
-  GameActionIdGenerator,
-  IdGeneratorContainer
-}
+import gamelogic.utils.IdGeneratorContainer
 
 /**
   * Entities that are casting, but moving, should stop casting.

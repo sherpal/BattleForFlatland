@@ -1,15 +1,14 @@
 package gamelogic.abilities.boss.boss101
 
-import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.abilities.WithTargetAbility.Distance
-import gamelogic.entities.Entity
-import gamelogic.entities.Resource
+import gamelogic.abilities.{Ability, WithTargetAbility}
+import gamelogic.entities.{Entity, Resource}
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.boss.Boss101
 import gamelogic.gamestate.gameactions.PutConstantDot
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator, IdGeneratorContainer}
+import gamelogic.utils.IdGeneratorContainer
 
 final case class BigDot(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
     extends WithTargetAbility {

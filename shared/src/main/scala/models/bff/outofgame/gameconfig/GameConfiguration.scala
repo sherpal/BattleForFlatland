@@ -1,8 +1,8 @@
 package models.bff.outofgame.gameconfig
 
-import models.syntax.Pointed
 import io.circe.generic.auto._
 import io.circe.syntax._
+import models.syntax.Pointed
 
 /**
   * The [[models.bff.outofgame.gameconfig.GameConfiguration]] gathers all information about the configuration of the

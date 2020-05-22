@@ -4,7 +4,7 @@ import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.entities.Resource.{Mana, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
-import gamelogic.entities.{Entity, LivingEntity, MovingBody, WithAbilities}
+import gamelogic.entities.{Entity, LivingEntity}
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 

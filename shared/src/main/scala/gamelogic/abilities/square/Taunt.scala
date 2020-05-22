@@ -7,7 +7,7 @@ import gamelogic.entities.Resource.{Rage, ResourceAmount}
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.ThreatToEntityChange
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator, IdGeneratorContainer}
+import gamelogic.utils.IdGeneratorContainer
 
 /**
   * Increases the damage threat level this caster has towards the target.

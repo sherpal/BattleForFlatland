@@ -1,7 +1,6 @@
 package gamelogic.gamestate.statetransformers
 
 import gamelogic.abilities.Ability
-import gamelogic.entities.DummyLivingEntity
 import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.gamestate.GameState

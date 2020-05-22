@@ -1,14 +1,13 @@
 package gamelogic.abilities.hexagon
 
-import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.abilities.WithTargetAbility.Distance
+import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.entities.Entity
 import gamelogic.entities.Resource.{Mana, ResourceAmount}
-import gamelogic.entities.classes.{Constants, Hexagon}
 import gamelogic.gamestate.gameactions.EntityGetsHealed
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator, IdGeneratorContainer}
+import gamelogic.utils.IdGeneratorContainer
 
 final case class FlashHeal(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
     extends WithTargetAbility {

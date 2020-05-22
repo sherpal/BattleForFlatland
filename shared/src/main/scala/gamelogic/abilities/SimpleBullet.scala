@@ -6,7 +6,7 @@ import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.gamestate.gameactions.NewSimpleBullet
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
-import gamelogic.utils.{BuffIdGenerator, EntityIdGenerator, IdGeneratorContainer}
+import gamelogic.utils.IdGeneratorContainer
 
 final case class SimpleBullet(
     useId: Ability.UseId,

@@ -2,13 +2,7 @@ package gamelogic.gamestate.serveractions
 
 import gamelogic.gamestate.ImmutableActionCollector
 import gamelogic.gamestate.gameactions.UseAbility
-import gamelogic.utils.{
-  AbilityUseIdGenerator,
-  BuffIdGenerator,
-  EntityIdGenerator,
-  GameActionIdGenerator,
-  IdGeneratorContainer
-}
+import gamelogic.utils.IdGeneratorContainer
 
 final class ManageUsedAbilities extends ServerAction {
   def apply(
