@@ -14,7 +14,7 @@ final case class BigDot(useId: Ability.UseId, time: Long, casterId: Entity.Id, t
     extends WithTargetAbility {
   def abilityId: AbilityId = Ability.boss101BigDotId
 
-  def cooldown: Long = 20000L
+  def cooldown: Long = BigDot.cooldown
 
   def castingTime: Long = 0L
 
@@ -49,5 +49,8 @@ object BigDot {
   final def damageOnTick: Double = 20.0
   final def duration: Long       = 60000L
   final def tickRate: Long       = 3000L
+
+  final val timeToFirstBigDot: Long = 10000L
+  final val cooldown: Long          = 20000L
 
 }

@@ -21,7 +21,7 @@ import models.syntax.Pointed
   */
 final case class GameConfiguration(
     playersInfo: Map[String, PlayerInfo],
-    maybeBossName: Option[String]
+    maybeBossName: Option[String] // todo: list of boss names instead?
 ) {
 
   /** Gives back a new instance of the game configuration with the new player added. */

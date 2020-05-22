@@ -1,6 +1,8 @@
 package game.ui
 
 import game.Camera
+import gamelogic.abilities.boss.boss101.BigHit
+import gamelogic.entities.boss.{Boss101, BossEntity}
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.entities.{DummyMob, Entity, SimpleBulletBody}
 import gamelogic.gamestate.GameState
@@ -29,15 +31,35 @@ final class GameDrawer(application: Application) {
   stage.addChild(playerContainer)
   val dummyMobContainer: Container = new Container
   stage.addChild(dummyMobContainer)
+  val bossesContainer: Container = new Container
+  stage.addChild(bossesContainer)
 
-  private def circleTexture(colour: Int, radius: Double): PIXI.RenderTexture = {
+  private def diskTexture(colour: Int, radius: Double, withBlackDot: Boolean = false): PIXI.RenderTexture = {
     val graphics = new Graphics
     graphics.lineStyle(0) // draw a circle, set the lineStyle to zero so the circle doesn't have an outline
 
     graphics.beginFill(colour, 1)
     graphics.drawCircle(0, 0, radius)
+    graphics.endFill()
+
+    if (withBlackDot) {
+      graphics.beginFill(0x000000, 1)
+      graphics.drawCircle(radius, 0.0, 3.0)
+      graphics.endFill()
+    }
 
     application.renderer.generateTexture(graphics, 1, 1)
+  }
+
+  private def circleTexture(colour: Int, alpha: Double, radius: Double): PIXI.RenderTexture = {
+    val graphics = new Graphics
+    graphics.lineStyle(1, colour, alpha)
+
+    graphics.beginFill(0xFFFFFF, 0.0)
+    graphics.drawCircle(0, 0, radius)
+
+    application.renderer.generateTexture(graphics, 1, 1)
+
   }
 
   private def polygonTexture(colour: Int, shape: gamelogic.physics.shape.Polygon): PIXI.RenderTexture = {
@@ -76,7 +98,7 @@ final class GameDrawer(application: Application) {
 //  private def drawDummyLivingEntity(entities: List[DummyLivingEntity]): Unit =
 //    entities.foreach { entity =>
 //      val sprite = players.getOrElse(entity.id, {
-//        val s = new Sprite(circleTexture(entity.colour, entity.shape.radius))
+//        val s = new Sprite(diskTexture(entity.colour, entity.shape.radius))
 //        s.anchor.set(0.5, 0.5)
 //        players += (entity.id -> s)
 //        playerContainer.addChild(s)
@@ -101,11 +123,42 @@ final class GameDrawer(application: Application) {
       camera.viewportManager(sprite, entity.currentPosition(now), entity.shape.boundingBox)
     }
 
+  private val bossesSprites: mutable.Map[Entity.Id, Sprite]        = mutable.Map.empty
+  private val bossesRangeIndicator: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
+  private def drawBosses(entities: List[BossEntity], now: Long): Unit =
+    entities.foreach { entity =>
+      val sprite = bossesSprites.getOrElse(
+        entity.id, {
+          val s = new Sprite(diskTexture(0xFFFFFF, entity.shape.radius, withBlackDot = true))
+          s.anchor.set(0.5, 0.5)
+          bossesSprites += (entity.id -> s)
+          bossesContainer.addChild(s)
+          s
+        }
+      )
+
+      sprite.rotation = -entity.rotation
+      camera.viewportManager(sprite, entity.currentPosition(now), entity.shape.boundingBox)
+
+      val rangeSprite = bossesRangeIndicator.getOrElse(
+        entity.id, {
+          val s = new Sprite(circleTexture(0xFFFFFF, 0.5, Boss101.meleeRange))
+          s.anchor.set(0.5, 0.5)
+          bossesRangeIndicator += (entity.id -> s)
+          bossesContainer.addChild(s)
+          s
+        }
+      )
+
+      camera.viewportManager(rangeSprite, entity.currentPosition(now), entity.shape.boundingBox)
+
+    }
+
   private val bulletSprites: mutable.Map[Entity.Id, Sprite] = mutable.Map()
   private def drawSimpleBullets(bullets: List[SimpleBulletBody], currentTime: Long): Unit =
     bullets.foreach { bullet =>
       val sprite = bulletSprites.getOrElse(bullet.id, {
-        val s = new Sprite(circleTexture(0x000000, bullet.shape.radius))
+        val s = new Sprite(diskTexture(0x000000, bullet.shape.radius))
         s.anchor.set(0.5, 0.5)
         bulletSprites += (bullet.id -> s)
         bulletContainer.addChild(s)
@@ -119,6 +172,7 @@ final class GameDrawer(application: Application) {
     drawPlayers(gameState.players.values.toList)
     drawSimpleBullets(gameState.simpleBullets.values.toList, currentTime)
     drawDummyMobs(gameState.dummyMobs.values.toList, currentTime)
+    drawBosses(gameState.bosses.valuesIterator.toList, currentTime)
   }
 
 }

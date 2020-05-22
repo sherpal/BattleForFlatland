@@ -2,6 +2,7 @@ package gamelogic.entities.boss
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
+import gamelogic.abilities.boss.boss101.BigDot
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
@@ -77,5 +78,13 @@ object Boss101 extends BossFactory {
 
   final val name: String = "Boss 101"
 
-  def initialBoss(entityId: Entity.Id, time: Long): Boss101 = Pointed[Boss101].unit.copy(id = entityId, time = time)
+  def initialBoss(entityId: Entity.Id, time: Long): Boss101 =
+    Pointed[Boss101].unit
+      .copy(
+        id   = entityId,
+        time = time,
+        relevantUsedAbilities = Map(
+          Ability.boss101BigDotId -> Pointed[BigDot].unit.copy(time = time - BigDot.timeToFirstBigDot)
+        )
+      )
 }

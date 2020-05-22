@@ -1,5 +1,6 @@
 package gamelogic.entities.boss
 
+import gamelogic.entities.Entity.Id
 import gamelogic.entities._
 import gamelogic.physics.shape.Circle
 
@@ -48,5 +49,7 @@ object BossEntity {
 
   final def maybeInitialBossByName(name: String, entityId: Entity.Id, time: Long): Option[BossEntity] =
     allBossesFactories.find(_.name == name).map(_.initialBoss(entityId, time))
+
+  final def bossExists(bossName: String): Boolean = allBossesFactories.exists(_.name == bossName)
 
 }

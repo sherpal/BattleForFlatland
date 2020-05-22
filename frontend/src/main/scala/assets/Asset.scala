@@ -12,13 +12,22 @@ object Asset {
     object gui {
       object bars {
         @js.native @JSImport("resources/assets/in-game/gui/bars/LiteStep.png", JSImport.Default)
-        val liteStepBar: Asset = js.native
+        object liteStepBar extends Asset
 
         @js.native @JSImport("resources/assets/in-game/gui/bars/Minimalist.png", JSImport.Default)
-        val minimalistBar: Asset = js.native
+        object minimalistBar extends Asset
 
         @js.native @JSImport("resources/assets/in-game/gui/bars/Xeon.png", JSImport.Default)
-        val xeonBar: Asset = js.native
+        object xeonBar extends Asset
+
+//        @js.native @JSImport("resources/assets/in-game/gui/bars/LiteStep.png", JSImport.Default)
+//        val liteStepBar: Asset = js.native
+//
+//        @js.native @JSImport("resources/assets/in-game/gui/bars/Minimalist.png", JSImport.Default)
+//        val minimalistBar: Asset = js.native
+//
+//        @js.native @JSImport("resources/assets/in-game/gui/bars/Xeon.png", JSImport.Default)
+//        val xeonBar: Asset = js.native
       }
     }
   }
@@ -27,5 +36,8 @@ object Asset {
 
   // Touching all assets so that there are loaded
   ScalaLogo
+  ingame.gui.bars.liteStepBar
+  ingame.gui.bars.minimalistBar
+  ingame.gui.bars.xeonBar
 
 }

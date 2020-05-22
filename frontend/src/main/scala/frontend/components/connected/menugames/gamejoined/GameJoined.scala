@@ -36,13 +36,8 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
 
   private val fetchingGameInfo = fetchGameInfo(gameId).provideLayer(layer)
 
-  /** Sends a message to the server proving that we are still connected to the game. */
-  private val pokingHandle: SetIntervalHandle = setInterval(10.seconds) {
-    zio.Runtime.default.unsafeRunToFuture(pokingPresence(gameId).provideLayer(layer)) onComplete {
-      case Success(_) =>
-      case Failure(_) => clearInterval(pokingHandle)
-    }
-  }
+  /** Contains the interval handle to poke the presence to the server. */
+  private val pokingHandleVar: Var[Option[SetIntervalHandle]] = Var(None)
 
   private val receivedCredentials: Var[List[GameUserCredentials]] = Var(List())
 
@@ -179,10 +174,22 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
         child.text <-- $tokenForWebSocket
       )
     ),
-    onMountCallback(ctx => socket.open()(ctx.owner)),
+    onMountCallback(ctx => {
+      socket.open()(ctx.owner)
+      pokingHandleVar.set(
+        Some(
+          setInterval(10.seconds) {
+            zio.Runtime.default.unsafeRunToFuture(pokingPresence(gameId).provideLayer(layer)) onComplete {
+              case Success(_) =>
+              case Failure(_) => pokingHandleVar.now.foreach(clearInterval)
+            }
+          }
+        )
+      )
+    }),
     onUnmountCallback { _ =>
       socket.close()
-      clearInterval(pokingHandle)
+      pokingHandleVar.now.foreach(clearInterval)
     }
   )
 

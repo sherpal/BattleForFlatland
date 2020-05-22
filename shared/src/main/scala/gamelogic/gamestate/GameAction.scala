@@ -63,6 +63,7 @@ object GameAction {
     case x: NewSimpleBullet          => customEncode(x, "NewSimpleBullet")
     case x: PutConstantDot           => customEncode(x, "PutConstantDot")
     case x: RemoveBuff               => customEncode(x, "RemoveBuff")
+    case x: SpawnBoss                => customEncode(x, "SpawnBoss")
     case x: ThreatToEntityChange     => customEncode(x, "ThreatToEntityChange")
     case x: TickerBuffTicks          => customEncode(x, "TickerBuffTicks")
     case x: UpdateConstantHot        => customEncode(x, "UpdateConstantHot")
@@ -88,6 +89,7 @@ object GameAction {
     customDecoder[NewSimpleBullet]("NewSimpleBullet"),
     customDecoder[PutConstantDot]("PutConstantDot"),
     customDecoder[RemoveBuff]("RemoveBuff"),
+    customDecoder[SpawnBoss]("SpawnBoss"),
     customDecoder[ThreatToEntityChange]("ThreatToEntityChange"),
     customDecoder[TickerBuffTicks]("TickerBuffTicks"),
     customDecoder[UpdateConstantHot]("UpdateConstantHot"),

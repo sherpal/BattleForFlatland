@@ -2,11 +2,11 @@ package game
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import gamelogic.gamestate.gameactions.{AddDummyMob, AddPlayerByClass, GameStart}
+import gamelogic.gamestate.gameactions.{AddPlayerByClass, GameStart, SpawnBoss}
 import gamelogic.gamestate.serveractions._
 import gamelogic.gamestate.{GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
-import gamelogic.utils.{EntityIdGenerator, IdGeneratorContainer}
+import gamelogic.utils.IdGeneratorContainer
 import models.bff.ingame.InGameWSProtocol
 import models.bff.outofgame.MenuGameWithPlayers
 import zio.ZIO
@@ -57,19 +57,19 @@ object GameMaster {
       _ <- ZIO.effectTotal(to ! GameLoop)
     } yield ()
 
-  private def spawnMobLoop(
-      to: ActorRef[GameActionWrapper],
-      each: FiniteDuration,
-      entityIdGenerator: EntityIdGenerator
-  ) =
-    (for {
-      fiber <- zio.clock.sleep(fromScala(each)).fork
-      _ <- fiber.join
-      real <- zio.random.nextGaussian
-      imag <- zio.random.nextGaussian
-      pos = 100 * Complex(real, imag)
-      _ <- ZIO.effectTotal(to ! GameActionWrapper(AddDummyMob(0L, now, entityIdGenerator(), pos)))
-    } yield ()).forever
+//  private def spawnMobLoop(
+//      to: ActorRef[GameActionWrapper],
+//      each: FiniteDuration,
+//      entityIdGenerator: EntityIdGenerator
+//  ) =
+//    (for {
+//      fiber <- zio.clock.sleep(fromScala(each)).fork
+//      _ <- fiber.join
+//      real <- zio.random.nextGaussian
+//      imag <- zio.random.nextGaussian
+//      pos = 100 * Complex(real, imag)
+//      _ <- ZIO.effectTotal(to ! GameActionWrapper(AddDummyMob(0L, now, entityIdGenerator(), pos)))
+//    } yield ()).forever
 
   // todo: add other server actions.
   private val serverAction = new ManageUsedAbilities ++ new ManageStopCastingMovements ++ new ManageTickerBuffs ++
@@ -167,7 +167,7 @@ object GameMaster {
           message match {
             case EveryoneIsReady(playerMap, gameInfo) =>
               // first message that kick off the actor and will trigger others
-              val n = now
+              val timeNow = now
 
               try {
                 val refsByName = gameInfo.players.map(user => user.userName -> playerMap(user.userId)).toMap
@@ -176,7 +176,7 @@ object GameMaster {
                   case (info, idx) =>
                     refsByName(info.playerName) -> AddPlayerByClass(
                       0L,
-                      n - 1,
+                      timeNow - 1,
                       idGeneratorContainer.entityIdGenerator(),
                       100 * Complex.rotation(idx * 2 * math.Pi / playerMap.size),
                       info.playerClass,
@@ -185,11 +185,13 @@ object GameMaster {
                     )
                 }
 
-//                gameInfo.game.gameConfiguration.maybeBossName.flatMap(
-//                  BossEntity.maybeInitialBossByName(
-//                    _
-//                  )
-//                )
+                if (gameInfo.game.gameConfiguration.maybeBossName.isEmpty) {
+                  println("Starting Game without boss, that's weird.")
+                }
+
+                val bossCreationActions = gameInfo.game.gameConfiguration.maybeBossName.toList.map(
+                  SpawnBoss(0L, timeNow - 2, idGeneratorContainer.entityIdGenerator(), _)
+                )
 
                 newPlayerActions.foreach {
                   case (ref, player) =>
@@ -200,7 +202,7 @@ object GameMaster {
                   actionUpdateCollector,
                   Some(gameInfo),
                   Set(),
-                  Some(newPlayerActions.map(_._2).toList :+ GameStart(0L, now))
+                  Some(newPlayerActions.map(_._2).toList ++ bossCreationActions :+ GameStart(0L, now))
                 )
 
               } catch {
@@ -216,8 +218,6 @@ object GameMaster {
 
                 context.self ! MultipleActionsWrapper(maybePreGameActions.get)
                 context.self ! GameLoop
-
-                val entityIdGenerator = new EntityIdGenerator(readyPlayers.size + 1)
 
                 val actionCollector = ImmutableActionCollector(GameState.empty)
                 inGameBehaviour(
