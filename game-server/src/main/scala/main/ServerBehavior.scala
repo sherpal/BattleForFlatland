@@ -187,6 +187,7 @@ trait ServerBehavior[In, Out] {
     val tokenBearer           = context.spawn(TokenBearer(), "TokenBearer")
     val actionUpdateCollector = context.spawn(ActionUpdateCollector(), "ActionUpdateCollector")
     val gameMaster            = context.spawn(GameMaster(actionUpdateCollector), "GameMaster")
+    context.watchWith(gameMaster, GameMasterDied)
 
     val actionTranslator = context.spawn(ActionTranslator(gameMaster), "ActionTranslator")
     val aiManager        = context.spawn(AIManager(actionTranslator), "AIManager")
@@ -220,6 +221,11 @@ trait ServerBehavior[In, Out] {
           Behaviors.same
         case WarnMeWhenStopped(replyTo) =>
           started(Some(replyTo))
+        case GameMasterDied =>
+          println("Game master has died.")
+          context.self ! Stop
+          Behaviors.same
+
       }
 
     def notYetStarted(
@@ -242,6 +248,10 @@ trait ServerBehavior[In, Out] {
           Behaviors.same
         case WarnMeWhenStopped(replyTo) =>
           notYetStarted(waitingForStartedNotification, Some(replyTo))
+        case GameMasterDied =>
+          println("Game master has died.")
+          context.self ! Stop
+          Behaviors.same
       }
 
     notYetStarted(None, None)
@@ -300,5 +310,6 @@ object ServerBehavior {
       credentials: List[GameUserCredentials],
       gameInfo: MenuGameWithPlayers
   ) extends ServerMessage
+  private case object GameMasterDied extends ServerMessage
 
 }

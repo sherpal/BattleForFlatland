@@ -72,8 +72,12 @@ object GameMaster {
 //    } yield ()).forever
 
   // todo: add other server actions.
-  private val serverAction = new ManageUsedAbilities ++ new ManageStopCastingMovements ++ new ManageTickerBuffs ++
-    new ManageBuffsToBeRemoved
+  private val serverAction = new ManageUsedAbilities ++
+    new ManageStopCastingMovements ++
+    new ManageTickerBuffs ++
+    new ManageBuffsToBeRemoved ++
+    new ManageDeadPlayers ++
+    new ManageEndOfGame
 
   def apply(actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage]): Behavior[Message] =
     setupBehaviour(actionUpdateCollector, None, Set.empty, None)(IdGeneratorContainer.initialIdGeneratorContainer)
@@ -104,6 +108,8 @@ object GameMaster {
             actionUpdateCollector,
             actionCollector
           )
+        case GameLoop if actionCollector.currentGameState.ended =>
+          Behaviors.stopped
         case GameLoop =>
           val startTime = now
           val sortedActions = pendingActions.sorted
