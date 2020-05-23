@@ -34,16 +34,13 @@ final case class EntityStartsCasting(id: GameAction.Id, time: Long, castingTime:
     * [[gamelogic.gamestate.gameactions.UseAbility]] instead.
     */
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
-    if (ability.castingTime <= 0)
-      UseAbility(id, time, ability.casterId, 0L, ability).createGameStateTransformer(gameState)
-    else
-      new EntityStartsCastingTransformer(
-        EntityCastingInfo(
-          ability.casterId,
-          gameState.withAbilityEntitiesById(ability.casterId).map(_.pos).getOrElse(Complex.zero),
-          time,
-          castingTime,
-          ability
-        )
+    new EntityStartsCastingTransformer(
+      EntityCastingInfo(
+        ability.casterId,
+        gameState.withAbilityEntitiesById(ability.casterId).map(_.pos).getOrElse(Complex.zero),
+        time,
+        castingTime,
+        ability
       )
+    )
 }

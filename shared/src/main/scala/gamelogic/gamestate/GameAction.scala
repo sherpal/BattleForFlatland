@@ -52,6 +52,7 @@ object GameAction {
     case x: AddDummyMob              => customEncode(x, "AddDummyMob")
     case x: AddPlayer                => customEncode(x, "AddPlayer")
     case x: AddPlayerByClass         => customEncode(x, "AddPlayerByClass")
+    case x: ChangeTarget             => customEncode(x, "ChangeTarget")
     case x: DummyEntityMoves         => customEncode(x, "DummyEntityMoves")
     case x: EndGame                  => customEncode(x, "EndGame")
     case x: EntityCastingInterrupted => customEncode(x, "EntityCastingInterrupted")
@@ -78,6 +79,7 @@ object GameAction {
     customDecoder[AddDummyMob]("AddDummyMob"),
     customDecoder[AddPlayer]("AddPlayer"),
     customDecoder[AddPlayerByClass]("AddPlayerByClass"),
+    customDecoder[ChangeTarget]("ChangeTarget"),
     customDecoder[DummyEntityMoves]("DummyEntityMoves"),
     customDecoder[EndGame]("EndGame"),
     customDecoder[EntityCastingInterrupted]("EntityCastingInterrupted"),

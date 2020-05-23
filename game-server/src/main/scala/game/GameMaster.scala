@@ -2,7 +2,7 @@ package game
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import gamelogic.gamestate.gameactions.{AddPlayerByClass, GameStart, SpawnBoss}
+import gamelogic.gamestate.gameactions.{AddPlayerByClass, EntityStartsCasting, GameStart, SpawnBoss, UseAbility}
 import gamelogic.gamestate.serveractions._
 import gamelogic.gamestate.{GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
@@ -108,6 +108,10 @@ object GameMaster {
           val startTime = now
           val sortedActions = pendingActions.sorted
             .map(_.changeId(idGeneratorContainer.gameActionIdGenerator()))
+
+          if (sortedActions.exists(_.isInstanceOf[EntityStartsCasting])) {
+            println(sortedActions)
+          }
 
           /** First adding actions from entities */
           val (nextCollector, oldestTimeToRemove, idsToRemove) =

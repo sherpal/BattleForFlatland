@@ -92,6 +92,9 @@ final case class GameState(
   def movingBodyEntityById(entityId: Entity.Id): Option[MovingBody] =
     players.get(entityId).orElse(bosses.get(entityId)).orElse(dummyMobs.get(entityId))
 
+  def withTargetEntityById(entityId: Entity.Id): Option[WithTarget] =
+    bosses.get(entityId)
+
   def buffById(entityId: Entity.Id, buffId: Buff.Id): Option[Buff] =
     tickerBuffs
       .get(entityId)
