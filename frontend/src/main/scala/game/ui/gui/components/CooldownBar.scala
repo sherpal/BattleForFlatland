@@ -26,7 +26,7 @@ final class CooldownBar(
       } yield (cooldown - elapsedTime) / cooldown.toDouble)
         .getOrElse(0.0)
     },
-    (_, _) => colour.intColour, { (gameState, currentTime) =>
+    (_, _) => colour, { (gameState, currentTime) =>
       (
         for {
           entity <- gameState.withAbilityEntitiesById(entityId)

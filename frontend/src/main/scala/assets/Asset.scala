@@ -1,5 +1,7 @@
 package assets
 
+import gamelogic.abilities.Ability
+
 import scala.language.implicitConversions
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
@@ -10,6 +12,18 @@ object Asset {
 
   object ingame {
     object gui {
+      object abilities {
+        @js.native @JSImport("resources/assets/in-game/gui/abilities/ability-overlay.png", JSImport.Default)
+        object abilityOverlay extends Asset
+
+        @js.native @JSImport("resources/assets/in-game/gui/abilities/hexagon-flash-heal.png", JSImport.Default)
+        object hexagonFlashHeal extends Asset
+
+        @js.native @JSImport("resources/assets/in-game/gui/abilities/hexagon-hot.png", JSImport.Default)
+        object hexagonHot extends Asset
+
+      }
+
       object bars {
         @js.native @JSImport("resources/assets/in-game/gui/bars/LiteStep.png", JSImport.Default)
         object liteStepBar extends Asset
@@ -19,15 +33,6 @@ object Asset {
 
         @js.native @JSImport("resources/assets/in-game/gui/bars/Xeon.png", JSImport.Default)
         object xeonBar extends Asset
-
-//        @js.native @JSImport("resources/assets/in-game/gui/bars/LiteStep.png", JSImport.Default)
-//        val liteStepBar: Asset = js.native
-//
-//        @js.native @JSImport("resources/assets/in-game/gui/bars/Minimalist.png", JSImport.Default)
-//        val minimalistBar: Asset = js.native
-//
-//        @js.native @JSImport("resources/assets/in-game/gui/bars/Xeon.png", JSImport.Default)
-//        val xeonBar: Asset = js.native
       }
     }
   }
@@ -39,5 +44,13 @@ object Asset {
   ingame.gui.bars.liteStepBar
   ingame.gui.bars.minimalistBar
   ingame.gui.bars.xeonBar
+  ingame.gui.abilities.abilityOverlay
+  ingame.gui.abilities.hexagonFlashHeal
+  ingame.gui.abilities.hexagonHot
+
+  final val abilityAssetMap: Map[Ability.AbilityId, Asset] = Map(
+    Ability.hexagonHexagonHotId -> ingame.gui.abilities.hexagonHot,
+    Ability.hexagonFlashHealId -> ingame.gui.abilities.hexagonFlashHeal
+  )
 
 }

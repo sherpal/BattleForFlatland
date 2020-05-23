@@ -18,7 +18,7 @@ trait PassiveBuff extends Buff {
     *
     * Example: increase the speed of the unit by a certain percentage.
     */
-  def initialActions(gameState: GameState): List[GameAction]
+  def initialActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction]
 
   /**
     * Actions that occur when the buff is removed.

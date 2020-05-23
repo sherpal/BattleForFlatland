@@ -94,15 +94,27 @@ final class GameStateManager(
   val pressedUserInputSignal: SignalViewer[Set[UserInput]] = keyboard.$pressedUserInput.observe
 
   /** Cast abilities */
-  keyboard.$downKeyEvents.filter(event => abilityCodes.contains(event.code))
-    .withCurrentValueOf($gameStates)
-    .filter(_._2.players.isDefinedAt(playerId))
-    .withCurrentValueOf($maybeTarget)
-    .foreach {
-      case ((event, gameState), maybeTarget) =>
-        val me = gameState.players(playerId) // this is ok because of above filter
+  val useAbilityBus = new EventBus[Ability.AbilityId]
+  EventStream
+    .merge(
+      keyboard.$downKeyEvents.filter(event => abilityCodes.contains(event.code))
+        .withCurrentValueOf($gameStates)
+        .filter(_._2.players.isDefinedAt(playerId))
+        .withCurrentValueOf($maybeTarget)
+        .map {
+          case ((event, gameState), maybeTarget) =>
+            val me = gameState.players(playerId) // this is ok because of above filter
 
-        abilityCodes.zip(me.abilities).find(_._1 == event.code).foreach {
+            (gameState, abilityCodes.zip(me.abilities).find(_._1 == event.code), maybeTarget)
+        },
+      useAbilityBus.events
+        .withCurrentValueOf($gameStates)
+        .withCurrentValueOf($maybeTarget)
+        .map { case ((abilityId, gameState), maybeTarget) => (gameState, Some(abilityId), maybeTarget) }
+    )
+    .foreach {
+      case (gameState, maybeAbilityId, maybeTarget) =>
+        maybeAbilityId.foreach {
           case (_, abilityId) =>
             val now = System.currentTimeMillis
             abilityId match {
@@ -142,7 +154,15 @@ final class GameStateManager(
 
   /** After [[game.ui.GameDrawer]] so that gui is on top of the game. */
   private val guiDrawer =
-    new GUIDrawer(playerId, application, resources, targetFromGUIBus.writer, $strictGameStates, $maybeTarget.observe)
+    new GUIDrawer(
+      playerId,
+      application,
+      resources,
+      targetFromGUIBus.writer,
+      $strictGameStates,
+      $maybeTarget.observe,
+      useAbilityBus.writer
+    )
 
   var lastTimeStamp = 0L
 

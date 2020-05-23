@@ -1,16 +1,16 @@
 package game
 
 import assets.Asset
+import assets.Asset.ingame
 import assets.Asset.ingame.gui.bars._
+import assets.Asset.ingame.gui.abilities._
 import com.raquo.airstream.eventbus.EventBus
 import game.GameAssetLoader.ProgressData
 import typings.pixiJs.PIXI.LoaderResource
 import typings.pixiJs.mod.Application
 import typings.pixiJs.pixiJsStrings
 import zio.{UIO, ZIO}
-
 import org.scalablytyped.runtime.StringDictionary
-
 import org.scalablytyped.runtime.StringDictionary.wrapStringDictionary
 
 /**
@@ -24,7 +24,10 @@ final class GameAssetLoader(application: Application) {
   val assets: List[String] = List(
     xeonBar,
     liteStepBar,
-    minimalistBar
+    minimalistBar,
+    abilityOverlay,
+    hexagonFlashHeal,
+    hexagonHot
   )
 
   final val $progressData = progressBus.events

@@ -3,6 +3,7 @@ package game.ui.gui.components
 import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.Texture
 import typings.pixiJs.mod.{Graphics, Sprite}
+import utils.misc.RGBAColour
 
 /**
   * Helper class for displaying bar on screen.
@@ -18,9 +19,10 @@ import typings.pixiJs.mod.{Graphics, Sprite}
   */
 final class StatusBar(
     computeValue: (GameState, Long) => Double,
-    computeColour: (GameState, Long) => Int,
+    computeColour: (GameState, Long) => RGBAColour,
     isVisible: (GameState, Long) => Boolean,
-    texture: Texture
+    texture: Texture,
+    orientation: StatusBar.BarOrientation = StatusBar.Horizontal
 ) extends GUIComponent {
 
   private val barSprite = new Sprite(texture)
@@ -38,15 +40,36 @@ final class StatusBar(
     if (isVisible(gameState, currentTime)) {
       container.visible = true
 
-      barSprite.tint = computeColour(gameState, currentTime)
+      val rgba = computeColour(gameState, currentTime)
+      barSprite.tint  = rgba.intColour
+      barSprite.alpha = rgba.alpha
 
       mask
         .clear()
         .beginFill(0xc0c0c0)
-        .drawRect(0, 0, barSprite.width * computeValue(gameState, currentTime), barSprite.height)
+
+      if (orientation == StatusBar.Horizontal) {
+        mask.drawRect(0, 0, barSprite.width * computeValue(gameState, currentTime), barSprite.height)
+      } else {
+        val height = barSprite.height * computeValue(gameState, currentTime)
+        mask.drawRect(
+          0,
+          barSprite.height - height,
+          barSprite.width,
+          height
+        )
+      }
 
     } else {
       container.visible = false
     }
+
+}
+
+object StatusBar {
+
+  sealed trait BarOrientation
+  case object Horizontal extends BarOrientation
+  case object Vertical extends BarOrientation
 
 }

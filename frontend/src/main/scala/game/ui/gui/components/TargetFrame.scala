@@ -8,6 +8,7 @@ import gamelogic.gamestate.GameState
 import typings.pixiJs.AnonAlign
 import typings.pixiJs.PIXI.{RenderTexture, Texture}
 import typings.pixiJs.mod.{Text, TextStyle}
+import utils.misc.RGBColour
 
 final class TargetFrame($maybeTarget: SignalViewer[Option[MovingBody with LivingEntity]], barTexture: Texture)
     extends GUIComponent {
@@ -21,7 +22,7 @@ final class TargetFrame($maybeTarget: SignalViewer[Option[MovingBody with Living
           entity.life / entity.maxLife
         }
     },
-    (_, _) => 0x00FF00, { (gameState, _) =>
+    (_, _) => RGBColour(0, 255, 0), { (gameState, _) =>
       maybeTarget(gameState).isDefined
     },
     barTexture

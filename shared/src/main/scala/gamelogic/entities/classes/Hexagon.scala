@@ -32,7 +32,7 @@ final case class Hexagon(
 
   protected def patchLifeTotal(newLife: Double): LivingEntity = copy(life = newLife)
 
-  def abilities: Set[AbilityId] = Set(Ability.hexagonFlashHealId, Ability.hexagonHexagonHotId, Ability.simpleBulletId)
+  def abilities: Set[AbilityId] = Set(Ability.hexagonFlashHealId, Ability.hexagonHexagonHotId)
 
   def useAbility(ability: Ability): Hexagon = copy(
     relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability),

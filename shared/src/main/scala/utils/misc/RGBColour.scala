@@ -2,14 +2,11 @@ package utils.misc
 
 import models.syntax.Pointed
 
+import scala.language.implicitConversions
 import scala.util.Random
 
-final case class RGBColour(red: Int, green: Int, blue: Int) {
-
-  def intColour: Int = (red << 16) + (green << 8) + blue
-
-  def rgb: String = s"rgb($red, $green, $blue)"
-
+final case class RGBColour(red: Int, green: Int, blue: Int) extends Colour {
+  def rgba(alpha: Double): RGBAColour = RGBAColour(red, green, blue, alpha)
 }
 
 object RGBColour {
@@ -26,5 +23,7 @@ object RGBColour {
   implicit def pointed: Pointed[RGBColour] = Pointed.factory(
     RGBColour(Random.nextInt(255), Random.nextInt(255), Random.nextInt(255))
   )
+
+  implicit def asRGBA(rgb: RGBColour): RGBAColour = rgb.rgba(1.0)
 
 }
