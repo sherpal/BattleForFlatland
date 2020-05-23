@@ -62,6 +62,15 @@ object GameAntiChamberDAO {
       _ <- log.info(s"Game $gameId has been cancelled.")
     } yield ()
 
+  /**
+    * When the game creator asks to launch the game, we do the following:
+    * - verify that it's the game creator who asked
+    * - fetch game information from database
+    * - create game credentials and add them to database
+    * - try to contact the game server launcher to launch the game.
+    * - if the previous fails, we display the sbt command to execute in order to launch the game (this will change in
+    * production).
+    */
   def startGame(
       gameId: String
   )(

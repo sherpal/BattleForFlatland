@@ -43,6 +43,8 @@ final case class BigHit(useId: Ability.UseId, time: Long, casterId: Entity.Id, t
 
 object BigHit {
 
+  final val name: String = "BigHit"
+
   final def damageAmount: Double = 150.0
 
 }

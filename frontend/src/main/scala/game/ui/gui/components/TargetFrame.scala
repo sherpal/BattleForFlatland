@@ -21,8 +21,9 @@ final class TargetFrame($maybeTarget: SignalViewer[Option[MovingBody with Living
           entity.life / entity.maxLife
         }
     },
-    (_, _) => 0x00FF00,
-    (maybeTarget _).andThen(_.isDefined),
+    (_, _) => 0x00FF00, { (gameState, _) =>
+      maybeTarget(gameState).isDefined
+    },
     barTexture
   )
 

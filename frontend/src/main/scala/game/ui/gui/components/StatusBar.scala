@@ -19,7 +19,7 @@ import typings.pixiJs.mod.{Graphics, Sprite}
 final class StatusBar(
     computeValue: (GameState, Long) => Double,
     computeColour: (GameState, Long) => Int,
-    isVisible: GameState => Boolean,
+    isVisible: (GameState, Long) => Boolean,
     texture: Texture
 ) extends GUIComponent {
 
@@ -35,7 +35,7 @@ final class StatusBar(
   }
 
   def update(gameState: GameState, currentTime: Long): Unit =
-    if (isVisible(gameState)) {
+    if (isVisible(gameState, currentTime)) {
       container.visible = true
 
       barSprite.tint = computeColour(gameState, currentTime)

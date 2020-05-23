@@ -4,6 +4,7 @@ import game.ui.gui.components.GUIComponent
 import game.ui.gui.components.gridcontainer.GridContainer.GridDirection
 
 import Ordering.Double.TotalOrdering
+import scala.scalajs.js
 
 /**
   * A grid container is used to display a list of pixi containers
@@ -26,6 +27,8 @@ final class GridContainer[T <: GUIComponent](
     display()
   }
 
+  def isEmpty: Boolean = elements.isEmpty
+
   def addElement(t: T): Unit = {
     elements = t +: elements
     container.addChild(t.container)
@@ -38,7 +41,7 @@ final class GridContainer[T <: GUIComponent](
   }
 
   private def elementsByLine =
-    elements.sorted
+    currentElements.sorted
       .take(nbrElementsInFirstDirection * nbrElementsInSecondDirection)
       .grouped(nbrElementsInFirstDirection)
       .toVector

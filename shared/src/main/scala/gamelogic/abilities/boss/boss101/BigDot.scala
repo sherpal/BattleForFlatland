@@ -46,6 +46,8 @@ final case class BigDot(useId: Ability.UseId, time: Long, casterId: Entity.Id, t
 
 object BigDot {
 
+  final val name: String = "BigDot"
+
   final def damageOnTick: Double = 20.0
   final def duration: Long       = 60000L
   final def tickRate: Long       = 3000L
