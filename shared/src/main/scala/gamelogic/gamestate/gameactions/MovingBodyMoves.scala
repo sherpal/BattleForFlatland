@@ -21,7 +21,7 @@ final case class MovingBodyMoves(
     gameState
       .movingBodyEntityById(entityId)
       .fold(GameStateTransformer.identityTransformer) { movingBody =>
-        new WithEntity(movingBody.move(time, position, direction, rotation, speed, moving))
+        new WithEntity(movingBody.move(time, position, direction, rotation, speed, moving), time)
       }
 
   def isLegal(gameState: GameState): Boolean = gameState.movingBodyEntityById(entityId).isDefined

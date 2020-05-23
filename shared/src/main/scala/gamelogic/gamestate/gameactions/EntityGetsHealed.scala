@@ -23,7 +23,7 @@ final case class EntityGetsHealed(
 
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     gameState.livingEntityById(entityId).fold(GameStateTransformer.identityTransformer) { entity =>
-      new WithEntity(entity.changeLifeTotal(amount))
+      new WithEntity(entity.changeLifeTotal(amount), time)
     }
 
   def isLegal(gameState: GameState): Boolean = gameState.livingEntityById(entityId).isDefined

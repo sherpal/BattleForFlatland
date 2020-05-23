@@ -53,7 +53,8 @@ final case class AddPlayerByClass(
           Hexagon.initialResourceAmount.amount,
           playerName
         )
-    }
+    },
+    time
   )
 
   def isLegal(gameState: GameState): Boolean = !gameState.players.isDefinedAt(entityId)

@@ -12,7 +12,7 @@ final case class SpawnBoss(id: GameAction.Id, time: Long, entityId: Entity.Id, b
       .fold(
         GameStateTransformer.identityTransformer
       ) { initialBoss =>
-        new WithEntity(initialBoss)
+        new WithEntity(initialBoss, time)
       }
 
   def isLegal(gameState: GameState): Boolean = BossEntity.bossExists(bossName)

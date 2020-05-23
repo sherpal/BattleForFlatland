@@ -19,7 +19,7 @@ final case class ChangeTarget(id: GameAction.Id, time: Long, entityId: Entity.Id
       .fold(
         GameStateTransformer.identityTransformer
       ) { entity =>
-        new WithEntity(entity.changeTarget(newTargetId))
+        new WithEntity(entity.changeTarget(newTargetId), time)
       }
 
   def isLegal(gameState: GameState): Boolean = gameState.withTargetEntityById(entityId).isDefined
