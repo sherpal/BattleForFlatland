@@ -1,14 +1,14 @@
 package gamelogic.gamestate.serveractions
 
 import gamelogic.buffs.{Buff, PassiveBuff, TickerBuff}
-import gamelogic.gamestate.ImmutableActionCollector
+import gamelogic.gamestate.{GameAction, ImmutableActionCollector}
 import gamelogic.gamestate.gameactions.RemoveBuff
 import gamelogic.utils.IdGeneratorContainer
 
 final class ManageBuffsToBeRemoved extends ServerAction {
 
-  private def removeBuffAction(buff: Buff): RemoveBuff =
-    RemoveBuff(0L, buff.appearanceTime + buff.duration, buff.bearerId, buff.buffId)
+  private def removeBuffAction(actionId: GameAction.Id, buff: Buff): RemoveBuff =
+    RemoveBuff(actionId, buff.appearanceTime + buff.duration, buff.bearerId, buff.buffId)
 
   def apply(currentState: ImmutableActionCollector, nowGenerator: () => Long)(
       implicit idGeneratorContainer: IdGeneratorContainer
@@ -19,8 +19,9 @@ final class ManageBuffsToBeRemoved extends ServerAction {
     val removedBuffs = gameState.allBuffs
       .filter(buff => startTime - buff.appearanceTime > buff.duration)
       .flatMap {
-        case buff: PassiveBuff => removeBuffAction(buff) :: buff.endingAction(gameState)
-        case buff: TickerBuff  => removeBuffAction(buff) :: Nil
+        case buff: PassiveBuff =>
+          removeBuffAction(idGeneratorContainer.gameActionIdGenerator(), buff) :: buff.endingAction(gameState)
+        case buff: TickerBuff => removeBuffAction(idGeneratorContainer.gameActionIdGenerator(), buff) :: Nil
       }
       .toList
 

@@ -5,6 +5,8 @@ import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
 import game.{GameAssetLoader, GameStateManager, Keyboard, Mouse}
 import gamelogic.entities.Entity
+import gamelogic.entities.boss.Boss101
+import gamelogic.entities.classes.{Hexagon, Square}
 import gamelogic.gamestate.GameState
 import models.bff.ingame.InGameWSProtocol.ReadyToStart
 import models.bff.ingame.{InGameWSProtocol, KeyboardControls}
@@ -14,6 +16,8 @@ import org.scalajs.dom.html
 import typings.pixiJs.mod.Application
 import typings.pixiJs.{AnonAntialias => ApplicationOptions}
 import zio.ZIO
+import io.circe.generic.auto._
+import io.circe.syntax._
 
 /**
   * The GameViewContainer is responsible for creating th instance of the [[game.GameStateManager]].
@@ -31,11 +35,21 @@ final class GameViewContainer private (
     deltaTimeWithServer: Long
 ) extends Component[html.Div] {
 
-  private def container = element.ref
+  private def container = element.ref.firstChild.asInstanceOf[html.Div]
+
+  private val maybeTargetBus: EventBus[Option[Entity]] = new EventBus
 
   val element: ReactiveHtmlElement[html.Div] = div(
     className := "GameViewContainer",
-    onMountCallback(ctx => componentDidMount(ctx.owner))
+    onMountCallback(ctx => componentDidMount(ctx.owner)),
+    div(),
+    pre(child <-- maybeTargetBus.events.map {
+      case None                  => "No target"
+      case Some(target: Square)  => target.asJson.spaces2
+      case Some(target: Boss101) => target.asJson.spaces2
+      case Some(target: Hexagon) => target.asJson.spaces2
+      case target                => s"Don't know this target: $target"
+    })
   )
 
   val application: Application = new Application(ApplicationOptions(backgroundColor = 0x1099bb))
@@ -54,7 +68,8 @@ final class GameViewContainer private (
         new Mouse(application.view.asInstanceOf[html.Canvas]),
         playerId,
         deltaTimeWithServer,
-        resources
+        resources,
+        maybeTargetBus.writer
       )(owner)
       _ <- ZIO.effectTotal(
         socketOutWriter.onNext(ReadyToStart(me.userId))

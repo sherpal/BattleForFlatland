@@ -2,6 +2,8 @@ package game.ui.gui
 
 import assets.Asset
 import assets.Asset.ingame.gui.bars._
+import com.raquo.airstream.core.Observer
+import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.SignalViewer
 import game.ui.gui.components.gridcontainer.GridContainer
 import game.ui.gui.components.{CastingBar, CooldownBar, PlayerFrame, TargetFrame}
@@ -10,6 +12,7 @@ import gamelogic.abilities.boss.boss101.{BigDot, BigHit}
 import gamelogic.entities.{Entity, LivingEntity, MovingBody}
 import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.LoaderResource
+import typings.pixiJs.PIXI.interaction.{InteractionEvent, InteractionEventTypes}
 import typings.pixiJs.mod.{Application, Container, Graphics}
 import utils.misc.RGBColour
 
@@ -17,6 +20,8 @@ final class GUIDrawer(
     playerId: Entity.Id,
     application: Application,
     resources: PartialFunction[Asset, LoaderResource],
+    targetFromGUIWriter: Observer[MovingBody with LivingEntity],
+    $gameState: SignalViewer[GameState],
     $maybeTarget: SignalViewer[Option[MovingBody with LivingEntity]]
 ) {
 
@@ -59,8 +64,19 @@ final class GUIDrawer(
     application.renderer.generateTexture(graphics, 1, 1)
   }, resources(minimalistBar).texture, resources(minimalistBar).texture, 120, 30)
   guiContainer.addChild(playerFrame.container)
-  playerFrame.container.x = application.view.width / 2 - 120
-  playerFrame.container.y = application.view.height - 30
+  playerFrame.container.x           = application.view.width / 2 - 120
+  playerFrame.container.y           = application.view.height - 30
+  playerFrame.container.interactive = true
+  playerFrame.container.addListener(
+    InteractionEventTypes.click, { (_: InteractionEvent) =>
+      $gameState.now.players.get(playerId).foreach { entity =>
+        println(entity)
+        scala.scalajs.js.timers.setTimeout(100.0) {
+          targetFromGUIWriter.onNext(entity)
+        }
+      }
+    }
+  )
 
   implicit private val cdBarOrdering: Ordering[CooldownBar] = Ordering.by(_.abilityId)
 

@@ -115,10 +115,6 @@ object GameMaster {
           val sortedActions = pendingActions.sorted
             .map(_.changeId(idGeneratorContainer.gameActionIdGenerator()))
 
-          if (sortedActions.exists(_.isInstanceOf[EntityStartsCasting])) {
-            println(sortedActions)
-          }
-
           /** First adding actions from entities */
           val (nextCollector, oldestTimeToRemove, idsToRemove) =
             actionCollector.masterAddAndRemoveActions(sortedActions)

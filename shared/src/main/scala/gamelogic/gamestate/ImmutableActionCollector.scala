@@ -235,6 +235,8 @@ final class ImmutableActionCollector private (
         case e: Throwable =>
           println("gs time " + currentActionsAndStates.head._1.time)
           println("action time " + action.time)
+          println("current time " + System.currentTimeMillis())
+          e.printStackTrace()
           throw e
       }
     }

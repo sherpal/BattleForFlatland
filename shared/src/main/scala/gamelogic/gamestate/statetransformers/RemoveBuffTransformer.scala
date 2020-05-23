@@ -10,19 +10,23 @@ import gamelogic.gamestate.GameState
 final class RemoveBuffTransformer(time: Long, bearerId: Entity.Id, buffId: Buff.Id) extends GameStateTransformer {
   def apply(gameState: GameState): GameState =
     gameState.buffById(bearerId, buffId) match {
-      case _: TickerBuff =>
+      case Some(_: TickerBuff) =>
         val newBearerBuffs = gameState.tickerBuffs.get(bearerId).map(_ - buffId).getOrElse(Map())
         if (newBearerBuffs.isEmpty)
           gameState.copy(time = time, tickerBuffs = gameState.tickerBuffs - bearerId)
         else
           gameState.copy(time = time, tickerBuffs = gameState.tickerBuffs + (bearerId -> newBearerBuffs))
-      case _: PassiveBuff =>
+      case Some(_: PassiveBuff) =>
         val newBearerBuffs = gameState.passiveBuffs.get(bearerId).map(_ - buffId).getOrElse(Map())
         if (newBearerBuffs.isEmpty)
           gameState.copy(time = time, passiveBuffs = gameState.passiveBuffs - bearerId)
         else
           gameState.copy(time = time, passiveBuffs = gameState.passiveBuffs + (bearerId -> newBearerBuffs))
-      case _ => gameState // will never happen as the only sub classes are the two above
+      case buff =>
+        println("wtf!?")
+        println(buff)
+        throw new Exception("Should never happen")
+      // will never happen as the only sub classes are the two above
     }
 
 }

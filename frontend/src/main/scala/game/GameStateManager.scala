@@ -8,7 +8,8 @@ import com.raquo.airstream.ownership.Owner
 import com.raquo.airstream.signal.{Signal, SignalViewer}
 import game.ui.GameDrawer
 import game.ui.gui.GUIDrawer
-import gamelogic.abilities.SimpleBullet
+import gamelogic.abilities.hexagon.{FlashHeal, HexagonHot}
+import gamelogic.abilities.{Ability, SimpleBullet}
 import gamelogic.entities.{Body, Entity, LivingEntity, MovingBody}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.gamestate.gameactions.{EntityStartsCasting, MovingBodyMoves}
@@ -29,8 +30,11 @@ final class GameStateManager(
     mouse: Mouse,
     playerId: Entity.Id,
     deltaTimeWithServer: Long,
-    resources: PartialFunction[Asset, LoaderResource]
+    resources: PartialFunction[Asset, LoaderResource],
+    maybeTargetWriter: Observer[Option[Entity]]
 )(implicit owner: Owner) {
+
+  val abilityCodes: List[String] = (1 to 9).map("Digit" + _).toList
 
   private var actionCollector = ImmutableActionCollector(initialGameState)
   private val gameDrawer      = new GameDrawer(application)
@@ -48,20 +52,30 @@ final class GameStateManager(
     (mousePosition - myPositionNow).arg
   }.observe
 
+  val targetFromGUIBus = new EventBus[MovingBody with LivingEntity]
+
   /**
     * Signal containing the current target of the user, starting with no target.
     *
     * This target only has meaning inside the GUI (it is not encoded in the game state). However, it used when using
     * abilities involving targetting something.
     */
-  val $maybeTarget: Signal[Option[MovingBody with LivingEntity]] = mouse.$mouseClicks.map(mouse.effectiveMousePos)
-    .map(gameDrawer.camera.mousePosToWorld)
-    .withCurrentValueOf($gameStates)
-    .map {
-      case (mousePosition, state) =>
-        state.allTargettableEntities.find(entity => entity.shape.contains(mousePosition, entity.pos, entity.rotation))
-    }
-    .startWith(Option.empty[MovingBody with LivingEntity])
+  val $maybeTarget: Signal[Option[MovingBody with LivingEntity]] =
+    EventStream
+      .merge(
+        targetFromGUIBus.events.map(Some(_)),
+        mouse.$mouseClicks.map(mouse.effectiveMousePos)
+          .map(gameDrawer.camera.mousePosToWorld)
+          .withCurrentValueOf($gameStates)
+          .map {
+            case (mousePosition, state) =>
+              state.allTargettableEntities
+                .find(entity => entity.shape.contains(mousePosition, entity.pos, entity.rotation))
+          }
+      )
+      .startWith(Option.empty[MovingBody with LivingEntity])
+
+  $maybeTarget.foreach(maybeTargetWriter.onNext)
 
   private var unconfirmedActions: List[GameAction] = Nil
 
@@ -79,37 +93,56 @@ final class GameStateManager(
 
   val pressedUserInputSignal: SignalViewer[Set[UserInput]] = keyboard.$pressedUserInput.observe
 
-  keyboard.$downKeyEvents.filter(_.code == "KeyE").foreach { _ =>
-    val direction = $mouseAngleWithPosition.now
+  /** Cast abilities */
+  keyboard.$downKeyEvents.filter(event => abilityCodes.contains(event.code))
+    .withCurrentValueOf($gameStates)
+    .filter(_._2.players.isDefinedAt(playerId))
+    .withCurrentValueOf($maybeTarget)
+    .foreach {
+      case ((event, gameState), maybeTarget) =>
+        val me = gameState.players(playerId) // this is ok because of above filter
 
-    val ability = new SimpleBullet(
-      0L,
-      System.currentTimeMillis,
-      playerId,
-      $strictGameStates.now.players.get(playerId).map(_.pos).getOrElse(Complex.zero),
-      direction
-    )
+        abilityCodes.zip(me.abilities).find(_._1 == event.code).foreach {
+          case (_, abilityId) =>
+            val now = System.currentTimeMillis
+            abilityId match {
+              case Ability.hexagonFlashHealId =>
+                maybeTarget match {
+                  case None => dom.console.warn("You need to have a target to cast Flash heal.")
+                  case Some(target) =>
+                    val ability = FlashHeal(0L, now, playerId, target.id)
+                    val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
+                    if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action
+                          .isLegalDelay($strictGameStates.now, deltaTimeWithServer + 100)) {
+                      socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                    } else if (scala.scalajs.LinkingInfo.developmentMode) {
+                      dom.console.warn("Can't cast FlashHeal.")
+                    }
+                }
+              case Ability.hexagonHexagonHotId =>
+                maybeTarget match {
+                  case None => dom.console.warn("You need a target to cast Hexagon Hot.")
+                  case Some(target) =>
+                    val ability = HexagonHot(0L, now, playerId, target.id)
+                    val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
+                    if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action
+                          .isLegalDelay($strictGameStates.now, deltaTimeWithServer + 100)) {
+                      socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                    } else if (scala.scalajs.LinkingInfo.developmentMode) {
+                      dom.console.warn("Can't cast Hexagon Hot.")
+                    }
+                }
+              case _ =>
+                // todo
+                println(s"TODO: implement ability $abilityId")
+            }
+        }
 
-    val action = EntityStartsCasting(
-      0L,
-      System.currentTimeMillis,
-      ability.castingTime,
-      ability
-    )
-
-    if (action.isLegalDelay($strictGameStates.now, deltaTimeWithServer + 100)) {
-      socketOutWriter.onNext(
-        InGameWSProtocol.GameActionWrapper(
-          action :: Nil
-        )
-      )
-    } else if (scala.scalajs.LinkingInfo.developmentMode) {
-      dom.console.warn("Entity already casting.")
     }
-  }
 
   /** After [[game.ui.GameDrawer]] so that gui is on top of the game. */
-  private val guiDrawer = new GUIDrawer(playerId, application, resources, $maybeTarget.observe)
+  private val guiDrawer =
+    new GUIDrawer(playerId, application, resources, targetFromGUIBus.writer, $strictGameStates, $maybeTarget.observe)
 
   var lastTimeStamp = 0L
 

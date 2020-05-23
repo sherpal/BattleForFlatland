@@ -32,7 +32,6 @@ object WebServer {
         get {
             parameters('gameId, 'gameSecret) { (gameId, gameSecret) =>
                 val sbtCommand = s"game-server/run -i $gameId -s $gameSecret"
-                println("Spawning game server.")
                 sbtProcess.stdin.writeLine(sbtCommand)
                 complete("ok")
             }

@@ -1,6 +1,7 @@
 package gamelogic.buffs
 
 import gamelogic.gamestate.{GameAction, GameState}
+import gamelogic.utils.IdGeneratorContainer
 
 /**
   * A [[gamelogic.buffs.PassiveBuff]] affects its bearer in a passive way for the duration of the buff.
@@ -24,7 +25,7 @@ trait PassiveBuff extends Buff {
     *
     * Example: adds a final heal at the end.
     */
-  def endingAction(gameState: GameState): List[GameAction]
+  def endingAction(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction]
 
   /**
     * Specifies how actions are transformed during the time the buff is present.

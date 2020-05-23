@@ -43,7 +43,7 @@ final case class HexagonHot(useId: Ability.UseId, time: Long, casterId: Entity.I
 
 object HexagonHot {
 
-  @inline final def healOnTick = 5.0
+  @inline final def healOnTick = 15.0
   @inline final def duration   = 15000L
   @inline final def tickRate   = 3000L
 

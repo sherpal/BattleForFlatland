@@ -29,7 +29,7 @@ final case class Square(
 ) extends PlayerClass {
   protected def patchLifeTotal(newLife: Double): LivingEntity = copy(life = newLife)
 
-  def abilities: Set[AbilityId] = Set(Ability.squareTauntId)
+  def abilities: Set[AbilityId] = Square.abilities
 
   def useAbility(ability: Ability): WithAbilities = copy(
     relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability),
@@ -47,5 +47,7 @@ final case class Square(
 object Square {
 
   def initialResourceAmount: ResourceAmount = ResourceAmount(100, Rage)
+
+  final val abilities = Set(Ability.squareTauntId)
 
 }
