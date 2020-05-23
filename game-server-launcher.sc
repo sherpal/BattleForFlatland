@@ -20,6 +20,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object WebServer {
   def main(args: Array[String]) {
 
+    val sbtProcess = os.proc("sbt").spawn(stdout = os.Inherit, stderr = os.Inherit)
+
     implicit val system = ActorSystem("my-system")
     implicit val materializer = ActorMaterializer()
     // needed for the future flatMap/onComplete in the end
@@ -29,16 +31,10 @@ object WebServer {
       path("run-game-server") {
         get {
             parameters('gameId, 'gameSecret) { (gameId, gameSecret) =>
-
                 val sbtCommand = s"game-server/run -i $gameId -s $gameSecret"
-
-                Future {
-                    println("Spawning game server.")
-                    os.proc("sbt", sbtCommand).call(stdout = os.Inherit, stderr = os.Inherit)
-                }
-
+                println("Spawning game server.")
+                sbtProcess.stdin.writeLine(sbtCommand)
                 complete("ok")
-
             }
         }
       }

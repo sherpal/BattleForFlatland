@@ -76,7 +76,6 @@ object GameAntiChamberDAO {
       gameCredentials <- createAndAddGameCredentials(gameInfo)
       _ <- ZIO
         .fromFuture { _ =>
-          println("Contacting game-server-launcher...")
           implicit val ec: ExecutionContext = actorSystem.dispatcher
           Http()
             .singleRequest(
