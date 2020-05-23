@@ -31,7 +31,7 @@ package object setup {
       response <- ZIO.fromFuture { _ =>
         Http().singleRequest(
           HttpRequest(
-            uri = "http://localhost:9000/game-server/game-info", // todo: un-hardcode this
+            uri = "http://localhost:9000/game-server/game-info", // todo!: un-hardcode this
             headers = List(
               new GameServerIdHeader(gameCredentials.gameId),
               new GameServerSecretHeader(gameCredentials.gameSecret)

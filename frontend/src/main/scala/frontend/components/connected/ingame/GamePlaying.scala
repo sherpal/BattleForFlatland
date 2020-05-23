@@ -14,10 +14,12 @@ import org.scalajs.dom.html
 import utils.laminarzio.Implicits._
 import utils.websocket.JsonWebSocket
 import zio.{UIO, ZIO}
+import frontend.components.utils.tailwind._
+import services.http.FHttpClient
 
 final class GamePlaying private (gameId: String, user: User, token: String) extends Component[html.Div] {
 
-  private val layer = zio.clock.Clock.live
+  private val layer = zio.clock.Clock.live ++ FHttpClient.live
 
   final val gameSocket = JsonWebSocket[InGameWSProtocol, InGameWSProtocol, (String, String)](
     joinGameServer,
@@ -57,6 +59,15 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
     child <-- $playerId.combineWith(deltaWithServerBus.events).map {
       case (id, delta) => GameViewContainer(user, id, $actionsFromServer, gameSocket.outWriter, delta)
     },
+    span(
+      btn,
+      secondaryButton,
+      "Stop game",
+      onClick --> { _ =>
+        zio.Runtime.default
+          .unsafeRunToFuture(programs.frontend.ingame.cancelGame(user, gameId, token).provideLayer(layer))
+      }
+    ),
     onMountCallback(ctx => componentDidMount(ctx.owner))
   )
 

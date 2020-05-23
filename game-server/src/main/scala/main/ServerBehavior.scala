@@ -117,7 +117,7 @@ trait ServerBehavior[In, Out] {
     Flow[HttpRequest].mapAsync(1) {
       case HttpRequest(GET, Uri.Path("/"), _, _, _) =>
         Future.successful(HttpResponse(entity = "hello"))
-      case HttpRequest(GET, Uri.Path("/stop"), _, _, _) =>
+      case HttpRequest(POST, Uri.Path("/stop"), _, _, _) => // todo: read entity and protect route
         context.self ! Stop
         Future.successful(HttpResponse(entity = "stopped"))
       case HttpRequest(POST, uri, _, entity, _) if doesMatch(uri, tokenRoute) =>

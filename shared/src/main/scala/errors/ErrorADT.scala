@@ -34,6 +34,10 @@ object ErrorADT {
       errors.toList.headOption.flatMap(_._2.headOption).map(_.httpErrorType).getOrElse(Internal)
   }
 
+  case class RawInternalError(errorMsg: String) extends ErrorADT {
+    def httpErrorType: HTTPResultType = Internal
+  }
+
   sealed abstract class ThrowableWrapper(throwable: Throwable) extends Throwable {
     override def getMessage: String                      = throwable.getMessage
     override def getLocalizedMessage: String             = throwable.getLocalizedMessage

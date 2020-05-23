@@ -2,9 +2,15 @@ package programs.frontend
 
 import java.util.concurrent.TimeUnit
 
+import errors.ErrorADT
+import models.bff.Routes
+import models.bff.ingame.GameUserCredentials
 import models.bff.ingame.InGameWSProtocol.{Ping, Pong}
+import models.users.User
 import zio.clock.Clock
 import zio.{UIO, ZIO}
+import services.http._
+import utils.ziohelpers.unsuccessfulStatusCode
 
 package object ingame {
 
@@ -28,5 +34,12 @@ package object ingame {
 
     accumulator(tries, Nil)
   }
+
+  def cancelGame(user: User, gameId: String, token: String): ZIO[HttpClient, ErrorADT, Unit] =
+    (for {
+      gameCredentials <- UIO(GameUserCredentials(user.userId, gameId, token))
+      code <- postIgnore(Routes.inGameCancel, gameCredentials)
+      _ <- unsuccessfulStatusCode(code)
+    } yield ()).refineOrDie(ErrorADT.onlyErrorADT)
 
 }

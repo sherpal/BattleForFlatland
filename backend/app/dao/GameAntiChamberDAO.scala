@@ -4,8 +4,11 @@ import java.time.temporal.ChronoUnit
 import java.time.{LocalDateTime, ZoneOffset}
 import java.util.concurrent.TimeUnit
 
+import akka.actor.ActorSystem
 import akka.actor.typed.Scheduler
 import akka.actor.typed.scaladsl.AskPattern._
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse, Uri}
 import akka.util.Timeout
 import errors.ErrorADT.GameHasBeenCancelled
 import guards.Guards
@@ -27,6 +30,7 @@ import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeperTyped
 import zio.clock.{Clock, _}
 import zio.{Has, UIO, ZIO}
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 object GameAntiChamberDAO {
@@ -60,6 +64,8 @@ object GameAntiChamberDAO {
 
   def startGame(
       gameId: String
+  )(
+      implicit actorSystem: ActorSystem
   ): ZIO[Logging with GameCredentialsDB with Crypto with GameTable with Clock with Configuration with Has[
     HasRequest[Request, AnyContent]
   ], Throwable, Unit] =
@@ -68,11 +74,36 @@ object GameAntiChamberDAO {
       gameInfo <- gameWithPlayersById(gameId)
       _ <- removeAllGameCredentials(gameId)
       gameCredentials <- createAndAddGameCredentials(gameInfo)
-      _ <- log.info(s"""
-         |Game secret for $gameId is ${gameCredentials.gameCredentials.gameSecret}.
-         |Game server can be launched in sbt with the command:
-         |game-server/run -i $gameId -s ${gameCredentials.gameCredentials.gameSecret}
-         |""".stripMargin)
+      _ <- ZIO
+        .fromFuture { _ =>
+          println("Contacting game-server-launcher...")
+          implicit val ec: ExecutionContext = actorSystem.dispatcher
+          Http()
+            .singleRequest(
+              HttpRequest(
+                HttpMethods.GET,
+                uri = Uri(
+                  s"http://localhost:22223/run-game-server?" +
+                    s"gameId=${gameCredentials.gameCredentials.gameId}" +
+                    s"&gameSecret=${gameCredentials.gameCredentials.gameSecret}"
+                ) // todo!: unhardcode this!
+              )
+            )
+            .andThen {
+              case scala.util.Success(response: HttpResponse) => response.entity.discardBytes()
+            }
+            .filter(_.status.isSuccess)
+        }
+        .timeout(zio.duration.Duration(1000, java.util.concurrent.TimeUnit.MILLISECONDS))
+        .catchAll { error =>
+          log.error(error.getMessage) *>
+            log.info(s"""
+                    |Could not reach game-server-launcher, fall back to manual launch:
+                    |Game secret for $gameId is ${gameCredentials.gameCredentials.gameSecret}.
+                    |Game server can be launched in sbt with the command:
+                    |game-server/run -i $gameId -s ${gameCredentials.gameCredentials.gameSecret}
+                    |""".stripMargin)
+        }
     } yield ()
 
   def iAmStillThere(

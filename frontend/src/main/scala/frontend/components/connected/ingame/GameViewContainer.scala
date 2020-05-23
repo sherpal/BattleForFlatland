@@ -44,7 +44,7 @@ final class GameViewContainer private (
   private def mountEffect(gameContainer: html.Div, owner: Owner) =
     for {
       resources <- loader.loadAssets
-      // todo: remove hardcoded stuff
+      // todo!: remove hardcoded stuff
       _ = new GameStateManager(
         application,
         GameState.empty,

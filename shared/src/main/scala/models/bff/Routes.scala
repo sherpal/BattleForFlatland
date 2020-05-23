@@ -25,6 +25,7 @@ object Routes {
   final val gameServerToken     = root / "fetch-game-server-token" // post
   final val joinGameServer      = root / "connect" // ws
   final val inGame              = root / "in-game" // route (get)
+  final val inGameCancel        = inGame / "cancel-game" // post
 
   final val gameIdParam          = param[String]("gameId")
   final val tokenParam           = param[String]("token")

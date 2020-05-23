@@ -3,12 +3,14 @@ package dao
 import akka.actor.ActorSystem
 import akka.actor.typed.Scheduler
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpMethods, HttpRequest, Uri}
+import akka.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse, Uri}
 import dao.GameAntiChamberDAO.askGameAntiChamberManager
+import errors.ErrorADT
+import errors.ErrorADT.RawInternalError
 import guards.Guards
 import io.circe.syntax._
 import models.bff.ingame.{GameCredentialsWithGameInfo, GameUserCredentials}
-import play.api.mvc.{Request, RequestHeader}
+import play.api.mvc.{AnyContent, Request, RequestHeader}
 import services.actors.TypedActorProvider.TypedActorProvider
 import services.config.Configuration
 import services.database.gamecredentials.GameCredentialsDB
@@ -20,6 +22,7 @@ import zio.{Has, UIO, ZIO}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import scala.util.Success
 
 object GameServerDAO {
 
@@ -46,7 +49,7 @@ object GameServerDAO {
           .singleRequest(
             HttpRequest(
               HttpMethods.POST,
-              uri    = Uri("http://localhost:22222/api/token"),
+              uri    = Uri("http://localhost:22222/api/token"), // todo!: unhardcode this!
               entity = credentials.asJson.noSpaces
             )
           )
@@ -54,5 +57,29 @@ object GameServerDAO {
           .map(_.data.utf8String)
       }
     } yield token
+
+  def cancelGame(
+      implicit actorSystem: ActorSystem
+  ): ZIO[Clock with Configuration with Has[HasRequest[Request, GameUserCredentials]], ErrorADT, Boolean] =
+    for {
+      sessionRequest <- Guards.authenticated[GameUserCredentials]
+      credentials <- UIO(sessionRequest.body)
+      isSuccess <- ZIO
+        .fromFuture { _ =>
+          implicit val ec: ExecutionContext = actorSystem.dispatcher
+          Http()
+            .singleRequest(
+              HttpRequest(
+                HttpMethods.POST,
+                uri    = Uri("http://localhost:22222/stop"), // todo!: un-hardcode this
+                entity = credentials.asJson.noSpaces
+              )
+            )
+            .andThen {
+              case Success(response: HttpResponse) => response.entity.discardBytes()
+            }
+        }
+        .bimap(t => RawInternalError(t.getMessage), _.status.isSuccess)
+    } yield isSuccess
 
 }

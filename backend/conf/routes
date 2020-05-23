@@ -78,6 +78,7 @@ GET   /ws/bff/game-anti-chamber     controllers.GameAntiChamberController.gameAn
 
 GET   /game-server/game-info        controllers.GameServerController.fetchGameInfoAndCredentials
 POST  /api/fetch-game-server-token  controllers.GameServerController.clientFetchToken
+POST  /api/in-game/cancel-game      controllers.GameServerController.clientCancelGameDuringGame
 
 ### NoDocs ###
 GET   /docs/swagger-ui/*file        controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)

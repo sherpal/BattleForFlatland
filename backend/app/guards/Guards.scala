@@ -57,7 +57,7 @@ object Guards {
     * session.
     * Fails with a [[errors.ErrorADT.YouAreUnauthorized]] if the request's session does not contain the proper info.
     */
-  def authenticated[A](req: Request[A]): ZIO[Clock with Configuration, Throwable, SessionRequest[A]] =
+  def authenticated[A](req: Request[A]): ZIO[Clock with Configuration, ErrorADT, SessionRequest[A]] =
     userFromRequestHeader(req).map(SessionRequest(_, req))
 
   /**
@@ -66,7 +66,7 @@ object Guards {
     */
   def authenticated[A](
       implicit tagged: zio.Tagged[A]
-  ): ZIO[Clock with Configuration with Has[HasRequest[Request, A]], Throwable, SessionRequest[A]] =
+  ): ZIO[Clock with Configuration with Has[HasRequest[Request, A]], ErrorADT, SessionRequest[A]] =
     for {
       request <- simpleZIORequest[A]
       sessionRequest <- authenticated[A](request)

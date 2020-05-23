@@ -77,4 +77,10 @@ final class GameServerController @Inject()(
       .provideButRequest[Request, GameUserCredentials](layer)
   }
 
+  def clientCancelGameDuringGame: Action[GameUserCredentials] = Action.zio(parse.json[GameUserCredentials]) {
+    GameServerDAO.cancelGame
+      .map(Ok(_))
+      .provideButRequest[Request, GameUserCredentials](layer)
+  }
+
 }
