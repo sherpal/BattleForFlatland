@@ -68,6 +68,9 @@ final case class GameState(
       .orElse(dummyMobs.get(entityId))
       .orElse(simpleBullets.get(entityId))
 
+  def allTargettableEntities: Iterator[MovingBody with LivingEntity] =
+    players.valuesIterator ++ bosses.valuesIterator ++ dummyMobs.valuesIterator
+
   // Is there something better?
   def withAbilityEntitiesById(entityId: Entity.Id): Option[WithAbilities] =
     players

@@ -59,6 +59,10 @@ trait Polygon extends Shape {
   def contains(point: Complex): Boolean =
     boundingBox.contains(point) && triangulation.exists(_.contains(point.re, point.im))
 
+  def contains(point: Complex, translation: Complex, rotation: Double): Boolean =
+    boundingBox.contains(point - translation) && triangulation
+      .exists(_.contains(point.re, point.im, rotation, translation))
+
   def edges: Vector[Segment] = vertices.zip(vertices.tail :+ vertices(0)).map(Segment.tupled)
 
   /**

@@ -21,6 +21,9 @@ final class Mouse(canvas: html.Canvas) {
     Complex(clientX - boundingRect.left - canvas.width / 2, -clientY + boundingRect.top + canvas.height / 2)
   }
 
+  def effectiveMousePos(event: MouseEvent): Complex =
+    effectiveMousePos(event.clientX, event.clientY)
+
   private val mouseClickBus: EventBus[MouseEvent] = new EventBus
   val $mouseClicks: EventStream[MouseEvent]       = mouseClickBus.events
 

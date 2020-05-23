@@ -52,6 +52,9 @@ final class Circle(val radius: Double) extends Curved {
 
   def contains(point: Complex): Boolean = point.modulus <= radius
 
+  def contains(point: Complex, translation: Complex, rotation: Double): Boolean =
+    contains(point - translation)
+
   def intersectSegment(translation: Complex, rotation: Double, z1: Complex, z2: Complex): Boolean = {
     val dir     = z2 - z1
     val dirMod  = dir.modulus

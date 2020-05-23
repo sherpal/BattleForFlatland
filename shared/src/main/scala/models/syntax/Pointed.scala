@@ -26,7 +26,7 @@ object Pointed {
   type Typeclass[A] = Pointed[A]
 
   def combine[A](ctx: CaseClass[Pointed, A]): Pointed[A] = new Pointed[A] {
-    def unit: A = ctx.construct(_.typeclass.unit)
+    def unit: A = ctx.construct(param => param.default.getOrElse(param.typeclass.unit))
   }
 
   def dispatch[A](ctx: SealedTrait[Pointed, A]): Pointed[A] = new Pointed[A] {

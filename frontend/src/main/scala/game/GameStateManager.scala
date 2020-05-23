@@ -9,7 +9,7 @@ import com.raquo.airstream.signal.{Signal, SignalViewer}
 import game.ui.GameDrawer
 import game.ui.gui.GUIDrawer
 import gamelogic.abilities.SimpleBullet
-import gamelogic.entities.Entity
+import gamelogic.entities.{Body, Entity, LivingEntity, MovingBody}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.gamestate.gameactions.{EntityStartsCasting, MovingBodyMoves}
 import gamelogic.gamestate.{AddAndRemoveActions, GameAction, GameState, ImmutableActionCollector}
@@ -35,9 +35,6 @@ final class GameStateManager(
   private var actionCollector = ImmutableActionCollector(initialGameState)
   private val gameDrawer      = new GameDrawer(application)
 
-  /** After [[game.ui.GameDrawer]] so that gui is on top of the game. */
-  private val guiDrawer = new GUIDrawer(playerId, application, resources)
-
   private val gameStateBus: EventBus[GameState] = new EventBus[GameState]
 
   val $gameStates: Signal[GameState] = gameStateBus.events.startWith(initialGameState)
@@ -50,6 +47,21 @@ final class GameStateManager(
     val myPositionNow = $strictGameStates.now.players.get(playerId).fold(Complex.zero)(_.pos)
     (mousePosition - myPositionNow).arg
   }.observe
+
+  /**
+    * Signal containing the current target of the user, starting with no target.
+    *
+    * This target only has meaning inside the GUI (it is not encoded in the game state). However, it used when using
+    * abilities involving targetting something.
+    */
+  val $maybeTarget: Signal[Option[MovingBody with LivingEntity]] = mouse.$mouseClicks.map(mouse.effectiveMousePos)
+    .map(gameDrawer.camera.mousePosToWorld)
+    .withCurrentValueOf($gameStates)
+    .map {
+      case (mousePosition, state) =>
+        state.allTargettableEntities.find(entity => entity.shape.contains(mousePosition, entity.pos, entity.rotation))
+    }
+    .startWith(Option.empty[MovingBody with LivingEntity])
 
   private var unconfirmedActions: List[GameAction] = Nil
 
@@ -95,6 +107,9 @@ final class GameStateManager(
       dom.console.warn("Entity already casting.")
     }
   }
+
+  /** After [[game.ui.GameDrawer]] so that gui is on top of the game. */
+  private val guiDrawer = new GUIDrawer(playerId, application, resources, $maybeTarget.observe)
 
   var lastTimeStamp = 0L
 

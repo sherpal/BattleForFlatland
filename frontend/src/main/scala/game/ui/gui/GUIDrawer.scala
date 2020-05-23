@@ -2,9 +2,10 @@ package game.ui.gui
 
 import assets.Asset
 import assets.Asset.ingame.gui.bars._
+import com.raquo.airstream.signal.SignalViewer
 import game.ui.gui.components.gridcontainer.GridContainer
-import game.ui.gui.components.{CastingBar, PlayerFrame}
-import gamelogic.entities.Entity
+import game.ui.gui.components.{CastingBar, PlayerFrame, TargetFrame}
+import gamelogic.entities.{Entity, LivingEntity, MovingBody}
 import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.LoaderResource
 import typings.pixiJs.mod.{Application, Container, Graphics}
@@ -12,7 +13,8 @@ import typings.pixiJs.mod.{Application, Container, Graphics}
 final class GUIDrawer(
     playerId: Entity.Id,
     application: Application,
-    resources: PartialFunction[Asset, LoaderResource]
+    resources: PartialFunction[Asset, LoaderResource],
+    $maybeTarget: SignalViewer[Option[MovingBody with LivingEntity]]
 ) {
 
   val guiContainer = new Container
@@ -37,6 +39,11 @@ final class GUIDrawer(
   playerFrameGridContainer.container.y = 150
   guiContainer.addChild(playerFrameGridContainer.container)
 
+  val targetFrame = new TargetFrame($maybeTarget, resources(minimalistBar).texture)
+  guiContainer.addChild(targetFrame.container)
+  targetFrame.container.x = (application.view.width - targetFrame.container.width) / 2
+  targetFrame.container.y = application.view.height - 30
+
   def update(gameState: GameState, currentTime: Long): Unit = {
     castingBar.update(gameState, currentTime)
 
@@ -55,6 +62,8 @@ final class GUIDrawer(
 
     playerFrameGridContainer.currentElements.foreach(_.update(gameState))
     playerFrameGridContainer.display()
+
+    targetFrame.update(gameState, currentTime)
   }
 
 }

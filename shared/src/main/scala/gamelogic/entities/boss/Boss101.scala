@@ -73,6 +73,8 @@ final case class Boss101(
 object Boss101 extends BossFactory {
   final val shape: Circle = new Circle(30.0)
 
+  final val maxLife: Double = 1000
+
   final val meleeRange: Distance = shape.radius + 20.0
   final val rangeRange: Distance = 2000.0 // basically infinite distance
 
@@ -86,6 +88,8 @@ object Boss101 extends BossFactory {
         speed = 300.0,
         relevantUsedAbilities = Map(
           Ability.boss101BigDotId -> Pointed[BigDot].unit.copy(time = time - BigDot.timeToFirstBigDot)
-        )
+        ),
+        maxLife = maxLife,
+        life    = maxLife
       )
 }

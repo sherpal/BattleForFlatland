@@ -18,6 +18,7 @@ trait Shape {
   def intersectSegment(translation: Complex, rotation: Double, z1: Complex, z2: Complex): Boolean
 
   def contains(point: Complex): Boolean
+  def contains(point: Complex, translation: Complex, rotation: Double): Boolean
 
   val radius: Double
 
