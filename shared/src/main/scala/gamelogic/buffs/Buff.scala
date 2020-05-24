@@ -10,16 +10,16 @@ import gamelogic.entities.Entity
 trait Buff {
 
   /** Unique id of this buff during the game. */
-  val buffId: Buff.Id
+  def buffId: Buff.Id
 
   /** Id of the entity at which the buff is attached. */
-  val bearerId: Entity.Id
+  def bearerId: Entity.Id
 
   /** Time (in millis) that the buff will last. */
-  val duration: Long
+  def duration: Long
 
   /** Game Time at which the buff appeared. */
-  val appearanceTime: Long
+  def appearanceTime: Long
 
   /**
     * Unique way to identify this buff from its source.

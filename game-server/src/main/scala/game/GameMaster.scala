@@ -2,6 +2,7 @@ package game
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
+import gamelogic.entities.classes.PlayerClassBuilder
 import gamelogic.gamestate.gameactions.{AddPlayerByClass, EntityStartsCasting, GameStart, SpawnBoss, UseAbility}
 import gamelogic.gamestate.serveractions._
 import gamelogic.gamestate.{GameAction, GameState, ImmutableActionCollector}
@@ -180,15 +181,21 @@ object GameMaster {
 
                 val newPlayerActions = gameInfo.game.gameConfiguration.playersInfo.values.zipWithIndex.map {
                   case (info, idx) =>
-                    refsByName(info.playerName) -> AddPlayerByClass(
-                      0L,
-                      timeNow - 1,
-                      idGeneratorContainer.entityIdGenerator(),
-                      100 * Complex.rotation(idx * 2 * math.Pi / playerMap.size),
-                      info.playerClass,
-                      info.playerColour.intColour,
-                      info.playerName
+                    val playerId = idGeneratorContainer.entityIdGenerator()
+                    (
+                      refsByName(info.playerName),
+                      playerId,
+                      AddPlayerByClass(
+                        0L,
+                        timeNow - 2,
+                        playerId,
+                        100 * Complex.rotation(idx * 2 * math.Pi / playerMap.size),
+                        info.playerClass,
+                        info.playerColour.intColour,
+                        info.playerName
+                      ) +: info.playerClass.builder.startingActions(timeNow - 1, playerId, idGeneratorContainer)
                     )
+
                 }
 
                 if (gameInfo.game.gameConfiguration.maybeBossName.isEmpty) {
@@ -200,15 +207,15 @@ object GameMaster {
                 )
 
                 newPlayerActions.foreach {
-                  case (ref, player) =>
-                    ref ! InGameWSProtocol.YourEntityIdIs(player.entityId)
+                  case (ref, playerId, _) =>
+                    ref ! InGameWSProtocol.YourEntityIdIs(playerId)
                 }
 
                 setupBehaviour(
                   actionUpdateCollector,
                   Some(gameInfo),
                   Set(),
-                  Some(newPlayerActions.map(_._2).toList ++ bossCreationActions :+ GameStart(0L, now))
+                  Some(newPlayerActions.flatMap(_._3).toList ++ bossCreationActions :+ GameStart(0L, now))
                 )
 
               } catch {

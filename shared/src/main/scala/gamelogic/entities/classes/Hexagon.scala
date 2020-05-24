@@ -2,11 +2,14 @@ package gamelogic.entities.classes
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
+import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{Mana, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.{Entity, LivingEntity}
+import gamelogic.gamestate.GameAction
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
+import gamelogic.utils.IdGeneratorContainer
 
 /**
   * The [[gamelogic.entities.classes.Hexagon]] is the healer class available to players.
@@ -54,6 +57,8 @@ final case class Hexagon(
   def teamId: Entity.TeamId = Entity.teams.playerTeam
 }
 
-object Hexagon {
+object Hexagon extends PlayerClassBuilder {
   def initialResourceAmount: ResourceAmount = ResourceAmount(300, Mana)
+
+  def startingActions(time: Long, entityId: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = Nil
 }

@@ -49,7 +49,14 @@ final class PlayerFrame(
     )
   )
 
-  List(shapeSprite, lifeSprite, lifeMask, resourceSprite, resourceMask, playerNameText).foreach(container.addChild)
+  private val lifeText = new Text(
+    "",
+    new TextStyle(AnonAlign(fontSize = 15.0))
+  )
+
+  List(shapeSprite, lifeSprite, lifeMask, resourceSprite, resourceMask, playerNameText, lifeText).foreach(
+    container.addChild
+  )
 
   private var _isSetup: Boolean = false
 
@@ -88,6 +95,8 @@ final class PlayerFrame(
       container.addChild(buffContainer.container)
       buffContainer.container.y = height
 
+      lifeText.x = width - 30
+
   }
 
   private def adaptMask(mask: Graphics, parentSprite: Sprite, ratio: Double): Unit =
@@ -104,6 +113,8 @@ final class PlayerFrame(
       adaptMask(resourceMask, resourceSprite, resourceRatio)
 
       buffContainer.update(gameState, currentTime)
+
+      lifeText.text = entity.life.toString
     case None =>
       container.visible = false
   }

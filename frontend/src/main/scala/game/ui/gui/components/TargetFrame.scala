@@ -13,6 +13,8 @@ import utils.misc.RGBColour
 final class TargetFrame($maybeTarget: SignalViewer[Option[MovingBody with LivingEntity]], barTexture: Texture)
     extends GUIComponent {
 
+  val width = 150.0
+
   private def maybeTarget(gameState: GameState) = $maybeTarget.now.map(_.id).flatMap(gameState.livingEntityById)
 
   private val bar = new StatusBar(
@@ -37,9 +39,20 @@ final class TargetFrame($maybeTarget: SignalViewer[Option[MovingBody with Living
     )
   )
 
+  private val lifeText = new Text(
+    "",
+    new TextStyle(
+      AnonAlign(
+        fontSize = 15.0
+      )
+    )
+  )
+
   container.addChild(bar.container)
   container.addChild(text)
-  bar.setSize(150, 30)
+  container.addChild(lifeText)
+  bar.setSize(width, 30)
+  lifeText.x = width - 40
 
   def update(gameState: GameState, currentTime: Long): Unit = {
     bar.update(gameState, currentTime)

@@ -5,8 +5,11 @@ import gamelogic.abilities.Ability.AbilityId
 import gamelogic.entities.Resource.{Rage, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.{Entity, LivingEntity, WithAbilities}
+import gamelogic.gamestate.GameAction
+import gamelogic.gamestate.gameactions.PutBasicShield
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
+import gamelogic.utils.IdGeneratorContainer
 
 /**
   * The [[gamelogic.entities.classes.Square]] is the tank class available to players.
@@ -44,7 +47,7 @@ final case class Square(
   def teamId: Entity.TeamId = Entity.teams.playerTeam
 }
 
-object Square {
+object Square extends PlayerClassBuilder {
 
   def initialResourceAmount: ResourceAmount = ResourceAmount(100, Rage)
 
@@ -52,4 +55,6 @@ object Square {
 
   final val initialMaxLife: Double = 200
 
+  def startingActions(time: Long, entityId: Entity.Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
+    List(PutBasicShield(0L, time, idGeneratorContainer.buffIdGenerator(), entityId))
 }

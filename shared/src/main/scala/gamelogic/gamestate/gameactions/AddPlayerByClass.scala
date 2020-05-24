@@ -3,10 +3,12 @@ package gamelogic.gamestate.gameactions
 import gamelogic.entities.Entity
 import gamelogic.entities.classes.{Constants, Hexagon, Square}
 import gamelogic.gamestate.GameAction.Id
-import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
+import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff, WithEntity}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import models.bff.outofgame.PlayerClasses
+import gamelogic.buffs
+import gamelogic.buffs.BasicShield
 
 final case class AddPlayerByClass(
     id: GameAction.Id,
@@ -17,45 +19,49 @@ final case class AddPlayerByClass(
     colour: Int,
     playerName: String
 ) extends GameAction {
-  def createGameStateTransformer(gameState: GameState): GameStateTransformer = new WithEntity(
+  def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     playerClass match {
       case PlayerClasses.Square =>
-        Square(
-          entityId,
-          time,
-          position,
-          0.0,
-          moving = false,
-          0.0,
-          Square.initialMaxLife,
-          colour,
-          Map(),
-          Square.initialMaxLife,
-          Constants.playerSpeed,
-          Square.initialResourceAmount,
-          Square.initialResourceAmount.amount,
-          playerName
+        new WithEntity(
+          Square(
+            entityId,
+            time,
+            position,
+            0.0,
+            moving = false,
+            0.0,
+            Square.initialMaxLife,
+            colour,
+            Map(),
+            Square.initialMaxLife,
+            Constants.playerSpeed,
+            Square.initialResourceAmount,
+            Square.initialResourceAmount.amount,
+            playerName
+          ),
+          time
         )
       case PlayerClasses.Hexagon =>
-        Hexagon(
-          entityId,
-          time,
-          position,
-          0.0,
-          moving = false,
-          0.0,
-          100,
-          colour,
-          Map(),
-          100,
-          Constants.playerSpeed,
-          Hexagon.initialResourceAmount,
-          Hexagon.initialResourceAmount.amount,
-          playerName
+        new WithEntity(
+          Hexagon(
+            entityId,
+            time,
+            position,
+            0.0,
+            moving = false,
+            0.0,
+            100,
+            colour,
+            Map(),
+            100,
+            Constants.playerSpeed,
+            Hexagon.initialResourceAmount,
+            Hexagon.initialResourceAmount.amount,
+            playerName
+          ),
+          time
         )
-    },
-    time
-  )
+    }
 
   def isLegal(gameState: GameState): Boolean = !gameState.players.isDefinedAt(entityId)
 

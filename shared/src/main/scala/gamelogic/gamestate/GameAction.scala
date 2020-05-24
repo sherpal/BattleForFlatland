@@ -1,5 +1,6 @@
 package gamelogic.gamestate
 
+import cats.kernel.Monoid
 import gamelogic.gamestate.gameactions._
 import gamelogic.gamestate.statetransformers.GameStateTransformer
 import io.circe.{Decoder, Encoder, Json}
@@ -13,7 +14,11 @@ trait GameAction extends Ordered[GameAction] {
 
   /** Describes how this action affects a given GameState. */
   final def apply(gameState: GameState): GameState =
-    createGameStateTransformer(gameState)(gameState)
+    Monoid
+      .combineAll(
+        gameState.applyActionChangers(this).map(_.createGameStateTransformer(gameState))
+      )
+      .apply(gameState)
 
   /**
     * Creates the [[gamelogic.gamestate.statetransformers.GameStateTransformer]] that will effectively affect the game.
@@ -62,6 +67,7 @@ object GameAction {
     case x: GameStart                => customEncode(x, "GameStart")
     case x: MovingBodyMoves          => customEncode(x, "MovingBodyMoves")
     case x: NewSimpleBullet          => customEncode(x, "NewSimpleBullet")
+    case x: PutBasicShield           => customEncode(x, "PutBasicShield")
     case x: PutConstantDot           => customEncode(x, "PutConstantDot")
     case x: RemoveBuff               => customEncode(x, "RemoveBuff")
     case x: RemoveEntity             => customEncode(x, "RemoveEntity")
@@ -91,6 +97,7 @@ object GameAction {
     customDecoder[MovingBodyMoves]("MovingBodyMoves"),
     customDecoder[NewSimpleBullet]("NewSimpleBullet"),
     customDecoder[PutConstantDot]("PutConstantDot"),
+    customDecoder[PutBasicShield]("PutBasicShield"),
     customDecoder[RemoveBuff]("RemoveBuff"),
     customDecoder[RemoveEntity]("RemoveEntity"),
     customDecoder[SpawnBoss]("SpawnBoss"),

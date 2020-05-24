@@ -51,6 +51,34 @@ final case class GameState(
   }
 
   /**
+    * Applies the effects of all the current passive buffs to the given actions.
+    *
+    * Each passive buff takes an action and returns a list of actions caused by the changed.
+    * We apply all changes to all cumulative actions that happen.
+    *
+    * This has one important consequence: it is not commutative on the set of actions.
+    * This *should* not be an issue, because it should be in the contract of changer that they should not violate
+    * commutativity. Nonetheless, this is something to keep in mind for the future. Perhaps a passive buff could
+    * also have a priority.
+    */
+  def applyActionChangers(action: GameAction): List[GameAction] =
+    passiveBuffs.valuesIterator
+      .flatMap(_.valuesIterator)
+      .map(buff => buff.actionTransformer(_))
+      .foldLeft(List(action))(_.flatMap(_))
+
+  /** See other overloaded methods. */
+  def applyActionChangers(actions: List[GameAction]): List[GameAction] = {
+    val changers = passiveBuffs.valuesIterator.flatMap(_.valuesIterator).toList
+    actions.flatMap(
+      action =>
+        changers.foldLeft(List(action)) { (as: List[GameAction], changer: PassiveBuff) =>
+          as.flatMap(changer.actionTransformer)
+        }
+    )
+  }
+
+  /**
     * Returns whether the two entities given ids are in the same team.
     * If either of the entities does not exist, returns None instead.
     */

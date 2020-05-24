@@ -1,16 +1,23 @@
 package models.bff.outofgame
 
+import gamelogic.entities.classes.PlayerClassBuilder
 import io.circe.{Decoder, Encoder}
 
 import scala.util.Try
 
 /** Classes that a user can chose from. */
-sealed trait PlayerClasses
+sealed trait PlayerClasses {
+  def builder: PlayerClassBuilder
+}
 
 object PlayerClasses {
 
-  case object Square extends PlayerClasses
-  case object Hexagon extends PlayerClasses
+  case object Square extends PlayerClasses {
+    def builder: PlayerClassBuilder = gamelogic.entities.classes.Square
+  }
+  case object Hexagon extends PlayerClasses {
+    def builder: PlayerClassBuilder = gamelogic.entities.classes.Hexagon
+  }
 
   final val allChoices: List[PlayerClasses] = List(Square, Hexagon)
 
