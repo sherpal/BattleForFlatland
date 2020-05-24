@@ -1,9 +1,9 @@
 package game
 
 import assets.Asset
-import assets.Asset.ingame
 import assets.Asset.ingame.gui.bars._
 import assets.Asset.ingame.gui.abilities._
+import assets.Asset.ingame.gui.`default-abilities`._
 import com.raquo.airstream.eventbus.EventBus
 import game.GameAssetLoader.ProgressData
 import typings.pixiJs.PIXI.LoaderResource
@@ -30,7 +30,8 @@ final class GameAssetLoader(application: Application) {
     hexagonHot,
     squareTaunt,
     squareHammerHit,
-    boss101BigDot
+    boss101BigDot,
+    squareShield
   )
 
   final val $progressData = progressBus.events

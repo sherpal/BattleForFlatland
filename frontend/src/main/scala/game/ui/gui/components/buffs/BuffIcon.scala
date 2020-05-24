@@ -10,9 +10,11 @@ import utils.misc.RGBColour
 
 final class BuffIcon(val entityId: Entity.Id, val buffId: Buff.Id, texture: Texture) extends GUIComponent {
 
+  private val size = 20.0
+
   private val sprite = new Sprite(texture)
-  sprite.width  = 30
-  sprite.height = 30
+  sprite.width  = size
+  sprite.height = size
   container.addChild(sprite)
 
   private val countdown = new StatusBar(
@@ -33,7 +35,7 @@ final class BuffIcon(val entityId: Entity.Id, val buffId: Buff.Id, texture: Text
     StatusBar.Vertical
   )
   container.addChild(countdown.container)
-  countdown.setSize(30.0, 30.0)
+  countdown.setSize(size, size)
 
   def update(gameState: GameState, currentTime: Long): Unit =
     countdown.update(gameState, currentTime)

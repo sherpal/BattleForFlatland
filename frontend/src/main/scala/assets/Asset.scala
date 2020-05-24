@@ -42,6 +42,14 @@ object Asset {
         @js.native @JSImport("resources/assets/in-game/gui/bars/Xeon.png", JSImport.Default)
         object xeonBar extends Asset
       }
+
+      object `default-abilities` {
+        @js.native @JSImport(
+          "resources/assets/in-game/gui/default-abilities/players/square-shield.png",
+          JSImport.Default
+        )
+        object squareShield extends Asset
+      }
     }
   }
 
@@ -58,6 +66,7 @@ object Asset {
   ingame.gui.abilities.squareHammerHit
   ingame.gui.abilities.squareTaunt
   ingame.gui.abilities.boss101BigDot
+  ingame.gui.`default-abilities`.squareShield
 
   final val abilityAssetMap: Map[Ability.AbilityId, Asset] = Map(
     Ability.hexagonHexagonHotId -> ingame.gui.abilities.hexagonHot,
@@ -68,7 +77,8 @@ object Asset {
 
   final val buffAssetMap: Map[Buff.ResourceIdentifier, Asset] = Map(
     Buff.hexagonHotIdentifier -> ingame.gui.abilities.hexagonHot,
-    Buff.boss101BigDotIdentifier -> ingame.gui.abilities.boss101BigDot
+    Buff.boss101BigDotIdentifier -> ingame.gui.abilities.boss101BigDot,
+    Buff.squareDefaultShield -> ingame.gui.`default-abilities`.squareShield
   )
 
 }

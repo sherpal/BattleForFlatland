@@ -1,9 +1,11 @@
 package game.ui.gui.components
 
+import assets.Asset
+import game.ui.gui.components.buffs.BuffContainer
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import typings.pixiJs.AnonAlign
-import typings.pixiJs.PIXI.Texture
+import typings.pixiJs.PIXI.{LoaderResource, Texture}
 import typings.pixiJs.mod.{Graphics, Sprite, Text, TextStyle}
 
 /**
@@ -18,7 +20,8 @@ final class PlayerFrame(
     lifeTexture: Texture,
     resourceTexture: Texture,
     startWidth: Double,
-    startHeight: Double
+    startHeight: Double,
+    resources: PartialFunction[Asset, LoaderResource]
 ) extends GUIComponent {
 
   container.visible = false
@@ -33,6 +36,9 @@ final class PlayerFrame(
   private val resourceSprite = new Sprite(resourceTexture)
   private val resourceMask   = new Graphics()
   resourceSprite.mask = resourceMask
+
+  val buffContainer = new BuffContainer(entityId, resources)
+  buffContainer.container.y = _height
 
   private val playerNameText = new Text(
     "",
@@ -79,12 +85,15 @@ final class PlayerFrame(
       resourceMask.x        = height
       resourceMask.y        = height * lifeProportion
 
+      container.addChild(buffContainer.container)
+      buffContainer.container.y = height
+
   }
 
   private def adaptMask(mask: Graphics, parentSprite: Sprite, ratio: Double): Unit =
     mask.clear().beginFill(0x000000).drawRect(0, 0, parentSprite.width * ratio, parentSprite.height)
 
-  def update(gameState: GameState): Unit = gameState.players.get(entityId) match {
+  def update(gameState: GameState, currentTime: Long): Unit = gameState.players.get(entityId) match {
     case Some(entity) =>
       if (!_isSetup) setUp(gameState, _width, _height)
       container.visible = true
@@ -93,6 +102,8 @@ final class PlayerFrame(
 
       adaptMask(lifeMask, lifeSprite, lifeRatio)
       adaptMask(resourceMask, resourceSprite, resourceRatio)
+
+      buffContainer.update(gameState, currentTime)
     case None =>
       container.visible = false
   }

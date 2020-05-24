@@ -22,7 +22,8 @@ final class RemoveBuffTransformer(time: Long, bearerId: Entity.Id, buffId: Buff.
           gameState.copy(time = time, passiveBuffs = gameState.passiveBuffs - bearerId)
         else
           gameState.copy(time = time, passiveBuffs = gameState.passiveBuffs + (bearerId -> newBearerBuffs))
-      case buff =>
+      case None => gameState
+      case Some(buff) =>
         println("wtf!?")
         println(buff)
         throw new Exception("Should never happen")

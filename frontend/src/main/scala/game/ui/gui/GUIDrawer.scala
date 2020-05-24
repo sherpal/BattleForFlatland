@@ -55,7 +55,7 @@ final class GUIDrawer(
   val targetFrame = new TargetFrame($maybeTarget, resources(minimalistBar).texture)
   guiContainer.addChild(targetFrame.container)
   targetFrame.container.x = application.view.width / 2
-  targetFrame.container.y = application.view.height - 45
+  targetFrame.container.y = application.view.height - 70
 
   /** Frame containing the information about the player */
   val playerFrame = new PlayerFrame(playerId, {
@@ -68,10 +68,10 @@ final class GUIDrawer(
       .endFill()
 
     application.renderer.generateTexture(graphics, 1, 1)
-  }, resources(minimalistBar).texture, resources(minimalistBar).texture, 120, 30)
+  }, resources(minimalistBar).texture, resources(minimalistBar).texture, 120, 30, resources)
   guiContainer.addChild(playerFrame.container)
   playerFrame.container.x           = application.view.width / 2 - 120
-  playerFrame.container.y           = application.view.height - 45
+  playerFrame.container.y           = application.view.height - 70
   playerFrame.container.interactive = true
   playerFrame.container.addListener(
     InteractionEventTypes.click, { (event: InteractionEvent) =>
@@ -122,7 +122,7 @@ final class GUIDrawer(
               .endFill()
 
             application.renderer.generateTexture(graphics, 1, 1)
-          }, resources(minimalistBar).texture, resources(minimalistBar).texture, 120, 30)
+          }, resources(minimalistBar).texture, resources(minimalistBar).texture, 120, 30, resources)
         )
     }
 
@@ -167,17 +167,17 @@ final class GUIDrawer(
       }
     }
 
-    maybePlayerBuffContainer = maybePlayerBuffContainer.fold(
-      gameState.players.get(playerId).map(_.id).map { playerId =>
-        val buffContainer = new BuffContainer(playerId, resources)
-        guiContainer.addChild(buffContainer.container)
-        buffContainer.container.x = playerFrame.container.x
-        buffContainer.container.y = playerFrame.container.y - 30.0
-        buffContainer
-      }
-    )(Some(_))
+//    maybePlayerBuffContainer = maybePlayerBuffContainer.fold(
+//      gameState.players.get(playerId).map(_.id).map { playerId =>
+//        val buffContainer = new BuffContainer(playerId, resources)
+//        guiContainer.addChild(buffContainer.container)
+//        buffContainer.container.x = playerFrame.container.x
+//        buffContainer.container.y = playerFrame.container.y - 20.0
+//        buffContainer
+//      }
+//    )(Some(_))
 
-    maybePlayerBuffContainer.foreach(_.update(gameState, currentTime))
+    //maybePlayerBuffContainer.foreach(_.update(gameState, currentTime))
 
     maybeBossThreatMeter = maybeBossThreatMeter.fold(
       gameState.bosses.headOption.map(_._1).map { bossId =>
@@ -192,7 +192,7 @@ final class GUIDrawer(
 
     maybeBossThreatMeter.foreach(_.update(gameState, currentTime))
 
-    playerFrameGridContainer.currentElements.foreach(_.update(gameState))
+    playerFrameGridContainer.currentElements.foreach(_.update(gameState, currentTime))
     playerFrameGridContainer.display()
 
     bossCooldownContainer.currentElements.foreach(_.update(gameState, currentTime))
@@ -202,7 +202,7 @@ final class GUIDrawer(
     abilityButtonContainer.display()
 
     targetFrame.update(gameState, currentTime)
-    playerFrame.update(gameState)
+    playerFrame.update(gameState, currentTime)
   }
 
 }

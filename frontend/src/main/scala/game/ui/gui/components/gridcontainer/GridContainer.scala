@@ -2,6 +2,7 @@ package game.ui.gui.components.gridcontainer
 
 import game.ui.gui.components.GUIComponent
 import game.ui.gui.components.gridcontainer.GridContainer.GridDirection
+import gamelogic.gamestate.GameState
 
 import Ordering.Double.TotalOrdering
 import scala.scalajs.js
@@ -79,6 +80,11 @@ final class GridContainer[T <: GUIComponent](
     elementsByLine.foldLeft(0.0) { (coordinate, line) =>
       displayLine(line, coordinate)
     }
+
+  def update(gameState: GameState, currentTime: Long): Unit = {
+    display()
+    currentElements.foreach(_.update(gameState, currentTime))
+  }
 
 }
 

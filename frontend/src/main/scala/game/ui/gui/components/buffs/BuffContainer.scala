@@ -18,6 +18,12 @@ final class BuffContainer(entityId: Entity.Id, resources: PartialFunction[Asset,
 
   def update(gameState: GameState, currentTime: Long): Unit = {
 
+    gameState.entityById(entityId) match {
+      case Some(_) =>
+      case None =>
+        container.visible = false
+    }
+
     val buffsToBeRemoved = currentBuffs.filterNot(buff => gameState.buffById(buff.entityId, buff.entityId).isDefined)
     buffsToBeRemoved.foreach { buff =>
       currentBuffs -= buff

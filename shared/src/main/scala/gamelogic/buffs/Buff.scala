@@ -40,4 +40,6 @@ object Buff {
   final val hexagonHotIdentifier    = 1
   final val boss101BigDotIdentifier = 2
 
+  final val squareDefaultShield = 3
+
 }
