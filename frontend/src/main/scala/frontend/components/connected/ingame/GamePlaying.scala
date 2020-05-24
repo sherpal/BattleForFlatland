@@ -3,6 +3,7 @@ package frontend.components.connected.ingame
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
+import frontend.components.utils.tailwind._
 import gamelogic.entities.Entity
 import gamelogic.gamestate
 import models.bff.Routes._
@@ -11,11 +12,10 @@ import models.bff.ingame.InGameWSProtocol.{Ping, Pong, Ready, YourEntityIdIs}
 import models.users.User
 import org.scalajs.dom
 import org.scalajs.dom.html
+import services.http.FHttpClient
 import utils.laminarzio.Implicits._
 import utils.websocket.JsonWebSocket
 import zio.{UIO, ZIO}
-import frontend.components.utils.tailwind._
-import services.http.FHttpClient
 
 final class GamePlaying private (gameId: String, user: User, token: String) extends Component[html.Div] {
 

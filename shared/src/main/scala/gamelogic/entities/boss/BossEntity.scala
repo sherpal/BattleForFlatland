@@ -1,6 +1,5 @@
 package gamelogic.entities.boss
 
-import gamelogic.entities.Entity.Id
 import gamelogic.entities._
 import gamelogic.physics.shape.Circle
 

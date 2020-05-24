@@ -1,17 +1,17 @@
 package game
 
 import assets.Asset
-import assets.Asset.ingame.gui.bars._
-import assets.Asset.ingame.gui.abilities._
 import assets.Asset.ingame.gui.`default-abilities`._
+import assets.Asset.ingame.gui.abilities._
+import assets.Asset.ingame.gui.bars._
 import com.raquo.airstream.eventbus.EventBus
 import game.GameAssetLoader.ProgressData
+import org.scalablytyped.runtime.StringDictionary
+import org.scalablytyped.runtime.StringDictionary.wrapStringDictionary
 import typings.pixiJs.PIXI.LoaderResource
 import typings.pixiJs.mod.Application
 import typings.pixiJs.pixiJsStrings
 import zio.{UIO, ZIO}
-import org.scalablytyped.runtime.StringDictionary
-import org.scalablytyped.runtime.StringDictionary.wrapStringDictionary
 
 /**
   * The goal of the [[game.GameAssetLoader]] is simply to load all game assets, and warn the external world that it is

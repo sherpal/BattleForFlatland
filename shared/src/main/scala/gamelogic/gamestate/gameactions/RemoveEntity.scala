@@ -1,10 +1,10 @@
 package gamelogic.gamestate.gameactions
 
+import cats.kernel.Monoid
 import gamelogic.entities.Entity
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, RemoveBuffTransformer, RemoveEntityTransformer}
-import cats.kernel.Monoid
+import gamelogic.gamestate.{GameAction, GameState}
 
 final case class RemoveEntity(id: GameAction.Id, time: Long, entityId: Entity.Id) extends GameAction {
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =

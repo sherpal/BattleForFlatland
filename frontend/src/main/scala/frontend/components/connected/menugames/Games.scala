@@ -5,8 +5,7 @@ import com.raquo.laminar.nodes.ReactiveHtmlElement
 import errors.ErrorADT
 import frontend.components.{Component, ModalWindow}
 import models.bff.outofgame.MenuGame
-import org.scalajs.dom.raw.NonDocumentTypeChildNode
-import org.scalajs.dom.{html, raw}
+import org.scalajs.dom.html
 import programs.frontend.games
 import services.http.FHttpClient
 import services.routing.FRouting

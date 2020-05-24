@@ -7,10 +7,10 @@ import models.bff.Routes
 import models.bff.ingame.GameUserCredentials
 import models.bff.ingame.InGameWSProtocol.{Ping, Pong}
 import models.users.User
-import zio.clock.Clock
-import zio.{UIO, ZIO}
 import services.http._
 import utils.ziohelpers.unsuccessfulStatusCode
+import zio.clock.Clock
+import zio.{UIO, ZIO}
 
 package object ingame {
 

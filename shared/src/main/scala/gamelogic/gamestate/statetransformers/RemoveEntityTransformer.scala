@@ -2,7 +2,7 @@ package gamelogic.gamestate.statetransformers
 
 import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.classes.PlayerClass
-import gamelogic.entities.{DummyMob, Entity, LivingEntity, SimpleBulletBody, WithPosition, WithTarget, WithThreat}
+import gamelogic.entities.{DummyMob, Entity, SimpleBulletBody}
 import gamelogic.gamestate.GameState
 
 final class RemoveEntityTransformer(entityId: Entity.Id, time: Long) extends GameStateTransformer {

@@ -1,13 +1,13 @@
 package game.ui.gui
 
 import assets.Asset
-import assets.Asset.ingame.gui.bars._
 import assets.Asset.ingame.gui.abilities._
+import assets.Asset.ingame.gui.bars._
 import com.raquo.airstream.core.Observer
 import com.raquo.airstream.signal.SignalViewer
 import game.ui.gui.components.buffs.BuffContainer
 import game.ui.gui.components.gridcontainer.GridContainer
-import game.ui.gui.components.{AbilityButton, BossThreatMeter, CastingBar, CooldownBar, PlayerFrame, TargetFrame}
+import game.ui.gui.components._
 import gamelogic.abilities.Ability
 import gamelogic.abilities.boss.boss101.{BigDot, BigHit}
 import gamelogic.entities.{Entity, LivingEntity, MovingBody}

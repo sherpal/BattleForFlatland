@@ -4,9 +4,9 @@ import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.buffs.Buff
-import gamelogic.entities.{Entity, Resource}
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.boss.Boss101
+import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.PutConstantDot
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer

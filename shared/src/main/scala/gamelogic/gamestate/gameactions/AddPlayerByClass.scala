@@ -3,12 +3,10 @@ package gamelogic.gamestate.gameactions
 import gamelogic.entities.Entity
 import gamelogic.entities.classes.{Constants, Hexagon, Square}
 import gamelogic.gamestate.GameAction.Id
-import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff, WithEntity}
+import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import models.bff.outofgame.PlayerClasses
-import gamelogic.buffs
-import gamelogic.buffs.BasicShield
 
 final case class AddPlayerByClass(
     id: GameAction.Id,

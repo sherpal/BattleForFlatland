@@ -2,9 +2,9 @@ package gamelogic.gamestate.gameactions
 
 import gamelogic.entities.Resource.ResourceAmount
 import gamelogic.entities.{Entity, Resource}
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
+import gamelogic.gamestate.{GameAction, GameState}
 
 final case class EntityResourceChanges(
     id: GameAction.Id,

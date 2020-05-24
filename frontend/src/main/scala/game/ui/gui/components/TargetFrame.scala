@@ -6,7 +6,7 @@ import gamelogic.entities.classes.PlayerClass
 import gamelogic.entities.{LivingEntity, MovingBody}
 import gamelogic.gamestate.GameState
 import typings.pixiJs.AnonAlign
-import typings.pixiJs.PIXI.{RenderTexture, Texture}
+import typings.pixiJs.PIXI.Texture
 import typings.pixiJs.mod.{Text, TextStyle}
 import utils.misc.RGBColour
 
