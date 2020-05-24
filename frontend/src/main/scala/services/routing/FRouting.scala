@@ -11,9 +11,9 @@ object FRouting {
       router.moveTo("/" + path.createPath())
     )
 
-    def moveTo[Q](pathAndQuery: PathSegmentWithQueryParams[Unit, _, Q, _])(q: Q): UIO[Unit] = ZIO.effectTotal(
+    def moveTo[Q](pathAndQuery: PathSegmentWithQueryParams[Unit, _, Q, _])(q: Q): UIO[Unit] = ZIO.effectTotal {
       router.moveTo("/" + pathAndQuery.createUrlString((), q))
-    )
+    }
   })
 
 }

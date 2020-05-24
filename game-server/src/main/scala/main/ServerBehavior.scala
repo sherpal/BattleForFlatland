@@ -122,7 +122,7 @@ trait ServerBehavior[In, Out] {
         Future.successful(HttpResponse(entity = "stopped"))
       case HttpRequest(POST, uri, _, entity, _) if doesMatch(uri, tokenRoute) =>
         entity
-          .toStrict(250.millis)
+          .toStrict(2.seconds)
           .flatMap { strictEntity =>
             val bodyAsString = strictEntity.data.utf8String
             decode[GameUserCredentials](bodyAsString) match {
@@ -134,9 +134,10 @@ trait ServerBehavior[In, Out] {
                         credentials,
                         replyTo
                       )
-                  )(Timeout(250.millis), context.system.scheduler)
+                  )(Timeout(2.seconds), context.system.scheduler)
                   .map {
-                    case Some(token) => HttpResponse(entity = token)
+                    case Some(token) =>
+                      HttpResponse(entity = token)
                     case None =>
                       HttpResponse(StatusCodes.Forbidden, entity = ErrorADT.WrongGameCredentials.asJson.spaces2)
                   }

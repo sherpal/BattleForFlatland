@@ -82,9 +82,9 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
       gameUserCredentials
   }.flatMap(creds => EventStream.fromZIOEffect(fetchGameToken(creds).provideLayer(layer)))
 
-  val $moveToGame: EventStream[Unit] = $tokenForWebSocket.flatMap(
-    token => EventStream.fromZIOEffect(moveTo(inGame, gameIdParam & tokenParam)((gameId, token)).provideLayer(layer))
-  )
+  val $moveToGame: EventStream[Unit] = $tokenForWebSocket.flatMap { token =>
+    EventStream.fromZIOEffect(moveTo(inGame, gameIdParam & tokenParam)((gameId, token)).provideLayer(layer))
+  }
 
   val cancelGameBus = new EventBus[Unit]
   val $cancelGame: EventStream[Int] =
