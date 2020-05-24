@@ -116,43 +116,51 @@ object GameMaster {
           val sortedActions = pendingActions.sorted
             .map(_.changeId(idGeneratorContainer.gameActionIdGenerator()))
 
-          /** First adding actions from entities */
-          val (nextCollector, oldestTimeToRemove, idsToRemove) =
-            actionCollector.masterAddAndRemoveActions(sortedActions)
+          try {
 
-          /** Making all the server specific checks */
-          val (finalCollector, output) = serverAction(
-            nextCollector,
-            () => System.currentTimeMillis
-          )
+            /** First adding actions from entities */
+            val (nextCollector, oldestTimeToRemove, idsToRemove) =
+              actionCollector.masterAddAndRemoveActions(sortedActions)
 
-          /** Sending outcome back to entities. */
-          val finalOutput = ServerAction.ServerActionOutput(
-            sortedActions,
-            oldestTimeToRemove,
-            idsToRemove
-          ) merge output
-          if (finalOutput.createdActions.nonEmpty) {
-            actionUpdateCollector ! ActionUpdateCollector
-              .AddAndRemoveActions(
-                finalOutput.createdActions,
-                finalOutput.oldestTimeToRemove,
-                finalOutput.idsOfIdsToRemove
-              )
+            /** Making all the server specific checks */
+            val (finalCollector, output) = serverAction(
+              nextCollector,
+              () => System.currentTimeMillis
+            )
 
-            actionUpdateCollector ! ActionUpdateCollector.GameStateWrapper(finalCollector.currentGameState)
+            /** Sending outcome back to entities. */
+            val finalOutput = ServerAction.ServerActionOutput(
+              sortedActions,
+              oldestTimeToRemove,
+              idsToRemove
+            ) merge output
+            if (finalOutput.createdActions.nonEmpty) {
+              actionUpdateCollector ! ActionUpdateCollector
+                .AddAndRemoveActions(
+                  finalOutput.createdActions,
+                  finalOutput.oldestTimeToRemove,
+                  finalOutput.idsOfIdsToRemove
+                )
+
+              actionUpdateCollector ! ActionUpdateCollector.GameStateWrapper(finalCollector.currentGameState)
+            }
+
+            /** Set up for next loop. */
+            val timeSpent = now - startTime
+            if (timeSpent > gameLoopTiming) context.self ! GameLoop
+            else
+              zio.Runtime.default
+                .unsafeRunToFuture(
+                  gameLoopTo(context.self, (gameLoopTiming - timeSpent).millis)
+                )
+
+            inGameBehaviour(Nil, actionUpdateCollector, finalCollector)
+
+          } catch {
+            case e: Throwable =>
+              e.printStackTrace()
+              throw e
           }
-
-          /** Set up for next loop. */
-          val timeSpent = now - startTime
-          if (timeSpent > gameLoopTiming) context.self ! GameLoop
-          else
-            zio.Runtime.default
-              .unsafeRunToFuture(
-                gameLoopTo(context.self, (gameLoopTiming - timeSpent).millis)
-              )
-
-          inGameBehaviour(Nil, actionUpdateCollector, finalCollector)
 
         case _: PreGameMessage => Behaviors.unhandled
       }

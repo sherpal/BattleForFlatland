@@ -6,7 +6,7 @@ import gamelogic.entities.Resource.{Rage, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.{Entity, LivingEntity, WithAbilities}
 import gamelogic.gamestate.GameAction
-import gamelogic.gamestate.gameactions.PutBasicShield
+import gamelogic.gamestate.gameactions.PutSquareDefaultBuffs
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 import gamelogic.utils.IdGeneratorContainer
@@ -45,6 +45,9 @@ final case class Square(
     copy(time = time, pos = position, direction = direction, rotation = rotation, speed = speed, moving = moving)
 
   def teamId: Entity.TeamId = Entity.teams.playerTeam
+
+  protected def patchResourceAmount(newResourceAmount: ResourceAmount): Square =
+    copy(resourceAmount = newResourceAmount)
 }
 
 object Square extends PlayerClassBuilder {
@@ -56,5 +59,12 @@ object Square extends PlayerClassBuilder {
   final val initialMaxLife: Double = 200
 
   def startingActions(time: Long, entityId: Entity.Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
-    List(PutBasicShield(0L, time, idGeneratorContainer.buffIdGenerator(), entityId))
+    List(
+      PutSquareDefaultBuffs(
+        0L,
+        time,
+        (idGeneratorContainer.buffIdGenerator(), idGeneratorContainer.buffIdGenerator()),
+        entityId
+      )
+    )
 }

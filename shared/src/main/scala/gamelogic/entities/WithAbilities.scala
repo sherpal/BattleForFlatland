@@ -23,6 +23,22 @@ trait WithAbilities extends WithPosition {
   final def resourceType: Resource = resourceAmount.resourceType
   def maxResourceAmount: Double
 
+  /**
+    * Updates this [[WithAbilities]] by changing the resource amount.
+    *
+    * This should just "patch" the value and should not care about the amount being positive or smaller than the
+    * maximum.
+    *
+    * It will most likely always be implemented with `copy(resourceAmount = newResourceAmount)`
+    */
+  protected def patchResourceAmount(newResourceAmount: ResourceAmount): WithAbilities
+
+  /**
+    * Adds the (possibly negative) value to the resource amount, restricting it to [0, maxResourceAmount]
+    */
+  def resourceAmountChange(delta: ResourceAmount): WithAbilities =
+    patchResourceAmount((resourceAmount + delta).clampTo(maxResourceAmount))
+
   /** Returns whether this entity has the given ability. */
   final def hasAbility(abilityId: Ability.AbilityId): Boolean = abilities.contains(abilityId)
 

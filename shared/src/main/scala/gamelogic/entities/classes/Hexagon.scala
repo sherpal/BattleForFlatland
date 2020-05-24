@@ -5,7 +5,7 @@ import gamelogic.abilities.Ability.AbilityId
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{Mana, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
-import gamelogic.entities.{Entity, LivingEntity}
+import gamelogic.entities.{Entity, LivingEntity, WithAbilities}
 import gamelogic.gamestate.GameAction
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
@@ -55,6 +55,9 @@ final case class Hexagon(
     copy(time = time, pos = position, direction = direction, rotation = rotation, speed = speed, moving = moving)
 
   def teamId: Entity.TeamId = Entity.teams.playerTeam
+
+  protected def patchResourceAmount(newResourceAmount: ResourceAmount): Hexagon =
+    copy(resourceAmount = newResourceAmount)
 }
 
 object Hexagon extends PlayerClassBuilder {

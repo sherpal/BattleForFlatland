@@ -36,6 +36,10 @@ trait PassiveBuff extends Buff {
     *
     * For example, a buff can reduce damages taken during the time it is active. In that case, it would transform any
     * damage dealing action on the bearer so that the amount of damage is reduced.
+    *
+    * Note that the created actions don't need to have a relevant [[gamelogic.gamestate.GameAction.Id]] since they are
+    * not added, removed or passed through communication protocol. They are created on the fly when the original action
+    * should be created. It can thus be set as the same id as the original action.
     */
   def actionTransformer(gameAction: GameAction): List[GameAction]
 

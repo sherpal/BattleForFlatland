@@ -54,6 +54,8 @@ final case class DummyLivingEntity(
     copy(time = time, pos = position, direction = direction, moving = moving)
 
   def teamId: Entity.TeamId = Entity.teams.playerTeam
+
+  protected def patchResourceAmount(newResourceAmount: ResourceAmount): WithAbilities = this
 }
 
 object DummyLivingEntity {

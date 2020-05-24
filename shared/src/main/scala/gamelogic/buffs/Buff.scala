@@ -41,5 +41,6 @@ object Buff {
   final val boss101BigDotIdentifier = 2
 
   final val squareDefaultShield = 3
+  final val rageFiller          = 4
 
 }

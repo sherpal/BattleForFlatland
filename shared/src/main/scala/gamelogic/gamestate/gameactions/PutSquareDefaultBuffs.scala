@@ -1,15 +1,15 @@
 package gamelogic.gamestate.gameactions
 
-import gamelogic.buffs.{BasicShield, Buff}
+import gamelogic.buffs.{BasicShield, Buff, RageFiller}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
 
-final case class PutBasicShield(id: GameAction.Id, time: Long, buffId: Buff.Id, bearerId: Entity.Id)
+final case class PutSquareDefaultBuffs(id: GameAction.Id, time: Long, buffIds: (Buff.Id, Buff.Id), bearerId: Entity.Id)
     extends GameAction {
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
-    new WithBuff(BasicShield(buffId, bearerId, time))
+    new WithBuff(BasicShield(buffIds._1, bearerId, time)) ++ new WithBuff(RageFiller(buffIds._2, bearerId, time))
 
   def isLegal(gameState: GameState): Boolean = gameState.entityById(bearerId).isDefined
 

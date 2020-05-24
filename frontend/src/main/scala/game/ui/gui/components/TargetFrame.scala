@@ -57,9 +57,13 @@ final class TargetFrame($maybeTarget: SignalViewer[Option[MovingBody with Living
   def update(gameState: GameState, currentTime: Long): Unit = {
     bar.update(gameState, currentTime)
     maybeTarget(gameState).foreach {
-      case entity: BossEntity  => text.text = entity.name
-      case entity: PlayerClass => text.text = entity.name
-      case entity              => text.text = entity.id.toString
+      case entity: BossEntity =>
+        text.text     = entity.name
+        lifeText.text = entity.life.toString
+      case entity: PlayerClass =>
+        text.text     = entity.name
+        lifeText.text = entity.life.toString
+      case entity => text.text = entity.id.toString
     }
   }
 

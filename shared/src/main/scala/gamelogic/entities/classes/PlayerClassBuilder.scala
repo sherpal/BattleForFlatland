@@ -17,15 +17,3 @@ trait PlayerClassBuilder {
   def startingActions(time: Long, entityId: Entity.Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction]
 
 }
-
-object PlayerClassBuilder {
-
-  def startingActions(
-      playerClass: PlayerClasses,
-      time: Long,
-      entityId: Entity.Id,
-      idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] =
-    playerClass.builder.startingActions(time, entityId, idGeneratorContainer)
-
-}

@@ -7,7 +7,7 @@ import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
-import gamelogic.entities.{Entity, WithTarget, WithThreat}
+import gamelogic.entities.{Entity, WithAbilities, WithTarget, WithThreat}
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.Circle
 import models.syntax.Pointed
@@ -70,6 +70,8 @@ final case class Boss101(
     copy(healingThreats = healingThreats + (threatId -> (healingThreats.getOrElse(threatId, 0.0) + delta)))
 
   def changeTarget(newTargetId: Id): WithTarget = copy(targetId = newTargetId)
+
+  protected def patchResourceAmount(newResourceAmount: ResourceAmount): Boss101 = this
 }
 
 object Boss101 extends BossFactory {
