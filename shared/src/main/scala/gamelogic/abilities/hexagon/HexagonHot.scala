@@ -3,6 +3,7 @@ package gamelogic.abilities.hexagon
 import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.{Ability, WithTargetAbility}
+import gamelogic.buffs.Buff
 import gamelogic.entities.Resource.{Mana, ResourceAmount}
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.UpdateConstantHot
@@ -29,7 +30,8 @@ final case class HexagonHot(useId: Ability.UseId, time: Long, casterId: Entity.I
       HexagonHot.tickRate,
       HexagonHot.healOnTick,
       casterId,
-      time
+      time,
+      Buff.hexagonHotIdentifier
     )
   )
 

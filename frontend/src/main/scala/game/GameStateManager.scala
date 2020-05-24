@@ -9,6 +9,7 @@ import com.raquo.airstream.signal.{Signal, SignalViewer}
 import game.ui.GameDrawer
 import game.ui.gui.GUIDrawer
 import gamelogic.abilities.hexagon.{FlashHeal, HexagonHot}
+import gamelogic.abilities.square.{HammerHit, Taunt}
 import gamelogic.abilities.{Ability, SimpleBullet}
 import gamelogic.entities.{Body, Entity, LivingEntity, MovingBody}
 import gamelogic.entities.WithPosition.Angle
@@ -142,6 +143,37 @@ final class GameStateManager(
                       socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
                     } else if (scala.scalajs.LinkingInfo.developmentMode) {
                       dom.console.warn("Can't cast Hexagon Hot.")
+                    }
+                }
+              case Ability.squareTauntId =>
+                maybeTarget match {
+                  case None => dom.console.warn("You need a target to cast Square Taunt")
+                  case Some(target) =>
+                    val ability = Taunt(0L, now, playerId, target.id)
+                    val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
+
+                    if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action.isLegalDelay(
+                          $strictGameStates.now,
+                          deltaTimeWithServer + 100
+                        )) {
+                      socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                    } else {
+                      dom.console.warn("Can't cast Taunt")
+                    }
+                }
+              case Ability.squareHammerHit =>
+                maybeTarget match {
+                  case None => dom.console.warn("You need a target to cast Square Hammer Hit")
+                  case Some(target) =>
+                    val ability = HammerHit(0L, now, playerId, target.id)
+                    val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
+                    if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action.isLegalDelay(
+                          $strictGameStates.now,
+                          deltaTimeWithServer + 100
+                        )) {
+                      socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                    } else {
+                      dom.console.warn("Can't cast Taunt")
                     }
                 }
               case _ =>

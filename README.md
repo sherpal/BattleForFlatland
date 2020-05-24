@@ -15,3 +15,12 @@ Steps to add a new service called `MyService`:
 - for each method, create an accessor method inside the package object
 - by convention, live version in the frontend start with an F, and backend (JVM) version start with a B.
 - 
+
+### Adding an asset
+
+- Add the image in the `frontend/src/main/resources/assets` folder
+- Add the `Asset` object in `frontend/src/main/scala/assets/Asset.scala`
+- "Touch" the asset in that same object below (and possibly add it to the map of conrresponding assets)
+- Add the asset reference in the `game/GameAssetLoader` loading list
+
+

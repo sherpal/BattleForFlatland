@@ -102,6 +102,9 @@ final case class GameState(
       .orElse(passiveBuffs.get(entityId).flatMap(_.get(buffId)))
 
   def allBuffs: Iterable[Buff] = tickerBuffs.flatMap(_._2).values ++ passiveBuffs.flatMap(_._2).values
+  def allBuffsOfEntity(entityId: Entity.Id): Iterator[Buff] =
+    tickerBuffs.getOrElse(entityId, Map()).valuesIterator ++
+      passiveBuffs.getOrElse(entityId, Map()).valuesIterator
 }
 
 object GameState {

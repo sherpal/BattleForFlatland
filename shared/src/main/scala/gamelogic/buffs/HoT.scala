@@ -1,5 +1,6 @@
 package gamelogic.buffs
 
+import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.gameactions.EntityGetsHealed
@@ -36,13 +37,16 @@ object HoT {
       _tickRate: Long,
       healOnTick: Double,
       _sourceId: Entity.Id,
-      _appearanceTime: Long
+      _appearanceTime: Long,
+      _resourceIdentifier: ResourceIdentifier
   ): HoT = new HoT {
     val buffId: Id = _buffId
 
     val sourceId: Id = _sourceId
 
     def healPerTick(timeSinceBeginning: Id): Double = healOnTick
+
+    def resourceIdentifier: ResourceIdentifier = _resourceIdentifier
 
     val tickRate: Long       = _tickRate
     val bearerId: Entity.Id  = targetId
@@ -57,7 +61,8 @@ object HoT {
       _tickRate,
       healOnTick,
       _sourceId,
-      _appearanceTime
+      _appearanceTime,
+      _resourceIdentifier
     )
   }
 

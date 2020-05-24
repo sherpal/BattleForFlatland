@@ -89,21 +89,21 @@ object Boss101Controller {
             )
           ).filter(action => action.moving || action.moving != me.moving || (action.position - me.pos).modulus > 1e-6)
 
-          /** Use the big dot if it's up */
-          val maybeUseBigDot = Option(()).filter(_ => me.canUseAbility(Ability.boss101BigDotId, startTime)).map { _ =>
-            println("Using maybeUseBigDot!")
-            val ability = BigDot(
-              0L,
-              now,
-              me.id,
-              // targeting someone at random besides the target
-              currentGameState.players
-                .filterNot(_._1 == target.id)
-                .keys
-                .maxByOption(_ => Random.nextInt())
-                .getOrElse(target.id)
-            )
+          val ability = BigDot(
+            0L,
+            now,
+            me.id,
+            // targeting someone at random besides the target
+            currentGameState.players
+              .filterNot(_._1 == target.id)
+              .keys
+              .maxByOption(_ => Random.nextInt())
+              .getOrElse(target.id)
+          )
 
+          /** Use the big dot if it's up */
+          val maybeUseBigDot = Option(()).filter(_ => me.canUseAbility(ability, startTime)).map { _ =>
+            println("Using maybeUseBigDot!")
             EntityStartsCasting(0L, now, ability.castingTime, ability)
           }
 

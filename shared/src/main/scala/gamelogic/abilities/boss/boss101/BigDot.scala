@@ -3,6 +3,7 @@ package gamelogic.abilities.boss.boss101
 import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.{Ability, WithTargetAbility}
+import gamelogic.buffs.Buff
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.boss.Boss101
@@ -32,7 +33,8 @@ final case class BigDot(useId: Ability.UseId, time: Long, casterId: Entity.Id, t
         BigDot.damageOnTick,
         BigDot.duration,
         BigDot.tickRate,
-        idGeneratorContainer.buffIdGenerator()
+        idGeneratorContainer.buffIdGenerator(),
+        Buff.boss101BigDotIdentifier
       )
     )
 

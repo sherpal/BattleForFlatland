@@ -1,5 +1,6 @@
 package gamelogic.buffs
 
+import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.gameactions.EntityTakesDamage
@@ -43,13 +44,16 @@ object DoT {
       _tickRate: Long,
       damageOnTick: Double,
       _sourceId: Entity.Id,
-      _appearanceTime: Long
+      _appearanceTime: Long,
+      _resourceIdentifier: ResourceIdentifier
   ): DoT = new DoT {
     val buffId: Id = _buffId
 
     val sourceId: Id = _sourceId
 
     def damagePerTick(timeSinceBeginning: Id): Double = damageOnTick
+
+    def resourceIdentifier: ResourceIdentifier = _resourceIdentifier
 
     val tickRate: Long       = _tickRate
     val bearerId: Entity.Id  = targetId
@@ -64,7 +68,8 @@ object DoT {
       _tickRate,
       damageOnTick,
       _sourceId,
-      _appearanceTime
+      _appearanceTime,
+      _resourceIdentifier
     )
   }
 

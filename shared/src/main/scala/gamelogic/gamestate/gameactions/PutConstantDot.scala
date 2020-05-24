@@ -1,5 +1,6 @@
 package gamelogic.gamestate.gameactions
 
+import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.buffs.{Buff, DoT}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction.Id
@@ -14,13 +15,16 @@ final case class PutConstantDot(
     damageOnTick: Double,
     duration: Long,
     tickRate: Long,
-    buffId: Buff.Id
+    buffId: Buff.Id,
+    resourceIdentifier: ResourceIdentifier
 ) extends GameAction {
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     gameState
       .livingEntityById(targetId)
       .fold(GameStateTransformer.identityTransformer) { _ =>
-        new WithBuff(DoT.constantDot(time, targetId, buffId, duration, tickRate, damageOnTick, sourceId, time))
+        new WithBuff(
+          DoT.constantDot(time, targetId, buffId, duration, tickRate, damageOnTick, sourceId, time, resourceIdentifier)
+        )
       }
 
   def isLegal(gameState: GameState): Boolean = gameState.livingEntityById(targetId).isDefined

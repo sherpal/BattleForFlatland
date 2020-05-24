@@ -48,6 +48,8 @@ object Square {
 
   def initialResourceAmount: ResourceAmount = ResourceAmount(100, Rage)
 
-  final val abilities = Set(Ability.squareTauntId)
+  final val abilities = Set(Ability.squareTauntId, Ability.squareHammerHit)
+
+  final val initialMaxLife: Double = 200
 
 }

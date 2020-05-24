@@ -1,5 +1,6 @@
 package gamelogic.gamestate.gameactions
 
+import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.buffs.{Buff, HoT}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction.Id
@@ -18,11 +19,22 @@ final case class UpdateConstantHot(
     _tickRate: Long,
     healOnTick: Double,
     _sourceId: Entity.Id,
-    _appearanceTime: Long
+    _appearanceTime: Long,
+    resourceIdentifier: ResourceIdentifier
 ) extends GameAction {
 
   def createGameStateTransformer(gameState: GameState): GameStateTransformer = new WithBuff(
-    HoT.constantHot(time, targetId, _buffId, _duration, _tickRate, healOnTick, _sourceId, _appearanceTime)
+    HoT.constantHot(
+      time,
+      targetId,
+      _buffId,
+      _duration,
+      _tickRate,
+      healOnTick,
+      _sourceId,
+      _appearanceTime,
+      resourceIdentifier
+    )
   )
 
   def isLegal(gameState: GameState): Boolean = gameState.livingEntityById(targetId).isDefined

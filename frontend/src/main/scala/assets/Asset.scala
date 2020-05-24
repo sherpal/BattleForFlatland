@@ -1,6 +1,7 @@
 package assets
 
 import gamelogic.abilities.Ability
+import gamelogic.buffs.Buff
 
 import scala.language.implicitConversions
 import scala.scalajs.js
@@ -18,9 +19,16 @@ object Asset {
 
         @js.native @JSImport("resources/assets/in-game/gui/abilities/hexagon-flash-heal.png", JSImport.Default)
         object hexagonFlashHeal extends Asset
-
         @js.native @JSImport("resources/assets/in-game/gui/abilities/hexagon-hot.png", JSImport.Default)
         object hexagonHot extends Asset
+
+        @js.native @JSImport("resources/assets/in-game/gui/abilities/square-hammer-hit.png", JSImport.Default)
+        object squareHammerHit extends Asset
+        @js.native @JSImport("resources/assets/in-game/gui/abilities/square-taunt.png", JSImport.Default)
+        object squareTaunt extends Asset
+
+        @js.native @JSImport("resources/assets/in-game/gui/abilities/boss101-big-dot.png", JSImport.Default)
+        object boss101BigDot extends Asset
 
       }
 
@@ -47,10 +55,20 @@ object Asset {
   ingame.gui.abilities.abilityOverlay
   ingame.gui.abilities.hexagonFlashHeal
   ingame.gui.abilities.hexagonHot
+  ingame.gui.abilities.squareHammerHit
+  ingame.gui.abilities.squareTaunt
+  ingame.gui.abilities.boss101BigDot
 
   final val abilityAssetMap: Map[Ability.AbilityId, Asset] = Map(
     Ability.hexagonHexagonHotId -> ingame.gui.abilities.hexagonHot,
-    Ability.hexagonFlashHealId -> ingame.gui.abilities.hexagonFlashHeal
+    Ability.hexagonFlashHealId -> ingame.gui.abilities.hexagonFlashHeal,
+    Ability.squareHammerHit -> ingame.gui.abilities.squareHammerHit,
+    Ability.squareTauntId -> ingame.gui.abilities.squareTaunt
+  )
+
+  final val buffAssetMap: Map[Buff.ResourceIdentifier, Asset] = Map(
+    Buff.hexagonHotIdentifier -> ingame.gui.abilities.hexagonHot,
+    Buff.boss101BigDotIdentifier -> ingame.gui.abilities.boss101BigDot
   )
 
 }

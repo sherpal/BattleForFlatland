@@ -40,6 +40,12 @@ final class GridContainer[T <: GUIComponent](
     display()
   }
 
+  def removeElement(t: T): Unit = {
+    elements = elements.filterNot(_ == t)
+    container.removeChild(t.container)
+    display()
+  }
+
   private def elementsByLine =
     currentElements.sorted
       .take(nbrElementsInFirstDirection * nbrElementsInSecondDirection)

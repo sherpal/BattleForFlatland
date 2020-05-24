@@ -4,10 +4,10 @@ import assets.Asset
 import assets.Asset.ingame.gui.bars._
 import assets.Asset.ingame.gui.abilities._
 import com.raquo.airstream.core.Observer
-import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.SignalViewer
+import game.ui.gui.components.buffs.BuffContainer
 import game.ui.gui.components.gridcontainer.GridContainer
-import game.ui.gui.components.{AbilityButton, CastingBar, CooldownBar, PlayerFrame, TargetFrame}
+import game.ui.gui.components.{AbilityButton, BossThreatMeter, CastingBar, CooldownBar, PlayerFrame, TargetFrame}
 import gamelogic.abilities.Ability
 import gamelogic.abilities.boss.boss101.{BigDot, BigHit}
 import gamelogic.entities.{Entity, LivingEntity, MovingBody}
@@ -37,6 +37,8 @@ final class GUIDrawer(
     graphics.lineStyle(2, 0xccc).beginFill(0, 0).drawRect(0, 0, 200, 15).endFill()
     application.renderer.generateTexture(graphics, 1, 1)
   }, resources(liteStepBar).texture)
+  castingBar.container.x = (application.view.width - castingBar.container.width) / 2
+  castingBar.container.y = application.view.height - castingBar.container.height
 
   /** Frame containing the members of the team. */
   implicit private val playerFrameOrdering: Ordering[PlayerFrame] = Ordering.by(_.entityId)
@@ -53,7 +55,7 @@ final class GUIDrawer(
   val targetFrame = new TargetFrame($maybeTarget, resources(minimalistBar).texture)
   guiContainer.addChild(targetFrame.container)
   targetFrame.container.x = application.view.width / 2
-  targetFrame.container.y = application.view.height - 30
+  targetFrame.container.y = application.view.height - 45
 
   /** Frame containing the information about the player */
   val playerFrame = new PlayerFrame(playerId, {
@@ -69,7 +71,7 @@ final class GUIDrawer(
   }, resources(minimalistBar).texture, resources(minimalistBar).texture, 120, 30)
   guiContainer.addChild(playerFrame.container)
   playerFrame.container.x           = application.view.width / 2 - 120
-  playerFrame.container.y           = application.view.height - 30
+  playerFrame.container.y           = application.view.height - 45
   playerFrame.container.interactive = true
   playerFrame.container.addListener(
     InteractionEventTypes.click, { (event: InteractionEvent) =>
@@ -82,6 +84,9 @@ final class GUIDrawer(
       }
     }
   )
+
+  /** Buffs of the player */
+  var maybePlayerBuffContainer: Option[BuffContainer] = Option.empty
 
   /** Cooldown bars for the boss */
   implicit private val cdBarOrdering: Ordering[CooldownBar] = Ordering.by(_.abilityId)
@@ -98,6 +103,8 @@ final class GUIDrawer(
   )
   abilityButtonContainer.container.y = application.view.height - 30
   guiContainer.addChild(abilityButtonContainer.container)
+
+  private var maybeBossThreatMeter: Option[BossThreatMeter] = Option.empty
 
   def update(gameState: GameState, currentTime: Long): Unit = {
     castingBar.update(gameState, currentTime)
@@ -159,6 +166,31 @@ final class GUIDrawer(
         abilityButtonContainer.addElements(buttons)
       }
     }
+
+    maybePlayerBuffContainer = maybePlayerBuffContainer.fold(
+      gameState.players.get(playerId).map(_.id).map { playerId =>
+        val buffContainer = new BuffContainer(playerId, resources)
+        guiContainer.addChild(buffContainer.container)
+        buffContainer.container.x = playerFrame.container.x
+        buffContainer.container.y = playerFrame.container.y - 30.0
+        buffContainer
+      }
+    )(Some(_))
+
+    maybePlayerBuffContainer.foreach(_.update(gameState, currentTime))
+
+    maybeBossThreatMeter = maybeBossThreatMeter.fold(
+      gameState.bosses.headOption.map(_._1).map { bossId =>
+        val threatMeter = new BossThreatMeter(bossId, resources(minimalistBar).texture)
+        threatMeter.container.x = application.view.width - threatMeter.barWidth
+        threatMeter.container.y = application.view.height
+
+        guiContainer.addChild(threatMeter.container)
+        threatMeter
+      }
+    )(Some(_))
+
+    maybeBossThreatMeter.foreach(_.update(gameState, currentTime))
 
     playerFrameGridContainer.currentElements.foreach(_.update(gameState))
     playerFrameGridContainer.display()

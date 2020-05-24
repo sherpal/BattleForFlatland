@@ -35,13 +35,13 @@ trait WithAbilities extends WithPosition {
 
   /**
     * Returns whether this [[WithAbilities]] can cast this ability.
-    * @param abilityId id of the ability it wants to use
+    * @param ability ability it wants to use
     * @param now game time now
     */
-  final def canUseAbility(abilityId: Ability.AbilityId, now: Long): Boolean =
-    hasAbility(abilityId) &&
-      relevantUsedAbilities.get(abilityId).forall { ability =>
+  final def canUseAbility(ability: Ability, now: Long): Boolean =
+    hasAbility(ability.abilityId) &&
+      relevantUsedAbilities.get(ability.abilityId).forall { ability =>
         now - ability.time >= ability.cooldown
-      }
+      } && (resourceAmount >= ability.cost)
 
 }

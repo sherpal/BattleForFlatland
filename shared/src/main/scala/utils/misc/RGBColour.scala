@@ -6,7 +6,7 @@ import scala.language.implicitConversions
 import scala.util.Random
 
 final case class RGBColour(red: Int, green: Int, blue: Int) extends Colour {
-  def rgba(alpha: Double): RGBAColour = RGBAColour(red, green, blue, alpha)
+  def withAlpha(alpha: Double): RGBAColour = RGBAColour(red, green, blue, alpha)
 }
 
 object RGBColour {
@@ -24,6 +24,12 @@ object RGBColour {
     RGBColour(Random.nextInt(255), Random.nextInt(255), Random.nextInt(255))
   )
 
-  implicit def asRGBA(rgb: RGBColour): RGBAColour = rgb.rgba(1.0)
+  implicit def asRGBA(rgb: RGBColour): RGBAColour = rgb.withAlpha(1.0)
+
+  final val black = RGBColour.fromIntColour(0)
+  final val white = RGBColour.fromIntColour(0xFFFFFF)
+  final val red   = RGBColour.fromIntColour(0xFF0000)
+  final val green = RGBColour.fromIntColour(0x00FF00)
+  final val blue  = RGBColour.fromIntColour(0x0000FF)
 
 }

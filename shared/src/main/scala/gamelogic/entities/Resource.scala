@@ -9,7 +9,7 @@ sealed trait Resource {
 
 object Resource {
 
-  case class ResourceAmount(amount: Double, resourceType: Resource) {
+  case class ResourceAmount(amount: Double, resourceType: Resource) extends PartiallyOrdered[ResourceAmount] {
     def +[R1 <: Resource](that: ResourceAmount): ResourceAmount =
       if (this.resourceType == that.resourceType) ResourceAmount(this.amount + that.amount, resourceType)
       else this
@@ -25,6 +25,12 @@ object Resource {
       * Returns a [[ResourceAmount]] whose amount is between 0 and `maxValue`.
       */
     def clampTo(maxValue: Double): ResourceAmount = ResourceAmount((amount max 0) min maxValue, resourceType)
+
+    def tryCompareTo[B >: ResourceAmount](that: B)(implicit evidence$1: AsPartiallyOrdered[B]): Option[Int] =
+      that match {
+        case that: ResourceAmount if that.resourceType == this.resourceType => Some(this.amount compare that.amount)
+        case _                                                              => None
+      }
   }
 
   case object Mana extends Resource {
