@@ -12,19 +12,28 @@ trait GameAction extends Ordered[GameAction] {
   /** Time at which the action occurred (in millis) */
   val time: Long
 
-  /** Describes how this action affects a given GameState. */
+  /**
+    * Describes how this action affects a given GameState.
+    *
+    * This is done by first applying all transformation from [[gamelogic.buffs.PassiveBuff]] to this action, then
+    * folding over all created actions.
+    *
+    * We can't use monoid aggregation here otherwise all action transformers are created with the first game state
+    * and not the folded ones.
+    */
   final def apply(gameState: GameState): GameState =
-    Monoid
-      .combineAll(
-        gameState.applyActionChangers(this).map(_.createGameStateTransformer(gameState))
-      )
-      .apply(gameState)
+    gameState.applyActionChangers(this).foldLeft(gameState) { (currentGameState, nextAction) =>
+      nextAction.createAndApplyGameStateTransformer(currentGameState)
+    }
 
   /**
     * Creates the [[gamelogic.gamestate.statetransformers.GameStateTransformer]] that will effectively affect the game.
     * If more than one building block must be used, you can compose them using their `++` method.
     */
   def createGameStateTransformer(gameState: GameState): GameStateTransformer
+
+  def createAndApplyGameStateTransformer(gameState: GameState): GameState =
+    createGameStateTransformer(gameState)(gameState)
 
   /**
     * Returns whether this action is legal at that particular point in time, i.e., for that

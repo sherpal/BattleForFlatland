@@ -9,7 +9,8 @@ import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
 final case class PutSquareDefaultBuffs(id: GameAction.Id, time: Long, buffIds: (Buff.Id, Buff.Id), bearerId: Entity.Id)
     extends GameAction {
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
-    new WithBuff(BasicShield(buffIds._1, bearerId, time)) ++ new WithBuff(RageFiller(buffIds._2, bearerId, time))
+    new WithBuff(BasicShield(buffIds._1, bearerId, time)) ++
+      new WithBuff(RageFiller(buffIds._2, bearerId, time))
 
   def isLegal(gameState: GameState): Boolean = gameState.entityById(bearerId).isDefined
 
