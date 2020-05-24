@@ -6,11 +6,11 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse, Uri}
 import dao.GameAntiChamberDAO.askGameAntiChamberManager
 import errors.ErrorADT
-import errors.ErrorADT.RawInternalError
+import errors.ErrorADT.{CouldNotFetchTokenFromGameServer, RawInternalError}
 import guards.Guards
 import io.circe.syntax._
 import models.bff.ingame.{GameCredentialsWithGameInfo, GameUserCredentials}
-import play.api.mvc.{AnyContent, Request, RequestHeader}
+import play.api.mvc.{Request, RequestHeader}
 import services.actors.TypedActorProvider.TypedActorProvider
 import services.config.Configuration
 import services.database.gamecredentials.GameCredentialsDB
@@ -19,6 +19,7 @@ import utils.playzio.HasRequest
 import websocketkeepers.gameantichamber.GameAntiChamberTyped.GameCredentialsWrapper
 import zio.clock.Clock
 import zio.{Has, UIO, ZIO}
+import utils.ziohelpers.failIfWith
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -53,9 +54,10 @@ object GameServerDAO {
               entity = credentials.asJson.noSpaces
             )
           )
-          .flatMap(_.entity.toStrict(250.millis))
+          .flatMap(_.entity.toStrict(2.seconds))
           .map(_.data.utf8String)
       }
+      _ <- failIfWith(token.isEmpty, CouldNotFetchTokenFromGameServer)
     } yield token
 
   def cancelGame(

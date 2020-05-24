@@ -74,6 +74,9 @@ object ErrorADT {
   case object WrongGameCredentials extends GameServerCredentialsError {
     def httpErrorType: HTTPResultType = BadRequest
   }
+  case object CouldNotFetchTokenFromGameServer extends GameServerCredentialsError {
+    def httpErrorType: HTTPResultType = Internal
+  }
 
   sealed trait DatabaseError extends BackendError
   case class UserExists(userName: String) extends DatabaseError {
