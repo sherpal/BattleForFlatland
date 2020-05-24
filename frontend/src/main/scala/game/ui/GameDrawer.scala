@@ -81,7 +81,13 @@ final class GameDrawer(application: Application) {
 
   private val players: mutable.Map[Entity.Id, Sprite] = mutable.Map()
 
-  private def drawPlayers(entities: List[PlayerClass]): Unit =
+  private def drawPlayers(entities: List[PlayerClass]): Unit = {
+    players.filterNot(playerInfo => entities.map(_.id).contains(playerInfo._1)).foreach {
+      case (entityId, sprite) =>
+        players -= entityId
+        sprite.visible = false
+    }
+
     entities.foreach { entity =>
       val sprite = players.getOrElse(entity.id, {
         val s = new Sprite(polygonTexture(entity.colour, entity.shape))
@@ -94,6 +100,7 @@ final class GameDrawer(application: Application) {
       sprite.rotation = -entity.rotation
       camera.viewportManager(sprite, entity.pos, entity.shape.boundingBox)
     }
+  }
 
 //  private def drawDummyLivingEntity(entities: List[DummyLivingEntity]): Unit =
 //    entities.foreach { entity =>
