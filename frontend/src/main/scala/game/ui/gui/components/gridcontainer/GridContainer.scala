@@ -4,8 +4,7 @@ import game.ui.gui.components.GUIComponent
 import game.ui.gui.components.gridcontainer.GridContainer.GridDirection
 import gamelogic.gamestate.GameState
 
-import Ordering.Double.TotalOrdering
-import scala.scalajs.js
+import scala.Ordering.Double.TotalOrdering
 
 /**
   * A grid container is used to display a list of pixi containers

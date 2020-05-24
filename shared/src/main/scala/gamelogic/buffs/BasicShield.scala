@@ -1,6 +1,6 @@
 package gamelogic.buffs
 
-import gamelogic.buffs.Buff.{Id, ResourceIdentifier}
+import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}

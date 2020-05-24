@@ -1,7 +1,6 @@
 package game.ui
 
 import game.Camera
-import gamelogic.abilities.boss.boss101.BigHit
 import gamelogic.entities.boss.{Boss101, BossEntity}
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.entities.{DummyMob, Entity, SimpleBulletBody}

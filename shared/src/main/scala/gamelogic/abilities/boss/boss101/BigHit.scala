@@ -2,9 +2,9 @@ package gamelogic.abilities.boss.boss101
 
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.{Ability, WithTargetAbility}
-import gamelogic.entities.{Entity, Resource}
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.boss.Boss101
+import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer

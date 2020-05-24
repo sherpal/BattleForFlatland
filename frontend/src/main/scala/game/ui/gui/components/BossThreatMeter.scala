@@ -1,13 +1,12 @@
 package game.ui.gui.components
 
-import game.ui.gui.components.gridcontainer.GridContainer
 import gamelogic.entities.Entity
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.gamestate.GameState
 import typings.pixiJs.AnonAlign
 import typings.pixiJs.PIXI.Texture
-import typings.pixiJs.mod.{Sprite, Text, TextStyle}
-import utils.misc.{RGBAColour, RGBColour}
+import typings.pixiJs.mod.{Text, TextStyle}
+import utils.misc.RGBColour
 
 import scala.Ordering.Double.TotalOrdering
 

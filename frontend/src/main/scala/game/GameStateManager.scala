@@ -8,11 +8,11 @@ import com.raquo.airstream.ownership.Owner
 import com.raquo.airstream.signal.{Signal, SignalViewer}
 import game.ui.GameDrawer
 import game.ui.gui.GUIDrawer
+import gamelogic.abilities.Ability
 import gamelogic.abilities.hexagon.{FlashHeal, HexagonHot}
 import gamelogic.abilities.square.{HammerHit, Taunt}
-import gamelogic.abilities.{Ability, SimpleBullet}
-import gamelogic.entities.{Body, Entity, LivingEntity, MovingBody}
 import gamelogic.entities.WithPosition.Angle
+import gamelogic.entities.{Entity, LivingEntity, MovingBody}
 import gamelogic.gamestate.gameactions.{EntityStartsCasting, MovingBodyMoves}
 import gamelogic.gamestate.{AddAndRemoveActions, GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex

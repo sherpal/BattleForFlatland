@@ -1,9 +1,9 @@
 package gamelogic.gamestate.gameactions
 
 import gamelogic.entities.Entity
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
+import gamelogic.gamestate.{GameAction, GameState}
 
 /**
   * Action that simply change the current target of the specified entity.

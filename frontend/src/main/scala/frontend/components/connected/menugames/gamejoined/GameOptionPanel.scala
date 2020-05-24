@@ -1,13 +1,12 @@
 package frontend.components.connected.menugames.gamejoined
 
-import frontend.components.Component
-import org.scalajs.dom.html
-import com.raquo.laminar.nodes.ReactiveHtmlElement
 import com.raquo.laminar.api.L._
+import com.raquo.laminar.nodes.ReactiveHtmlElement
+import frontend.components.Component
 import frontend.components.utils.tailwind.{primaryColour, primaryColourDark}
-import gamelogic.entities.boss.Boss101
 import gamelogic.entities.boss.BossEntity
 import models.bff.gameantichamber.WebSocketProtocol
+import org.scalajs.dom.html
 
 final class GameOptionPanel private (socketOutWriter: Observer[WebSocketProtocol]) extends Component[html.Element] {
 

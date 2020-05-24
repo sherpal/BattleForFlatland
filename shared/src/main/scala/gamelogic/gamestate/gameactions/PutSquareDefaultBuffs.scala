@@ -2,9 +2,9 @@ package gamelogic.gamestate.gameactions
 
 import gamelogic.buffs.{BasicShield, Buff, RageFiller}
 import gamelogic.entities.Entity
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
+import gamelogic.gamestate.{GameAction, GameState}
 
 final case class PutSquareDefaultBuffs(id: GameAction.Id, time: Long, buffIds: (Buff.Id, Buff.Id), bearerId: Entity.Id)
     extends GameAction {

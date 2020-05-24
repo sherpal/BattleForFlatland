@@ -1,6 +1,5 @@
 package gamelogic.gamestate
 
-import cats.kernel.Monoid
 import gamelogic.gamestate.gameactions._
 import gamelogic.gamestate.statetransformers.GameStateTransformer
 import io.circe.{Decoder, Encoder, Json}

@@ -8,6 +8,8 @@ import gamelogic.entities.Entity
 import gamelogic.entities.boss.Boss101
 import gamelogic.entities.classes.{Hexagon, Square}
 import gamelogic.gamestate.GameState
+import io.circe.generic.auto._
+import io.circe.syntax._
 import models.bff.ingame.InGameWSProtocol.ReadyToStart
 import models.bff.ingame.{InGameWSProtocol, KeyboardControls}
 import models.syntax.Pointed
@@ -16,8 +18,6 @@ import org.scalajs.dom.html
 import typings.pixiJs.mod.Application
 import typings.pixiJs.{AnonAntialias => ApplicationOptions}
 import zio.ZIO
-import io.circe.generic.auto._
-import io.circe.syntax._
 
 /**
   * The GameViewContainer is responsible for creating th instance of the [[game.GameStateManager]].

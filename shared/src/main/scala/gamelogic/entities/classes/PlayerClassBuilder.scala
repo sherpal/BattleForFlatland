@@ -3,7 +3,6 @@ package gamelogic.entities.classes
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction
 import gamelogic.utils.IdGeneratorContainer
-import models.bff.outofgame.PlayerClasses
 
 trait PlayerClassBuilder {
 
