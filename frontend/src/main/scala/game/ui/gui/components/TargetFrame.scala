@@ -30,6 +30,19 @@ final class TargetFrame($maybeTarget: SignalViewer[Option[MovingBody with Living
     barTexture
   )
 
+  private val castingBar = new StatusBar(
+    { (gameState, currentTime) =>
+      maybeTarget(gameState).flatMap(entity => gameState.castingEntityInfo.get(entity.id)).fold(0.0) { info =>
+        (currentTime - info.startedTime) / info.castingTime.toDouble
+      }
+    }, { (_, _) =>
+      RGBColour.red
+    }, { (gameState, _) =>
+      maybeTarget(gameState).fold(false)(entity => gameState.entityIsCasting(entity.id))
+    },
+    barTexture
+  )
+
   private val text = new Text(
     "",
     new TextStyle(
@@ -49,13 +62,17 @@ final class TargetFrame($maybeTarget: SignalViewer[Option[MovingBody with Living
   )
 
   container.addChild(bar.container)
+  container.addChild(castingBar.container)
   container.addChild(text)
   container.addChild(lifeText)
   bar.setSize(width, 30)
-  lifeText.x = width - 40
+  castingBar.setSize(width, 5)
+  castingBar.container.y = 30
+  lifeText.x             = width - 40
 
   def update(gameState: GameState, currentTime: Long): Unit = {
     bar.update(gameState, currentTime)
+    castingBar.update(gameState, currentTime)
     maybeTarget(gameState).foreach {
       case entity: BossEntity =>
         text.text     = entity.name

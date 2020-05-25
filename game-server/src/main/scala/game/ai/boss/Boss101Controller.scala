@@ -6,7 +6,7 @@ import game.ActionTranslator
 import game.ai.AIControllerMessage
 import game.ai.AIManager.loopRate
 import gamelogic.abilities.Ability
-import gamelogic.abilities.boss.boss101.BigDot
+import gamelogic.abilities.boss.boss101.{BigDot, BigHit}
 import gamelogic.entities.boss.Boss101
 import gamelogic.gamestate.GameState
 import gamelogic.gamestate.gameactions.{ChangeTarget, EntityStartsCasting, MovingBodyMoves, SpawnBoss}
@@ -65,52 +65,65 @@ object Boss101Controller {
           )
           .fold(currentGameState.players.headOption.map(_._2))(Some(_))
 
-        maybeTarget.foreach { target =>
+        Option.unless(currentGameState.entityIsCasting(myId))(maybeTarget).flatten.foreach { target =>
+          // If the boss is casting, he doesn't do anything else.
           // If the boss has no target, the only possibility is that all players are dead.
           // In that case, the game either has not started yet or it will end very soon so we don't do anything.
 
           /** changing target */
-          val maybeChangeTarget =
-            Option(target.id != me.targetId).filter(identity).map(_ => ChangeTarget(0L, now, me.id, target.id))
+          val maybeChangeTarget = Option.unless(target.id == me.targetId)(ChangeTarget(0L, now, me.id, target.id))
+
+          val bigHit = BigHit(0L, now, myId, target.id)
+
+          val maybeUseAnAbility = Option
+            .when(me.canUseAbility(bigHit, startTime)) {
+              println("Using BigHit!")
+              EntityStartsCasting(0L, now, bigHit.castingTime, bigHit)
+            }
+            .orElse(
+              Some(
+                BigDot(
+                  0L,
+                  now,
+                  me.id,
+                  // targeting someone at random besides the target
+                  currentGameState.players
+                    .filterNot(_._1 == target.id)
+                    .keys
+                    .maxByOption(_ => Random.nextInt())
+                    .getOrElse(target.id)
+                )
+              ).filter(ability => me.canUseAbility(ability, startTime)).map { ability =>
+                EntityStartsCasting(0L, now, ability.castingTime, ability)
+              }
+            )
 
           /** Move to target */
           val targetPosition  = target.currentPosition(startTime)
           val directionVector = targetPosition - currentPosition
-          val maybeBodyMove = Some(
-            MovingBodyMoves(
-              0L,
-              startTime,
-              myId,
-              currentPosition,
-              directionVector.arg,
-              directionVector.arg,
-              me.speed,
-              directionVector.modulus > Boss101.meleeRange
-            )
-          ).filter(action => action.moving || action.moving != me.moving || (action.position - me.pos).modulus > 1e-6)
-
-          val ability = BigDot(
-            0L,
-            now,
-            me.id,
-            // targeting someone at random besides the target
-            currentGameState.players
-              .filterNot(_._1 == target.id)
-              .keys
-              .maxByOption(_ => Random.nextInt())
-              .getOrElse(target.id)
-          )
-
-          /** Use the big dot if it's up */
-          val maybeUseBigDot = Option(()).filter(_ => me.canUseAbility(ability, startTime)).map { _ =>
-            println("Using maybeUseBigDot!")
-            EntityStartsCasting(0L, now, ability.castingTime, ability)
-          }
+          val maybeBodyMove =
+            Option
+              .unless(maybeUseAnAbility.exists(_.ability.abilityId == Ability.boss101BigHitId))(
+                MovingBodyMoves(
+                  0L,
+                  startTime,
+                  myId,
+                  currentPosition,
+                  directionVector.arg,
+                  directionVector.arg,
+                  me.speed,
+                  directionVector.modulus > Boss101.meleeRange
+                )
+              )
+              .filter(
+                action =>
+                  action.moving || action.moving != me.moving || (action.position - me.pos).modulus > 1e-6 || (directionVector.arg != me.rotation)
+              )
 
           List(
             maybeChangeTarget,
             maybeBodyMove,
-            maybeUseBigDot
+            maybeUseAnAbility
           ).flatten match {
             case Nil     =>
             case actions => actionTranslator ! ActionTranslator.GameActionsWrapper(actions)

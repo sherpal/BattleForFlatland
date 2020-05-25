@@ -47,7 +47,7 @@ final case class GameState(
   def entityIsCasting(entityId: Entity.Id): Boolean = entityIsCasting(entityId, 0L)
   def entityIsCasting(entityId: Entity.Id, delay: Long): Boolean = castingEntityInfo.get(entityId).fold(false) {
     castingInfo =>
-      time + delay - castingInfo.startedTime >= castingInfo.castingTime
+      time + delay - castingInfo.startedTime <= castingInfo.castingTime
   }
 
   /**

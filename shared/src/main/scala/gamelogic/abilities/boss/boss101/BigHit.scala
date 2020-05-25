@@ -47,4 +47,7 @@ object BigHit {
 
   final def damageAmount: Double = 150.0
 
+  final val timeToFirstBigHit: Long = 15000L
+  final val cooldown: Long          = 120000L
+
 }

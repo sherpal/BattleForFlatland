@@ -2,7 +2,7 @@ package gamelogic.entities.boss
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
-import gamelogic.abilities.boss.boss101.BigDot
+import gamelogic.abilities.boss.boss101.{BigDot, BigHit}
 import gamelogic.buffs.Buff
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
@@ -95,7 +95,12 @@ object Boss101 extends BossFactory {
         time  = time,
         speed = 300.0,
         relevantUsedAbilities = Map(
-          Ability.boss101BigDotId -> Pointed[BigDot].unit.copy(time = time - BigDot.timeToFirstBigDot)
+          Ability.boss101BigDotId -> Pointed[BigDot].unit.copy(
+            time = time - BigDot.cooldown + BigDot.timeToFirstBigDot
+          ),
+          Ability.boss101BigHitId -> Pointed[BigHit].unit.copy(
+            time = time - BigHit.cooldown + BigHit.timeToFirstBigHit
+          )
         ),
         maxLife = maxLife,
         life    = maxLife
