@@ -2,11 +2,12 @@ package gamelogic.entities.classes
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
+import gamelogic.buffs.Buff
 import gamelogic.entities.Resource.{Rage, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.{Entity, LivingEntity, WithAbilities}
 import gamelogic.gamestate.GameAction
-import gamelogic.gamestate.gameactions.PutSquareDefaultBuffs
+import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 import gamelogic.utils.IdGeneratorContainer
@@ -60,11 +61,7 @@ object Square extends PlayerClassBuilder {
 
   def startingActions(time: Long, entityId: Entity.Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
     List(
-      PutSquareDefaultBuffs(
-        0L,
-        time,
-        (idGeneratorContainer.buffIdGenerator(), idGeneratorContainer.buffIdGenerator()),
-        entityId
-      )
+      PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.rageFiller),
+      PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.squareDefaultShield)
     )
 }

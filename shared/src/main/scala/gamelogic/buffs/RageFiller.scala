@@ -17,7 +17,7 @@ final case class RageFiller(buffId: Buff.Id, bearerId: Entity.Id, appearanceTime
     case _ => List(gameAction)
   }
 
-  def duration: Long = Long.MaxValue
+  def duration: Long = -1L
 
   def resourceIdentifier: ResourceIdentifier = Buff.rageFiller
 }

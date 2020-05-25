@@ -21,6 +21,9 @@ trait Buff {
   /** Game Time at which the buff appeared. */
   def appearanceTime: Long
 
+  /** Never ending buffs have their durations set to -1. */
+  def isFinite: Boolean = duration >= 0L
+
   /**
     * Unique way to identify this buff from its source.
     *
@@ -42,5 +45,8 @@ object Buff {
 
   final val squareDefaultShield = 3
   final val rageFiller          = 4
+
+  final val healingThreatAware = 5
+  final val damageThreatAware  = 6
 
 }

@@ -19,8 +19,7 @@ import scala.concurrent.ExecutionContext
   * This task will be launched at the start of play to add the admin user if it is not yet in the database.
   */
 final class AddRolesAndSuperUserInDBIfNotExist @Inject()(
-    protected val dbConfigProvider: DatabaseConfigProvider,
-    actorSystem: ActorSystem
+    protected val dbConfigProvider: DatabaseConfigProvider
 )(implicit executionContext: ExecutionContext)
     extends HasDatabaseConfigProvider[JdbcProfile] {
 

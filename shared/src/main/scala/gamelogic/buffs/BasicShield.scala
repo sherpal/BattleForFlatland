@@ -18,7 +18,7 @@ final case class BasicShield(buffId: Buff.Id, bearerId: Entity.Id, appearanceTim
       case _ => gameAction
     }) :: Nil
 
-  def duration: Long = Long.MaxValue
+  def duration: Long = -1L
 
   def resourceIdentifier: ResourceIdentifier = Buff.squareDefaultShield
 }

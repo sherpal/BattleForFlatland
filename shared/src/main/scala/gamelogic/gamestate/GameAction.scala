@@ -76,7 +76,7 @@ object GameAction {
     case x: GameStart                => customEncode(x, "GameStart")
     case x: MovingBodyMoves          => customEncode(x, "MovingBodyMoves")
     case x: NewSimpleBullet          => customEncode(x, "NewSimpleBullet")
-    case x: PutSquareDefaultBuffs    => customEncode(x, "PutSquareDefaultBuffs")
+    case x: PutSimpleBuff            => customEncode(x, "PutSimpleBuff")
     case x: PutConstantDot           => customEncode(x, "PutConstantDot")
     case x: RemoveBuff               => customEncode(x, "RemoveBuff")
     case x: RemoveEntity             => customEncode(x, "RemoveEntity")
@@ -106,8 +106,8 @@ object GameAction {
     customDecoder[GameStart]("GameStart"),
     customDecoder[MovingBodyMoves]("MovingBodyMoves"),
     customDecoder[NewSimpleBullet]("NewSimpleBullet"),
+    customDecoder[PutSimpleBuff]("PutSimpleBuff"),
     customDecoder[PutConstantDot]("PutConstantDot"),
-    customDecoder[PutSquareDefaultBuffs]("PutSquareDefaultBuffs"),
     customDecoder[RemoveBuff]("RemoveBuff"),
     customDecoder[RemoveEntity]("RemoveEntity"),
     customDecoder[SpawnBoss]("SpawnBoss"),

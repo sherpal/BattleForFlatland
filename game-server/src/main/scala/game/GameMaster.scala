@@ -2,8 +2,8 @@ package game
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import gamelogic.entities.classes.PlayerClassBuilder
-import gamelogic.gamestate.gameactions.{AddPlayerByClass, EntityStartsCasting, GameStart, SpawnBoss, UseAbility}
+import gamelogic.entities.boss.BossFactory
+import gamelogic.gamestate.gameactions.{AddPlayerByClass, GameStart, SpawnBoss}
 import gamelogic.gamestate.serveractions._
 import gamelogic.gamestate.{GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
@@ -210,9 +210,12 @@ object GameMaster {
                   println("Starting Game without boss, that's weird.")
                 }
 
-                val bossCreationActions = gameInfo.game.gameConfiguration.maybeBossName.toList.map(
-                  SpawnBoss(0L, timeNow - 2, idGeneratorContainer.entityIdGenerator(), _)
-                )
+                val bossCreationActions = gameInfo.game.gameConfiguration.maybeBossName.toList.flatMap { name =>
+                  val bossId = idGeneratorContainer.entityIdGenerator()
+                  SpawnBoss(0L, timeNow - 2, bossId, name) +: BossFactory.factoriesByBossName
+                    .get(name)
+                    .fold(List.empty[GameAction])(_.initialBossActions(bossId, timeNow - 1, idGeneratorContainer))
+                }
 
                 newPlayerActions.foreach {
                   case (ref, playerId, _) =>

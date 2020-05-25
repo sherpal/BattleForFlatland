@@ -3,13 +3,17 @@ import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.boss.boss101.BigDot
+import gamelogic.buffs.Buff
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
 import gamelogic.entities.{Entity, WithTarget, WithThreat}
+import gamelogic.gamestate.GameAction
+import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.Circle
+import gamelogic.utils.IdGeneratorContainer
 import models.syntax.Pointed
 
 /**
@@ -96,4 +100,9 @@ object Boss101 extends BossFactory {
         maxLife = maxLife,
         life    = maxLife
       )
+
+  def initialBossActions(entityId: Id, time: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
+    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.healingThreatAware),
+    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.damageThreatAware)
+  )
 }

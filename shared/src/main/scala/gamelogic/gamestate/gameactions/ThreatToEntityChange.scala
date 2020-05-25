@@ -18,9 +18,11 @@ final case class ThreatToEntityChange(
     isDamageThreat: Boolean
 ) extends GameAction {
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
-    gameState.withThreatEntityById(entityId).fold(GameStateTransformer.identityTransformer) { entity =>
-      new WithEntity(entity.changeThreats(sourceId, deltaThreat, isDamageThreat), time)
-    }
+    (for {
+      _ <- Option.unless(gameState.areTheyFromSameTeam(entityId, sourceId).exists(identity))(())
+      entity <- gameState.withThreatEntityById(entityId)
+      newEntity = entity.changeThreats(sourceId, deltaThreat, isDamageThreat)
+    } yield new WithEntity(newEntity, time)).getOrElse(GameStateTransformer.identityTransformer)
 
   def isLegal(gameState: GameState): Boolean = true
 
