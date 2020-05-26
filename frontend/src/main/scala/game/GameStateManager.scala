@@ -53,7 +53,7 @@ final class GameStateManager(
     (mousePosition - myPositionNow).arg
   }.observe
 
-  val targetFromGUIBus = new EventBus[MovingBody with LivingEntity]
+  val targetFromGUIBus = new EventBus[Entity.Id]
 
   /**
     * Signal containing the current target of the user, starting with no target.
@@ -64,7 +64,9 @@ final class GameStateManager(
   val $maybeTarget: Signal[Option[MovingBody with LivingEntity]] =
     EventStream
       .merge(
-        targetFromGUIBus.events.map(Some(_)),
+        targetFromGUIBus.events.withCurrentValueOf($gameStates).map {
+          case (id, gameState) => gameState.livingEntityAndMovingBodyById(id)
+        },
         mouse.$mouseClicks.map(mouse.effectiveMousePos)
           .map(gameDrawer.camera.mousePosToWorld)
           .withCurrentValueOf($gameStates)

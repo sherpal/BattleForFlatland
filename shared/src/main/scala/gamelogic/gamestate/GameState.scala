@@ -120,6 +120,12 @@ final case class GameState(
   def movingBodyEntityById(entityId: Entity.Id): Option[MovingBody] =
     players.get(entityId).orElse(bosses.get(entityId)).orElse(dummyMobs.get(entityId))
 
+  def livingEntityAndMovingBodyById(entityId: Entity.Id): Option[MovingBody with LivingEntity] =
+    for {
+      _ <- movingBodyEntityById(entityId)
+      entity <- livingEntityById(entityId)
+    } yield entity.asInstanceOf[MovingBody with LivingEntity] // this is ugly as hell. todo: think about it
+
   def withTargetEntityById(entityId: Entity.Id): Option[WithTarget] =
     bosses.get(entityId)
 

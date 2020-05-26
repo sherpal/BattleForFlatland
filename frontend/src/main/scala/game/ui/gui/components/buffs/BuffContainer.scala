@@ -24,7 +24,7 @@ final class BuffContainer(entityId: Entity.Id, resources: PartialFunction[Asset,
         container.visible = false
     }
 
-    val buffsToBeRemoved = currentBuffs.filterNot(buff => gameState.buffById(buff.entityId, buff.entityId).isDefined)
+    val buffsToBeRemoved = currentBuffs.filterNot(buff => gameState.buffById(buff.entityId, buff.buffId).isDefined)
     buffsToBeRemoved.foreach { buff =>
       currentBuffs -= buff
       grid.removeElement(buff)

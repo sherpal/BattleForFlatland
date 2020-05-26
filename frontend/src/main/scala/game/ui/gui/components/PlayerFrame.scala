@@ -1,10 +1,12 @@
 package game.ui.gui.components
 
 import assets.Asset
+import com.raquo.airstream.core.Observer
 import game.ui.gui.components.buffs.BuffContainer
-import gamelogic.entities.Entity
+import gamelogic.entities.{Entity, LivingEntity, MovingBody}
 import gamelogic.gamestate.GameState
 import typings.pixiJs.AnonAlign
+import typings.pixiJs.PIXI.interaction.{InteractionEvent, InteractionEventTypes}
 import typings.pixiJs.PIXI.{LoaderResource, Texture}
 import typings.pixiJs.mod.{Graphics, Sprite, Text, TextStyle}
 
@@ -21,7 +23,8 @@ final class PlayerFrame(
     resourceTexture: Texture,
     startWidth: Double,
     startHeight: Double,
-    resources: PartialFunction[Asset, LoaderResource]
+    resources: PartialFunction[Asset, LoaderResource],
+    targetFromGUIWriter: Observer[Entity.Id]
 ) extends GUIComponent {
 
   container.visible = false
@@ -56,6 +59,17 @@ final class PlayerFrame(
 
   List(shapeSprite, lifeSprite, lifeMask, resourceSprite, resourceMask, playerNameText, lifeText).foreach(
     container.addChild
+  )
+
+  container.interactive = true
+  container.addListener(
+    InteractionEventTypes.click, { (event: InteractionEvent) =>
+      event.stopPropagation()
+      scala.scalajs.js.timers.setTimeout(100.0) {
+        targetFromGUIWriter.onNext(entityId)
+      }
+      ()
+    }
   )
 
   private var _isSetup: Boolean = false

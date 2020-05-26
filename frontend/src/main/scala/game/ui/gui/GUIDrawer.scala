@@ -21,7 +21,7 @@ final class GUIDrawer(
     playerId: Entity.Id,
     application: Application,
     resources: PartialFunction[Asset, LoaderResource],
-    targetFromGUIWriter: Observer[MovingBody with LivingEntity],
+    targetFromGUIWriter: Observer[Entity.Id],
     $gameState: SignalViewer[GameState],
     $maybeTarget: SignalViewer[Option[MovingBody with LivingEntity]],
     useAbilityWriter: Observer[Ability.AbilityId]
@@ -68,22 +68,10 @@ final class GUIDrawer(
       .endFill()
 
     application.renderer.generateTexture(graphics, 1, 1)
-  }, resources(minimalistBar).texture, resources(minimalistBar).texture, 120, 30, resources)
+  }, resources(minimalistBar).texture, resources(minimalistBar).texture, 120, 30, resources, targetFromGUIWriter)
   guiContainer.addChild(playerFrame.container)
-  playerFrame.container.x           = application.view.width / 2 - 120
-  playerFrame.container.y           = application.view.height - 70
-  playerFrame.container.interactive = true
-  playerFrame.container.addListener(
-    InteractionEventTypes.click, { (event: InteractionEvent) =>
-      $gameState.now.players.get(playerId).foreach { entity =>
-        println(entity)
-        event.stopPropagation()
-        scala.scalajs.js.timers.setTimeout(100.0) {
-          targetFromGUIWriter.onNext(entity)
-        }
-      }
-    }
-  )
+  playerFrame.container.x = application.view.width / 2 - 120
+  playerFrame.container.y = application.view.height - 70
 
   /** Buffs of the player */
   var maybePlayerBuffContainer: Option[BuffContainer] = Option.empty
@@ -112,17 +100,25 @@ final class GUIDrawer(
     gameState.players.keys.filterNot(playerFrameGridContainer.currentElements.map(_.entityId).contains).foreach {
       entityId =>
         playerFrameGridContainer.addElement(
-          new PlayerFrame(entityId, {
-            val graphics = new Graphics
+          new PlayerFrame(
+            entityId, {
+              val graphics = new Graphics
 
-            graphics
-              .lineStyle(2, 0xccc)
-              .beginFill(0, 0)
-              .drawRect(0, 0, 15, 15)
-              .endFill()
+              graphics
+                .lineStyle(2, 0xccc)
+                .beginFill(0, 0)
+                .drawRect(0, 0, 15, 15)
+                .endFill()
 
-            application.renderer.generateTexture(graphics, 1, 1)
-          }, resources(minimalistBar).texture, resources(minimalistBar).texture, 120, 30, resources)
+              application.renderer.generateTexture(graphics, 1, 1)
+            },
+            resources(minimalistBar).texture,
+            resources(minimalistBar).texture,
+            120,
+            30,
+            resources,
+            targetFromGUIWriter
+          )
         )
     }
 
