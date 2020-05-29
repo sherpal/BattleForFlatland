@@ -1,11 +1,24 @@
 package utils.laminarzio
 
+import com.raquo.airstream.core.Observable
 import com.raquo.airstream.eventbus.EventBus
 import com.raquo.airstream.eventstream.EventStream
+import com.raquo.airstream.features.FlattenStrategy
 import zio.stream._
-import zio.{CancelableFuture, ZIO}
+import zio.{CancelableFuture, UIO, ZIO}
 
 object Implicits {
+
+  implicit val zioFlattenStrategy: FlattenStrategy[Observable, UIO, EventStream] =
+    new FlattenStrategy[Observable, UIO, EventStream] {
+      def flatten[A](parent: Observable[UIO[A]]): EventStream[A] =
+        parent.flatMap(
+          task =>
+            EventStream.fromFuture(
+              zio.Runtime.default.unsafeRunToFuture(task)
+            )
+        )
+    }
 
   implicit class EventStreamObjEnhanced(es: EventStream.type) {
 

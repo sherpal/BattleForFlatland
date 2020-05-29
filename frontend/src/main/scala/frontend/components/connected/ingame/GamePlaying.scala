@@ -25,7 +25,7 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
     joinGameServer,
     userIdAndTokenParams,
     (user.userId, token),
-    host = "localhost:22222" // todo: change this!
+    host = dom.document.location.hostname + ":22222" // todo: change this!
   )
 
   val $actionsFromServer: EventStream[gamestate.AddAndRemoveActions] = gameSocket.$in.collect {
@@ -82,12 +82,10 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
 
     gameSocket.$open.flatMap(
       _ =>
-        EventStream.fromZIOEffect(
-          programs.frontend.ingame
-            .synchronizeClock(sendPing(_)(owner))
-            .zipLeft(ZIO.effectTotal(gameSocket.outWriter.onNext(Ready(user.userId))))
-            .provideLayer(layer)
-        )
+        programs.frontend.ingame
+          .synchronizeClock(sendPing(_)(owner))
+          .zipLeft(ZIO.effectTotal(gameSocket.outWriter.onNext(Ready(user.userId))))
+          .provideLayer(layer)
     ).foreach(delta => {
       println(s"Delta is: $delta")
       deltaWithServerBus.writer.onNext(delta.toLong)
