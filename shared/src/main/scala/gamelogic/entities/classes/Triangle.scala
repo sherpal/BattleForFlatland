@@ -77,7 +77,7 @@ object Triangle extends PlayerClassBuilder {
 
   final val initialMaxLife: Double = 100
 
-  final val abilities: Set[Ability.AbilityId] = Set()
+  final val abilities: Set[Ability.AbilityId] = Set(Ability.triangleDirectHit)
 
   def startingActions(time: Id, entityId: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
     PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.energyFiller)

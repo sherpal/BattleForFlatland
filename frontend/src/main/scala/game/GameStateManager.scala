@@ -11,6 +11,7 @@ import game.ui.gui.GUIDrawer
 import gamelogic.abilities.Ability
 import gamelogic.abilities.hexagon.{FlashHeal, HexagonHot}
 import gamelogic.abilities.square.{HammerHit, Taunt}
+import gamelogic.abilities.triangle.DirectHit
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.{Entity, LivingEntity, MovingBody}
 import gamelogic.gamestate.gameactions.{EntityStartsCasting, MovingBodyMoves}
@@ -178,9 +179,24 @@ final class GameStateManager(
                       dom.console.warn("Can't cast Taunt")
                     }
                 }
+              case Ability.triangleDirectHit =>
+                maybeTarget match {
+                  case None => dom.console.warn("You need a target to cast Triangle Direct Hit")
+                  case Some(target) =>
+                    val ability = DirectHit(0L, now, playerId, target.id)
+                    val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
+                    if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
+                          $strictGameStates.now,
+                          deltaTimeWithServer + 100
+                        )) {
+                      socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                    } else {
+                      dom.console.warn("Can't use DirectHit")
+                    }
+                }
               case _ =>
                 // todo
-                println(s"TODO: implement ability $abilityId")
+                dom.console.warn(s"TODO: implement ability $abilityId")
             }
         }
 

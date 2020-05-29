@@ -77,6 +77,7 @@ object Ability {
   final val squareHammerHit: AbilityId     = 5
   final val boss101BigHitId: AbilityId     = 6
   final val boss101BigDotId: AbilityId     = 7
+  final val triangleDirectHit: AbilityId   = 8
 
   @inline final def gcd = 200L
 
@@ -95,6 +96,7 @@ object Ability {
     case x: hexagon.HexagonHot  => customEncode(x, "hexagon.HexagonHot")
     case x: square.HammerHit    => customEncode(x, "square.HammerHit")
     case x: square.Taunt        => customEncode(x, "square.Taunt")
+    case x: triangle.DirectHit  => customEncode(x, "triangle.DirectHit")
     case x: SimpleBullet        => customEncode(x, "SimpleBullet")
   }
 
@@ -108,6 +110,7 @@ object Ability {
     customDecoder[hexagon.HexagonHot]("hexagon.HexagonHot"),
     customDecoder[square.HammerHit]("square.HammerHit"),
     customDecoder[square.Taunt]("square.Taunt"),
+    customDecoder[triangle.DirectHit]("triangle.DirectHit"),
     customDecoder[SimpleBullet]("SimpleBullet")
   ).reduceLeft(_ or _)
 
