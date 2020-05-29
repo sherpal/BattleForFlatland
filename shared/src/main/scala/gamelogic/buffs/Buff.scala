@@ -49,4 +49,6 @@ object Buff {
   final val healingThreatAware = 5
   final val damageThreatAware  = 6
 
+  final val energyFiller = 7
+
 }

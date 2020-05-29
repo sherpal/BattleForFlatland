@@ -32,7 +32,8 @@ final class GameAssetLoader(application: Application) {
     squareHammerHit,
     boss101BigDot,
     squareShield,
-    rageFiller
+    rageFiller,
+    energyFiller
   )
 
   final val $progressData = progressBus.events

@@ -55,6 +55,12 @@ object Asset {
           JSImport.Default
         )
         object rageFiller extends Asset
+
+        @js.native @JSImport(
+          "resources/assets/in-game/gui/default-abilities/players/energy-filler.png",
+          JSImport.Default
+        )
+        object energyFiller extends Asset
       }
     }
   }
@@ -74,6 +80,7 @@ object Asset {
   ingame.gui.abilities.boss101BigDot
   ingame.gui.`default-abilities`.squareShield
   ingame.gui.`default-abilities`.rageFiller
+  ingame.gui.`default-abilities`.energyFiller
 
   final val abilityAssetMap: Map[Ability.AbilityId, Asset] = Map(
     Ability.hexagonHexagonHotId -> ingame.gui.abilities.hexagonHot,
@@ -86,7 +93,8 @@ object Asset {
     Buff.hexagonHotIdentifier -> ingame.gui.abilities.hexagonHot,
     Buff.boss101BigDotIdentifier -> ingame.gui.abilities.boss101BigDot,
     Buff.squareDefaultShield -> ingame.gui.`default-abilities`.squareShield,
-    Buff.rageFiller -> ingame.gui.`default-abilities`.rageFiller
+    Buff.rageFiller -> ingame.gui.`default-abilities`.rageFiller,
+    Buff.energyFiller -> ingame.gui.`default-abilities`.energyFiller
   )
 
 }

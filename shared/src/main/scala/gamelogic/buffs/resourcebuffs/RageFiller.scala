@@ -1,5 +1,7 @@
-package gamelogic.buffs
+package gamelogic.buffs.resourcebuffs
+
 import gamelogic.buffs.Buff.ResourceIdentifier
+import gamelogic.buffs.{Buff, PassiveBuff}
 import gamelogic.entities.Entity
 import gamelogic.entities.Resource.Rage
 import gamelogic.gamestate.gameactions.{EntityResourceChanges, EntityTakesDamage}

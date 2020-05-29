@@ -35,12 +35,12 @@ final case class Square(
 
   def abilities: Set[AbilityId] = Square.abilities
 
-  def useAbility(ability: Ability): WithAbilities = copy(
+  def useAbility(ability: Ability): Square = copy(
     relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability),
     resourceAmount        = resourceAmount - ability.cost
   )
 
-  def shape: Polygon = Shape.regularPolygon(4, Constants.playerRadius)
+  def shape: Polygon = Square.shape
 
   def move(time: Long, position: Complex, direction: Angle, rotation: Angle, speed: Double, moving: Boolean): Square =
     copy(time = time, pos = position, direction = direction, rotation = rotation, speed = speed, moving = moving)
@@ -52,6 +52,8 @@ final case class Square(
 }
 
 object Square extends PlayerClassBuilder {
+
+  final val shape = Shape.regularPolygon(4, Constants.playerRadius)
 
   def initialResourceAmount: ResourceAmount = ResourceAmount(100, Rage)
 

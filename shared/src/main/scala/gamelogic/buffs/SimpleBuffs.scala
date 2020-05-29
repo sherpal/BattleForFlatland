@@ -1,6 +1,7 @@
 package gamelogic.buffs
 
 import gamelogic.buffs.ai.{DamageThreatAware, HealingThreatAware}
+import gamelogic.buffs.resourcebuffs.{EnergyFiller, RageFiller}
 import gamelogic.entities.Entity
 
 /**
@@ -17,7 +18,10 @@ object SimpleBuffs {
     Buff.rageFiller -> RageFiller.apply,
     Buff.squareDefaultShield -> BasicShield.apply,
     Buff.healingThreatAware -> HealingThreatAware.apply,
-    Buff.damageThreatAware -> DamageThreatAware.apply
+    Buff.damageThreatAware -> DamageThreatAware.apply,
+    Buff.energyFiller -> { (buffId, entityId, appearanceTime) =>
+      EnergyFiller(buffId, entityId, appearanceTime, appearanceTime)
+    }
   )
 
   def apply(
