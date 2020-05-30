@@ -8,6 +8,11 @@ import gamelogic.gamestate.gameactions.{EntityStartsCasting, RemoveBuff, UpdateT
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
+/**
+  * Multiply all damages done by the [[gamelogic.abilities.triangle.DirectHit]] by multiplying its damage by
+  * `UpgradeDirectHit.damageIncrease`.
+  * This buff is cumulative.
+  */
 final case class UpgradeDirectHit(buffId: Buff.Id, bearerId: Entity.Id, appearanceTime: Long) extends PassiveBuff {
   def initialActions(gameState: GameState, time: Long)(
       implicit idGeneratorContainer: IdGeneratorContainer

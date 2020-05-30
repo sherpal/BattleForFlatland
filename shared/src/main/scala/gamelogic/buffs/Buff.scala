@@ -68,5 +68,6 @@ object Buff {
   final val damageThreatAware        = 6
   final val energyFiller             = 7
   final val triangleUpgradeDirectHit = 8
+  final val manaFiller               = 9
 
 }

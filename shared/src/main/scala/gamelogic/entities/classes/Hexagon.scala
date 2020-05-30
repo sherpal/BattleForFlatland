@@ -2,11 +2,13 @@ package gamelogic.entities.classes
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
+import gamelogic.buffs.Buff
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{Mana, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.{Entity, LivingEntity}
 import gamelogic.gamestate.GameAction
+import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 import gamelogic.utils.IdGeneratorContainer
@@ -63,5 +65,14 @@ final case class Hexagon(
 object Hexagon extends PlayerClassBuilder {
   def initialResourceAmount: ResourceAmount = ResourceAmount(300, Mana)
 
-  def startingActions(time: Long, entityId: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = Nil
+  def startingActions(time: Long, entityId: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
+    PutSimpleBuff(
+      idGeneratorContainer.gameActionIdGenerator(),
+      time,
+      idGeneratorContainer.buffIdGenerator(),
+      entityId,
+      time,
+      Buff.manaFiller
+    )
+  )
 }

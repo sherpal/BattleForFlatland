@@ -21,8 +21,11 @@ object PlayerClasses {
   case object Triangle extends PlayerClasses {
     def builder: PlayerClassBuilder = gamelogic.entities.classes.Triangle
   }
+  case object Pentagon extends PlayerClasses {
+    def builder: PlayerClassBuilder = gamelogic.entities.classes.Pentagon
+  }
 
-  final val allChoices: List[PlayerClasses] = List(Square, Hexagon, Triangle)
+  final val allChoices: List[PlayerClasses] = List(Square, Hexagon, Triangle, Pentagon)
 
   def playerClassByName(name: String): Option[PlayerClasses] = allChoices.find(_.toString == name)
 

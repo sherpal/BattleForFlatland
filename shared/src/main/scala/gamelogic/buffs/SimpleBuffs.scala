@@ -2,7 +2,7 @@ package gamelogic.buffs
 
 import gamelogic.buffs.abilities.classes.UpgradeDirectHit
 import gamelogic.buffs.ai.{DamageThreatAware, HealingThreatAware}
-import gamelogic.buffs.resourcebuffs.{EnergyFiller, RageFiller}
+import gamelogic.buffs.resourcebuffs.{EnergyFiller, ManaFiller, RageFiller}
 import gamelogic.entities.Entity
 
 /**
@@ -23,7 +23,10 @@ object SimpleBuffs {
     Buff.energyFiller -> { (buffId, entityId, appearanceTime) =>
       EnergyFiller(buffId, entityId, appearanceTime, appearanceTime)
     },
-    Buff.triangleUpgradeDirectHit -> UpgradeDirectHit.apply
+    Buff.triangleUpgradeDirectHit -> UpgradeDirectHit.apply,
+    Buff.manaFiller -> { (buffId, entityId, appearanceTime) =>
+      ManaFiller(buffId, entityId, appearanceTime, appearanceTime)
+    }
   )
 
   def apply(

@@ -66,6 +66,12 @@ object Asset {
           JSImport.Default
         )
         object energyFiller extends Asset
+
+        @js.native @JSImport(
+          "resources/assets/in-game/gui/default-abilities/players/mana-filler.png",
+          JSImport.Default
+        )
+        object manaFiller extends Asset
       }
     }
   }
@@ -88,6 +94,7 @@ object Asset {
   ingame.gui.`default-abilities`.squareShield
   ingame.gui.`default-abilities`.rageFiller
   ingame.gui.`default-abilities`.energyFiller
+  ingame.gui.`default-abilities`.manaFiller
 
   final val abilityAssetMap: Map[Ability.AbilityId, Asset] = Map(
     Ability.hexagonHexagonHotId -> ingame.gui.abilities.hexagonHot,
@@ -104,6 +111,7 @@ object Asset {
     Buff.squareDefaultShield -> ingame.gui.`default-abilities`.squareShield,
     Buff.rageFiller -> ingame.gui.`default-abilities`.rageFiller,
     Buff.energyFiller -> ingame.gui.`default-abilities`.energyFiller,
+    Buff.manaFiller -> ingame.gui.`default-abilities`.manaFiller,
     Buff.triangleUpgradeDirectHit -> ingame.gui.abilities.triangleUpgradeDirectHit
   )
 

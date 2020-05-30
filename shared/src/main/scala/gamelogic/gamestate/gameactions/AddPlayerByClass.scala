@@ -1,7 +1,7 @@
 package gamelogic.gamestate.gameactions
 
 import gamelogic.entities.Entity
-import gamelogic.entities.classes.{Constants, Hexagon, Square, Triangle}
+import gamelogic.entities.classes.{Constants, Hexagon, Pentagon, Square, Triangle}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
 import gamelogic.gamestate.{GameAction, GameState}
@@ -75,6 +75,26 @@ final case class AddPlayerByClass(
             Constants.playerSpeed,
             Triangle.initialResourceAmount,
             Triangle.initialResourceAmount.amount,
+            playerName
+          ),
+          time
+        )
+      case PlayerClasses.Pentagon =>
+        new WithEntity(
+          Pentagon(
+            entityId,
+            time,
+            position,
+            0.0,
+            moving = false,
+            0.0,
+            Pentagon.initialMaxLife,
+            colour,
+            Map(),
+            Pentagon.initialMaxLife,
+            Constants.playerSpeed,
+            Pentagon.initialResourceAmount,
+            Pentagon.initialResourceAmount.amount,
             playerName
           ),
           time

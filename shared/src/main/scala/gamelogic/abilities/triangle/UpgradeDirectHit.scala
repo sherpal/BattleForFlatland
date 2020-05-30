@@ -9,6 +9,9 @@ import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
+/**
+  * Puts the [[gamelogic.buffs.abilities.classes.UpgradeDirectHit]] on the caster.
+  */
 final case class UpgradeDirectHit(useId: Ability.UseId, time: Long, casterId: Entity.Id) extends Ability {
   def abilityId: AbilityId = Ability.triangleUpgradeDirectHit
 
