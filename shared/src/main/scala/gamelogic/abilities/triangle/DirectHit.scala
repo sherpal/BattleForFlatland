@@ -9,7 +9,7 @@ import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-final case class DirectHit(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
+final case class DirectHit(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id, damage: Double)
     extends WithTargetAbility {
   def abilityId: AbilityId = Ability.triangleDirectHit
 
@@ -20,7 +20,7 @@ final case class DirectHit(useId: Ability.UseId, time: Long, casterId: Entity.Id
   def cost: Resource.ResourceAmount = DirectHit.cost
 
   def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
-    EntityTakesDamage(idGeneratorContainer.gameActionIdGenerator(), time, targetId, DirectHit.directHitDamage, casterId)
+    EntityTakesDamage(idGeneratorContainer.gameActionIdGenerator(), time, targetId, damage, casterId)
   )
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)

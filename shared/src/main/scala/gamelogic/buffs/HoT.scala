@@ -5,7 +5,7 @@ import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.gameactions.EntityGetsHealed
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.EntityIdGenerator
+import gamelogic.utils.{EntityIdGenerator, IdGeneratorContainer}
 
 trait HoT extends TickerBuff {
 
@@ -64,6 +64,14 @@ object HoT {
       _appearanceTime,
       _resourceIdentifier
     )
+
+    def initialActions(gameState: GameState, time: Id)(
+        implicit idGeneratorContainer: IdGeneratorContainer
+    ): List[GameAction] = Nil
+
+    def endingAction(gameState: GameState, time: Id)(
+        implicit idGeneratorContainer: IdGeneratorContainer
+    ): List[GameAction] = Nil
   }
 
 }

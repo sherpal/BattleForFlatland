@@ -70,14 +70,15 @@ object Ability {
 
   type AbilityId = Int
 
-  final val simpleBulletId: AbilityId      = 1
-  final val hexagonFlashHealId: AbilityId  = 2
-  final val hexagonHexagonHotId: AbilityId = 3
-  final val squareTauntId: AbilityId       = 4
-  final val squareHammerHit: AbilityId     = 5
-  final val boss101BigHitId: AbilityId     = 6
-  final val boss101BigDotId: AbilityId     = 7
-  final val triangleDirectHit: AbilityId   = 8
+  final val simpleBulletId: AbilityId           = 1
+  final val hexagonFlashHealId: AbilityId       = 2
+  final val hexagonHexagonHotId: AbilityId      = 3
+  final val squareTauntId: AbilityId            = 4
+  final val squareHammerHit: AbilityId          = 5
+  final val boss101BigHitId: AbilityId          = 6
+  final val boss101BigDotId: AbilityId          = 7
+  final val triangleDirectHit: AbilityId        = 8
+  final val triangleUpgradeDirectHit: AbilityId = 9
 
   @inline final def gcd = 200L
 
@@ -90,14 +91,15 @@ object Ability {
     a.asJson.mapObject(_.add("ability_name", Json.fromString(name)))
 
   implicit val encoder: Encoder[Ability] = Encoder.instance {
-    case x: boss.boss101.BigDot => customEncode(x, "boss.boss101.BigDot")
-    case x: boss.boss101.BigHit => customEncode(x, "boss.boss101.BigHit")
-    case x: hexagon.FlashHeal   => customEncode(x, "hexagon.FlashHeal")
-    case x: hexagon.HexagonHot  => customEncode(x, "hexagon.HexagonHot")
-    case x: square.HammerHit    => customEncode(x, "square.HammerHit")
-    case x: square.Taunt        => customEncode(x, "square.Taunt")
-    case x: triangle.DirectHit  => customEncode(x, "triangle.DirectHit")
-    case x: SimpleBullet        => customEncode(x, "SimpleBullet")
+    case x: boss.boss101.BigDot       => customEncode(x, "boss.boss101.BigDot")
+    case x: boss.boss101.BigHit       => customEncode(x, "boss.boss101.BigHit")
+    case x: hexagon.FlashHeal         => customEncode(x, "hexagon.FlashHeal")
+    case x: hexagon.HexagonHot        => customEncode(x, "hexagon.HexagonHot")
+    case x: square.HammerHit          => customEncode(x, "square.HammerHit")
+    case x: square.Taunt              => customEncode(x, "square.Taunt")
+    case x: triangle.DirectHit        => customEncode(x, "triangle.DirectHit")
+    case x: triangle.UpgradeDirectHit => customEncode(x, "triangle.UpgradeDirectHit")
+    case x: SimpleBullet              => customEncode(x, "SimpleBullet")
   }
 
   private def customDecoder[A <: Ability](name: String)(implicit decoder: Decoder[A]): Decoder[Ability] =
@@ -111,6 +113,7 @@ object Ability {
     customDecoder[square.HammerHit]("square.HammerHit"),
     customDecoder[square.Taunt]("square.Taunt"),
     customDecoder[triangle.DirectHit]("triangle.DirectHit"),
+    customDecoder[triangle.UpgradeDirectHit]("triangle.UpgradeDirectHit"),
     customDecoder[SimpleBullet]("SimpleBullet")
   ).reduceLeft(_ or _)
 

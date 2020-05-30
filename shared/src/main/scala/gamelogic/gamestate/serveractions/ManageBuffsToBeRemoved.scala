@@ -19,10 +19,8 @@ final class ManageBuffsToBeRemoved extends ServerAction {
     val removedBuffs = gameState.allBuffs
       .filter(_.isFinite)
       .filter(buff => startTime - buff.appearanceTime > buff.duration)
-      .flatMap {
-        case buff: PassiveBuff =>
-          removeBuffAction(idGeneratorContainer.gameActionIdGenerator(), buff) :: buff.endingAction(gameState)
-        case buff: TickerBuff => removeBuffAction(idGeneratorContainer.gameActionIdGenerator(), buff) :: Nil
+      .flatMap { buff =>
+        removeBuffAction(idGeneratorContainer.gameActionIdGenerator(), buff) :: buff.endingAction(gameState, startTime)
       }
       .toList
 

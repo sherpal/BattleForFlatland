@@ -11,7 +11,7 @@ import game.ui.gui.GUIDrawer
 import gamelogic.abilities.Ability
 import gamelogic.abilities.hexagon.{FlashHeal, HexagonHot}
 import gamelogic.abilities.square.{HammerHit, Taunt}
-import gamelogic.abilities.triangle.DirectHit
+import gamelogic.abilities.triangle.{DirectHit, UpgradeDirectHit}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.{Entity, LivingEntity, MovingBody}
 import gamelogic.gamestate.gameactions.{EntityStartsCasting, MovingBodyMoves}
@@ -183,7 +183,7 @@ final class GameStateManager(
                 maybeTarget match {
                   case None => dom.console.warn("You need a target to cast Triangle Direct Hit")
                   case Some(target) =>
-                    val ability = DirectHit(0L, now, playerId, target.id)
+                    val ability = DirectHit(0L, now, playerId, target.id, DirectHit.directHitDamage)
                     val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
                     if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
                           $strictGameStates.now,
@@ -193,6 +193,17 @@ final class GameStateManager(
                     } else {
                       dom.console.warn("Can't use DirectHit")
                     }
+                }
+              case Ability.triangleUpgradeDirectHit =>
+                val ability = UpgradeDirectHit(0L, now, playerId)
+                val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
+                if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
+                      $strictGameStates.now,
+                      deltaTimeWithServer + 100
+                    )) {
+                  socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                } else {
+                  dom.console.warn("Can't use UpgradeDirectHit")
                 }
               case _ =>
                 // todo

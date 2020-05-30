@@ -6,7 +6,7 @@ import gamelogic.entities.Entity
 import gamelogic.entities.Resource.Energy
 import gamelogic.gamestate.gameactions.EntityResourceChanges
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.EntityIdGenerator
+import gamelogic.utils.{EntityIdGenerator, IdGeneratorContainer}
 
 /**
   * Never ending buff which grants its bearer 10 energy every second.
@@ -26,6 +26,14 @@ final case class EnergyFiller(buffId: Buff.Id, bearerId: Entity.Id, appearanceTi
   def duration: Long = -1L
 
   def resourceIdentifier: ResourceIdentifier = Buff.energyFiller
+
+  def initialActions(gameState: GameState, time: Long)(
+      implicit idGeneratorContainer: IdGeneratorContainer
+  ): List[GameAction] = Nil
+
+  def endingAction(gameState: GameState, time: Long)(
+      implicit idGeneratorContainer: IdGeneratorContainer
+  ): List[GameAction] = Nil
 }
 
 object EnergyFiller {

@@ -1,6 +1,8 @@
 package gamelogic.buffs
 
 import gamelogic.entities.Entity
+import gamelogic.gamestate.{GameAction, GameState}
+import gamelogic.utils.IdGeneratorContainer
 
 /**
   * A [[gamelogic.buffs.Buff]] is an effect that is tight to a particular entity, for a given amount of time.
@@ -32,6 +34,24 @@ trait Buff {
     */
   def resourceIdentifier: Buff.ResourceIdentifier
 
+  /**
+    * Actions that occur when the buff arises.
+    *
+    * Example: increase the speed of the unit by a certain percentage.
+    */
+  def initialActions(gameState: GameState, time: Long)(
+      implicit idGeneratorContainer: IdGeneratorContainer
+  ): List[GameAction]
+
+  /**
+    * Actions that occur when the buff is removed.
+    *
+    * Example: adds a final heal at the end.
+    */
+  def endingAction(gameState: GameState, time: Long)(
+      implicit idGeneratorContainer: IdGeneratorContainer
+  ): List[GameAction]
+
 }
 
 object Buff {
@@ -40,15 +60,13 @@ object Buff {
 
   type ResourceIdentifier = Int
 
-  final val hexagonHotIdentifier    = 1
-  final val boss101BigDotIdentifier = 2
-
-  final val squareDefaultShield = 3
-  final val rageFiller          = 4
-
-  final val healingThreatAware = 5
-  final val damageThreatAware  = 6
-
-  final val energyFiller = 7
+  final val hexagonHotIdentifier     = 1
+  final val boss101BigDotIdentifier  = 2
+  final val squareDefaultShield      = 3
+  final val rageFiller               = 4
+  final val healingThreatAware       = 5
+  final val damageThreatAware        = 6
+  final val energyFiller             = 7
+  final val triangleUpgradeDirectHit = 8
 
 }

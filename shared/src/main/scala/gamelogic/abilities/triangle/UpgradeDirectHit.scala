@@ -1,0 +1,40 @@
+package gamelogic.abilities.triangle
+
+import gamelogic.abilities.Ability
+import gamelogic.abilities.Ability.{AbilityId, UseId}
+import gamelogic.buffs.{Buff, SimpleBuffs}
+import gamelogic.entities.Resource.{Energy, ResourceAmount}
+import gamelogic.entities.{Entity, Resource}
+import gamelogic.gamestate.gameactions.PutSimpleBuff
+import gamelogic.gamestate.{GameAction, GameState}
+import gamelogic.utils.IdGeneratorContainer
+
+final case class UpgradeDirectHit(useId: Ability.UseId, time: Long, casterId: Entity.Id) extends Ability {
+  def abilityId: AbilityId = Ability.triangleUpgradeDirectHit
+
+  def cooldown: Long = 0L
+
+  def castingTime: Long = 0L
+
+  def cost: Resource.ResourceAmount = UpgradeDirectHit.cost
+
+  def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
+    PutSimpleBuff(
+      idGeneratorContainer.gameActionIdGenerator(),
+      time,
+      idGeneratorContainer.buffIdGenerator(),
+      casterId,
+      time,
+      Buff.triangleUpgradeDirectHit
+    ) :: Nil
+
+  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
+
+  def canBeCast(gameState: GameState, time: Long): Boolean = true
+}
+
+object UpgradeDirectHit {
+
+  final val cost: ResourceAmount = ResourceAmount(50.0, Energy)
+
+}

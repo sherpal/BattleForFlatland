@@ -29,6 +29,8 @@ object Asset {
 
         @js.native @JSImport("resources/assets/in-game/gui/abilities/triangle-direct-hit.png", JSImport.Default)
         object triangleDirectHit extends Asset
+        @js.native @JSImport("resources/assets/in-game/gui/abilities/triangle-upgrade-direct-hit.png", JSImport.Default)
+        object triangleUpgradeDirectHit extends Asset
 
         @js.native @JSImport("resources/assets/in-game/gui/abilities/boss101-big-dot.png", JSImport.Default)
         object boss101BigDot extends Asset
@@ -81,6 +83,7 @@ object Asset {
   ingame.gui.abilities.squareHammerHit
   ingame.gui.abilities.squareTaunt
   ingame.gui.abilities.triangleDirectHit
+  ingame.gui.abilities.triangleUpgradeDirectHit
   ingame.gui.abilities.boss101BigDot
   ingame.gui.`default-abilities`.squareShield
   ingame.gui.`default-abilities`.rageFiller
@@ -91,7 +94,8 @@ object Asset {
     Ability.hexagonFlashHealId -> ingame.gui.abilities.hexagonFlashHeal,
     Ability.squareHammerHit -> ingame.gui.abilities.squareHammerHit,
     Ability.squareTauntId -> ingame.gui.abilities.squareTaunt,
-    Ability.triangleDirectHit -> ingame.gui.abilities.triangleDirectHit
+    Ability.triangleDirectHit -> ingame.gui.abilities.triangleDirectHit,
+    Ability.triangleUpgradeDirectHit -> ingame.gui.abilities.triangleUpgradeDirectHit
   )
 
   final val buffAssetMap: Map[Buff.ResourceIdentifier, Asset] = Map(
@@ -99,7 +103,8 @@ object Asset {
     Buff.boss101BigDotIdentifier -> ingame.gui.abilities.boss101BigDot,
     Buff.squareDefaultShield -> ingame.gui.`default-abilities`.squareShield,
     Buff.rageFiller -> ingame.gui.`default-abilities`.rageFiller,
-    Buff.energyFiller -> ingame.gui.`default-abilities`.energyFiller
+    Buff.energyFiller -> ingame.gui.`default-abilities`.energyFiller,
+    Buff.triangleUpgradeDirectHit -> ingame.gui.abilities.triangleUpgradeDirectHit
   )
 
 }

@@ -1,0 +1,41 @@
+package gamelogic.buffs.abilities.classes
+
+import gamelogic.abilities.triangle.DirectHit
+import gamelogic.buffs.Buff.ResourceIdentifier
+import gamelogic.buffs.{Buff, PassiveBuff}
+import gamelogic.entities.Entity
+import gamelogic.gamestate.gameactions.{EntityStartsCasting, RemoveBuff, UpdateTimestamp}
+import gamelogic.gamestate.{GameAction, GameState}
+import gamelogic.utils.IdGeneratorContainer
+
+final case class UpgradeDirectHit(buffId: Buff.Id, bearerId: Entity.Id, appearanceTime: Long) extends PassiveBuff {
+  def initialActions(gameState: GameState, time: Long)(
+      implicit idGeneratorContainer: IdGeneratorContainer
+  ): List[GameAction] = Nil
+
+  def endingAction(gameState: GameState, time: Long)(
+      implicit idGeneratorContainer: IdGeneratorContainer
+  ): List[GameAction] = Nil
+
+  def actionTransformer(gameAction: GameAction): List[GameAction] = gameAction match {
+    case action @ EntityStartsCasting(_, _, _, ability) =>
+      action.copy(ability = ability match {
+        case ability: DirectHit => ability.copy(damage = ability.damage * UpgradeDirectHit.damageIncrease)
+        case _                  => ability
+      }) :: Nil
+
+    case _ => gameAction :: Nil
+  }
+
+  def duration: Long = UpgradeDirectHit.duration
+
+  def resourceIdentifier: ResourceIdentifier = Buff.triangleUpgradeDirectHit
+}
+
+object UpgradeDirectHit {
+
+  def duration: Long = 20000L
+
+  def damageIncrease: Double = 1.2
+
+}

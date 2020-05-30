@@ -17,7 +17,8 @@ final case class PutSimpleBuff(
 ) extends GameAction {
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     gameState.entityById(bearerId).fold(GameStateTransformer.identityTransformer) { _ =>
-      new WithBuff(SimpleBuffs(resourceIdentifier, buffId, bearerId, appearanceTime).get)
+      val newBuff = SimpleBuffs(resourceIdentifier, buffId, bearerId, appearanceTime).get
+      new WithBuff(newBuff)
     }
 
   def isLegal(gameState: GameState): Boolean = gameState.entityById(bearerId).isDefined

@@ -14,20 +14,6 @@ import gamelogic.utils.IdGeneratorContainer
 trait PassiveBuff extends Buff {
 
   /**
-    * Actions that occur when the buff arises.
-    *
-    * Example: increase the speed of the unit by a certain percentage.
-    */
-  def initialActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction]
-
-  /**
-    * Actions that occur when the buff is removed.
-    *
-    * Example: adds a final heal at the end.
-    */
-  def endingAction(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction]
-
-  /**
     * Specifies how actions are transformed during the time the buff is present.
     *
     * Action transformers must be commutative, and they should not alter the legality of actions involved. For example,
