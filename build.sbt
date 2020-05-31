@@ -5,7 +5,7 @@ name := "Battle for Flatland"
 
 version := "0.2"
 
-scalaVersion := "2.13.1"
+scalaVersion in ThisBuild := "2.13.1"
 
 val scalaCompilerOptions = List(
   "-deprecation",

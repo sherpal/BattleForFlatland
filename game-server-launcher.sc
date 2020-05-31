@@ -30,8 +30,8 @@ object WebServer {
     val route =
       path("run-game-server") {
         get {
-            parameters('gameId, 'gameSecret) { (gameId, gameSecret) =>
-                val sbtCommand = s"game-server/run -i $gameId -s $gameSecret"
+            parameters('gameId, 'gameSecret, 'host) { (gameId, gameSecret, host) =>
+                val sbtCommand = s"game-server/run -i $gameId -s $gameSecret -h $host"
                 sbtProcess.stdin.writeLine(sbtCommand)
                 complete("ok")
             }

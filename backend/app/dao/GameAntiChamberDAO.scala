@@ -84,8 +84,7 @@ object GameAntiChamberDAO {
       _ <- removeAllGameCredentials(gameId)
       gameCredentials <- createAndAddGameCredentials(gameInfo)
       _ <- ZIO
-        .fromFuture { _ =>
-          implicit val ec: ExecutionContext = actorSystem.dispatcher
+        .fromFuture { implicit ec =>
           Http()
             .singleRequest(
               HttpRequest(
@@ -93,7 +92,8 @@ object GameAntiChamberDAO {
                 uri = Uri(
                   s"http://localhost:22223/run-game-server?" +
                     s"gameId=${gameCredentials.gameCredentials.gameId}" +
-                    s"&gameSecret=${gameCredentials.gameCredentials.gameSecret}"
+                    s"&gameSecret=${gameCredentials.gameCredentials.gameSecret}" +
+                    s"&host=0.0.0.0"
                 ) // todo!: unhardcode this!
               )
             )
@@ -103,6 +103,10 @@ object GameAntiChamberDAO {
             .filter(_.status.isSuccess)
         }
         .timeout(zio.duration.Duration(1000, java.util.concurrent.TimeUnit.MILLISECONDS))
+        .flatMap {
+          case Some(success) => UIO(success)
+          case None => ZIO.fail(new Exception("Timeout"))
+        }
         .catchAll { error =>
           log.error(error.getMessage) *>
             log.info(s"""
