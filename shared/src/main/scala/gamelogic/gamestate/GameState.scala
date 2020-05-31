@@ -4,6 +4,7 @@ import gamelogic.buffs.{Buff, PassiveBuff, TickerBuff}
 import gamelogic.entities._
 import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.classes.PlayerClass
+import gamelogic.entities.movingstuff.PentagonBullet
 import models.syntax.Pointed
 
 /**
@@ -26,6 +27,7 @@ final case class GameState(
     bosses: Map[Entity.Id, BossEntity],
     dummyMobs: Map[Entity.Id, DummyMob],
     simpleBullets: Map[Entity.Id, SimpleBulletBody],
+    pentagonBullets: Map[Entity.Id, PentagonBullet],
     castingEntityInfo: Map[Entity.Id, EntityCastingInfo],
     passiveBuffs: Map[Entity.Id, Map[Buff.Id, PassiveBuff]],
     tickerBuffs: Map[Entity.Id, Map[Buff.Id, TickerBuff]]
@@ -95,6 +97,7 @@ final case class GameState(
       .orElse(bosses.get(entityId))
       .orElse(dummyMobs.get(entityId))
       .orElse(simpleBullets.get(entityId))
+      .orElse(pentagonBullets.get(entityId))
 
   def allTargettableEntities: Iterator[MovingBody with LivingEntity] =
     players.valuesIterator ++ bosses.valuesIterator ++ dummyMobs.valuesIterator
@@ -111,6 +114,9 @@ final case class GameState(
       .orElse(bosses.get(entityId))
       .orElse(dummyMobs.get(entityId))
 
+  def allLivingEntities: Iterator[LivingEntity with MovingBody] =
+    players.valuesIterator ++ bosses.valuesIterator ++ dummyMobs.valuesIterator
+
   def withThreatEntityById(entityId: Entity.Id): Option[WithThreat] =
     bosses.get(entityId)
 
@@ -118,7 +124,11 @@ final case class GameState(
     players.get(entityId).orElse(bosses.get(entityId)).orElse(dummyMobs.get(entityId))
 
   def movingBodyEntityById(entityId: Entity.Id): Option[MovingBody] =
-    players.get(entityId).orElse(bosses.get(entityId)).orElse(dummyMobs.get(entityId))
+    players
+      .get(entityId)
+      .orElse(bosses.get(entityId))
+      .orElse(dummyMobs.get(entityId))
+      .orElse(pentagonBullets.get(entityId))
 
   def livingEntityAndMovingBodyById(entityId: Entity.Id): Option[MovingBody with LivingEntity] =
     for {

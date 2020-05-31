@@ -79,6 +79,7 @@ object Ability {
   final val boss101BigDotId: AbilityId          = 7
   final val triangleDirectHit: AbilityId        = 8
   final val triangleUpgradeDirectHit: AbilityId = 9
+  final val pentagonPentagonBullet: AbilityId   = 10
 
   @inline final def gcd = 200L
 
@@ -91,15 +92,16 @@ object Ability {
     a.asJson.mapObject(_.add("ability_name", Json.fromString(name)))
 
   implicit val encoder: Encoder[Ability] = Encoder.instance {
-    case x: boss.boss101.BigDot       => customEncode(x, "boss.boss101.BigDot")
-    case x: boss.boss101.BigHit       => customEncode(x, "boss.boss101.BigHit")
-    case x: hexagon.FlashHeal         => customEncode(x, "hexagon.FlashHeal")
-    case x: hexagon.HexagonHot        => customEncode(x, "hexagon.HexagonHot")
-    case x: square.HammerHit          => customEncode(x, "square.HammerHit")
-    case x: square.Taunt              => customEncode(x, "square.Taunt")
-    case x: triangle.DirectHit        => customEncode(x, "triangle.DirectHit")
-    case x: triangle.UpgradeDirectHit => customEncode(x, "triangle.UpgradeDirectHit")
-    case x: SimpleBullet              => customEncode(x, "SimpleBullet")
+    case x: boss.boss101.BigDot           => customEncode(x, "boss.boss101.BigDot")
+    case x: boss.boss101.BigHit           => customEncode(x, "boss.boss101.BigHit")
+    case x: hexagon.FlashHeal             => customEncode(x, "hexagon.FlashHeal")
+    case x: hexagon.HexagonHot            => customEncode(x, "hexagon.HexagonHot")
+    case x: pentagon.CreatePentagonBullet => customEncode(x, "pentagon.CreatePentagonBullet")
+    case x: square.HammerHit              => customEncode(x, "square.HammerHit")
+    case x: square.Taunt                  => customEncode(x, "square.Taunt")
+    case x: triangle.DirectHit            => customEncode(x, "triangle.DirectHit")
+    case x: triangle.UpgradeDirectHit     => customEncode(x, "triangle.UpgradeDirectHit")
+    case x: SimpleBullet                  => customEncode(x, "SimpleBullet")
   }
 
   private def customDecoder[A <: Ability](name: String)(implicit decoder: Decoder[A]): Decoder[Ability] =
@@ -110,6 +112,7 @@ object Ability {
     customDecoder[boss.boss101.BigHit]("boss.boss101.BigHit"),
     customDecoder[hexagon.FlashHeal]("hexagon.FlashHeal"),
     customDecoder[hexagon.HexagonHot]("hexagon.HexagonHot"),
+    customDecoder[pentagon.CreatePentagonBullet]("pentagon.CreatePentagonBullet"),
     customDecoder[square.HammerHit]("square.HammerHit"),
     customDecoder[square.Taunt]("square.Taunt"),
     customDecoder[triangle.DirectHit]("triangle.DirectHit"),

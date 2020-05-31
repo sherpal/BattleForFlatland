@@ -3,6 +3,7 @@ package game.ui
 import game.Camera
 import gamelogic.entities.boss.{Boss101, BossEntity}
 import gamelogic.entities.classes.PlayerClass
+import gamelogic.entities.movingstuff.PentagonBullet
 import gamelogic.entities.{DummyMob, Entity, SimpleBulletBody}
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
@@ -32,6 +33,8 @@ final class GameDrawer(application: Application) {
   stage.addChild(dummyMobContainer)
   val bossesContainer: Container = new Container
   stage.addChild(bossesContainer)
+  val movingStuffContainer: Container = new Container
+  stage.addChild(movingStuffContainer)
 
   private def diskTexture(colour: Int, radius: Double, withBlackDot: Boolean = false): PIXI.RenderTexture = {
     val graphics = new Graphics
@@ -160,6 +163,31 @@ final class GameDrawer(application: Application) {
 
     }
 
+  private val pentagonBullets: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
+  private def drawPentagonBullets(bullets: List[PentagonBullet], currentTime: Long): Unit = {
+    // removing destroyed sprites
+    pentagonBullets.filterNot(bullet => bullets.exists(_.id == bullet._1)).foreach {
+      case (id, sprite) =>
+        println("hello")
+        sprite.destroy()
+        pentagonBullets -= id
+    }
+
+    // adding/moving bullets
+    bullets.foreach { bullet =>
+      val sprite = pentagonBullets.getOrElse(
+        bullet.id, {
+          val s = new Sprite(diskTexture(bullet.colour, bullet.shape.radius))
+          s.anchor.set(0.5, 0.5)
+          pentagonBullets += (bullet.id -> s)
+          movingStuffContainer.addChild(s)
+          s
+        }
+      )
+      camera.viewportManager(sprite, bullet.currentPosition(currentTime), bullet.shape.boundingBox)
+    }
+  }
+
   private val bulletSprites: mutable.Map[Entity.Id, Sprite] = mutable.Map()
   private def drawSimpleBullets(bullets: List[SimpleBulletBody], currentTime: Long): Unit =
     bullets.foreach { bullet =>
@@ -179,6 +207,7 @@ final class GameDrawer(application: Application) {
     drawSimpleBullets(gameState.simpleBullets.values.toList, currentTime)
     drawDummyMobs(gameState.dummyMobs.values.toList, currentTime)
     drawBosses(gameState.bosses.valuesIterator.toList, currentTime)
+    drawPentagonBullets(gameState.pentagonBullets.valuesIterator.toList, currentTime)
   }
 
 }

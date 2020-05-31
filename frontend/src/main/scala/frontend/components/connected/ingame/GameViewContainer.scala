@@ -15,6 +15,7 @@ import models.bff.ingame.{InGameWSProtocol, KeyboardControls}
 import models.syntax.Pointed
 import models.users.User
 import org.scalajs.dom.html
+import org.scalajs.dom.html.Progress
 import typings.pixiJs.mod.Application
 import typings.pixiJs.{AnonAntialias => ApplicationOptions}
 import zio.ZIO
@@ -39,10 +40,22 @@ final class GameViewContainer private (
 
   private val maybeTargetBus: EventBus[Option[Entity]] = new EventBus
 
+  val application: Application = new Application(ApplicationOptions(backgroundColor = 0x1099bb))
+  val loader                   = new GameAssetLoader(application)
+
+  val assetLoading: Signal[Double] = loader.$progressData.map(_.completion).startWith(0.0)
+
+  val loadingProgressBar: ReactiveHtmlElement[Progress] = progress(
+    maxAttr := "100",
+    value <-- assetLoading.map(_.toString)
+  )
+
   val element: ReactiveHtmlElement[html.Div] = div(
     className := "GameViewContainer",
     onMountCallback(ctx => componentDidMount(ctx.owner)),
-    div(),
+    div(
+      child <-- assetLoading.map(_ < 100).map(if (_) loadingProgressBar else emptyNode)
+    ),
     pre(child <-- maybeTargetBus.events.map {
       case None                  => "No target"
       case Some(target: Square)  => target.asJson.spaces2
@@ -51,9 +64,6 @@ final class GameViewContainer private (
       case target                => s"Don't know this target: $target"
     })
   )
-
-  val application: Application = new Application(ApplicationOptions(backgroundColor = 0x1099bb))
-  val loader                   = new GameAssetLoader(application)
 
   private def mountEffect(gameContainer: html.Div, owner: Owner) =
     for {

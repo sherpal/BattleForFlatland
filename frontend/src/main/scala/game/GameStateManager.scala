@@ -10,6 +10,7 @@ import game.ui.GameDrawer
 import game.ui.gui.GUIDrawer
 import gamelogic.abilities.Ability
 import gamelogic.abilities.hexagon.{FlashHeal, HexagonHot}
+import gamelogic.abilities.pentagon.CreatePentagonBullet
 import gamelogic.abilities.square.{HammerHit, Taunt}
 import gamelogic.abilities.triangle.{DirectHit, UpgradeDirectHit}
 import gamelogic.entities.WithPosition.Angle
@@ -105,19 +106,24 @@ final class GameStateManager(
         .withCurrentValueOf($gameStates)
         .filter(_._2.players.isDefinedAt(playerId))
         .withCurrentValueOf($maybeTarget)
+        .withCurrentValueOf($gameMousePosition)
         .map {
-          case ((event, gameState), maybeTarget) =>
+          case (((event, gameState), maybeTarget), worldMousePos) =>
             val me = gameState.players(playerId) // this is ok because of above filter
 
-            (gameState, abilityCodes.zip(me.abilities).find(_._1 == event.code), maybeTarget)
+            (gameState, abilityCodes.zip(me.abilities).find(_._1 == event.code), maybeTarget, worldMousePos)
         },
       useAbilityBus.events
         .withCurrentValueOf($gameStates)
         .withCurrentValueOf($maybeTarget)
-        .map { case ((abilityId, gameState), maybeTarget) => (gameState, Some(abilityId), maybeTarget) }
+        .withCurrentValueOf($gameMousePosition)
+        .map {
+          case (((abilityId, gameState), maybeTarget), worldMousePos) =>
+            (gameState, Some(abilityId), maybeTarget, worldMousePos)
+        }
     )
     .foreach {
-      case (gameState, maybeAbilityId, maybeTarget) =>
+      case (gameState, maybeAbilityId, maybeTarget, worldMousePos) =>
         maybeAbilityId.foreach {
           case (_, abilityId) =>
             val now = System.currentTimeMillis
@@ -205,6 +211,34 @@ final class GameStateManager(
                 } else {
                   dom.console.warn("Can't use UpgradeDirectHit")
                 }
+              case Ability.pentagonPentagonBullet =>
+                gameState.players.get(playerId) match {
+                  case Some(me) =>
+                    val myPosition  = me.pos // should not be moving anyway
+                    val direction   = worldMousePos - myPosition
+                    val startingPos = myPosition + me.shape.radius * direction.normalized
+                    val ability = CreatePentagonBullet(
+                      0L,
+                      now,
+                      playerId,
+                      startingPos,
+                      CreatePentagonBullet.damage,
+                      direction.arg,
+                      me.colour
+                    )
+                    val action = EntityStartsCasting(0L, now, ability.castingTime, ability)
+                    if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
+                          $strictGameStates.now,
+                          deltaTimeWithServer + 100
+                        )) {
+                      socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                    } else {
+                      dom.console.warn("Can't use CreatePentagonBullet")
+                    }
+                  case None =>
+                    dom.console.warn("You are dead")
+                }
+
               case _ =>
                 // todo
                 dom.console.warn(s"TODO: implement ability $abilityId")

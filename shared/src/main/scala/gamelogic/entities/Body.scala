@@ -12,11 +12,13 @@ trait Body extends WithPosition {
 
   def rotation: Angle
 
-  def collides(that: Body): Boolean =
-    shape.collides(pos, rotation, that.shape, that.pos, that.rotation)
-
-  def collides(that: MovingBody, thatTime: Long): Boolean =
-    shape.collides(pos, rotation, that.shape, that.currentPosition(thatTime), that.rotation)
+  /**
+    * Checks if this MovingBody collides with that Moving body.
+    * @param that        other body
+    * @param currentTime current time to check collision
+    */
+  def collides(that: Body, currentTime: Long): Boolean =
+    shape.collides(currentPosition(currentTime), rotation, that.shape, that.currentPosition(currentTime), that.rotation)
 
   /**
     * Finds the first position, going from pos and towards rotation, where this body does not collide the bodies.

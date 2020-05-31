@@ -12,19 +12,6 @@ trait MovingBody extends Moving with Body {
       pos
 
   /**
-    * Checks if this MovingBody collides with that Moving body.
-    * @param that     other MovingBody
-    * @param thisTime the time elapsed since this object position
-    * @param thatTime the time elapsed since that object position
-    * @return
-    */
-  def collides(that: MovingBody, thisTime: Long, thatTime: Long): Boolean =
-    shape.collides(currentPosition(thisTime), rotation, that.shape, that.currentPosition(thatTime), that.rotation)
-
-  def collides(that: Body, thisTime: Long): Boolean =
-    shape.collides(currentPosition(thisTime), rotation, that.shape, that.pos, that.rotation)
-
-  /**
     * Moves this MovingBody at the current time, with the all moving body related attributes.
     */
   def move(time: Long, position: Complex, direction: Angle, rotation: Angle, speed: Double, moving: Boolean): MovingBody

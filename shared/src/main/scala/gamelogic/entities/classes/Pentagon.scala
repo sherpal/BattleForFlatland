@@ -31,7 +31,7 @@ final case class Pentagon(
 ) extends PlayerClass {
   def shape: Polygon = Pentagon.shape
 
-  protected def patchLifeTotal(newLife: Angle): Pentagon = copy(life = newLife)
+  protected def patchLifeTotal(newLife: Double): Pentagon = copy(life = newLife)
 
   def abilities: Set[AbilityId] = Pentagon.abilities
 
@@ -43,7 +43,7 @@ final case class Pentagon(
   protected def patchResourceAmount(newResourceAmount: ResourceAmount): Pentagon =
     copy(resourceAmount = newResourceAmount)
 
-  def move(time: Long, position: Complex, direction: Angle, rotation: Angle, speed: Angle, moving: Boolean): Pentagon =
+  def move(time: Long, position: Complex, direction: Angle, rotation: Angle, speed: Double, moving: Boolean): Pentagon =
     copy(time = time, pos = position, direction = direction, rotation = rotation, speed = speed, moving = moving)
 
   def teamId: TeamId = Entity.teams.playerTeam
@@ -61,10 +61,10 @@ object Pentagon extends PlayerClassBuilder {
     )
   )
 
-  final val abilities: Set[Ability.AbilityId] = Set()
+  final val abilities: Set[Ability.AbilityId] = Set(Ability.pentagonPentagonBullet)
 
   final val shape: Polygon = Shape.regularPolygon(5, Constants.playerRadius)
 
   final val initialMaxLife: Double                = 100
-  final val initialResourceAmount: ResourceAmount = ResourceAmount(200.0, Resource.Mana)
+  final val initialResourceAmount: ResourceAmount = ResourceAmount(300.0, Resource.Mana)
 }

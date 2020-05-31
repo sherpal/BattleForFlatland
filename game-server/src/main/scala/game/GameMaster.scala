@@ -58,27 +58,14 @@ object GameMaster {
       _ <- ZIO.effectTotal(to ! GameLoop)
     } yield ()
 
-//  private def spawnMobLoop(
-//      to: ActorRef[GameActionWrapper],
-//      each: FiniteDuration,
-//      entityIdGenerator: EntityIdGenerator
-//  ) =
-//    (for {
-//      fiber <- zio.clock.sleep(fromScala(each)).fork
-//      _ <- fiber.join
-//      real <- zio.random.nextGaussian
-//      imag <- zio.random.nextGaussian
-//      pos = 100 * Complex(real, imag)
-//      _ <- ZIO.effectTotal(to ! GameActionWrapper(AddDummyMob(0L, now, entityIdGenerator(), pos)))
-//    } yield ()).forever
-
   // todo: add other server actions.
   private val serverAction = new ManageUsedAbilities ++
     new ManageStopCastingMovements ++
     new ManageTickerBuffs ++
     new ManageBuffsToBeRemoved ++
     new ManageDeadPlayers ++
-    new ManageEndOfGame
+    new ManageEndOfGame ++
+    new ManagePentagonBullets
 
   def apply(actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage]): Behavior[Message] =
     setupBehaviour(actionUpdateCollector, None, Set.empty, None)(IdGeneratorContainer.initialIdGeneratorContainer)

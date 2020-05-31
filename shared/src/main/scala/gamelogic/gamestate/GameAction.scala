@@ -75,6 +75,7 @@ object GameAction {
     case x: EntityTakesDamage        => customEncode(x, "EntityTakesDamage")
     case x: GameStart                => customEncode(x, "GameStart")
     case x: MovingBodyMoves          => customEncode(x, "MovingBodyMoves")
+    case x: NewPentagonBullet        => customEncode(x, "NewPentagonBullet")
     case x: NewSimpleBullet          => customEncode(x, "NewSimpleBullet")
     case x: PutSimpleBuff            => customEncode(x, "PutSimpleBuff")
     case x: PutConstantDot           => customEncode(x, "PutConstantDot")
@@ -105,6 +106,7 @@ object GameAction {
     customDecoder[EntityTakesDamage]("EntityTakesDamage"),
     customDecoder[GameStart]("GameStart"),
     customDecoder[MovingBodyMoves]("MovingBodyMoves"),
+    customDecoder[NewPentagonBullet]("NewPentagonBullet"),
     customDecoder[NewSimpleBullet]("NewSimpleBullet"),
     customDecoder[PutSimpleBuff]("PutSimpleBuff"),
     customDecoder[PutConstantDot]("PutConstantDot"),

@@ -3,13 +3,21 @@ package assets
 import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff
 
+import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
+import scala.util.Try
 
 trait Asset extends js.Object
 
 object Asset {
+
+  final class AssetNotProperlyDefined(asset: Asset)
+      extends Exception(
+        s"The asset `${asset.toString}` does not seem to work. Did you forget to restart the Dev server? Or Perhaps" +
+          s"you forgot to add the asset in resource path? A typo in the filepath could also cause that."
+      )
 
   object ingame {
     object gui {
@@ -31,6 +39,9 @@ object Asset {
         object triangleDirectHit extends Asset
         @js.native @JSImport("resources/assets/in-game/gui/abilities/triangle-upgrade-direct-hit.png", JSImport.Default)
         object triangleUpgradeDirectHit extends Asset
+
+        @js.native @JSImport("resources/assets/in-game/gui/abilities/pentagon-bullet.png", JSImport.Default)
+        object pentagonBullet extends Asset
 
         @js.native @JSImport("resources/assets/in-game/gui/abilities/boss101-big-dot.png", JSImport.Default)
         object boss101BigDot extends Asset
@@ -76,7 +87,8 @@ object Asset {
     }
   }
 
-  implicit def assetAsString(asset: Asset): String = asset.asInstanceOf[String]
+  implicit def assetAsString(asset: Asset): String =
+    Try(asset.asInstanceOf[String]).fold(_ => throw new AssetNotProperlyDefined(asset), identity[String])
 
   // Touching all assets so that there are loaded
   ScalaLogo
@@ -90,6 +102,7 @@ object Asset {
   ingame.gui.abilities.squareTaunt
   ingame.gui.abilities.triangleDirectHit
   ingame.gui.abilities.triangleUpgradeDirectHit
+  ingame.gui.abilities.pentagonBullet
   ingame.gui.abilities.boss101BigDot
   ingame.gui.`default-abilities`.squareShield
   ingame.gui.`default-abilities`.rageFiller
@@ -102,7 +115,8 @@ object Asset {
     Ability.squareHammerHit -> ingame.gui.abilities.squareHammerHit,
     Ability.squareTauntId -> ingame.gui.abilities.squareTaunt,
     Ability.triangleDirectHit -> ingame.gui.abilities.triangleDirectHit,
-    Ability.triangleUpgradeDirectHit -> ingame.gui.abilities.triangleUpgradeDirectHit
+    Ability.triangleUpgradeDirectHit -> ingame.gui.abilities.triangleUpgradeDirectHit,
+    Ability.pentagonPentagonBullet -> ingame.gui.abilities.pentagonBullet
   )
 
   final val buffAssetMap: Map[Buff.ResourceIdentifier, Asset] = Map(
