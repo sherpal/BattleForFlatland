@@ -24,7 +24,7 @@ Replace the fields `???` with fields you want for your personnal account inside 
 
 #### I have docker installed
 
-create a file named `dev.conf` and add the lines
+Create a file named `dev.conf` and add the lines
 
 ```
 slick.dbs.default.db.url = "jdbc:postgresql://localhost:30000/battleforflatland?user=postgres&password=somepassword"
@@ -36,7 +36,7 @@ superUser {
 }
 ```
 
-Replace the fields `???` with fields you want for your personnal account inside the web app, and fill the `<...>` information in the JDBC connection string.
+Replace the fields `???` with fields you want for your personnal account inside the web app.
 
 Then execute the following command
 
