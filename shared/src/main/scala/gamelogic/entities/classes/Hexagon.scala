@@ -37,14 +37,14 @@ final case class Hexagon(
 
   protected def patchLifeTotal(newLife: Double): LivingEntity = copy(life = newLife)
 
-  def abilities: Set[AbilityId] = Set(Ability.hexagonFlashHealId, Ability.hexagonHexagonHotId)
+  def abilities: Set[AbilityId] = Hexagon.abilities
 
   def useAbility(ability: Ability): Hexagon = copy(
     relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability),
     resourceAmount        = resourceAmount - ability.cost
   )
 
-  def shape: Polygon = Shape.regularPolygon(6, Constants.playerRadius)
+  def shape: Polygon = Hexagon.shape
 
   def move(
       time: Long,
@@ -75,4 +75,10 @@ object Hexagon extends PlayerClassBuilder {
       Buff.manaFiller
     )
   )
+
+  def abilities: Set[Ability.AbilityId] = Set(Ability.hexagonFlashHealId, Ability.hexagonHexagonHotId)
+
+  def shape: Polygon = Shape.regularPolygon(6, Constants.playerRadius)
+
+  def initialMaxLife: Double = 100
 }
