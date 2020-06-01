@@ -83,6 +83,15 @@ lazy val `game-server` = project
 
 addCommandAlias("dev", ";frontend/fastOptJS::startWebpackDevServer;~frontend/fastOptJS")
 
+/**
+  * This command builds the frontend inside the backend public directory, using fastOptJS for shorter cycle
+  * if you need to develop using this.
+  */
+addCommandAlias("fastBuild", "frontend/fastOptJS::webpack")
+
+/**
+  * This command builds the frontend inside the backend public directory. This should only be used in production.
+  */
 addCommandAlias("build", "frontend/fullOptJS::webpack")
 
 addCommandAlias("compileShared", ";sharedJS/compile;sharedJVM/compile")

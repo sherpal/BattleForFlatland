@@ -36,7 +36,7 @@ superUser {
 }
 ```
 
-Replace the fields `???` with fields you want for your personnal account inside the web app.
+Replace the fields `???` with fields you want for your personal account inside the web app.
 
 Then execute the following command
 
@@ -58,7 +58,7 @@ If you want to see the list of current docker containers, you should issue the c
 
 While in development, you can launch the `game-server-launcher.sc` script using [ammonite](http://ammonite.io/). Simply issue the
 `amm game-server-launcher.sc`
-command. If you're on Windows, you'll need to (for example) use a docker container with linux and ammonite. If you don't, it's not a big deal, and you'll see a message saying what to copy-paste in an sbt shell. Something like
+command. If you're on Windows, it seems that [this trick](https://github.com/lihaoyi/Ammonite/issues/119#issuecomment-595419102) will make ammonite work. If not, it's not a big deal, and you'll see a message saying what to copy-paste in an sbt shell. Something like
 
 ```
 Could not reach game-server-launcher, fall back to manual launch:
@@ -77,7 +77,7 @@ The game canvas will need game assets. You'll need to create images correspondin
 
 There are three programs that must be ran in dev mode:
 
-- `sbt dev`: runs the frontend with hot reload (port 8080)
+- `sbt dev`: runs the frontend with hot reload (port 8080) (If you want to play with other people, should should instead use the `build` (of `fastBuild`) alias command to build the frontend inside the backend's public directory.)
 - `sbt backend/run`: runs the backend (port 9000) (If you want to play with other people, you should use `sbt "backend/run -Dhttp.address=0.0.0.0"` instead)
 - `amm game-server-launcher.sc`: runs the game-server-launcher.
 
