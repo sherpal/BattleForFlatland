@@ -1,0 +1,102 @@
+:root {
+  --primary-yellow: #fbb040;
+  --primary-orange: #e86000;
+  --primary-grey: #a2958a;
+  --dark-grey: #515151;
+  --column-width: 100px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+
+/* Removing defaults */
+ul {
+  list-style-type: none;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+/* Outside all connection. */
+.outside-conn {
+  display: grid;
+  grid-template-rows: 80px 1fr;
+  grid-template-columns: 1fr 4fr 1fr;
+  grid-template-areas: "header header header" "empty1 main empty2";
+  /*     input[type="submit"] {
+          background-color: var(--primary-orange);
+          color: white;
+          padding: 5px;
+          border: solid 1px var(--primary-orange);
+          height: 29px;
+          cursor: pointer;
+      } */
+}
+
+.outside-conn > nav {
+  /* display: flex; */
+  /* justify-content: space-between; */
+  /*     background-color: var(--primary-orange); */
+  grid-area: header;
+  /* align-items: center;  */
+}
+
+.outside-conn > section {
+  grid-area: main;
+  padding: 20px;
+}
+
+.outside-conn > .empty1 {
+  grid-area: empty1;
+}
+
+.outside-conn > .empty2 {
+  grid-area: empty2;
+}
+
+/* Inside connections */
+.main-conn {
+  display: grid;
+  grid-template-rows: 60px 1fr;
+  grid-template-columns: 1fr;
+  grid-template-areas: "header" "main";
+}
+.main-conn .main {
+  grid-area: main;
+  padding: 20px;
+}
+.main-conn .menu {
+  width: 120px;
+}
+.main-conn .menu ul {
+  display: flex;
+  justify-content: space-around;
+  flex-direction: column;
+}
+.main-conn .menu ul li {
+  padding: 5px;
+}
+
+
+.main-conn > header {
+  /* display: flex; */
+  /* justify-content: space-between; */
+  /* background-color: var(--primary-orange); */
+  grid-area: header;
+  /* align-items: center; */
+}
+
+/* Buttons */
+.form-control {
+  max-width: 250px;
+}
+
+a {
+  cursor: pointer;
+}
+
+/*# sourceMappingURL=index.css.map */

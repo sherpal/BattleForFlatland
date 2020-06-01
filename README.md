@@ -24,7 +24,7 @@ Replace the fields `???` with fields you want for your personnal account inside 
 
 #### I have docker installed
 
-Create a file named `dev.conf` and add the lines
+Within the `shared-backend/src/main/resources`, create a file named `dev.conf` and add the lines
 
 ```
 slick.dbs.default.db.url = "jdbc:postgresql://localhost:30000/battleforflatland?user=postgres&password=somepassword"
@@ -47,7 +47,7 @@ docker run --name some-postgres -p 30000:5432 -e POSTGRES_DB=battleforflatland -
 If you are not familiar with docker, here are a few explanations of what this does:
 
 - `--name some-postgres` gives a name to the container (doesn't matter much)
-- `-p 30000:5432` binds the port 30000 in your machine to the port 5432 inside the docker container. 5432 is the port on which the postgres databases runs. Which means that on your machin the database is available at port 30000
+- `-p 30000:5432` binds the port 30000 in your machine to the port 5432 inside the docker container. 5432 is the port on which the postgres databases runs. Which means that on your machine the database is available at port 30000
 - `-e key=value` These instructions adds the `key` environment variable inside the docker container and binds it to the specified `value`
 - `-d` means "detached". That is, the docker container runs in the background
 - `postgres` this is the name of the [docker image](https://hub.docker.com/_/postgres/). If you don't have it already, docker will automatically download it for you.
