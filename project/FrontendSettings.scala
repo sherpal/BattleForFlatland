@@ -50,6 +50,7 @@ object FrontendSettings {
     webpackResources := baseDirectory.value / "webpack" * "*",
     webpackConfigFile in fastOptJS := Some(baseDirectory.value / "webpack" / "webpack-fastopt.config.js"),
     webpackConfigFile in fullOptJS := Some(baseDirectory.value / "webpack" / "webpack-opt.config.js"),
+    fullOptJS / scalaJSLinkerConfig ~= { _.withClosureCompiler(false) },
     webpackConfigFile in Test := Some(baseDirectory.value / "webpack" / "webpack-core.config.js"),
     webpackDevServerExtraArgs in fastOptJS := Seq("--inline", "--hot"),
     webpackBundlingMode in fastOptJS := BundlingMode.LibraryOnly(),

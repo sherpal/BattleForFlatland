@@ -81,7 +81,8 @@ lazy val `game-server` = project
   .disablePlugins(HerokuPlugin)
   .dependsOn(`shared-backend`)
 
-lazy val `game-server-launcher` = project.in(file("./game-server-launcher"))
+lazy val `game-server-launcher` = project
+  .in(file("./game-server-launcher"))
   .settings(
     libraryDependencies ++= List(
       "com.typesafe.akka" %% "akka-actor-typed" % "2.6.4",
@@ -93,12 +94,6 @@ lazy val `game-server-launcher` = project.in(file("./game-server-launcher"))
   .disablePlugins(HerokuPlugin)
 
 addCommandAlias("dev", ";frontend/fastOptJS::startWebpackDevServer;~frontend/fastOptJS")
-
-/**
-  * This command builds the frontend inside the backend public directory, using fastOptJS for shorter cycle
-  * if you need to develop using this.
-  */
-addCommandAlias("fastBuild", "frontend/fastOptJS::webpack")
 
 /**
   * This command builds the frontend inside the backend public directory. This should only be used in production.

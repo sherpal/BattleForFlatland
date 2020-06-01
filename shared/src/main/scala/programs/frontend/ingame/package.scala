@@ -25,7 +25,6 @@ package object ingame {
         fiber <- pingPong(ping).fork
         pong <- fiber.join
         nowAgain <- zio.clock.currentTime(TimeUnit.MILLISECONDS)
-        _ <- UIO { println(now - pong.originalSendingTime) }
         latency <- UIO((nowAgain - pong.originalSendingTime) / 2)
         linkTime <- UIO(latency + pong.midwayDistantTime)
         newDeltas <- UIO((linkTime - nowAgain) +: deltas)
