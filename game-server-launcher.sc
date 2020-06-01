@@ -18,36 +18,30 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object WebServer {
-  def main(args: Array[String]) {
+  val sbtProcess = os.proc("sbt").spawn(stdout = os.Inherit, stderr = os.Inherit)
 
-    val sbtProcess = os.proc("sbt").spawn(stdout = os.Inherit, stderr = os.Inherit)
+  implicit val system = ActorSystem("my-system")
+  // needed for the future flatMap/onComplete in the end
+  implicit val executionContext = system.dispatcher
 
-    implicit val system = ActorSystem("my-system")
-    implicit val materializer = ActorMaterializer()
-    // needed for the future flatMap/onComplete in the end
-    implicit val executionContext = system.dispatcher
-
-    val route =
-      path("run-game-server") {
-        get {
-            parameters('gameId, 'gameSecret, 'host) { (gameId, gameSecret, host) =>
-                val sbtCommand = s"game-server/run -i $gameId -s $gameSecret -h $host"
-                sbtProcess.stdin.writeLine(sbtCommand)
-                complete("ok")
-            }
-        }
+  val route =
+    path("run-game-server") {
+      get {
+          parameters(Symbol("gameId"), Symbol("gameSecret"), Symbol("host")) { (gameId, gameSecret, host) =>
+              val sbtCommand = s"game-server/run -i $gameId -s $gameSecret -h $host"
+              sbtProcess.stdin.writeLine(sbtCommand)
+              complete("ok")
+          }
       }
+    }
 
-    val bindingFuture = Http().bindAndHandle(route, "localhost", 22223)
-
-    println(s"Server online at http://localhost:22223/\nPress RETURN to stop...")
-    StdIn.readLine() // let it run until user presses return
-    bindingFuture
-      .flatMap(_.unbind()) // trigger unbinding from the port
-      .onComplete(_ => system.terminate()) // and shutdown when done
-  }
+  val bindingFuture = Http().bindAndHandle(route, "localhost", 22223)
 }
 
-WebServer.main(Array())
+WebServer
 
-
+println(s"Server online at http://localhost:22223/\nPress RETURN to stop...")
+StdIn.readLine() // let it run until user presses return
+WebServer.bindingFuture
+  .flatMap(_.unbind()) // trigger unbinding from the port
+  .onComplete(_ => WebServer.system.terminate()) // and shutdown when done
