@@ -9,7 +9,7 @@ import game.ui.gui.components.buffs.BuffContainer
 import game.ui.gui.components.gridcontainer.GridContainer
 import game.ui.gui.components._
 import gamelogic.abilities.Ability
-import gamelogic.abilities.boss.boss101.{BigDot, BigHit}
+import gamelogic.abilities.boss.boss101.{BigDot, BigHit, SmallHit}
 import gamelogic.entities.{Entity, LivingEntity, MovingBody}
 import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.LoaderResource
@@ -93,7 +93,7 @@ final class GUIDrawer(
   guiContainer.addChild(abilityButtonContainer.container)
 
   private var maybeBossThreatMeter: Option[BossThreatMeter] = Option.empty
-  private var maybeBossFrame: Option[BossFrame] = Option.empty
+  private var maybeBossFrame: Option[BossFrame]             = Option.empty
 
   def update(gameState: GameState, currentTime: Long): Unit = {
     castingBar.update(gameState, currentTime)
@@ -129,16 +129,23 @@ final class GUIDrawer(
       List(
         new CooldownBar(
           bossId,
+          Ability.boss101SmallHitId,
+          SmallHit.name,
+          RGBColour.blue,
+          resources(minimalistBar).texture
+        ),
+        new CooldownBar(
+          bossId,
           Ability.boss101BigDotId,
           BigDot.name,
-          RGBColour(255, 0, 0),
+          RGBColour.red,
           resources(minimalistBar).texture
         ),
         new CooldownBar(
           bossId,
           Ability.boss101BigHitId,
           BigHit.name,
-          RGBColour(0, 255, 0),
+          RGBColour.green,
           resources(minimalistBar).texture
         )
       ).foreach { bar =>

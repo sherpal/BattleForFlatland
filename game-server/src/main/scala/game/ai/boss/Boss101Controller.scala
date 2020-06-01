@@ -6,7 +6,7 @@ import game.ActionTranslator
 import game.ai.AIControllerMessage
 import game.ai.AIManager.loopRate
 import gamelogic.abilities.Ability
-import gamelogic.abilities.boss.boss101.{BigDot, BigHit}
+import gamelogic.abilities.boss.boss101.{BigDot, BigHit, SmallHit}
 import gamelogic.entities.boss.Boss101
 import gamelogic.gamestate.GameState
 import gamelogic.gamestate.gameactions.{ChangeTarget, EntityStartsCasting, MovingBodyMoves, SpawnBoss}
@@ -93,6 +93,13 @@ object Boss101Controller {
                     .maxByOption(_ => Random.nextInt())
                     .getOrElse(target.id)
                 )
+              ).filter(ability => me.canUseAbility(ability, startTime)).map { ability =>
+                EntityStartsCasting(0L, now, ability.castingTime, ability)
+              }
+            )
+            .orElse(
+              Some(
+                SmallHit(0L, now, me.id, target.id, SmallHit.damageAmount)
               ).filter(ability => me.canUseAbility(ability, startTime)).map { ability =>
                 EntityStartsCasting(0L, now, ability.castingTime, ability)
               }

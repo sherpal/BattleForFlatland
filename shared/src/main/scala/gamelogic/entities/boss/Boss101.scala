@@ -50,7 +50,7 @@ final case class Boss101(
 
   def shape: Circle = Boss101.shape
 
-  def abilities: Set[AbilityId] = Set(Ability.boss101BigDotId, Ability.boss101BigHitId)
+  def abilities: Set[AbilityId] = Set(Ability.boss101BigDotId, Ability.boss101BigHitId, Ability.boss101SmallHitId)
 
   def useAbility(ability: Ability): Boss101 = copy(
     relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability)
@@ -67,13 +67,13 @@ final case class Boss101(
 
   def teamId: Entity.TeamId = Entity.teams.mobTeam
 
-  def changeDamageThreats(threatId: Id, delta: ThreatAmount): WithThreat =
+  def changeDamageThreats(threatId: Id, delta: ThreatAmount): Boss101 =
     copy(damageThreats = damageThreats + (threatId -> (damageThreats.getOrElse(threatId, 0.0) + delta)))
 
-  def changeHealingThreats(threatId: Id, delta: ThreatAmount): WithThreat =
+  def changeHealingThreats(threatId: Id, delta: ThreatAmount): Boss101 =
     copy(healingThreats = healingThreats + (threatId -> (healingThreats.getOrElse(threatId, 0.0) + delta)))
 
-  def changeTarget(newTargetId: Id): WithTarget = copy(targetId = newTargetId)
+  def changeTarget(newTargetId: Id): Boss101 = copy(targetId = newTargetId)
 
   protected def patchResourceAmount(newResourceAmount: ResourceAmount): Boss101 = this
 }
