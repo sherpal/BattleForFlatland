@@ -248,7 +248,7 @@ final class ImmutableActionCollector private (
     case Some((gs, actions)) =>
       gs.applyActions(actions.takeWhile(_.time <= time))
     case None =>
-      println("beuh", time)
+      println("beuh", time, System.currentTimeMillis())
       throw TooOldActionException(time.toString)
   }
 

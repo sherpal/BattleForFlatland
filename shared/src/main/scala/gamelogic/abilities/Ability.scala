@@ -80,6 +80,7 @@ object Ability {
   final val triangleDirectHit: AbilityId        = 8
   final val triangleUpgradeDirectHit: AbilityId = 9
   final val pentagonPentagonBullet: AbilityId   = 10
+  final val boss101SmallHitId: AbilityId        = 11
 
   @inline final def gcd = 200L
 
@@ -94,6 +95,7 @@ object Ability {
   implicit val encoder: Encoder[Ability] = Encoder.instance {
     case x: boss.boss101.BigDot           => customEncode(x, "boss.boss101.BigDot")
     case x: boss.boss101.BigHit           => customEncode(x, "boss.boss101.BigHit")
+    case x: boss.boss101.SmallHit         => customEncode(x, "boss.boss101.SmallHit")
     case x: hexagon.FlashHeal             => customEncode(x, "hexagon.FlashHeal")
     case x: hexagon.HexagonHot            => customEncode(x, "hexagon.HexagonHot")
     case x: pentagon.CreatePentagonBullet => customEncode(x, "pentagon.CreatePentagonBullet")
@@ -110,6 +112,7 @@ object Ability {
   implicit val decoder: Decoder[Ability] = List[Decoder[Ability]](
     customDecoder[boss.boss101.BigDot]("boss.boss101.BigDot"),
     customDecoder[boss.boss101.BigHit]("boss.boss101.BigHit"),
+    customDecoder[boss.boss101.SmallHit]("boss.boss101.SmallHit"),
     customDecoder[hexagon.FlashHeal]("hexagon.FlashHeal"),
     customDecoder[hexagon.HexagonHot]("hexagon.HexagonHot"),
     customDecoder[pentagon.CreatePentagonBullet]("pentagon.CreatePentagonBullet"),

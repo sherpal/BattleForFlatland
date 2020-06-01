@@ -37,6 +37,8 @@ final class GameStateManager(
     maybeTargetWriter: Observer[Option[Entity]]
 )(implicit owner: Owner) {
 
+  def serverTime: Long = System.currentTimeMillis() + deltaTimeWithServer
+
   val abilityCodes: List[String] = (1 to 9).map("Digit" + _).toList
 
   private var actionCollector = ImmutableActionCollector(initialGameState)
@@ -126,7 +128,7 @@ final class GameStateManager(
       case (gameState, maybeAbilityId, maybeTarget, worldMousePos) =>
         maybeAbilityId.foreach {
           case (_, abilityId) =>
-            val now = System.currentTimeMillis
+            val now = serverTime
             abilityId match {
               case Ability.hexagonFlashHealId =>
                 maybeTarget match {
@@ -266,7 +268,7 @@ final class GameStateManager(
 
     val playerMovement = UserInput.movingDirection(pressedUserInput)
 
-    val now       = System.currentTimeMillis + deltaTimeWithServer
+    val now       = serverTime
     val gameState = $strictGameStates.now
     val deltaTime = now - lastTimeStamp
     lastTimeStamp = now

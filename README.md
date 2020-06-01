@@ -36,7 +36,7 @@ superUser {
 }
 ```
 
-Replace the fields `???` with fields you want for your personal account inside the web app.
+Replace the fields `???` with fields you want for your personal account inside the web app. If you have fancy characters, and in any case for the email address, you should enclose your variables in double-quotes.
 
 Then execute the following command
 
