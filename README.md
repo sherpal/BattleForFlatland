@@ -77,7 +77,7 @@ The game canvas will need game assets. You'll need to create images correspondin
 
 There are three programs that must be ran in dev mode:
 
-- `sbt dev`: runs the frontend with hot reload (port 8080) (If you want to play with other people, should should instead use the `build` (of `fastBuild`) alias command to build the frontend inside the backend's public directory.)
+- `sbt dev`: runs the frontend with hot reload (port 8080) (If you want to play with other people, you should instead use the `build` (or `fastBuild`) alias command to build the frontend inside the backend's public directory.)
 - `sbt backend/run`: runs the backend (port 9000) (If you want to play with other people, you should use `sbt "backend/run -Dhttp.address=0.0.0.0"` instead)
 - `amm game-server-launcher.sc`: runs the game-server-launcher.
 

@@ -81,6 +81,17 @@ lazy val `game-server` = project
   .disablePlugins(HerokuPlugin)
   .dependsOn(`shared-backend`)
 
+lazy val `game-server-launcher` = project.in(file("./game-server-launcher"))
+  .settings(
+    libraryDependencies ++= List(
+      "com.typesafe.akka" %% "akka-actor-typed" % "2.6.4",
+      "com.typesafe.akka" %% "akka-stream-typed" % "2.6.4",
+      "com.typesafe.akka" %% "akka-http" % "10.1.12",
+      "com.lihaoyi" %% "os-lib" % "0.7.0"
+    )
+  )
+  .disablePlugins(HerokuPlugin)
+
 addCommandAlias("dev", ";frontend/fastOptJS::startWebpackDevServer;~frontend/fastOptJS")
 
 /**
