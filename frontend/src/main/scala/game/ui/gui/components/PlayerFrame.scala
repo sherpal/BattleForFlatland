@@ -5,7 +5,7 @@ import com.raquo.airstream.core.Observer
 import game.ui.gui.components.buffs.BuffContainer
 import gamelogic.entities.{Entity, LivingEntity, MovingBody}
 import gamelogic.gamestate.GameState
-import typings.pixiJs.AnonAlign
+import typings.pixiJs.anon.Align
 import typings.pixiJs.PIXI.interaction.{InteractionEvent, InteractionEventTypes}
 import typings.pixiJs.PIXI.{LoaderResource, Texture}
 import typings.pixiJs.mod.{Graphics, Sprite, Text, TextStyle}
@@ -46,7 +46,7 @@ final class PlayerFrame(
   private val playerNameText = new Text(
     "",
     new TextStyle(
-      AnonAlign(
+      Align(
         fontSize = 10.0
       )
     )
@@ -54,7 +54,7 @@ final class PlayerFrame(
 
   private val lifeText = new Text(
     "",
-    new TextStyle(AnonAlign(fontSize = 15.0))
+    new TextStyle(Align(fontSize = 15.0))
   )
 
   List(shapeSprite, lifeSprite, lifeMask, resourceSprite, resourceMask, playerNameText, lifeText).foreach(

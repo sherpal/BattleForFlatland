@@ -22,11 +22,9 @@ final class GUIDrawer(
     application: Application,
     resources: PartialFunction[Asset, LoaderResource],
     targetFromGUIWriter: Observer[Entity.Id],
-    $gameState: SignalViewer[GameState],
     $maybeTarget: SignalViewer[Option[MovingBody with LivingEntity]],
     useAbilityWriter: Observer[Ability.AbilityId]
 ) {
-
   val guiContainer = new Container
 
   application.stage.addChild(guiContainer)

@@ -3,7 +3,7 @@ package game.ui.gui.components
 import gamelogic.abilities.Ability
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
-import typings.pixiJs.AnonAlign
+import typings.pixiJs.anon.Align
 import typings.pixiJs.PIXI.Texture
 import typings.pixiJs.mod.{Text, TextStyle}
 import utils.misc.RGBColour
@@ -40,7 +40,7 @@ final class CooldownBar(
   private val text = new Text(
     abilityName,
     new TextStyle(
-      AnonAlign(
+      Align(
         fontSize = 10.0
       )
     )

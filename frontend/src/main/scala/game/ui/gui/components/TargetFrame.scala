@@ -5,7 +5,7 @@ import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.entities.{LivingEntity, MovingBody}
 import gamelogic.gamestate.GameState
-import typings.pixiJs.AnonAlign
+import typings.pixiJs.anon.Align
 import typings.pixiJs.PIXI.Texture
 import typings.pixiJs.mod.{Text, TextStyle}
 import utils.misc.RGBColour
@@ -46,7 +46,7 @@ final class TargetFrame($maybeTarget: SignalViewer[Option[MovingBody with Living
   private val text = new Text(
     "",
     new TextStyle(
-      AnonAlign(
+      Align(
         fontSize = 10.0
       )
     )
@@ -55,7 +55,7 @@ final class TargetFrame($maybeTarget: SignalViewer[Option[MovingBody with Living
   private val lifeText = new Text(
     "",
     new TextStyle(
-      AnonAlign(
+      Align(
         fontSize = 15.0
       )
     )

@@ -8,7 +8,7 @@ import org.scalajs.dom.html
 import org.scalajs.dom.raw.Node
 import services.http._
 import typings.pixiJs.mod.{Application, Sprite, Texture}
-import typings.pixiJs.{AnonAntialias => ApplicationOptions}
+import typings.pixiJs.anon.{Antialias => ApplicationOptions}
 import urldsl.language.PathSegment.dummyErrorImpl._
 import urldsl.language.QueryParameters.dummyErrorImpl.{param => qParam}
 import utils.laminarzio.Implicits._

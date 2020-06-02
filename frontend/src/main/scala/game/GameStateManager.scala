@@ -256,7 +256,6 @@ final class GameStateManager(
       application,
       resources,
       targetFromGUIBus.writer,
-      $strictGameStates,
       $maybeTarget.observe,
       useAbilityBus.writer
     )

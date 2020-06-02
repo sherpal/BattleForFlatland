@@ -17,7 +17,7 @@ import models.users.User
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Progress
 import typings.pixiJs.mod.Application
-import typings.pixiJs.{AnonAntialias => ApplicationOptions}
+import typings.pixiJs.anon.{Antialias => ApplicationOptions}
 import zio.ZIO
 
 /**

@@ -81,15 +81,37 @@ lazy val `game-server` = project
   .disablePlugins(HerokuPlugin)
   .dependsOn(`shared-backend`)
 
+lazy val bundlerSettings: Project => Project =
+  _.settings(
+    Compile / fastOptJS / webpackExtraArgs += "--mode=development",
+    Compile / fullOptJS / webpackExtraArgs += "--mode=production",
+    Compile / fastOptJS / webpackDevServerExtraArgs += "--mode=development",
+    Compile / fullOptJS / webpackDevServerExtraArgs += "--mode=production"
+  )
+
+val nodeProject: Project => Project =
+  _.settings(
+    jsEnv := new org.scalajs.jsenv.nodejs.NodeJSEnv,
+    // es5 doesn't include DOM, which we don't have access to in node
+    stStdlib := List("es5"),
+    stUseScalaJsDom := false,
+    Compile / npmDependencies ++= Seq(
+      "@types/node" -> "13.5.0"
+    )
+  )
+
 lazy val `game-server-launcher` = project
   .in(file("./game-server-launcher"))
+  .enablePlugins(ScalablyTypedConverterPlugin)
+  .configure(bundlerSettings, nodeProject)
   .settings(
-    libraryDependencies ++= List(
-      "com.typesafe.akka" %% "akka-actor-typed" % "2.6.4",
-      "com.typesafe.akka" %% "akka-stream-typed" % "2.6.4",
-      "com.typesafe.akka" %% "akka-http" % "10.1.12",
-      "com.lihaoyi" %% "os-lib" % "0.7.0"
-    )
+    //stExperimentalEnableImplicitOps := true,
+    Compile / npmDependencies ++= Seq(
+      "@types/express" -> "4.17.2",
+      "express" -> "4.17.1"
+    ),
+    useYarn := true,
+    scalaJSUseMainModuleInitializer := true
   )
   .disablePlugins(HerokuPlugin)
 
