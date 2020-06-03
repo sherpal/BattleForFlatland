@@ -4,7 +4,6 @@ import typings.node.childProcessMod.{spawn, ChildProcessWithoutNullStreams}
 import typings.express.{mod => expressMod}
 import typings.expressServeStaticCore.mod._
 import typings.node.global.console
-import typings.node.processMod
 import typings.expressServeStaticCore.mod.ParamsDictionary
 import typings.qs.mod.ParsedQs
 

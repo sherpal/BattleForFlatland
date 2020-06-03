@@ -68,7 +68,7 @@ and you can then launch it using (outside sbt!)
 ```
 node game-server-launcher/target/scala-2.13/scalajs-bundler/main/game-server-launcher-opt.js
 ```
-Alternatively, you can simply run
+Alternatively, you can simply run (in sbt)
 ```
 game-server-launcher/run
 ```

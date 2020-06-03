@@ -65,7 +65,8 @@ object GameMaster {
     new ManageBuffsToBeRemoved ++
     new ManageDeadPlayers ++
     new ManageEndOfGame ++
-    new ManagePentagonBullets
+    new ManagePentagonBullets ++
+    new ManageDeadAIs
 
   def apply(actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage]): Behavior[Message] =
     setupBehaviour(actionUpdateCollector, None, Set.empty, None)(IdGeneratorContainer.initialIdGeneratorContainer)
