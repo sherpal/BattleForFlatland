@@ -1,4 +1,5 @@
 package gamelogic.entities.boss
+
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
@@ -81,7 +82,7 @@ final case class Boss101(
 object Boss101 extends BossFactory {
   final val shape: Circle = new Circle(30.0)
 
-  final val maxLife: Double = 1000
+  final val maxLife: Double = 20000
 
   final val meleeRange: Distance = shape.radius + 20.0
   final val rangeRange: Distance = 2000.0 // basically infinite distance

@@ -4,6 +4,8 @@
 
 You want to play locally with your friends? Or perhaps contribute? That's great! We'll walk you through the steps to make it happen.
 
+In order to proceed, make sure you have sbt and npm installed on your machine.
+
 ### Set up the database
 
 #### I don't have [docker](https://docs.docker.com/) installed
@@ -56,9 +58,27 @@ If you want to see the list of current docker containers, you should issue the c
 
 ### Set up the game server launcher
 
-While in development, you can launch the `game-server-launcher.sc` script using [ammonite](http://ammonite.io/). Simply issue the
+While in development, we have a "game-server-launcher" to launch the game servers when a game is launched. This is a kind of a "mock up" for a more robust setup, involving, e.g., an Azure gaming service.
+
+The `game-server-launcher` sub-project is an express server written in Scala-js. You can first compile it using, in sbt,
+```
+game-server-launcher/fullOptJS
+```
+and you can then launch it using (outside sbt!)
+```
+node game-server-launcher/target/scala-2.13/scalajs-bundler/main/game-server-launcher-opt.js
+```
+Alternatively, you can simply run
+```
+game-server-launcher/run
+```
+but then you leave an extra sbt console open, which is using resources for basically nothing.
+
+If you have [ammonite](http://ammonite.io/) installed (and not on Windows apparently), you can launch the `game-server-launcher.sc`. Simply issue the
 `amm game-server-launcher.sc`
-command. If you're on Windows, it seems that [this trick](https://github.com/lihaoyi/Ammonite/issues/119#issuecomment-595419102) will make ammonite work. If not, it's not a big deal, and you'll see a message saying what to copy-paste in an sbt shell. Something like
+command.
+
+If your game-launcher-server doesn't work, it's not a big deal, and you'll see a message saying what to copy-paste in an sbt shell. Something like
 
 ```
 Could not reach game-server-launcher, fall back to manual launch:
@@ -67,7 +87,7 @@ Game server can be launched in sbt with the command:
 game-server/run -i 595c2cf3-4349-4ff3-a10d-0f7dfc83cf13 -s 24b1cb9c-9ce6-4c9b-9755-7ee3edfaab9c
 ```
 
-(You can add `-h 0.0.0.0` if you want to play with other people.)
+(You can add `-h 0.0.0.0` if you want to play with other people. Using the game-server-launcher, it is done by default.)
 
 ### Adding the game assets
 
