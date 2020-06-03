@@ -32,9 +32,10 @@ final class PlayerFrame(
   private var _width: Double  = startWidth
   private var _height: Double = startHeight
 
-  private val shapeSprite = new Sprite(entityShapeTexture)
-  private val lifeSprite  = new Sprite(lifeTexture)
-  private val lifeMask    = new Graphics()
+  private val shapeSprite          = new Sprite(entityShapeTexture)
+  private val backgroundLifeSprite = new Sprite(lifeTexture)
+  private val lifeSprite           = new Sprite(lifeTexture)
+  private val lifeMask             = new Graphics()
   lifeSprite.mask = lifeMask
   private val resourceSprite = new Sprite(resourceTexture)
   private val resourceMask   = new Graphics()
@@ -57,9 +58,10 @@ final class PlayerFrame(
     new TextStyle(Align(fontSize = 15.0))
   )
 
-  List(shapeSprite, lifeSprite, lifeMask, resourceSprite, resourceMask, playerNameText, lifeText).foreach(
-    container.addChild
-  )
+  List(shapeSprite, backgroundLifeSprite, lifeSprite, lifeMask, resourceSprite, resourceMask, playerNameText, lifeText)
+    .foreach(
+      container.addChild
+    )
 
   container.interactive = true
   container.addListener(
@@ -80,19 +82,23 @@ final class PlayerFrame(
       _width   = width
       _height  = height
 
-      container.visible   = true
-      lifeSprite.tint     = 0x00FF00
-      resourceSprite.tint = entity.resourceType.colour.intColour
+      container.visible         = true
+      lifeSprite.tint           = 0x00FF00
+      backgroundLifeSprite.tint = 0xc0c0c0
+      resourceSprite.tint       = entity.resourceType.colour.intColour
 
       shapeSprite.width  = height
       shapeSprite.height = height
 
-      lifeSprite.x     = height
-      lifeSprite.width = width - height
-      lifeMask.x       = height
+      lifeSprite.x               = height
+      lifeSprite.width           = width - height
+      lifeMask.x                 = height
+      backgroundLifeSprite.x     = lifeSprite.x
+      backgroundLifeSprite.width = lifeSprite.width
 
       val lifeProportion = 0.8
-      lifeSprite.height = height * lifeProportion
+      lifeSprite.height           = height * lifeProportion
+      backgroundLifeSprite.height = lifeSprite.height
 
       playerNameText.x    = height + 4
       playerNameText.y    = 2
