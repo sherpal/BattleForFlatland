@@ -1,5 +1,14 @@
 # Battle For Flatland
 
+## History was made on June, 3rd, 2020
+
+The first games of BFF were made on the 3rd of June, 2020. The first boss "Boss101" was defeated at 22:12 CEST in presence of
+- Justin Dekeyser, Square
+- Antoine Doeraene, Triangle
+- Sébastien Doeraene, Hexagon
+- Souad Lepoivre, Pentagon
+- Nicolas Radu, Hexagon
+
 ## Run locally
 
 You want to play locally with your friends? Or perhaps contribute? That's great! We'll walk you through the steps to make it happen.
@@ -22,7 +31,7 @@ superUser {
 }
 ```
 
-Replace the fields `???` with fields you want for your personnal account inside the web app, and fill the `<...>` information in the JDBC connection string.
+Replace the fields `???` with fields you want for your personal account inside the web app, and fill the `<...>` information in the JDBC connection string.
 
 #### I have docker installed
 
@@ -99,7 +108,7 @@ There are three programs that must be ran in dev mode:
 
 - `sbt dev`: runs the frontend with hot reload (port 8080) (If you want to play with other people, you should instead use the `build` alias command to build the frontend inside the backend's public directory.)
 - `sbt backend/run`: runs the backend (port 9000) (If you want to play with other people, you should use `sbt "backend/run -Dhttp.address=0.0.0.0"` instead)
-- `amm game-server-launcher.sc`: runs the game-server-launcher.
+- `node game-server-launcher/target/scala-2.13/scalajs-bundler/main/game-server-launcher-opt.js`: runs the game-server-launcher (after you compiled it once with `sbt game-server-launcher/fullOptJS`)
 
 Head over `http://localhost:8080` and after 10s you should be able to connect with the super user credentials.
 
@@ -122,5 +131,5 @@ Steps to add a new service called `MyService`:
 
 - Add the image in the `frontend/src/main/resources/assets` folder
 - Add the `Asset` object in `frontend/src/main/scala/assets/Asset.scala`
-- "Touch" the asset in that same object below (and possibly add it to the map of conrresponding assets)
+- "Touch" the asset in that same object below (and possibly add it to the map of corresponding assets)
 - Add the asset reference in the `game/GameAssetLoader` loading list

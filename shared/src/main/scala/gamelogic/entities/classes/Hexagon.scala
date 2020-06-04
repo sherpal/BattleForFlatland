@@ -63,7 +63,7 @@ final case class Hexagon(
 }
 
 object Hexagon extends PlayerClassBuilder {
-  def initialResourceAmount: ResourceAmount = ResourceAmount(300, Mana)
+  def initialResourceAmount: ResourceAmount = ResourceAmount(500, Mana)
 
   def startingActions(time: Long, entityId: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
     PutSimpleBuff(

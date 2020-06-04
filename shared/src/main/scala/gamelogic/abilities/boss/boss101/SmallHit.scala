@@ -40,7 +40,7 @@ final case class SmallHit(useId: Ability.UseId, time: Long, casterId: Entity.Id,
 
 object SmallHit {
   final val name: String         = "SmallHit"
-  final def damageAmount: Double = 30.0
-  final def cooldown: Long       = 5000L
+  final def damageAmount: Double = 15.0
+  final def cooldown: Long       = 2500L
   final def cost: ResourceAmount = ResourceAmount(0.0, NoResource)
 }

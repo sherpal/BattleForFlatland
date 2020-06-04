@@ -168,7 +168,6 @@ final class GameDrawer(application: Application) {
     // removing destroyed sprites
     pentagonBullets.filterNot(bullet => bullets.exists(_.id == bullet._1)).foreach {
       case (id, sprite) =>
-        println("hello")
         sprite.destroy()
         pentagonBullets -= id
     }

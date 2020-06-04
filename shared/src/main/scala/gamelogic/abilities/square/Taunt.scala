@@ -44,6 +44,6 @@ final case class Taunt(useId: Ability.UseId, time: Long, casterId: Entity.Id, ta
 
 object Taunt {
 
-  @inline final def damageThreatAmount = 200.0
+  @inline final def damageThreatAmount = 400.0
 
 }

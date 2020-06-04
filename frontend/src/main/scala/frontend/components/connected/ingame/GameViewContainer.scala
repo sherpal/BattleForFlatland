@@ -6,7 +6,7 @@ import frontend.components.Component
 import game.{GameAssetLoader, GameStateManager, Keyboard, Mouse}
 import gamelogic.entities.Entity
 import gamelogic.entities.boss.Boss101
-import gamelogic.entities.classes.{Hexagon, Square}
+import gamelogic.entities.classes.{Hexagon, Pentagon, Square, Triangle}
 import gamelogic.gamestate.GameState
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -57,11 +57,13 @@ final class GameViewContainer private (
       child <-- assetLoading.map(_ < 100).map(if (_) loadingProgressBar else emptyNode)
     ),
     pre(child <-- maybeTargetBus.events.map {
-      case None                  => "No target"
-      case Some(target: Square)  => target.asJson.spaces2
-      case Some(target: Boss101) => target.asJson.spaces2
-      case Some(target: Hexagon) => target.asJson.spaces2
-      case target                => s"Don't know this target: $target"
+      case None                   => "No target"
+      case Some(target: Square)   => target.asJson.spaces2
+      case Some(target: Boss101)  => target.asJson.spaces2
+      case Some(target: Hexagon)  => target.asJson.spaces2
+      case Some(target: Triangle) => target.asJson.spaces2
+      case Some(target: Pentagon) => target.asJson.spaces2
+      case target                 => s"Don't know this target: $target"
     })
   )
 

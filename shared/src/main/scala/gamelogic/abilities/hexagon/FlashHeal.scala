@@ -32,6 +32,6 @@ final case class FlashHeal(useId: Ability.UseId, time: Long, casterId: Entity.Id
 
 object FlashHeal {
 
-  final val healAmount: Double = 15
+  final val healAmount: Double = 45
 
 }

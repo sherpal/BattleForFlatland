@@ -29,7 +29,7 @@ import models.syntax.Pointed
   *   only one). These adds will have melee attacks and move not too fast, leaving time to dps to kill them before
   *   they reach the heal.
   *
-  * This boss is intended for 4 players (1 tank, 2 dps and 1 healer)
+  * This boss is intended for 5 players (1 tank, 2 dps and 2 healers)
   */
 final case class Boss101(
     id: Entity.Id,

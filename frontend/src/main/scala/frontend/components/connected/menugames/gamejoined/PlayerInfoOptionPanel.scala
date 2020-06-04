@@ -49,7 +49,7 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
       ),
       "Ready: ",
       ToggleButton(readyStateWriter.contramap(if (_) Ready else NotReady), initialPlayerInfo.isReady),
-      "Chose a class:",
+      "Choose a class:",
       classSelector,
       $playerInfo --> playerInfoWriter
     )
