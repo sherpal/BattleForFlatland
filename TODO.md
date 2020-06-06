@@ -1,8 +1,8 @@
 # To implement
 
-- show animation with damage and heals
+- show animation with damage and heals <- done, although the implementation, as the reste of the game gui, is awful
 - implement obstacles and path finding for AIs
-- allow to chose colour
+- allow to chose colour <- done but need to improve interface
 - allow to customize keys
 - allow to go fullscreen
 - mini health bar at entities positions

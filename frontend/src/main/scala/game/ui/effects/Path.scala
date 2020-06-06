@@ -67,7 +67,7 @@ object Path {
   def positiveSegment(duration: Long): Path = positiveRealLine.stopAfter(duration)
 
   def segment(duration: Long, angle: Double, speed: Double): Path =
-    positiveSegment(duration) * Complex.rotation(angle) * speed
+    positiveSegment(duration) * Complex.rotation(angle) * (speed / 1000)
 
   def goUp(duration: Long, speed: Double): Path    = segment(duration, math.Pi / 2, speed)
   def goDown(duration: Long, speed: Double): Path  = -goUp(duration, speed)

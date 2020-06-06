@@ -73,7 +73,6 @@ object Test {
       height := "30px",
       backgroundColor <-- colourBus.events.startWith(RGBColour.white).map(_.rgb)
     ),
-    reactChild(ColorPickerWrapper(colourBus.writer), container),
     onMountCallback { _ =>
       println("mounting 2!")
     }

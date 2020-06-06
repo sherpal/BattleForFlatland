@@ -29,17 +29,19 @@ final class SimpleTextEffect(
     text,
     new TextStyle(
       Align(
-        fontSize = fontSize
+        fontSize = fontSize,
+        fill     = colour.rgb
       )
     )
   )
-  pixiText.tint = colour.intColour
   pixiText.anchor.set(0.5, 0.5)
 
   val boundingBox: BoundingBox = BoundingBox(-pixiText.width, -pixiText.height, pixiText.width, pixiText.height)
 
   def isOver(currentTime: Long): Boolean    = path.isOver(currentTime - startTime)
   def isStarted(currentTime: Long): Boolean = currentTime > startTime
+
+  def destroy(): Unit = pixiText.destroy()
 
   def update(currentTime: Long): Unit =
     if (isOver(currentTime) || !isStarted(currentTime)) pixiText.visible = false

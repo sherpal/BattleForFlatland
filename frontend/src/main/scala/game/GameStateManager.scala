@@ -7,6 +7,7 @@ import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.ownership.Owner
 import com.raquo.airstream.signal.{Signal, SignalViewer}
 import game.ui.GameDrawer
+import game.ui.effects.EffectsManager
 import game.ui.gui.GUIDrawer
 import gamelogic.abilities.Ability
 import gamelogic.abilities.hexagon.{FlashHeal, HexagonHot}
@@ -23,6 +24,8 @@ import org.scalajs.dom
 import typings.pixiJs.PIXI.LoaderResource
 import typings.pixiJs.mod.Application
 import utils.pixi.monkeypatching.PIXIPatching._
+
+import scala.scalajs.js.timers.setTimeout
 
 final class GameStateManager(
     application: Application,
@@ -95,8 +98,18 @@ final class GameStateManager(
 
       unconfirmedActions = unconfirmedActions.dropWhile(_.time < actionCollector.currentGameState.time)
 
+      setTimeout(1) {
+        actionsToAdd.filterNot(action => idsOfActionsToRemove.contains(action.id)).foreach(newActionsBus.writer.onNext)
+      }
+
       nextGameState()
   }
+
+  private val newActionsBus: EventBus[GameAction] = new EventBus[GameAction]
+
+  val $actionsWithStates: EventStream[(GameAction, GameState)] = newActionsBus.events.withCurrentValueOf($gameStates)
+
+  val effectsManager = new EffectsManager(playerId, $actionsWithStates, gameDrawer.camera, application)
 
   val pressedUserInputSignal: SignalViewer[Set[UserInput]] = keyboard.$pressedUserInput.observe
 
@@ -311,6 +324,7 @@ final class GameStateManager(
       now
     )
     guiDrawer.update(gameState, now)
+    effectsManager.update(now)
   }
 
   application.ticker.add(ticker)

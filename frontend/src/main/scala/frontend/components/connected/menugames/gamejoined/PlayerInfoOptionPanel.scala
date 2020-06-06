@@ -5,8 +5,7 @@ import com.raquo.airstream.eventbus.EventBus
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
-import frontend.components.test.ColorPickerWrapper
-import frontend.components.utils.ToggleButton
+import frontend.components.utils.{ColorPickerWrapper, ToggleButton}
 import frontend.components.utils.tailwind.{primaryColour, primaryColourDark}
 import models.bff.outofgame.PlayerClasses
 import models.bff.outofgame.gameconfig.PlayerStatus.{NotReady, Ready}
@@ -46,7 +45,7 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
   val pickerContainer: ReactiveHtmlElement[html.Div] = div()
   val colourSelector: ReactiveHtmlElement[html.Div] = div(
     div(height := "30px", width := "50px", backgroundColor <-- $playerInfo.map(_.playerColour.rgb)),
-    reactChild(ColorPickerWrapper(colourWriter), pickerContainer)
+    reactChild(ColorPickerWrapper(colourWriter, initialPlayerInfo.playerColour), pickerContainer)
   )
 
   val element: ReactiveHtmlElement[Element] =

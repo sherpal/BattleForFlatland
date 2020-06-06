@@ -32,15 +32,6 @@ final class GUIDrawer(
 
   application.stage.addChild(guiContainer)
 
-  val annoyingText = new SimpleTextEffect(
-    "Coucou les amis",
-    RGBColour.white,
-    System.currentTimeMillis(),
-    Path.circleLoop(100, 5000),
-    camera
-  )
-  guiContainer.addChild(annoyingText.pixiText)
-
   /** Casting bar of the player */
   val castingBar = new CastingBar(playerId, guiContainer, {
     val graphics = new Graphics
@@ -231,8 +222,6 @@ final class GUIDrawer(
 
     targetFrame.update(gameState, currentTime)
     playerFrame.update(gameState, currentTime)
-
-    annoyingText.update(currentTime)
   }
 
 }
