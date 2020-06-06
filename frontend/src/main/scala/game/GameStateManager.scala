@@ -257,7 +257,8 @@ final class GameStateManager(
       resources,
       targetFromGUIBus.writer,
       $maybeTarget.observe,
-      useAbilityBus.writer
+      useAbilityBus.writer,
+      gameDrawer.camera
     )
 
   var lastTimeStamp = 0L
@@ -302,7 +303,11 @@ final class GameStateManager(
     val gameStateToDraw = $strictGameStates.now
     gameDrawer.drawGameState(
       gameStateToDraw,
-      gameStateToDraw.players.get(playerId).map(_.pos).getOrElse(Complex.zero),
+      gameStateToDraw.players
+        .get(playerId)
+        .map(_.pos)
+        .orElse(gameStateToDraw.bosses.headOption.map(_._2.pos))
+        .getOrElse(Complex.zero),
       now
     )
     guiDrawer.update(gameState, now)

@@ -5,6 +5,8 @@ import assets.Asset.ingame.gui.abilities._
 import assets.Asset.ingame.gui.bars._
 import com.raquo.airstream.core.Observer
 import com.raquo.airstream.signal.SignalViewer
+import game.Camera
+import game.ui.effects.{Path, SimpleTextEffect}
 import game.ui.gui.components.buffs.BuffContainer
 import game.ui.gui.components.gridcontainer.GridContainer
 import game.ui.gui.components._
@@ -23,11 +25,21 @@ final class GUIDrawer(
     resources: PartialFunction[Asset, LoaderResource],
     targetFromGUIWriter: Observer[Entity.Id],
     $maybeTarget: SignalViewer[Option[MovingBody with LivingEntity]],
-    useAbilityWriter: Observer[Ability.AbilityId]
+    useAbilityWriter: Observer[Ability.AbilityId],
+    camera: Camera
 ) {
   val guiContainer = new Container
 
   application.stage.addChild(guiContainer)
+
+  val annoyingText = new SimpleTextEffect(
+    "Coucou les amis",
+    RGBColour.white,
+    System.currentTimeMillis(),
+    Path.circleLoop(100, 5000),
+    camera
+  )
+  guiContainer.addChild(annoyingText.pixiText)
 
   /** Casting bar of the player */
   val castingBar = new CastingBar(playerId, guiContainer, {
@@ -219,6 +231,8 @@ final class GUIDrawer(
 
     targetFrame.update(gameState, currentTime)
     playerFrame.update(gameState, currentTime)
+
+    annoyingText.update(currentTime)
   }
 
 }

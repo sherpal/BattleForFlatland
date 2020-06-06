@@ -3,7 +3,7 @@ package game
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.BoundingBox
 import org.scalajs.dom.html
-import typings.pixiJs.mod.{Container, Sprite}
+import typings.pixiJs.PIXI.{Container, Sprite}
 
 final class Camera(canvas: html.Canvas) {
 
@@ -13,9 +13,9 @@ final class Camera(canvas: html.Canvas) {
     * Recall that canvas coordinates increase to the right and to the bottom. World coordinates increase to the right and
     * to the top.
     */
-  def worldToLocal(z: Complex): (Double, Double) = {
+  def worldToLocal(z: Complex): Complex = {
     val z0 = z - worldCenter
-    (width / 2 + z0.re * scaleX, height / 2 - z0.im * scaleY)
+    Complex(width / 2 + z0.re * scaleX, height / 2 - z0.im * scaleY)
   }
 
   /**
@@ -83,7 +83,7 @@ final class Camera(canvas: html.Canvas) {
     *                    bounding box must be worldPos.
     */
   def viewportManager(sprite: Sprite, worldPos: Complex, boundingBox: BoundingBox): Unit =
-    viewportManager(sprite.asInstanceOf[Container], worldPos, worldPos, boundingBox)
+    viewportManager(sprite, worldPos, worldPos, boundingBox)
 
   /**
     * Gives the visibility, the position and the scales of the sprite.
@@ -109,7 +109,7 @@ final class Camera(canvas: html.Canvas) {
         container.scale.set(scaleX, scaleY)
       }
 
-      val (x, y) = worldToLocal(worldPos)
+      val Complex(x, y) = worldToLocal(worldPos)
       container.position.set(x, y)
     } else {
       container.visible = false
@@ -131,7 +131,7 @@ final class Camera(canvas: html.Canvas) {
       container.width  = worldWidth * scaleX
       container.height = worldHeight * scaleY
 
-      val (x, y) = worldToLocal(worldPos)
+      val Complex(x, y) = worldToLocal(worldPos)
       container.position.set(x, y)
 
     } else {

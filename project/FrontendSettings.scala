@@ -1,5 +1,7 @@
 import sbt._
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
+import org.scalablytyped.converter.Flavour
+import org.scalablytyped.converter.plugin.ScalablyTypedPluginBase.autoImport.stFlavour
 import sbt.Def.settings
 import sbt.Keys.{baseDirectory, libraryDependencies, scalacOptions, version}
 import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin.autoImport._
@@ -20,7 +22,13 @@ object FrontendSettings {
       "@popperjs/core" -> "2.2.0",
       "marked" -> "0.8.2",
       "@types/marked" -> "0.7.3",
-      "tailwindcss" -> "1.2.0"
+      "tailwindcss" -> "1.2.0",
+      "@types/react-color" -> "3.0.2",
+      "react-color" -> "2.18.1",
+      "@types/react" -> "16.9.35",
+      "react" -> "16.13.1",
+      "@types/react-dom" -> "16.9.8",
+      "react-dom" -> "16.13.1"
 //      "jquery" -> "3.4.1",
 //      "popper.js" -> "1.16.1",
 //      "bootstrap" -> "4.4.1",
@@ -56,7 +64,12 @@ object FrontendSettings {
     webpackBundlingMode in fastOptJS := BundlingMode.LibraryOnly(),
     requireJsDomEnv in Test := true,
     // laminar
-    libraryDependencies += "com.raquo" %%% "laminar" % "0.9.0"
+    libraryDependencies += "com.raquo" %%% "laminar" % "0.9.0",
+    libraryDependencies += "me.shadaj" %%% "slinky-core" % "0.6.5", // core React functionality, no React DOM
+    libraryDependencies += "me.shadaj" %%% "slinky-web" % "0.6.5", // React DOM, HTML and SVG tags
+    libraryDependencies += "me.shadaj" %%% "slinky-native" % "0.6.5", // React Native components
+    scalacOptions += "-Ymacro-annotations",
+    stFlavour := Flavour.Slinky
   )
 
 }

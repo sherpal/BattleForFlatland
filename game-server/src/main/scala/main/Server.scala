@@ -59,8 +59,7 @@ object Server extends zio.App {
       (for {
         _ <- putStrLn(s"Game server running for game ${config.gameId}")
         credentials <- UIO(GameCredentials(config.gameId, config.gameSecret))
-        actorSystem <- ZIO
-          .access[Has[ActorSystem[ServerBehavior.ServerMessage]]](_.get[ActorSystem[ServerBehavior.ServerMessage]])
+        actorSystem <- ZIO.service[ActorSystem[ServerBehavior.ServerMessage]]
         _ <- putStrLn("""Execute curl -X POST "http://localhost:22222/stop" to close the server.""")
         allGameInfo <- setup.fetchGameInfo(credentials, actorSystem)
         _ <- putStrLn(allGameInfo.asJson.spaces2)

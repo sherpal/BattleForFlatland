@@ -5,6 +5,7 @@ import com.raquo.airstream.eventbus.EventBus
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
+import frontend.components.test.ColorPickerWrapper
 import frontend.components.utils.ToggleButton
 import frontend.components.utils.tailwind.{primaryColour, primaryColourDark}
 import models.bff.outofgame.PlayerClasses
@@ -12,7 +13,8 @@ import models.bff.outofgame.gameconfig.PlayerStatus.{NotReady, Ready}
 import models.bff.outofgame.gameconfig.{PlayerInfo, PlayerStatus}
 import org.scalajs.dom.html
 import org.scalajs.dom.html.{Element, Select}
-import utils.misc.RGBColour
+import utils.misc.{Colour, RGBAColour, RGBColour}
+import frontend.components.utils.laminarutils.reactChild
 
 final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, playerInfoWriter: Observer[PlayerInfo])
     extends Component[html.Element] {
@@ -24,6 +26,7 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
   val changerBus: EventBus[PlayerInfo => PlayerInfo] = new EventBus
   val readyStateWriter: Observer[PlayerStatus]       = changerBus.writer.contramap(changeReadyState)
   val playerClassWriter: Observer[PlayerClasses]     = changerBus.writer.contramap(changeClass)
+  val colourWriter: Observer[RGBAColour]             = changerBus.writer.contramap(changeColour).contramap(_.removeAlpha)
 
   val $playerInfo: Signal[PlayerInfo] = changerBus.events.fold(initialPlayerInfo) { (info, changer) =>
     changer(info)
@@ -40,6 +43,12 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
     onMountSet(_ => value := initialPlayerInfo.playerClass.toString)
   )
 
+  val pickerContainer: ReactiveHtmlElement[html.Div] = div()
+  val colourSelector: ReactiveHtmlElement[html.Div] = div(
+    div(height := "30px", width := "50px", backgroundColor <-- $playerInfo.map(_.playerColour.rgb)),
+    reactChild(ColorPickerWrapper(colourWriter), pickerContainer)
+  )
+
   val element: ReactiveHtmlElement[Element] =
     section(
       h2(
@@ -49,8 +58,11 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
       ),
       "Ready: ",
       ToggleButton(readyStateWriter.contramap(if (_) Ready else NotReady), initialPlayerInfo.isReady),
-      "Choose a class:",
-      classSelector,
+      div(
+        "Choose a class:",
+        classSelector
+      ),
+      colourSelector,
       $playerInfo --> playerInfoWriter
     )
 }

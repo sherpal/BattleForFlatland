@@ -44,8 +44,8 @@ object PopperElement {
         dom.document.body.appendChild(tooltipElement)
 
         Popper.createPopper(
-          attachedTo.asInstanceOf[typings.std.HTMLElement],
-          tooltipElement.asInstanceOf[typings.std.HTMLElement]
+          attachedTo,
+          tooltipElement
         )
 
     }

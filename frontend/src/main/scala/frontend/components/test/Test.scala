@@ -1,17 +1,15 @@
 package frontend.components.test
 
-import assets.Asset.ingame.gui.bars._
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
+import frontend.components.utils.laminarutils.reactChild
 import frontend.components.utils.tailwind._
 import game.GameAssetLoader
-import org.scalajs.dom
 import org.scalajs.dom.html
-import typings.pixiJs.mod.{Application, Container, Graphics, Sprite}
-import zio.ZIO
-
-import scala.concurrent.duration._
-import scala.scalajs.js.timers._
+import slinky.core.facade.ReactInstance
+import typings.pixiJs.mod.Application
+import typings.reactColor.mod.ColorResult
+import utils.misc.{Colour, RGBAColour, RGBColour}
 
 object Test {
 
@@ -20,44 +18,49 @@ object Test {
 
   private val container = div()
 
-  zio.Runtime.default.unsafeRunToFuture(for {
-    resources <- assetLoader.loadAssets.tap(x => ZIO.effectTotal(dom.console.log(x)))
-    _ <- ZIO.effectTotal(
-      container.ref.appendChild(application.view.asInstanceOf[dom.html.Canvas])
-    )
-    _ <- ZIO.effectTotal {
-      val sprite = new Sprite(resources(xeonBar).texture)
-      application.stage.addChild(sprite)
-      sprite.tint = 0xFF0000
-    }
-    _ <- ZIO.effectTotal {
-      val container = new Container
-      application.stage.addChild(container)
-      container.y = 50
+//  zio.Runtime.default.unsafeRunToFuture(for {
+//    resources <- assetLoader.loadAssets.tap(x => ZIO.effectTotal(dom.console.log(x)))
+//    _ <- ZIO.effectTotal(
+//      container.ref.appendChild(application.view.asInstanceOf[dom.html.Canvas])
+//    )
+//    _ <- ZIO.effectTotal {
+//      val sprite = new Sprite(resources(xeonBar).texture)
+//      application.stage.addChild(sprite)
+//      sprite.tint = 0xFF0000
+//    }
+//    _ <- ZIO.effectTotal {
+//      val container = new Container
+//      application.stage.addChild(container)
+//      container.y = 50
+//
+//      val sprite = new Sprite(resources(liteStepBar).texture)
+//      container.addChild(sprite)
+//      sprite.tint = 0x00FF00
+//
+//      val mask = new Graphics()
+//        .beginFill(0xc0c0c0)
+//        .drawRect(0, 0, sprite.width, sprite.height)
+//
+//      container.addChild(mask)
+//
+//      sprite.mask = mask
+//
+//      var xScale = 0
+////      setInterval(100.millis) {
+////
+////        xScale = (xScale + 1) % 100
+////        println(xScale)
+////
+////        mask.clear().beginFill(0xc0c0c0).drawRect(0, 0, sprite.width * xScale / 100, sprite.height)
+////
+////      }
+//    }
+//  } yield ())
 
-      val sprite = new Sprite(resources(liteStepBar).texture)
-      container.addChild(sprite)
-      sprite.tint = 0x00FF00
+  def colorResultToRGBColour(color: ColorResult): RGBAColour =
+    RGBColour(color.rgb.r.toInt, color.rgb.g.toInt, color.rgb.b.toInt).withAlpha(color.rgb.a.getOrElse(1.0))
 
-      val mask = new Graphics()
-        .beginFill(0xc0c0c0)
-        .drawRect(0, 0, sprite.width, sprite.height)
-
-      container.addChild(mask)
-
-      sprite.mask = mask
-
-      var xScale = 0
-      setInterval(100.millis) {
-
-        xScale = (xScale + 1) % 100
-        println(xScale)
-
-        mask.clear().beginFill(0xc0c0c0).drawRect(0, 0, sprite.width * xScale / 100, sprite.height)
-
-      }
-    }
-  } yield ())
+  val colourBus = new EventBus[Colour]
 
   def apply(): ReactiveHtmlElement[html.Div] = div(
     button(
@@ -65,7 +68,15 @@ object Test {
       btnBlue,
       "A Button!"
     ),
-    container
+    div(
+      width := "50px",
+      height := "30px",
+      backgroundColor <-- colourBus.events.startWith(RGBColour.white).map(_.rgb)
+    ),
+    reactChild(ColorPickerWrapper(colourBus.writer), container),
+    onMountCallback { _ =>
+      println("mounting 2!")
+    }
   )
 
 }
