@@ -6,7 +6,7 @@ import errors.ErrorADT
 import errors.ErrorADT.{ErrorOr, MultipleErrorsMap}
 import frontend.components.Component
 import frontend.components.forms.SimpleForm
-import frontend.components.utils.bootstrap.PopperElement
+import frontend.components.utils.popper.PopperElement
 import frontend.components.utils.tailwind._
 import frontend.components.utils.tailwind.forms._
 import models.users.{NewUser, RouteDefinitions}

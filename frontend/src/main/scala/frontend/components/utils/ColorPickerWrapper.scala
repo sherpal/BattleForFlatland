@@ -21,6 +21,7 @@ import utils.misc.{RGBAColour, RGBColour}
   def render(): ReactElement = div(
     ChromePicker()
       .color(state.rgba)
+      .disableAlpha(true)
       .onChangeComplete { (color, _) =>
         val newColor = colorResultToRGBColour(color)
         setState { _ =>

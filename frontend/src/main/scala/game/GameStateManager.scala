@@ -79,7 +79,7 @@ final class GameStateManager(
           .withCurrentValueOf($gameStates)
           .map {
             case (mousePosition, state) =>
-              state.allTargettableEntities
+              state.allTargetableEntities
                 .find(entity => entity.shape.contains(mousePosition, entity.pos, entity.rotation))
           }
       )

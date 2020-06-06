@@ -13,7 +13,8 @@ import models.bff.outofgame.gameconfig.{PlayerInfo, PlayerStatus}
 import org.scalajs.dom.html
 import org.scalajs.dom.html.{Element, Select}
 import utils.misc.{Colour, RGBAColour, RGBColour}
-import frontend.components.utils.laminarutils.reactChild
+import frontend.components.utils.laminarutils.reactChildInDiv
+import frontend.components.utils.popper.{PlacementOption, PopperElement}
 
 final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, playerInfoWriter: Observer[PlayerInfo])
     extends Component[html.Element] {
@@ -42,10 +43,30 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
     onMountSet(_ => value := initialPlayerInfo.playerClass.toString)
   )
 
-  val pickerContainer: ReactiveHtmlElement[html.Div] = div()
+  val pickerPositionBus: EventBus[(Double, Double)] = new EventBus
+  val $maybePickerPosition: Signal[Option[(Double, Double)]] =
+    pickerPositionBus.events.fold(Option.empty[(Double, Double)]) {
+      case (None, (x, y)) => Some((x, y))
+      case (Some(_), _)   => None
+    }
   val colourSelector: ReactiveHtmlElement[html.Div] = div(
-    div(height := "30px", width := "50px", backgroundColor <-- $playerInfo.map(_.playerColour.rgb)),
-    reactChild(ColorPickerWrapper(colourWriter, initialPlayerInfo.playerColour), pickerContainer)
+    "Chose a color: ",
+    div(
+      height := "30px",
+      width := "50px",
+      backgroundColor <-- $playerInfo.map(_.playerColour.rgb),
+      onClick.map(event => (event.pageX, event.pageY)) --> pickerPositionBus
+    ),
+    child <-- $maybePickerPosition.map(_.map {
+      case (x, y) =>
+        div(
+          zIndex := "2",
+          position := "absolute",
+          left := s"${x + 10}px",
+          top := s"${y + 10}px",
+          reactChildInDiv(ColorPickerWrapper(colourWriter, initialPlayerInfo.playerColour))
+        )
+    }).map(_.getOrElse(emptyNode))
   )
 
   val element: ReactiveHtmlElement[Element] =

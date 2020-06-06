@@ -5,6 +5,7 @@ import gamelogic.entities._
 import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.entities.movingstuff.PentagonBullet
+import gamelogic.entities.staticstuff.Obstacle
 import models.syntax.Pointed
 
 /**
@@ -12,7 +13,7 @@ import models.syntax.Pointed
   * Having an instance of a GameState is enough to have all information about the game at that particular moment in time.
   *
   * An [[gamelogic.entities.Entity]] can cast only one spell at a time, hence the map.
-  * An entity can have on it any number of [[gamelogic.buffs.Buff]] on it. We map the entity id to each of the buffs
+  * An entity can have any number of [[gamelogic.buffs.Buff]] on it. We map the entity id to each of the buffs
   * attached to it, so that we can easily find them, and it's going to be more efficient when updating someones buffs.
   *
   * Ticker and passive buffs have very different behaviours, and that's why we separate them below.
@@ -30,7 +31,8 @@ final case class GameState(
     pentagonBullets: Map[Entity.Id, PentagonBullet],
     castingEntityInfo: Map[Entity.Id, EntityCastingInfo],
     passiveBuffs: Map[Entity.Id, Map[Buff.Id, PassiveBuff]],
-    tickerBuffs: Map[Entity.Id, Map[Buff.Id, TickerBuff]]
+    tickerBuffs: Map[Entity.Id, Map[Buff.Id, TickerBuff]],
+    private val obstacles: Map[Entity.Id, Obstacle]
 ) {
 
   def started: Boolean = startTime.isDefined
@@ -98,8 +100,9 @@ final case class GameState(
       .orElse(dummyMobs.get(entityId))
       .orElse(simpleBullets.get(entityId))
       .orElse(pentagonBullets.get(entityId))
+      .orElse(obstacles.get(entityId))
 
-  def allTargettableEntities: Iterator[MovingBody with LivingEntity] =
+  def allTargetableEntities: Iterator[MovingBody with LivingEntity] =
     players.valuesIterator ++ bosses.valuesIterator ++ dummyMobs.valuesIterator
 
   // Is there something better?
@@ -121,7 +124,7 @@ final case class GameState(
     bosses.get(entityId)
 
   def withPositionEntityById(entityId: Entity.Id): Option[WithPosition] =
-    players.get(entityId).orElse(bosses.get(entityId)).orElse(dummyMobs.get(entityId))
+    players.get(entityId).orElse(bosses.get(entityId)).orElse(dummyMobs.get(entityId)).orElse(obstacles.get(entityId))
 
   def movingBodyEntityById(entityId: Entity.Id): Option[MovingBody] =
     players
@@ -149,6 +152,15 @@ final case class GameState(
   def allBuffsOfEntity(entityId: Entity.Id): Iterator[Buff] =
     tickerBuffs.getOrElse(entityId, Map()).valuesIterator ++
       passiveBuffs.getOrElse(entityId, Map()).valuesIterator
+
+  def obstaclesLike: Iterator[Body] = obstacles.valuesIterator
+
+  /**
+    * We build an interface on top of accessing and changing obstacles because the implementation could be different than
+    * a simple Map in the future. Perhaps something like a QuadTree would be better for performances.
+    */
+  def withObstacle(obstacle: Obstacle): GameState      = copy(obstacles = obstacles + (obstacle.id -> obstacle))
+  def removeObstacle(obstacleId: Entity.Id): GameState = copy(obstacles = obstacles - obstacleId)
 }
 
 object GameState {

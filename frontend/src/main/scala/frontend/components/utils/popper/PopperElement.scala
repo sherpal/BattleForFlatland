@@ -1,15 +1,55 @@
-package frontend.components.utils.bootstrap
+package frontend.components.utils.popper
 
 import java.util.UUID
 
 import com.raquo.laminar.api.L._
-import com.raquo.laminar.nodes.ReactiveElement
+import com.raquo.laminar.nodes.{ReactiveElement, ReactiveHtmlElement}
 import org.scalajs.dom
 import org.scalajs.dom.html
 import scalatags.JsDom
+import typings.popperjsCore.anon.PartialOptions
+import typings.popperjsCore.typesMod.Instance
 import typings.popperjsCore.{mod => Popper}
 
 object PopperElement {
+
+  def createPopper[ToAttachEl <: html.Element, El <: Element](
+      toAttach: ReactiveHtmlElement[ToAttachEl],
+      placementOption: PlacementOption
+  ): Modifier[El] = {
+
+    val clickBus                              = new EventBus[Unit]
+    var maybePopperInstance: Option[Instance] = Option.empty
+
+    def showPopper(element: dom.Element): Unit = maybePopperInstance match {
+      case Some(instance) =>
+        maybePopperInstance = None
+        instance.destroy()
+      case None =>
+        maybePopperInstance = Some(
+          maybePopperInstance.getOrElse(
+            Popper.createPopper(
+              element,
+              toAttach.ref,
+              PartialOptions(
+                placement = placementOption
+              )
+            )
+          )
+        )
+    }
+
+    List(
+      inContext[El](elem => onClick.mapTo(elem.ref) --> showPopper _),
+      onClick.mapTo(()) --> clickBus,
+      child <-- clickBus.events
+        .fold(false) { (bool, _) =>
+          !bool
+        }
+        .map(if (_) toAttach else emptyNode)
+    )
+
+  }
 
   private object Apply {
     import scalatags.JsDom.all._
