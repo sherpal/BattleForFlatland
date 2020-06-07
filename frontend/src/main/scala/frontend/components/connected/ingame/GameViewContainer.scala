@@ -21,7 +21,7 @@ import typings.pixiJs.anon.{Antialias => ApplicationOptions}
 import zio.ZIO
 
 /**
-  * The GameViewContainer is responsible for creating th instance of the [[game.GameStateManager]].
+  * The GameViewContainer is responsible for creating the instance of the [[game.GameStateManager]].
   *
   * It received an initial [[gamelogic.gamestate.GameState]] and a streams of game states, and it has to draw everything.
   * The way it does that is its business, but it will probably be customizable in the future.

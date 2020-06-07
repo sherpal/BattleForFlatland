@@ -153,14 +153,18 @@ final case class GameState(
     tickerBuffs.getOrElse(entityId, Map()).valuesIterator ++
       passiveBuffs.getOrElse(entityId, Map()).valuesIterator
 
-  def obstaclesLike: Iterator[Body] = obstacles.valuesIterator
+  def obstaclesLike: Iterator[Body]    = obstacles.valuesIterator
+  def allObstacles: Iterator[Obstacle] = obstacles.valuesIterator
 
   /**
     * We build an interface on top of accessing and changing obstacles because the implementation could be different than
     * a simple Map in the future. Perhaps something like a QuadTree would be better for performances.
     */
-  def withObstacle(obstacle: Obstacle): GameState      = copy(obstacles = obstacles + (obstacle.id -> obstacle))
-  def removeObstacle(obstacleId: Entity.Id): GameState = copy(obstacles = obstacles - obstacleId)
+  def withObstacle(obstacle: Obstacle): GameState =
+    copy(time = obstacle.time, obstacles = obstacles + (obstacle.id -> obstacle))
+  def removeObstacle(obstacleId: Entity.Id, time: Long): GameState =
+    copy(obstacles = obstacles - obstacleId, time = time)
+
 }
 
 object GameState {

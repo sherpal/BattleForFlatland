@@ -35,7 +35,7 @@ final case class BigHit(useId: Ability.UseId, time: Long, casterId: Entity.Id, t
 
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): Ability = copy(time = newTime, useId = newId)
 
-  def range: Distance = Boss101.meleeRange
+  def range: Distance = Boss101.rangeRange
 
   def canBeCast(gameState: GameState, time: Long): Boolean =
     canBeCastEnemyOnly(gameState) && isInRange(gameState, time)

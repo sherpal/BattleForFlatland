@@ -11,9 +11,9 @@ import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
 import gamelogic.entities.{Entity, WithTarget, WithThreat}
 import gamelogic.gamestate.GameAction
-import gamelogic.gamestate.gameactions.PutSimpleBuff
+import gamelogic.gamestate.gameactions.{CreateObstacle, PutSimpleBuff}
 import gamelogic.physics.Complex
-import gamelogic.physics.shape.Circle
+import gamelogic.physics.shape.{Circle, Shape}
 import gamelogic.utils.IdGeneratorContainer
 import models.syntax.Pointed
 
@@ -109,6 +109,13 @@ object Boss101 extends BossFactory {
 
   def initialBossActions(entityId: Id, time: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
     PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.healingThreatAware),
-    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.damageThreatAware)
+    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.damageThreatAware),
+    CreateObstacle(
+      0L,
+      time,
+      idGeneratorContainer.entityIdGenerator(),
+      Complex(0, 200),
+      Shape.regularPolygon(4, 50).vertices
+    )
   )
 }

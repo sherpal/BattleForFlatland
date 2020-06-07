@@ -288,7 +288,10 @@ final class GameStateManager(
 
     gameState.players.get(playerId) match {
       case Some(entity) =>
-        val nextPos  = entity.pos + entity.speed * playerMovement * deltaTime / 1000
+        val nextPos = entity.lastValidPosition(
+          entity.pos + entity.speed * playerMovement * deltaTime / 1000,
+          gameState.obstaclesLike.toList
+        )
         val moving   = playerMovement != Complex.zero
         val rotation = $mouseAngleWithPosition.now
 

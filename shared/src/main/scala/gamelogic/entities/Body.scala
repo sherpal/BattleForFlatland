@@ -29,16 +29,16 @@ trait Body extends WithPosition {
     * @return          First position where this body will have no collision.
     */
   def firstValidPosition(rotation: Angle, bodies: Iterable[Body], precision: Int = 5): Complex = {
-    val dir = Complex.rotation(rotation)
+    val dir = Complex.rotation(rotation) * precision
 
     @scala.annotation.tailrec
     def tryNextPos(nextPos: Complex): Complex =
       if (!bodies.exists(body => body.shape.collides(body.pos, body.rotation, this.shape, nextPos, this.rotation)))
         nextPos
       else
-        tryNextPos(nextPos + dir * precision)
+        tryNextPos(nextPos + dir)
 
-    tryNextPos(pos + precision * dir)
+    tryNextPos(pos + dir)
   }
 
   /**

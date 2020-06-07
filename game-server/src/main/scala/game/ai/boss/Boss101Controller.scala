@@ -8,7 +8,7 @@ import game.ai.AIManager.loopRate
 import gamelogic.abilities.Ability
 import gamelogic.abilities.boss.boss101.{BigDot, BigHit, SmallHit}
 import gamelogic.entities.boss.Boss101
-import gamelogic.gamestate.GameState
+import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.gameactions.{ChangeTarget, EntityStartsCasting, MovingBodyMoves, SpawnBoss}
 
 import scala.concurrent.duration._
@@ -76,9 +76,22 @@ object Boss101Controller {
           val bigHit = BigHit(0L, now, myId, target.id)
 
           val maybeUseAnAbility = Option
-            .when(me.canUseAbility(bigHit, startTime)) {
+            .when(me.canUseAbility(bigHit, startTime) && bigHit.isInRange(currentGameState, startTime)) {
               println("Using BigHit!")
-              EntityStartsCasting(0L, now, bigHit.castingTime, bigHit)
+              List(
+                MovingBodyMoves(
+                  0L,
+                  startTime,
+                  myId,
+                  currentPosition,
+                  me.direction,
+                  me.rotation,
+                  me.speed,
+                  moving = false
+                ),
+                EntityStartsCasting(0L, now, bigHit.castingTime, bigHit)
+              )
+
             }
             .orElse(
               Some(
@@ -94,23 +107,27 @@ object Boss101Controller {
                     .getOrElse(target.id)
                 )
               ).filter(ability => me.canUseAbility(ability, startTime)).map { ability =>
-                EntityStartsCasting(0L, now, ability.castingTime, ability)
+                List(EntityStartsCasting(0L, now, ability.castingTime, ability))
               }
             )
             .orElse(
               Some(
                 SmallHit(0L, now, me.id, target.id, SmallHit.damageAmount)
               ).filter(ability => me.canUseAbility(ability, startTime)).map { ability =>
-                EntityStartsCasting(0L, now, ability.castingTime, ability)
+                List(EntityStartsCasting(0L, now, ability.castingTime, ability))
               }
             )
+
+          val shouldINotMove = maybeUseAnAbility.fold(false) { actions =>
+            actions.collect { case a: EntityStartsCasting => a }.exists(_.ability.abilityId == Ability.boss101BigHitId)
+          }
 
           /** Move to target */
           val targetPosition  = target.currentPosition(startTime)
           val directionVector = targetPosition - currentPosition
           val maybeBodyMove =
             Option
-              .unless(maybeUseAnAbility.exists(_.ability.abilityId == Ability.boss101BigHitId))(
+              .unless(shouldINotMove)(
                 MovingBodyMoves(
                   0L,
                   startTime,
@@ -127,11 +144,11 @@ object Boss101Controller {
                   action.moving || action.moving != me.moving || (action.position - me.pos).modulus > 1e-6 || (directionVector.arg != me.rotation)
               )
 
-          List(
-            maybeChangeTarget,
-            maybeBodyMove,
-            maybeUseAnAbility
-          ).flatten match {
+          maybeUseAnAbility.getOrElse(Nil) ++
+            List(
+              maybeChangeTarget,
+              maybeBodyMove
+            ).flatten match {
             case Nil     =>
             case actions => actionTranslator ! ActionTranslator.GameActionsWrapper(actions)
           }

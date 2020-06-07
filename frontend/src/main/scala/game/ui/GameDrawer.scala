@@ -4,6 +4,7 @@ import game.Camera
 import gamelogic.entities.boss.{Boss101, BossEntity}
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.entities.movingstuff.PentagonBullet
+import gamelogic.entities.staticstuff.Obstacle
 import gamelogic.entities.{DummyMob, Entity, SimpleBulletBody}
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
@@ -35,6 +36,8 @@ final class GameDrawer(application: Application) {
   stage.addChild(bossesContainer)
   val movingStuffContainer: Container = new Container
   stage.addChild(movingStuffContainer)
+  val obstacleContainer: Container = new Container
+  stage.addChild(obstacleContainer)
 
   private def diskTexture(colour: Int, radius: Double, withBlackDot: Boolean = false): PIXI.RenderTexture = {
     val graphics = new Graphics
@@ -103,19 +106,6 @@ final class GameDrawer(application: Application) {
       camera.viewportManager(sprite, entity.pos, entity.shape.boundingBox)
     }
   }
-
-//  private def drawDummyLivingEntity(entities: List[DummyLivingEntity]): Unit =
-//    entities.foreach { entity =>
-//      val sprite = players.getOrElse(entity.id, {
-//        val s = new Sprite(diskTexture(entity.colour, entity.shape.radius))
-//        s.anchor.set(0.5, 0.5)
-//        players += (entity.id -> s)
-//        playerContainer.addChild(s)
-//        s
-//      })
-//
-//      camera.viewportManager(sprite, entity.pos, entity.shape.boundingBox)
-//    }
 
   private val dummyMobSprites: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
   private def drawDummyMobs(entities: List[DummyMob], now: Long): Unit =
@@ -200,6 +190,20 @@ final class GameDrawer(application: Application) {
       camera.viewportManager(sprite, bullet.currentPosition(currentTime), bullet.shape.boundingBox)
     }
 
+  private val obstacleSprites: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
+  private def drawObstacles(obstacles: List[Obstacle]): Unit = obstacles.foreach { obstacle =>
+    val sprite = obstacleSprites.getOrElse(
+      obstacle.id, {
+        val s = new Sprite(polygonTexture(obstacle.colour.intColour, obstacle.shape))
+        s.anchor.set(0.5, 0.5)
+        obstacleSprites += (obstacle.id -> s)
+        obstacleContainer.addChild(s)
+        s
+      }
+    )
+    camera.viewportManager(sprite, obstacle.pos, obstacle.shape.boundingBox)
+  }
+
   def drawGameState(gameState: GameState, cameraPosition: Complex, currentTime: Long): Unit = {
     camera.worldCenter = cameraPosition
     drawPlayers(gameState.players.values.toList)
@@ -207,6 +211,7 @@ final class GameDrawer(application: Application) {
     drawDummyMobs(gameState.dummyMobs.values.toList, currentTime)
     drawBosses(gameState.bosses.valuesIterator.toList, currentTime)
     drawPentagonBullets(gameState.pentagonBullets.valuesIterator.toList, currentTime)
+    drawObstacles(gameState.allObstacles.toList)
   }
 
 }
