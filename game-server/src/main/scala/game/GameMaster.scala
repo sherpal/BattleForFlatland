@@ -49,6 +49,14 @@ object GameMaster {
     */
   case class IAmReadyToStart(userId: String) extends PreGameMessage
 
+  /**
+    * When players join the game, the boss is not there yet. Players will have the opportunity to send this message to
+    * the game master in order to actually begin the game, when they are ready to do so.
+    *
+    * This will allow players to position themselves properly in order to be ready.
+    */
+  case object LetsStartTheGame extends PreGameMessage
+
   private def now = System.currentTimeMillis
 
   private def gameLoopTo(to: ActorRef[GameLoop.type], delay: FiniteDuration) =
@@ -158,6 +166,88 @@ object GameMaster {
   /** In millis */
   final val gameLoopTiming = 1000L / 60L
 
+  private def preGameBehaviour(
+      pendingActions: List[GameAction],
+      actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage],
+      actionCollector: ImmutableActionCollector,
+      gameInfo: MenuGameWithPlayers
+  )(
+      implicit
+      idGeneratorContainer: IdGeneratorContainer
+  ): Behavior[Message] = Behaviors.receive { (context, message) =>
+    message match {
+      case GameActionWrapper(gameAction) =>
+        // todo: We should check the minimal legality of actions here. That is, a position update of an entity
+        // todo: should at least check that it is the given entity that sent the message.
+
+        // Note: we sort actions during the game loop so we can simply prepend and enjoy the O(1) complexity.
+        preGameBehaviour(
+          gameAction +: pendingActions,
+          actionUpdateCollector,
+          actionCollector,
+          gameInfo
+        )
+      case MultipleActionsWrapper(gameActions) =>
+        preGameBehaviour(
+          gameActions ++ pendingActions,
+          actionUpdateCollector,
+          actionCollector,
+          gameInfo
+        )
+      case GameLoop =>
+        val startTime = now
+        val sortedActions = pendingActions.sorted
+          .map(_.changeId(idGeneratorContainer.gameActionIdGenerator()))
+
+        val (nextCollector, oldestTimeToRemove, idsToRemove) =
+          actionCollector.masterAddAndRemoveActions(sortedActions)
+
+        val output = ServerAction.ServerActionOutput(
+          sortedActions,
+          oldestTimeToRemove,
+          idsToRemove
+        )
+
+        if (output.createdActions.nonEmpty) {
+          actionUpdateCollector ! ActionUpdateCollector
+            .AddAndRemoveActions(
+              output.createdActions,
+              output.oldestTimeToRemove,
+              output.idsOfIdsToRemove
+            )
+
+          actionUpdateCollector ! ActionUpdateCollector.GameStateWrapper(nextCollector.currentGameState)
+        }
+
+        /** Set up for next loop. */
+        val timeSpent = now - startTime
+        if (timeSpent > gameLoopTiming) context.self ! GameLoop
+        else
+          zio.Runtime.default
+            .unsafeRunToFuture(
+              gameLoopTo(context.self, (gameLoopTiming - timeSpent).millis)
+            )
+
+        preGameBehaviour(Nil, actionUpdateCollector, nextCollector, gameInfo)
+      case LetsStartTheGame =>
+        val timeNow = now
+        val bossCreationActions = gameInfo.game.gameConfiguration.maybeBossName.toList.flatMap { name =>
+          val bossId = idGeneratorContainer.entityIdGenerator()
+          SpawnBoss(0L, timeNow - 2, bossId, name) +: BossFactory.factoriesByBossName
+            .get(name)
+            .fold(List.empty[GameAction])(_.initialBossActions(bossId, timeNow - 1, idGeneratorContainer))
+        }
+
+        inGameBehaviour(
+          pendingActions ++ bossCreationActions :+ GameStart(0L, now),
+          actionUpdateCollector,
+          actionCollector
+        )
+      case _ =>
+        Behaviors.unhandled
+    }
+  }
+
   private def setupBehaviour(
       actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage],
       maybeGameInfo: Option[MenuGameWithPlayers],
@@ -168,53 +258,64 @@ object GameMaster {
       message match {
         case message: PreGameMessage =>
           message match {
+            case LetsStartTheGame =>
+              Behaviors.unhandled // we only care about this message when in preGameBehaviour
             case EveryoneIsReady(playerMap, gameInfo) =>
               // first message that kick off the actor and will trigger others
               val timeNow = now
 
               try {
-                val refsByName = gameInfo.players.map(user => user.userName -> playerMap(user.userId)).toMap
 
-                val newPlayerActions = gameInfo.game.gameConfiguration.playersInfo.values.zipWithIndex.map {
-                  case (info, idx) =>
-                    val playerId = idGeneratorContainer.entityIdGenerator()
-                    (
-                      refsByName(info.playerName),
-                      playerId,
-                      AddPlayerByClass(
-                        0L,
-                        timeNow - 2,
-                        playerId,
-                        100 * Complex.rotation(idx * 2 * math.Pi / playerMap.size),
-                        info.playerClass,
-                        info.playerColour.intColour,
-                        info.playerName
-                      ) +: info.playerClass.builder.startingActions(timeNow - 1, playerId, idGeneratorContainer)
-                    )
-
-                }
-
-                if (gameInfo.game.gameConfiguration.maybeBossName.isEmpty) {
+                def maybeBossFactory =
+                  gameInfo.game.gameConfiguration.maybeBossName.toList
+                    .flatMap(BossFactory.factoriesByBossName.get)
+                if (maybeBossFactory.isEmpty) {
                   println("Starting Game without boss, that's weird.")
                 }
 
+                val refsByName = gameInfo.players.map(user => user.userName -> playerMap(user.userId)).toMap
+
+                val playersPosition = maybeBossFactory
+                  .map(_.playersStartingPosition)
+                  .head
+
+                val bossStartingPosition = maybeBossFactory.headOption.fold(Complex.zero)(_.bossStartingPosition)
+
+                val newPlayerActions = gameInfo.game.gameConfiguration.playersInfo.values.map { info =>
+                  val playerId = idGeneratorContainer.entityIdGenerator()
+                  (
+                    refsByName(info.playerName),
+                    playerId,
+                    AddPlayerByClass(
+                      0L,
+                      timeNow - 2,
+                      playerId,
+                      playersPosition,
+                      info.playerClass,
+                      info.playerColour.intColour,
+                      info.playerName
+                    ) +: info.playerClass.builder.startingActions(timeNow - 1, playerId, idGeneratorContainer)
+                  )
+
+                }
+
                 val bossCreationActions = gameInfo.game.gameConfiguration.maybeBossName.toList.flatMap { name =>
-                  val bossId = idGeneratorContainer.entityIdGenerator()
-                  SpawnBoss(0L, timeNow - 2, bossId, name) +: BossFactory.factoriesByBossName
+                  BossFactory.factoriesByBossName
                     .get(name)
-                    .fold(List.empty[GameAction])(_.initialBossActions(bossId, timeNow - 1, idGeneratorContainer))
+                    .fold(List.empty[GameAction])(_.stagingBossActions(timeNow, idGeneratorContainer))
                 }
 
                 newPlayerActions.foreach {
                   case (ref, playerId, _) =>
                     ref ! InGameWSProtocol.YourEntityIdIs(playerId)
+                    ref ! InGameWSProtocol.StartingBossPosition(bossStartingPosition.re, bossStartingPosition.im)
                 }
 
                 setupBehaviour(
                   actionUpdateCollector,
                   Some(gameInfo),
                   Set(),
-                  Some(newPlayerActions.flatMap(_._3).toList ++ bossCreationActions :+ GameStart(0L, now))
+                  Some(newPlayerActions.flatMap(_._3).toList ++ bossCreationActions)
                 )
 
               } catch {
@@ -232,10 +333,11 @@ object GameMaster {
                 context.self ! GameLoop
 
                 val actionCollector = ImmutableActionCollector(GameState.empty)
-                inGameBehaviour(
+                preGameBehaviour(
                   Nil,
                   actionUpdateCollector,
-                  actionCollector
+                  actionCollector,
+                  maybeGameInfo.get // get is safe here
                 )
               } else {
                 setupBehaviour(actionUpdateCollector, maybeGameInfo, newReadyPlayers, maybePreGameActions)
@@ -243,6 +345,7 @@ object GameMaster {
           }
 
         case _ =>
+          println("weird")
           Behaviors.unhandled
       }
     }

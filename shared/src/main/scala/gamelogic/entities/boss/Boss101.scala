@@ -77,6 +77,12 @@ final case class Boss101(
   def changeTarget(newTargetId: Id): Boss101 = copy(targetId = newTargetId)
 
   protected def patchResourceAmount(newResourceAmount: ResourceAmount): Boss101 = this
+
+  def abilityNames: Map[AbilityId, String] = Map(
+    Ability.boss101BigHitId -> "Big Hit",
+    Ability.boss101SmallHitId -> "Small Hit",
+    Ability.boss101BigDotId -> "Big Dot"
+  )
 }
 
 object Boss101 extends BossFactory {
@@ -109,7 +115,10 @@ object Boss101 extends BossFactory {
 
   def initialBossActions(entityId: Id, time: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
     PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.healingThreatAware),
-    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.damageThreatAware),
+    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.damageThreatAware)
+  )
+
+  def stagingBossActions(time: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
     CreateObstacle(
       0L,
       time,
@@ -118,4 +127,6 @@ object Boss101 extends BossFactory {
       Shape.regularPolygon(4, 50).vertices
     )
   )
+
+  def playersStartingPosition: Complex = -100 * Complex.i
 }

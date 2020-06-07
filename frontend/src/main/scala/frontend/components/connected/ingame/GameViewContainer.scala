@@ -8,6 +8,7 @@ import gamelogic.entities.Entity
 import gamelogic.entities.boss.Boss101
 import gamelogic.entities.classes.{Hexagon, Pentagon, Square, Triangle}
 import gamelogic.gamestate.GameState
+import gamelogic.physics.Complex
 import io.circe.generic.auto._
 import io.circe.syntax._
 import models.bff.ingame.InGameWSProtocol.ReadyToStart
@@ -31,6 +32,7 @@ import zio.ZIO
 final class GameViewContainer private (
     me: User,
     playerId: Entity.Id,
+    bossStartingPosition: Complex,
     $actionsFromServer: EventStream[gamelogic.gamestate.AddAndRemoveActions],
     socketOutWriter: Observer[InGameWSProtocol.Outgoing],
     deltaTimeWithServer: Long
@@ -79,6 +81,7 @@ final class GameViewContainer private (
         new Keyboard(implicitly[Pointed[KeyboardControls]].unit),
         new Mouse(application.view.asInstanceOf[html.Canvas]),
         playerId,
+        bossStartingPosition,
         deltaTimeWithServer,
         resources,
         maybeTargetBus.writer
@@ -102,9 +105,10 @@ object GameViewContainer {
   def apply(
       me: User,
       playerId: Entity.Id,
+      bossStartingPosition: Complex,
       $actionsFromServer: EventStream[gamelogic.gamestate.AddAndRemoveActions],
       socketOutWriter: Observer[InGameWSProtocol.Outgoing],
       deltaTimeWithServer: Long
   ): GameViewContainer =
-    new GameViewContainer(me, playerId, $actionsFromServer, socketOutWriter, deltaTimeWithServer)
+    new GameViewContainer(me, playerId, bossStartingPosition, $actionsFromServer, socketOutWriter, deltaTimeWithServer)
 }

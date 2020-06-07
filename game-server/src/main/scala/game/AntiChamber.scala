@@ -22,6 +22,7 @@ object AntiChamber {
   case class GameInfo(menuGameWithPlayers: MenuGameWithPlayers) extends Message
   case class Ready(userId: String, actorRef: ActorRef[InGameWSProtocol]) extends Message
   case class ReadyToStart(userId: String) extends Message
+  case object LetsBegin extends Message
   private case object ShouldWeStart extends Message
 
   def apply(
@@ -46,6 +47,9 @@ object AntiChamber {
       case ReadyToStart(userId) =>
         gameMaster ! GameMaster.IAmReadyToStart(userId)
         Behaviors.same
+      case LetsBegin =>
+        gameMaster ! GameMaster.LetsStartTheGame
+        Behaviors.same
       case ShouldWeStart if connected.size == menuGameWithPlayers.players.length =>
         gameMaster ! GameMaster.EveryoneIsReady(connected, menuGameWithPlayers)
         Behaviors.same
@@ -68,6 +72,9 @@ object AntiChamber {
       case ShouldWeStart =>
         Behaviors.unhandled
       case ReadyToStart(_) =>
+        // can't happen before going to waiting for players
+        Behaviors.unhandled
+      case LetsBegin =>
         // can't happen before going to waiting for players
         Behaviors.unhandled
     }

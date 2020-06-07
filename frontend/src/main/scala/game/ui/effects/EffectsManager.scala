@@ -65,7 +65,6 @@ final class EffectsManager(
             Option.empty[SimpleTextEffect]
         }
         .foreach { newTextEffect =>
-          println("new effect!")
           container.addChild(newTextEffect.pixiText)
           simpleTextEffects += newTextEffect
         }

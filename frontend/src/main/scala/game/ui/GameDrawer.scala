@@ -1,5 +1,7 @@
 package game.ui
 
+import assets.Asset
+import com.raquo.airstream.core.Observer
 import game.Camera
 import gamelogic.entities.boss.{Boss101, BossEntity}
 import gamelogic.entities.classes.PlayerClass
@@ -11,6 +13,7 @@ import gamelogic.physics.Complex
 import org.scalajs.dom.html
 import typings.pixiJs.PIXI
 import typings.pixiJs.mod._
+import typings.pixiJs.PIXI.LoaderResource
 
 import scala.collection.mutable
 import scala.scalajs.js.JSConverters._
@@ -20,7 +23,12 @@ import scala.scalajs.js.|
   * This class is used to draw the game state at any moment in time.
   * The implementation is full of side effects, probably in the wrong fear of less good performance.
   */
-final class GameDrawer(application: Application) {
+final class GameDrawer(
+    application: Application,
+    resources: PartialFunction[Asset, LoaderResource],
+    bossStartPosition: Complex,
+    startFightObserver: Observer[Unit]
+) {
 
   @inline private def stage = application.stage
 
@@ -83,6 +91,9 @@ final class GameDrawer(application: Application) {
 
     application.renderer.generateTexture(graphics, 1, 1)
   }
+
+  private val startButton = new BossStartButton(bossStartPosition, resources, startFightObserver)
+  stage.addChild(startButton.element)
 
   private val players: mutable.Map[Entity.Id, Sprite] = mutable.Map()
 
@@ -212,6 +223,7 @@ final class GameDrawer(application: Application) {
     drawBosses(gameState.bosses.valuesIterator.toList, currentTime)
     drawPentagonBullets(gameState.pentagonBullets.valuesIterator.toList, currentTime)
     drawObstacles(gameState.allObstacles.toList)
+    startButton.update(gameState, camera)
   }
 
 }

@@ -112,6 +112,10 @@ There are three programs that must be ran in dev mode:
 
 Head over `http://localhost:8080` and after 10s you should be able to connect with the super user credentials.
 
+## Contribute
+
+
+
 ## Internal
 
 ### Adding a new Service

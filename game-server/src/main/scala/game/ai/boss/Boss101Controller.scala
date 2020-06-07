@@ -63,7 +63,7 @@ object Boss101Controller {
           .flatMap(
             currentGameState.players.get // this could change in the future
           )
-          .fold(currentGameState.players.headOption.map(_._2))(Some(_))
+          .fold(currentGameState.players.values.minByOption(player => (player.pos - me.pos).modulus))(Some(_))
 
         Option.unless(currentGameState.entityIsCasting(myId))(maybeTarget).flatten.foreach { target =>
           // If the boss is casting, he doesn't do anything else.

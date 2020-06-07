@@ -2,6 +2,7 @@ package models.bff.ingame
 
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction
+import gamelogic.physics.Complex
 import io.circe.generic.extras.Configuration
 import io.circe.{Decoder, Encoder}
 
@@ -31,6 +32,9 @@ object InGameWSProtocol {
   /** Sent when the user received their entity id, and all assets have been loaded. */
   case class ReadyToStart(userId: String) extends Outgoing
 
+  /** Sent by a player to actually start the game at the very beginning. */
+  case object LetsBegin extends Outgoing
+
   case class GameActionWrapper(gameActions: List[GameAction]) extends Outgoing
   case class RemoveActions(oldestTime: Long, idsOfActionsToRemove: List[GameAction.Id]) extends Incoming
   case class AddAndRemoveActions(
@@ -41,6 +45,9 @@ object InGameWSProtocol {
 
   /** Received just before the beginning of the game so that the client knows what entity they control. */
   case class YourEntityIdIs(entityId: Entity.Id) extends Incoming
+
+  /** Received before beginning the game to know where the boss will start. */
+  case class StartingBossPosition(x: Double, y: Double) extends Incoming
 
   import io.circe.generic.extras.semiauto._
   implicit val genDevConfig: Configuration =

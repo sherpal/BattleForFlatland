@@ -35,6 +35,7 @@ final class GameStateManager(
     keyboard: Keyboard,
     mouse: Mouse,
     playerId: Entity.Id,
+    bossStartingPosition: Complex,
     deltaTimeWithServer: Long,
     resources: PartialFunction[Asset, LoaderResource],
     maybeTargetWriter: Observer[Option[Entity]]
@@ -45,7 +46,12 @@ final class GameStateManager(
   val abilityCodes: List[String] = (1 to 9).map("Digit" + _).toList
 
   private var actionCollector = ImmutableActionCollector(initialGameState)
-  private val gameDrawer      = new GameDrawer(application)
+  private val gameDrawer = new GameDrawer(
+    application,
+    resources,
+    bossStartingPosition,
+    socketOutWriter.contramap[Unit](_ => InGameWSProtocol.LetsBegin)
+  )
 
   private val gameStateBus: EventBus[GameState] = new EventBus[GameState]
 

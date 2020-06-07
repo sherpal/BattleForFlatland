@@ -1,5 +1,6 @@
 package gamelogic.entities.boss
 
+import gamelogic.abilities.Ability
 import gamelogic.entities._
 import gamelogic.physics.shape.Circle
 
@@ -37,6 +38,9 @@ trait BossEntity extends LivingEntity with MovingBody with WithAbilities with Wi
     * and it corresponds to the lore of the game that players need to fight.
     */
   def shape: Circle
+
+  /** Names of the abilities, to be displayed in the game UI. */
+  def abilityNames: Map[Ability.AbilityId, String]
 
 }
 

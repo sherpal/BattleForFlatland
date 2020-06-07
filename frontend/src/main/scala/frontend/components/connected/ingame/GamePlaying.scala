@@ -6,6 +6,7 @@ import frontend.components.Component
 import frontend.components.utils.tailwind._
 import gamelogic.entities.Entity
 import gamelogic.gamestate
+import gamelogic.physics.Complex
 import models.bff.Routes._
 import models.bff.ingame.InGameWSProtocol
 import models.bff.ingame.InGameWSProtocol.{Ping, Pong, Ready, YourEntityIdIs}
@@ -40,6 +41,13 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
         gameSocket.$in.collect { case YourEntityIdIs(id) => id }
       )
       .map(_._2)
+  val $bossStartingPosition: EventStream[Complex] =
+    EventStream
+      .combine(
+        EventStream.fromValue((), emitOnce = true),
+        gameSocket.$in.collect { case InGameWSProtocol.StartingBossPosition(re, im) => Complex(re, im) }
+      )
+      .map(_._2)
 
   val deltaWithServerBus: EventBus[Long] = new EventBus
 
@@ -56,8 +64,9 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
 
   val element: ReactiveHtmlElement[html.Div] = div(
     className := "GamePlaying",
-    child <-- $playerId.combineWith(deltaWithServerBus.events).map {
-      case (id, delta) => GameViewContainer(user, id, $actionsFromServer, gameSocket.outWriter, delta)
+    child <-- $playerId.combineWith($bossStartingPosition).combineWith(deltaWithServerBus.events).map {
+      case ((id, bossPosition), delta) =>
+        GameViewContainer(user, id, bossPosition, $actionsFromServer, gameSocket.outWriter, delta)
     },
     span(
       btn,
