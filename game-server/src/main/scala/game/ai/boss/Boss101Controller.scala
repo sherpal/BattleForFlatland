@@ -8,7 +8,7 @@ import game.ai.AIManager.loopRate
 import gamelogic.abilities.Ability
 import gamelogic.abilities.boss.boss101.{BigDot, BigHit, SmallHit}
 import gamelogic.entities.boss.Boss101
-import gamelogic.gamestate.{GameAction, GameState}
+import gamelogic.gamestate.GameState
 import gamelogic.gamestate.gameactions.{ChangeTarget, EntityStartsCasting, MovingBodyMoves, SpawnBoss}
 
 import scala.concurrent.duration._

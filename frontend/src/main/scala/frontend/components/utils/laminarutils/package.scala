@@ -23,16 +23,15 @@ package object laminarutils {
       element: KeyAndRefAddingStage[Def],
       container: ReactiveHtmlElement[html.Element]
   ): Modifier[El] = {
-    val instance: Var[Option[ReactInstance]] = Var(Option.empty)
+    var instance: Option[ReactInstance] = Option.empty
 
     List(
       onMountCallback[El] { _ =>
-        instance.update { _ =>
-          Some(ReactDOM.render(element, container.ref))
-        }
+        instance = Some(ReactDOM.render(element, container.ref))
       },
       onUnmountCallback[El] { _ =>
-        instance.now.foreach(_ => ReactDOM.unmountComponentAtNode(container.ref))
+        instance.foreach(_ => ReactDOM.unmountComponentAtNode(container.ref))
+        instance = None
       },
       container
     )

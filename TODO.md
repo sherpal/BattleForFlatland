@@ -9,3 +9,5 @@
 - beginning of the game when players are ready inside the game itself: button to launch the boss, or boss aggro zone
 - players should spawn in the game at boss-dependent defined positions
 - integrate with boopickle
+- integrating sounds
+- 
