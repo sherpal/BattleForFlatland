@@ -127,32 +127,24 @@ final class GUIDrawer(
     if (gameState.bosses.nonEmpty && bossCooldownContainer.isEmpty) {
       val bossId = gameState.bosses.head._1
 
-      List(
-        new CooldownBar(
-          bossId,
-          Ability.boss101SmallHitId,
-          SmallHit.name,
-          RGBColour.blue,
-          resources(minimalistBar).texture
-        ),
-        new CooldownBar(
-          bossId,
-          Ability.boss101BigDotId,
-          BigDot.name,
-          RGBColour.red,
-          resources(minimalistBar).texture
-        ),
-        new CooldownBar(
-          bossId,
-          Ability.boss101BigHitId,
-          BigHit.name,
-          RGBColour.green,
-          resources(minimalistBar).texture
-        )
-      ).foreach { bar =>
-        bar.setSize(150, 20)
-        bossCooldownContainer.addElement(bar)
-      }
+      val boss = gameState.bosses.head._2
+
+      boss.abilityNames.zipWithIndex
+        .map {
+          case ((abilityId, name), idx) =>
+            new CooldownBar(
+              bossId,
+              abilityId,
+              name,
+              RGBColour.someColours(idx % RGBColour.someColours.length),
+              resources(minimalistBar).texture
+            )
+        }
+        .foreach { bar =>
+          bar.setSize(150, 20)
+          bossCooldownContainer.addElement(bar)
+        }
+
     }
 
     if (abilityButtonContainer.isEmpty) {

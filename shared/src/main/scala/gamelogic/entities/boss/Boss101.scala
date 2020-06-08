@@ -3,7 +3,7 @@ package gamelogic.entities.boss
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
-import gamelogic.abilities.boss.boss101.{BigDot, BigHit}
+import gamelogic.abilities.boss.boss101.{BigDot, BigHit, SmallHit}
 import gamelogic.buffs.Buff
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
@@ -79,9 +79,9 @@ final case class Boss101(
   protected def patchResourceAmount(newResourceAmount: ResourceAmount): Boss101 = this
 
   def abilityNames: Map[AbilityId, String] = Map(
-    Ability.boss101BigHitId -> "Big Hit",
-    Ability.boss101SmallHitId -> "Small Hit",
-    Ability.boss101BigDotId -> "Big Dot"
+    Ability.boss101BigHitId -> BigHit.name,
+    Ability.boss101SmallHitId -> SmallHit.name,
+    Ability.boss101BigDotId -> BigDot.name
   )
 }
 

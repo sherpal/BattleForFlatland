@@ -26,10 +26,22 @@ object RGBColour {
 
   implicit def asRGBA(rgb: RGBColour): RGBAColour = rgb.withAlpha(1.0)
 
-  final val black = RGBColour.fromIntColour(0)
-  final val white = RGBColour.fromIntColour(0xFFFFFF)
-  final val red   = RGBColour.fromIntColour(0xFF0000)
-  final val green = RGBColour.fromIntColour(0x00FF00)
-  final val blue  = RGBColour.fromIntColour(0x0000FF)
+  final val black   = RGBColour.fromIntColour(0)
+  final val white   = RGBColour.fromIntColour(0xFFFFFF)
+  final val red     = RGBColour.fromIntColour(0xFF0000)
+  final val green   = RGBColour.fromIntColour(0x00FF00)
+  final val blue    = RGBColour.fromIntColour(0x0000FF)
+  final val yellow  = RGBColour.fromIntColour(0xFFFF00)
+  final val fuchsia = RGBColour.fromIntColour(0xFF00FF)
+  final val aqua    = RGBColour.fromIntColour(0x00FFFF)
+
+  val someColours: Vector[RGBColour] = Vector(
+    red,
+    green,
+    blue,
+    yellow,
+    fuchsia,
+    aqua
+  )
 
 }
