@@ -38,7 +38,7 @@ final case class HexagonHot(useId: Ability.UseId, time: Long, casterId: Entity.I
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
 
   def canBeCast(gameState: GameState, time: UseId): Boolean =
-    canBeCastFriendlyOnly(gameState) && isInRange(gameState, time)
+    canBeCastFriendlyOnly(gameState) && isInRangeAndInSight(gameState, time)
 
   def range: Distance = WithTargetAbility.healRange
 }

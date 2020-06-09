@@ -83,6 +83,19 @@ final case class GameState(
   }
 
   /**
+    * Returns whether no obstacle stands between the two given entity.
+    * Currently it's just a matter of looping through all existing obstacles. Maybe there is a clever way.
+    */
+  def areTheyInSight(entityId1: Entity.Id, entityId2: Entity.Id, currentTime: Long): Option[Boolean] =
+    for {
+      body1 <- bodyEntityById(entityId1)
+      body2 <- bodyEntityById(entityId2)
+      segment = (body1.currentPosition(currentTime), body2.currentPosition(currentTime))
+    } yield !obstaclesLike.exists { body =>
+      body.shape.intersectSegment(body.currentPosition(currentTime), body.rotation, segment._1, segment._2)
+    }
+
+  /**
     * Returns whether the two entities given ids are in the same team.
     * If either of the entities does not exist, returns None instead.
     */
@@ -132,6 +145,9 @@ final case class GameState(
       .orElse(bosses.get(entityId))
       .orElse(dummyMobs.get(entityId))
       .orElse(pentagonBullets.get(entityId))
+
+  def bodyEntityById(entityId: Entity.Id): Option[Body] =
+    movingBodyEntityById(entityId)
 
   def livingEntityAndMovingBodyById(entityId: Entity.Id): Option[MovingBody with LivingEntity] =
     for {

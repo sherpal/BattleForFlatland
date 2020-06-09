@@ -85,7 +85,7 @@ final case class Boss101(
   )
 }
 
-object Boss101 extends BossFactory {
+object Boss101 extends BossFactory[Boss101] {
   final val shape: Circle = new Circle(30.0)
 
   final val maxLife: Double = 20000

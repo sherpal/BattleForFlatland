@@ -27,7 +27,7 @@ final case class FlashHeal(useId: Ability.UseId, time: Long, casterId: Entity.Id
   def range: Distance = WithTargetAbility.healRange
 
   def canBeCast(gameState: GameState, time: UseId): Boolean =
-    canBeCastFriendlyOnly(gameState) && isInRange(gameState, time)
+    canBeCastFriendlyOnly(gameState) && isInRangeAndInSight(gameState, time)
 }
 
 object FlashHeal {

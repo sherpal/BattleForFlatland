@@ -38,7 +38,7 @@ final case class BigHit(useId: Ability.UseId, time: Long, casterId: Entity.Id, t
   def range: Distance = Boss101.rangeRange
 
   def canBeCast(gameState: GameState, time: Long): Boolean =
-    canBeCastEnemyOnly(gameState) && isInRange(gameState, time)
+    canBeCastEnemyOnly(gameState) && isInRangeAndInSight(gameState, time)
 }
 
 object BigHit {

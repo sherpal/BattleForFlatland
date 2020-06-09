@@ -39,7 +39,7 @@ final case class Taunt(useId: Ability.UseId, time: Long, casterId: Entity.Id, ta
   def range: Distance = WithTargetAbility.meleeRange
 
   def canBeCast(gameState: GameState, time: UseId): Boolean =
-    canBeCastEnemyOnly(gameState) && isInRange(gameState, time)
+    canBeCastEnemyOnly(gameState) && isInRangeAndInSight(gameState, time)
 }
 
 object Taunt {

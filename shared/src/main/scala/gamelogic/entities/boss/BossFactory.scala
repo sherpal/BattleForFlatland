@@ -1,14 +1,15 @@
 package gamelogic.entities.boss
 
 import gamelogic.entities.Entity
+import gamelogic.entities.boss.dawnoftime.Boss102
 import gamelogic.gamestate.GameAction
 import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
 
-trait BossFactory {
+trait BossFactory[Boss <: BossEntity] {
 
   /** Describes how to create the boss at the beginning of the game. */
-  def initialBoss(entityId: Entity.Id, time: Long): BossEntity
+  def initialBoss(entityId: Entity.Id, time: Long): Boss
 
   /** Returns where the boss will initially start. */
   final def bossStartingPosition: Complex = initialBoss(0L, 0L).pos
@@ -35,8 +36,9 @@ trait BossFactory {
 
 object BossFactory {
 
-  val factoriesByBossName: Map[String, BossFactory] = List(
-    Boss101
+  val factoriesByBossName: Map[String, BossFactory[_]] = List(
+    Boss101,
+    Boss102
   ).map(factory => factory.name -> factory).toMap
 
 }

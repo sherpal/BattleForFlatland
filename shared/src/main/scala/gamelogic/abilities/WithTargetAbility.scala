@@ -20,6 +20,12 @@ trait WithTargetAbility extends Ability {
       distance       = (casterPosition - targetPosition).modulus
     } yield distance <= range).getOrElse(false)
 
+  final def isInSight(gameState: GameState, time: Long): Boolean =
+    gameState.areTheyInSight(casterId, targetId, time).getOrElse(false)
+
+  final def isInRangeAndInSight(gameState: GameState, time: Long): Boolean =
+    isInRange(gameState, time) && isInSight(gameState, time)
+
   final def canBeCastFriendlyOnly(gameState: GameState): Boolean =
     gameState.areTheyFromSameTeam(casterId, targetId).getOrElse(false)
 

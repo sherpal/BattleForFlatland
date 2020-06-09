@@ -76,7 +76,7 @@ object Boss101Controller {
           val bigHit = BigHit(0L, now, myId, target.id)
 
           val maybeUseAnAbility = Option
-            .when(me.canUseAbility(bigHit, startTime) && bigHit.isInRange(currentGameState, startTime)) {
+            .when(me.canUseAbility(bigHit, startTime) && bigHit.isInRangeAndInSight(currentGameState, startTime)) {
               println("Using BigHit!")
               List(
                 MovingBodyMoves(
