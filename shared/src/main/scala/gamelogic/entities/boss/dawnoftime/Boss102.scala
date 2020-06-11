@@ -94,7 +94,7 @@ object Boss102 extends BossFactory[Boss102] {
 
   def initialBossActions(entityId: Id, time: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = ???
 
-  val size = 500.0
+  val size = 350.0
   def gameBoundariesActions(time: Id, idGeneratorContainer: IdGeneratorContainer): List[CreateObstacle] =
     List[(Complex, (Complex, Complex))](
       (size, (-i * size, i * size)),

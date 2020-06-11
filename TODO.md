@@ -10,4 +10,7 @@
 - players should spawn in the game at boss-dependent defined positions
 - integrate with boopickle
 - integrating sounds
+- allow players to put markers on the ground to mark positions
+- show that the game has been launched
+- forbidding players to change their configurations when they are set to "ready"
 - 

@@ -19,11 +19,14 @@ final case class Obstacle(id: Entity.Id, time: Long, pos: Complex, shape: Polygo
   def teamId: TeamId = Entity.teams.neutralTeam
 
   def colour: RGBColour = RGBColour.white
-
 }
 
 object Obstacle {
 
+  /**
+    * Generates positively oriented vertices for a rectangle roughly equivalent to a segment from `z1` to `z2`, with
+    * the given `thickness`.
+    */
   def segmentObstacleVertices(z1: Complex, z2: Complex, thickness: Double): Vector[Complex] = {
     val orthogonalNorm = thickness / 2 * (z2 - z1).orthogonal.normalized
 
@@ -36,6 +39,11 @@ object Obstacle {
     Vector(p1, p2, p3, p4) // order and signs is important for orientation
   }
 
+  /**
+    * Creates an [[Obstacle]] which is roughly a "segment" between the points `z1` and `z2`.
+    * The `thickness` parameter determines how thick the obstacle will be. Something like 5 (in current game
+    * coordinate system) is good for a "thin" obstacle.
+    */
   def segmentObstacle(
       id: Entity.Id,
       time: Long,

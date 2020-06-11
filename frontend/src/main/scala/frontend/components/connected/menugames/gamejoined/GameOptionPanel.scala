@@ -6,9 +6,11 @@ import frontend.components.Component
 import frontend.components.utils.tailwind.{primaryColour, primaryColourDark}
 import gamelogic.entities.boss.BossEntity
 import models.bff.gameantichamber.WebSocketProtocol
+import models.bff.outofgame.MenuGameWithPlayers
 import org.scalajs.dom.html
 
-final class GameOptionPanel private (socketOutWriter: Observer[WebSocketProtocol]) extends Component[html.Element] {
+final class GameOptionPanel private (initialGameInfo: MenuGameWithPlayers, socketOutWriter: Observer[WebSocketProtocol])
+    extends Component[html.Element] {
 
   val element: ReactiveHtmlElement[html.Element] = section(
     h2(
@@ -20,7 +22,7 @@ final class GameOptionPanel private (socketOutWriter: Observer[WebSocketProtocol
       BossEntity.allBossesNames.map(name => option(value := name, name)),
       onMountSet(_ => {
         socketOutWriter.onNext(WebSocketProtocol.UpdateBossName(BossEntity.allBossesNames.head))
-        value := BossEntity.allBossesNames.head
+        value := initialGameInfo.game.gameConfiguration.maybeBossName.getOrElse(BossEntity.allBossesNames.head)
       }),
       inContext(elem => onChange.mapTo(elem.ref.value).map(WebSocketProtocol.UpdateBossName) --> socketOutWriter)
     )
@@ -29,5 +31,6 @@ final class GameOptionPanel private (socketOutWriter: Observer[WebSocketProtocol
 }
 
 object GameOptionPanel {
-  def apply(socketOutWriter: Observer[WebSocketProtocol]): GameOptionPanel = new GameOptionPanel(socketOutWriter)
+  def apply(initialGameInfo: MenuGameWithPlayers, socketOutWriter: Observer[WebSocketProtocol]): GameOptionPanel =
+    new GameOptionPanel(initialGameInfo, socketOutWriter)
 }

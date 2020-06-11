@@ -29,10 +29,6 @@ object FrontendSettings {
       "react" -> "16.13.1",
       "@types/react-dom" -> "16.9.8",
       "react-dom" -> "16.13.1"
-//      "jquery" -> "3.4.1",
-//      "popper.js" -> "1.16.1",
-//      "bootstrap" -> "4.4.1",
-//      "@types/bootstrap" -> "4.3.2"
     ),
     npmDevDependencies in Compile ++= Seq(
       "file-loader" -> "3.0.1",
