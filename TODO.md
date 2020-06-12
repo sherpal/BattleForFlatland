@@ -13,4 +13,5 @@
 - allow players to put markers on the ground to mark positions
 - show that the game has been launched
 - forbidding players to change their configurations when they are set to "ready"
+- show the game options to the people not game creators
 - 

@@ -1,5 +1,15 @@
 # Battle For Flatland
 
+## Game controls
+
+Currently the controls are hard coded and fit better for an AZERTY keyboard.
+
+It is in my plans to allow the user to chose their owns. However, if you wanted to change them, you can head over `frontend/src/main/scala/game/Keyboard.scala`.
+
+The current controls are:
+- zqsd (which is AZERTY's qasd) for moving
+- keys 1, 2, 3,... for using ability, from left to right as their symbols appear at the bottom left of the game.
+
 ## History was made on June, 3rd, 2020
 
 The first games of BFF were made on the 3rd of June, 2020. The first boss "Boss101" was defeated at 22:12 CEST in presence of
