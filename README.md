@@ -139,7 +139,7 @@ Steps to add a new service called `MyService`:
 - describes the methods and members the inner `Service` trait must have
 - for each method, create an accessor method inside the package object
 - by convention, live version in the frontend start with an F, and backend (JVM) version start with a B.
--
+
 
 ### Adding an asset
 

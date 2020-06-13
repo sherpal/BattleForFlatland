@@ -19,7 +19,8 @@ object SharedSettings {
       "com.lihaoyi" %%% "scalatags" % "0.9.1",
       "com.propensive" %%% "magnolia" % "0.16.0",
       "org.scala-lang" % "scala-reflect" % "2.13.1" % Provided,
-      "org.planet42" %%% "laika-core" % "0.15.0"
+      "org.planet42" %%% "laika-core" % "0.15.0",
+      "io.suzaku" %%% "boopickle" % "1.3.3"
     ) ++ Seq( // circe for json serialisation
       "io.circe" %%% "circe-core",
       "io.circe" %%% "circe-generic",
