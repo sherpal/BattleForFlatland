@@ -59,13 +59,7 @@ object Boss101Controller {
         val me              = currentGameState.bosses(myId)
         val currentPosition = me.currentPosition(startTime)
 
-        val maybeTarget = me.damageThreats
-          .maxByOption(_._2)
-          .map(_._1)
-          .flatMap(
-            currentGameState.players.get // this could change in the future
-          )
-          .fold(currentGameState.players.values.minByOption(player => (player.pos - me.pos).modulus))(Some(_))
+        val maybeTarget = findTarget(me, currentGameState)
 
         Option.unless(currentGameState.entityIsCasting(myId))(maybeTarget).flatten.foreach { target =>
           // If the boss is casting, he doesn't do anything else.
@@ -139,7 +133,8 @@ object Boss101Controller {
                   Boss101.meleeRange,
                   Boss101.fullSpeed,
                   Boss101.fullSpeed / 4,
-                  me.moving
+                  me.moving,
+                  me.rotation
                 )
               )
               .flatten

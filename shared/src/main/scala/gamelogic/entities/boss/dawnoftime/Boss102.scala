@@ -4,6 +4,7 @@ import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.boss.boss101.{BigDot, BigHit, SmallHit}
+import gamelogic.abilities.boss.boss102.PutDamageZones
 import gamelogic.entities.Entity
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
@@ -38,7 +39,7 @@ final case class Boss102(
 
   def shape: Circle = Boss101.shape
 
-  def abilities: Set[AbilityId] = ???
+  def abilities: Set[AbilityId] = Boss102.abilities
 
   def useAbility(ability: Ability): Boss102 = copy(
     relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability)
@@ -65,7 +66,9 @@ final case class Boss102(
 
   protected def patchResourceAmount(newResourceAmount: ResourceAmount): Boss102 = this
 
-  def abilityNames: Map[AbilityId, String] = ???
+  def abilityNames: Map[AbilityId, String] = Map(
+    Ability.boss102PutDamageZones -> "Damage zones"
+  )
 
 }
 
@@ -80,14 +83,19 @@ object Boss102 extends BossFactory[Boss102] {
   final val meleeRange: Distance = shape.radius + 20.0
   final val rangeRange: Distance = 2000.0 // basically infinite distance
 
+  @inline final def fullSpeed: Double = 300.0
+
   def initialBoss(entityId: Entity.Id, time: Long): Boss102 =
     Pointed[Boss102].unit
       .copy(
         id    = entityId,
         time  = time,
-        speed = 300.0,
+        speed = fullSpeed,
         relevantUsedAbilities = Map(
-          ),
+          Ability.boss102PutDamageZones -> Pointed[PutDamageZones].unit.copy(
+            time = time - PutDamageZones.cooldown + PutDamageZones.timeToFirstAbility
+          )
+        ),
         maxLife = maxLife,
         life    = maxLife
       )
@@ -123,4 +131,6 @@ object Boss102 extends BossFactory[Boss102] {
   def playersStartingPosition: Complex = -100 * i
 
   def name: String = "Boss 102"
+
+  final val abilities: Set[Ability.AbilityId] = Set(Ability.boss102PutDamageZones)
 }

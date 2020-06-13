@@ -1,8 +1,10 @@
 package game.ui
 
+import utils.misc.RGBColour
 import assets.Asset
 import com.raquo.airstream.core.Observer
 import game.Camera
+import gamelogic.entities.boss.boss102.DamageZone
 import gamelogic.entities.boss.{Boss101, BossEntity}
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.entities.movingstuff.PentagonBullet
@@ -46,12 +48,19 @@ final class GameDrawer(
   stage.addChild(movingStuffContainer)
   val obstacleContainer: Container = new Container
   stage.addChild(obstacleContainer)
+  val otherStuffContainer: Container = new Container
+  stage.addChild(otherStuffContainer)
 
-  private def diskTexture(colour: Int, radius: Double, withBlackDot: Boolean = false): PIXI.RenderTexture = {
+  private def diskTexture(
+      colour: Int,
+      alpha: Double,
+      radius: Double,
+      withBlackDot: Boolean = false
+  ): PIXI.RenderTexture = {
     val graphics = new Graphics
     graphics.lineStyle(0) // draw a circle, set the lineStyle to zero so the circle doesn't have an outline
 
-    graphics.beginFill(colour, 1)
+    graphics.beginFill(colour, alpha)
     graphics.drawCircle(0, 0, radius)
     graphics.endFill()
 
@@ -139,7 +148,7 @@ final class GameDrawer(
     entities.foreach { entity =>
       val sprite = bossesSprites.getOrElse(
         entity.id, {
-          val s = new Sprite(diskTexture(0xFFFFFF, entity.shape.radius, withBlackDot = true))
+          val s = new Sprite(diskTexture(0xFFFFFF, 1, entity.shape.radius, withBlackDot = true))
           s.anchor.set(0.5, 0.5)
           bossesSprites += (entity.id -> s)
           bossesContainer.addChild(s)
@@ -177,7 +186,7 @@ final class GameDrawer(
     bullets.foreach { bullet =>
       val sprite = pentagonBullets.getOrElse(
         bullet.id, {
-          val s = new Sprite(diskTexture(bullet.colour, bullet.shape.radius))
+          val s = new Sprite(diskTexture(bullet.colour, 1, bullet.shape.radius))
           s.anchor.set(0.5, 0.5)
           pentagonBullets += (bullet.id -> s)
           movingStuffContainer.addChild(s)
@@ -192,7 +201,7 @@ final class GameDrawer(
   private def drawSimpleBullets(bullets: List[SimpleBulletBody], currentTime: Long): Unit =
     bullets.foreach { bullet =>
       val sprite = bulletSprites.getOrElse(bullet.id, {
-        val s = new Sprite(diskTexture(0x000000, bullet.shape.radius))
+        val s = new Sprite(diskTexture(0x000000, 1, bullet.shape.radius))
         s.anchor.set(0.5, 0.5)
         bulletSprites += (bullet.id -> s)
         bulletContainer.addChild(s)
@@ -215,6 +224,30 @@ final class GameDrawer(
     camera.viewportManager(sprite, obstacle.pos, obstacle.shape.boundingBox)
   }
 
+  private val boss102DamageZones: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
+  private def drawBoss102DamageZones(damageZones: List[DamageZone]): Unit = {
+    boss102DamageZones
+      .collect { case (id, sprite) if !damageZones.map(_.id).contains(id) => (id, sprite) }
+      .foreach {
+        case (id, sprite) =>
+          boss102DamageZones -= id
+          sprite.visible = false
+      }
+
+    damageZones.foreach { zone =>
+      val sprite = boss102DamageZones.getOrElse(
+        zone.id, {
+          val s = new Sprite(diskTexture(RGBColour.red.intColour, 0.5, zone.shape.radius))
+          s.anchor.set(0.5, 0.5)
+          boss102DamageZones += (zone.id -> s)
+          otherStuffContainer.addChild(s)
+          s
+        }
+      )
+      camera.viewportManager(sprite, zone.pos, zone.shape.boundingBox)
+    }
+  }
+
   def drawGameState(gameState: GameState, cameraPosition: Complex, currentTime: Long): Unit = {
     camera.worldCenter = cameraPosition
     drawPlayers(gameState.players.values.toList)
@@ -223,6 +256,7 @@ final class GameDrawer(
     drawBosses(gameState.bosses.valuesIterator.toList, currentTime)
     drawPentagonBullets(gameState.pentagonBullets.valuesIterator.toList, currentTime)
     drawObstacles(gameState.allObstacles.toList)
+    drawBoss102DamageZones(gameState.otherEntities.valuesIterator.collect { case zone: DamageZone => zone }.toList)
     startButton.update(gameState, camera)
   }
 

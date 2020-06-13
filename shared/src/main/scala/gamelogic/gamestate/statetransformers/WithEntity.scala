@@ -1,6 +1,7 @@
 package gamelogic.gamestate.statetransformers
 
 import gamelogic.entities.boss.BossEntity
+import gamelogic.entities.boss.boss102.DamageZone
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.entities.movingstuff.PentagonBullet
 import gamelogic.entities.staticstuff.Obstacle
@@ -19,5 +20,7 @@ final class WithEntity(entity: Entity, time: Long) extends GameStateTransformer 
       gameState.copy(time = time, pentagonBullets = gameState.pentagonBullets + (entity.id -> entity))
     case entity: Obstacle =>
       gameState.withObstacle(entity)
+    case entity: DamageZone =>
+      gameState.copy(time = time, otherEntities = gameState.otherEntities + (entity.id -> entity))
   }
 }

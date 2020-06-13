@@ -1,6 +1,10 @@
 package game.ai
 
+import gamelogic.entities.WithPosition.Angle
+import gamelogic.entities.boss.BossEntity
+import gamelogic.entities.classes.PlayerClass
 import gamelogic.entities.{Entity, LivingEntity, MovingBody}
+import gamelogic.gamestate.GameState
 import gamelogic.gamestate.gameactions.MovingBodyMoves
 import gamelogic.physics.Complex
 
@@ -22,7 +26,8 @@ package object utils {
       maxDistance: Double,
       fullSpeed: Double,
       slowSpeed: Double,
-      currentlyMoving: Boolean
+      currentlyMoving: Boolean,
+      currentRotation: Angle
   ): Option[MovingBodyMoves] = {
     val toTarget         = targetPosition - currentPosition
     val distanceToTarget = toTarget.modulus
@@ -33,10 +38,19 @@ package object utils {
       Some(
         MovingBodyMoves(0L, time, entityId, currentPosition, (-toTarget).arg, toTarget.arg, slowSpeed, moving = true)
       )
-    else if (currentlyMoving)
+    else if (currentlyMoving || currentRotation != toTarget.arg)
       Some(MovingBodyMoves(0L, time, entityId, currentPosition, toTarget.arg, toTarget.arg, fullSpeed, moving = false))
     else None
 
   }
+
+  def findTarget(me: BossEntity, currentGameState: GameState): Option[PlayerClass] =
+    me.damageThreats
+      .maxByOption(_._2)
+      .map(_._1)
+      .flatMap(
+        currentGameState.players.get // this could change in the future
+      )
+      .fold(currentGameState.players.values.minByOption(player => (player.pos - me.pos).modulus))(Some(_))
 
 }
