@@ -32,6 +32,7 @@ final case class GameState(
     castingEntityInfo: Map[Entity.Id, EntityCastingInfo],
     passiveBuffs: Map[Entity.Id, Map[Buff.Id, PassiveBuff]],
     tickerBuffs: Map[Entity.Id, Map[Buff.Id, TickerBuff]],
+    otherEntities: Map[Entity.Id, Entity],
     private val obstacles: Map[Entity.Id, Obstacle]
 ) {
 

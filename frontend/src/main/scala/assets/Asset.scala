@@ -34,6 +34,8 @@ object Asset {
         object squareHammerHit extends Asset
         @js.native @JSImport("resources/assets/in-game/gui/abilities/square-taunt.png", JSImport.Default)
         object squareTaunt extends Asset
+        @js.native @JSImport("resources/assets/in-game/gui/abilities/square-enrage.png", JSImport.Default)
+        object squareEnrage extends Asset
 
         @js.native @JSImport("resources/assets/in-game/gui/abilities/triangle-direct-hit.png", JSImport.Default)
         object triangleDirectHit extends Asset
@@ -100,6 +102,7 @@ object Asset {
   ingame.gui.abilities.hexagonHot
   ingame.gui.abilities.squareHammerHit
   ingame.gui.abilities.squareTaunt
+  ingame.gui.abilities.squareEnrage
   ingame.gui.abilities.triangleDirectHit
   ingame.gui.abilities.triangleUpgradeDirectHit
   ingame.gui.abilities.pentagonBullet
@@ -114,6 +117,7 @@ object Asset {
     Ability.hexagonFlashHealId -> ingame.gui.abilities.hexagonFlashHeal,
     Ability.squareHammerHit -> ingame.gui.abilities.squareHammerHit,
     Ability.squareTauntId -> ingame.gui.abilities.squareTaunt,
+    Ability.squareEnrageId -> ingame.gui.abilities.squareEnrage,
     Ability.triangleDirectHit -> ingame.gui.abilities.triangleDirectHit,
     Ability.triangleUpgradeDirectHit -> ingame.gui.abilities.triangleUpgradeDirectHit,
     Ability.pentagonPentagonBullet -> ingame.gui.abilities.pentagonBullet
@@ -126,7 +130,8 @@ object Asset {
     Buff.rageFiller -> ingame.gui.`default-abilities`.rageFiller,
     Buff.energyFiller -> ingame.gui.`default-abilities`.energyFiller,
     Buff.manaFiller -> ingame.gui.`default-abilities`.manaFiller,
-    Buff.triangleUpgradeDirectHit -> ingame.gui.abilities.triangleUpgradeDirectHit
+    Buff.triangleUpgradeDirectHit -> ingame.gui.abilities.triangleUpgradeDirectHit,
+    Buff.squareEnrage -> ingame.gui.abilities.squareEnrage
   )
 
 }

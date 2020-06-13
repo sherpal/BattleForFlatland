@@ -19,7 +19,7 @@ trait DoT extends TickerBuff {
     */
   def damagePerTick(timeSinceBeginning: Long): Double
 
-  final def tickEffect(gameState: GameState, time: Long, entityIdGenerator: EntityIdGenerator): List[GameAction] =
+  final def tickEffect(gameState: GameState, time: Long, idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
     List(
       EntityTakesDamage(
         0L,

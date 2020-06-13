@@ -12,7 +12,7 @@ import game.ui.gui.GUIDrawer
 import gamelogic.abilities.Ability
 import gamelogic.abilities.hexagon.{FlashHeal, HexagonHot}
 import gamelogic.abilities.pentagon.CreatePentagonBullet
-import gamelogic.abilities.square.{HammerHit, Taunt}
+import gamelogic.abilities.square.{Enrage, HammerHit, Taunt}
 import gamelogic.abilities.triangle.{DirectHit, UpgradeDirectHit}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.{Entity, LivingEntity, MovingBody}
@@ -258,6 +258,22 @@ final class GameStateManager(
                     }
                   case None =>
                     dom.console.warn("You are dead")
+                }
+
+              case Ability.squareEnrageId =>
+                gameState.players.get(playerId) match {
+                  case Some(me) =>
+                    val ability = Enrage(0L, now, playerId)
+                    val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
+                    if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
+                          $strictGameStates.now,
+                          deltaTimeWithServer + 100
+                        )) {
+                      socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                    } else {
+                      dom.console.warn("Can't use Enrage")
+                    }
+                  case None => dom.console.warn("You are dead")
                 }
 
               case _ =>

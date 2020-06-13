@@ -30,6 +30,7 @@ final class GameAssetLoader(application: Application) {
     hexagonHot,
     squareTaunt,
     squareHammerHit,
+    squareEnrage,
     triangleDirectHit,
     triangleUpgradeDirectHit,
     pentagonBullet,

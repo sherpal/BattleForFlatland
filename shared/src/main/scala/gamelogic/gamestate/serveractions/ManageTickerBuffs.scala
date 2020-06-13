@@ -24,8 +24,13 @@ final class ManageTickerBuffs extends ServerAction {
       .filter(ticker => startTime - ticker.lastTickTime >= ticker.tickRate)
       .flatMap(
         ticker =>
-          TickerBuffTicks(0L, ticker.lastTickTime + ticker.tickRate, ticker.buffId, ticker.bearerId) +: ticker
-            .tickEffect(gameState, startTime, idGeneratorContainer.entityIdGenerator)
+          TickerBuffTicks(
+            idGeneratorContainer.gameActionIdGenerator(),
+            ticker.lastTickTime + ticker.tickRate,
+            ticker.buffId,
+            ticker.bearerId
+          ) +: ticker
+            .tickEffect(gameState, startTime, idGeneratorContainer)
       )
       .toList
 

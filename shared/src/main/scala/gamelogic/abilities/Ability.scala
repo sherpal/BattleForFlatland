@@ -81,6 +81,7 @@ object Ability {
   final val triangleUpgradeDirectHit: AbilityId = 9
   final val pentagonPentagonBullet: AbilityId   = 10
   final val boss101SmallHitId: AbilityId        = 11
+  final val squareEnrageId: AbilityId           = 12
 
   @inline final def gcd = 200L
 
@@ -99,6 +100,7 @@ object Ability {
     case x: hexagon.FlashHeal             => customEncode(x, "hexagon.FlashHeal")
     case x: hexagon.HexagonHot            => customEncode(x, "hexagon.HexagonHot")
     case x: pentagon.CreatePentagonBullet => customEncode(x, "pentagon.CreatePentagonBullet")
+    case x: square.Enrage                 => customEncode(x, "square.Enrage")
     case x: square.HammerHit              => customEncode(x, "square.HammerHit")
     case x: square.Taunt                  => customEncode(x, "square.Taunt")
     case x: triangle.DirectHit            => customEncode(x, "triangle.DirectHit")
@@ -116,6 +118,7 @@ object Ability {
     customDecoder[hexagon.FlashHeal]("hexagon.FlashHeal"),
     customDecoder[hexagon.HexagonHot]("hexagon.HexagonHot"),
     customDecoder[pentagon.CreatePentagonBullet]("pentagon.CreatePentagonBullet"),
+    customDecoder[square.Enrage]("square.Enrage"),
     customDecoder[square.HammerHit]("square.HammerHit"),
     customDecoder[square.Taunt]("square.Taunt"),
     customDecoder[triangle.DirectHit]("triangle.DirectHit"),

@@ -95,12 +95,14 @@ object Boss101 extends BossFactory[Boss101] {
 
   final val name: String = "Boss 101"
 
+  final val fullSpeed: Double = 300.0
+
   def initialBoss(entityId: Entity.Id, time: Long): Boss101 =
     Pointed[Boss101].unit
       .copy(
         id    = entityId,
         time  = time,
-        speed = 300.0,
+        speed = fullSpeed,
         relevantUsedAbilities = Map(
           Ability.boss101BigDotId -> Pointed[BigDot].unit.copy(
             time = time - BigDot.cooldown + BigDot.timeToFirstBigDot

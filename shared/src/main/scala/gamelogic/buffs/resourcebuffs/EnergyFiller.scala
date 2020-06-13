@@ -15,7 +15,7 @@ import gamelogic.utils.{EntityIdGenerator, IdGeneratorContainer}
   */
 final case class EnergyFiller(buffId: Buff.Id, bearerId: Entity.Id, appearanceTime: Long, lastTickTime: Long)
     extends TickerBuff {
-  def tickEffect(gameState: GameState, time: Long, entityIdGenerator: EntityIdGenerator): List[GameAction] = List(
+  def tickEffect(gameState: GameState, time: Long, entityIdGenerator: IdGeneratorContainer): List[GameAction] = List(
     EntityResourceChanges(0L, time, bearerId, EnergyFiller.energyRefillPerSecond, Energy)
   )
 

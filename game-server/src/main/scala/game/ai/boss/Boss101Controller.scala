@@ -11,6 +11,8 @@ import gamelogic.entities.boss.Boss101
 import gamelogic.gamestate.GameState
 import gamelogic.gamestate.gameactions.{ChangeTarget, EntityStartsCasting, MovingBodyMoves, SpawnBoss}
 
+import game.ai.utils._
+
 import scala.concurrent.duration._
 import scala.util.Random
 
@@ -128,17 +130,19 @@ object Boss101Controller {
           val maybeBodyMove =
             Option
               .unless(shouldINotMove)(
-                MovingBodyMoves(
-                  0L,
+                aiMovementToTarget(
+                  me.id,
                   startTime,
-                  myId,
                   currentPosition,
-                  directionVector.arg,
-                  directionVector.arg,
-                  me.speed,
-                  directionVector.modulus > Boss101.meleeRange
+                  me.shape.radius,
+                  targetPosition,
+                  Boss101.meleeRange,
+                  Boss101.fullSpeed,
+                  Boss101.fullSpeed / 4,
+                  me.moving
                 )
               )
+              .flatten
               .filter(
                 action =>
                   action.moving || action.moving != me.moving || (action.position - me.pos).modulus > 1e-6 || (directionVector.arg != me.rotation)

@@ -20,7 +20,7 @@ trait HoT extends TickerBuff {
   final def tickEffect(
       gameState: GameState,
       time: Long,
-      entityIdGenerator: EntityIdGenerator
+      IdGenerator: IdGeneratorContainer
   ): List[GameAction] = List(
     EntityGetsHealed(0L, time, bearerId, healPerTick(time - appearanceTime), sourceId)
   )

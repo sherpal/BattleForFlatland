@@ -1,7 +1,7 @@
 package gamelogic.buffs
 
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.EntityIdGenerator
+import gamelogic.utils.IdGeneratorContainer
 
 /**
   * A [[gamelogic.buffs.TickerBuff]] is a buff that does stuff at the given `tickRate`.
@@ -15,7 +15,7 @@ import gamelogic.utils.EntityIdGenerator
 trait TickerBuff extends Buff {
 
   /** Generates actions when the buff ticks */
-  def tickEffect(gameState: GameState, time: Long, entityIdGenerator: EntityIdGenerator): List[GameAction]
+  def tickEffect(gameState: GameState, time: Long, idGenerator: IdGeneratorContainer): List[GameAction]
 
   /** Time (in millis) between two game states. */
   val tickRate: Long
