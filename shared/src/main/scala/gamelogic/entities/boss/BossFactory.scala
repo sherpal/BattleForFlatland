@@ -1,8 +1,11 @@
 package gamelogic.entities.boss
 
+import gamelogic.buffs.Buff
 import gamelogic.entities.Entity
+import gamelogic.entities.Entity.Id
 import gamelogic.entities.boss.dawnoftime.Boss102
 import gamelogic.gamestate.GameAction
+import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
 
@@ -31,6 +34,18 @@ trait BossFactory[Boss <: BossEntity] {
 
   /** Name of the boss. */
   def name: String
+
+  /**
+    * Returns the two actions so that the boss have the healing and damage aware buff for actions.
+    */
+  final def healAndDamageAwareActions(
+      entityId: Id,
+      time: Long,
+      idGeneratorContainer: IdGeneratorContainer
+  ): List[GameAction] = List(
+    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.healingThreatAware),
+    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.damageThreatAware)
+  )
 
 }
 

@@ -21,7 +21,11 @@ final class GameOptionPanel private (initialGameInfo: MenuGameWithPlayers, socke
     select(
       BossEntity.allBossesNames.map(name => option(value := name, name)),
       onMountSet(_ => {
-        socketOutWriter.onNext(WebSocketProtocol.UpdateBossName(BossEntity.allBossesNames.head))
+        initialGameInfo.game.gameConfiguration.maybeBossName
+          .fold(BossEntity.allBossesNames.headOption)(_ => None) // do nothing if boss is already defined
+          .foreach { name =>
+            socketOutWriter.onNext(WebSocketProtocol.UpdateBossName(name))
+          }
         value := initialGameInfo.game.gameConfiguration.maybeBossName.getOrElse(BossEntity.allBossesNames.head)
       }),
       inContext(elem => onChange.mapTo(elem.ref.value).map(WebSocketProtocol.UpdateBossName) --> socketOutWriter)

@@ -113,10 +113,8 @@ object Boss101 extends BossFactory[Boss101] {
         life    = maxLife
       )
 
-  def initialBossActions(entityId: Id, time: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
-    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.healingThreatAware),
-    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.damageThreatAware)
-  )
+  def initialBossActions(entityId: Id, time: Long, idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
+    healAndDamageAwareActions(entityId, time, idGeneratorContainer)
 
   def stagingBossActions(time: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
     CreateObstacle(

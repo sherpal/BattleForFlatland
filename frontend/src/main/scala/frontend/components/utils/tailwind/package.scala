@@ -12,13 +12,16 @@ package object tailwind {
   final val primaryColourLight     = "500"
   final val primaryColourVeryLight = "200"
 
+  final val primaryColourDarkClass  = s"text-$primaryColour-$primaryColourDark"
+  final val primaryColourLightClass = s"text-$primaryColour-$primaryColourLight"
+
   final def pad(n: Int): Modifier[HtmlElement] = className := s"p-$n"
   final def h(n: Int): Modifier[HtmlElement]   = className := s"h-$n"
 
   final val cursorPointer = className := "cursor-pointer"
 
-  final val textPrimaryColour      = className := s"text-$primaryColour-$primaryColourDark"
-  final val textPrimaryColourLight = className := s"text-$primaryColour-$primaryColourLight"
+  final val textPrimaryColour      = className := primaryColourDarkClass
+  final val textPrimaryColourLight = className := primaryColourLightClass
 
   final val btn     = className := "font-bold py-1 px-4 cursor-pointer"
   final val btnBlue = className := "bg-blue-500 text-white hover:bg-blue-700"

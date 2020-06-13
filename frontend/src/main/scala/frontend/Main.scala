@@ -2,6 +2,7 @@ package frontend
 
 import assets.Asset
 import com.raquo.laminar.api.L._
+import docs.DocsLoader
 import org.scalajs.dom
 import zio.{UIO, ZIO}
 
@@ -22,6 +23,10 @@ object Main {
   println("Tailwind", Tailwind)
 
   Asset
+  DocsLoader
+
+  println("test")
+  println(DocsLoader.markdown.Test)
 
   final val addPageTitle = ZIO.effectTotal {
     dom.document.title = globals.projectName

@@ -80,7 +80,7 @@ object Boss102 extends BossFactory[Boss102] {
   final val meleeRange: Distance = shape.radius + 20.0
   final val rangeRange: Distance = 2000.0 // basically infinite distance
 
-  def initialBoss(entityId: Id, time: Id): Boss102 =
+  def initialBoss(entityId: Entity.Id, time: Long): Boss102 =
     Pointed[Boss102].unit
       .copy(
         id    = entityId,
@@ -92,10 +92,15 @@ object Boss102 extends BossFactory[Boss102] {
         life    = maxLife
       )
 
-  def initialBossActions(entityId: Id, time: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = ???
+  def initialBossActions(
+      entityId: Entity.Id,
+      time: Long,
+      idGeneratorContainer: IdGeneratorContainer
+  ): List[GameAction] =
+    healAndDamageAwareActions(entityId, time, idGeneratorContainer)
 
   val size = 350.0
-  def gameBoundariesActions(time: Id, idGeneratorContainer: IdGeneratorContainer): List[CreateObstacle] =
+  def gameBoundariesActions(time: Long, idGeneratorContainer: IdGeneratorContainer): List[CreateObstacle] =
     List[(Complex, (Complex, Complex))](
       (size, (-i * size, i * size)),
       (-size, (-i * size, i * size)),
@@ -112,7 +117,7 @@ object Boss102 extends BossFactory[Boss102] {
         )
     }
 
-  def stagingBossActions(time: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
+  def stagingBossActions(time: Long, idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
     gameBoundariesActions(time, idGeneratorContainer)
 
   def playersStartingPosition: Complex = -100 * i

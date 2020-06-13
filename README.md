@@ -2,12 +2,12 @@
 
 ## Game controls
 
-Currently the controls are hard coded and fit better for an AZERTY keyboard.
+Currently the controls are hard coded.
 
 It is in my plans to allow the user to chose their owns. However, if you wanted to change them, you can head over `frontend/src/main/scala/game/Keyboard.scala`.
 
 The current controls are:
-- zqsd (which is AZERTY's qasd) for moving
+- zqsd (or qasd on QWERTY) for moving
 - keys 1, 2, 3,... for using ability, from left to right as their symbols appear at the bottom left of the game.
 
 ## History was made on June, 3rd, 2020

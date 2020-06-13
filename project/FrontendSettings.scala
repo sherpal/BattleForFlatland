@@ -32,6 +32,7 @@ object FrontendSettings {
     ),
     npmDevDependencies in Compile ++= Seq(
       "file-loader" -> "3.0.1",
+      "raw-loader" -> "4.0.1",
       "style-loader" -> "0.23.1",
       "css-loader" -> "2.1.1",
       "html-webpack-plugin" -> "3.2.0",

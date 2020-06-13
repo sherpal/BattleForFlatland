@@ -2,6 +2,7 @@ package frontend.components.connected.menugames.gamejoined
 
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
+import docs.DocsLoader
 import frontend.components.Component
 import frontend.components.utils.tailwind._
 import io.circe.syntax._
@@ -166,7 +167,8 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
                       onClick.mapTo(WebSocketProtocol.PlayerLeavesGame(me.userId)) --> socket.outWriter
                     )
                 }
-              )
+              ),
+              BossDescription($gameInfo.startWith(info).map(_.game.gameConfiguration.maybeBossName))
             )
         ),
       pre(
