@@ -21,6 +21,12 @@ trait Body extends WithPosition {
     shape.collides(currentPosition(currentTime), rotation, that.shape, that.currentPosition(currentTime), that.rotation)
 
   /**
+    * Checks whether this Body collides the given shape, translated and rotated.
+    */
+  def collidesShape(thatShape: Shape, thatTranslation: Complex, thatRotation: Double, currentTime: Long): Boolean =
+    shape.collides(currentPosition(currentTime), rotation, thatShape, thatTranslation, thatRotation)
+
+  /**
     * Finds the first position, going from pos and towards rotation, where this body does not collide the bodies.
     *
     * @param rotation  The angle towards which we need to go.

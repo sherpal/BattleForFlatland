@@ -3,8 +3,11 @@ package game.ui.effects
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.ownership.Owner
 import game.Camera
+import game.ui.Drawer
+import gamelogic.abilities.Ability
+import gamelogic.abilities.square.Cleave
 import gamelogic.entities.Entity
-import gamelogic.gamestate.gameactions.{EntityGetsHealed, EntityTakesDamage}
+import gamelogic.gamestate.gameactions.{EntityGetsHealed, EntityTakesDamage, UseAbility}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import typings.pixiJs.mod.{Application, Container}
@@ -16,13 +19,14 @@ final class EffectsManager(
     playerId: Entity.Id,
     $actionsAndStates: EventStream[(GameAction, GameState)],
     camera: Camera,
-    application: Application
-)(implicit owner: Owner) {
+    val application: Application
+)(implicit owner: Owner)
+    extends Drawer {
 
   private val container: Container = new Container
   application.stage.addChild(container)
 
-  private val simpleTextEffects: mutable.Set[SimpleTextEffect] = mutable.Set.empty
+  private val gameEffects: mutable.Set[GameEffect] = mutable.Set.empty
 
   $actionsAndStates.foreach {
     case (action, gameState) =>
@@ -63,23 +67,35 @@ final class EffectsManager(
                 camera
               )
             )
+          case UseAbility(_, time, casterId, _, ability: Cleave) =>
+            gameState.players.get(casterId).map { player =>
+              new FlashingShape(
+                Cleave.cone,
+                ability.position,
+                ability.rotation,
+                time,
+                750L,
+                camera,
+                polygonTexture(player.colour, 0.9, Cleave.cone)
+              )
+            }
           case _ =>
             Option.empty[SimpleTextEffect]
         }
-        .foreach { newTextEffect =>
-          container.addChild(newTextEffect.pixiText)
-          simpleTextEffects += newTextEffect
+        .foreach { effect =>
+          effect.addToContainer(container)
+          gameEffects += effect
         }
 
   }
 
   def update(currentTime: Long): Unit =
-    simpleTextEffects.foreach { textEffect =>
-      if (textEffect.isOver(currentTime)) {
-        simpleTextEffects -= textEffect
-        textEffect.destroy()
+    gameEffects.foreach { effect =>
+      if (effect.isOver(currentTime)) {
+        gameEffects -= effect
+        effect.destroy()
       } else {
-        textEffect.update(currentTime)
+        effect.update(currentTime)
       }
     }
 

@@ -33,6 +33,6 @@ final case class HammerHit(useId: Ability.UseId, time: Long, casterId: Entity.Id
 
 object HammerHit {
 
-  @inline def damage: Double = 10.0
+  @inline def damage: Double = 50.0
 
 }

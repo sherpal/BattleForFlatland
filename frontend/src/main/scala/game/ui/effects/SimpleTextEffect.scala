@@ -4,7 +4,7 @@ import game.Camera
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.BoundingBox
 import typings.pixiJs.anon.Align
-import typings.pixiJs.mod.{Text, TextStyle}
+import typings.pixiJs.mod.{Container, Text, TextStyle}
 import utils.misc.RGBAColour
 
 import scala.util.Random
@@ -26,7 +26,7 @@ final class SimpleTextEffect(
     path: Path,
     camera: Camera,
     fontSize: Double = 20
-) {
+) extends GameEffect {
 
   val pixiText = new Text(
     text,
@@ -38,6 +38,8 @@ final class SimpleTextEffect(
     )
   )
   pixiText.anchor.set(0.5, 0.5)
+
+  override def addToContainer(container: Container): Unit = container.addChild(pixiText)
 
   val boundingBox: BoundingBox = BoundingBox(-pixiText.width, -pixiText.height, pixiText.width, pixiText.height)
 

@@ -57,7 +57,8 @@ object Square extends PlayerClassBuilder {
 
   def initialResourceAmount: ResourceAmount = ResourceAmount(100, Rage)
 
-  final val abilities = Set(Ability.squareTauntId, Ability.squareHammerHit, Ability.squareEnrageId)
+  final val abilities =
+    Set(Ability.squareTauntId, Ability.squareHammerHit, Ability.squareEnrageId, Ability.squareCleaveId)
 
   final val initialMaxLife: Double = 200
 

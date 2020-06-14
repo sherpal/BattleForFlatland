@@ -146,4 +146,9 @@ object Complex {
       } yield Complex(real, imag)
     }
   }
+
+  implicit class DoubleWithI(x: Double) {
+    def i: Complex = x * Complex.i
+  }
+
 }

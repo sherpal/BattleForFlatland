@@ -12,7 +12,7 @@ import game.ui.gui.GUIDrawer
 import gamelogic.abilities.Ability
 import gamelogic.abilities.hexagon.{FlashHeal, HexagonHot}
 import gamelogic.abilities.pentagon.CreatePentagonBullet
-import gamelogic.abilities.square.{Enrage, HammerHit, Taunt}
+import gamelogic.abilities.square.{Cleave, Enrage, HammerHit, Taunt}
 import gamelogic.abilities.triangle.{DirectHit, UpgradeDirectHit}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.{Entity, LivingEntity, MovingBody}
@@ -205,6 +205,31 @@ final class GameStateManager(
                     } else {
                       dom.console.warn("Can't cast Taunt")
                     }
+                }
+              case Ability.squareCleaveId =>
+                gameState.players.get(playerId) match {
+                  case Some(me) =>
+                    val myPosition  = me.currentPosition(now)
+                    val direction   = worldMousePos - myPosition
+                    val startingPos = myPosition + me.shape.radius * direction.normalized
+                    val ability = Cleave(
+                      0L,
+                      now,
+                      playerId,
+                      startingPos,
+                      direction.arg
+                    )
+                    val action = EntityStartsCasting(0L, now, ability.castingTime, ability)
+                    if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
+                          $strictGameStates.now,
+                          deltaTimeWithServer + 100
+                        )) {
+                      socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                    } else {
+                      dom.console.warn("Can't use Cleave")
+                    }
+                  case None =>
+                    dom.console.warn("You are dead")
                 }
               case Ability.triangleDirectHit =>
                 maybeTarget match {
