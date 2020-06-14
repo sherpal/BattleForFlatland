@@ -169,4 +169,20 @@ object Triangle {
     v2.re,
     v2.im
   )
+
+  // todo: think about this
+//  def connectedComponents(triangles: List[Triangle]): List[List[Triangle]] = {
+//    def triangleIntersectComponent(triangle: Triangle, component: List[Triangle]): Boolean =
+//      component.exists { thatTriangle =>
+//        triangle.vertices.exists(thatTriangle.vertices.contains) || triangle.overlap(thatTriangle)
+//      }
+//
+//    def accumulator(remainingTriangles: List[Triangle], currentComponents: List[List[Triangle]]): List[List[Triangle]] =
+//      if (remainingTriangles.isEmpty) currentComponents
+//      else {
+//        val (intersectingNew, notIntersectingNew) = currentComponents.partition()
+//      }
+//
+//    accumulator(triangles, Nil)
+//  }
 }

@@ -22,5 +22,7 @@ final class WithEntity(entity: Entity, time: Long) extends GameStateTransformer 
       gameState.withObstacle(entity)
     case entity: DamageZone =>
       gameState.copy(time = time, otherEntities = gameState.otherEntities + (entity.id -> entity))
+    case entity: gamelogic.entities.boss.boss102.BossHound =>
+      gameState.copy(time = time, otherEntities = gameState.otherEntities + (entity.id -> entity))
   }
 }

@@ -4,7 +4,7 @@ import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.boss.boss101.{BigDot, BigHit, SmallHit}
-import gamelogic.abilities.boss.boss102.PutDamageZones
+import gamelogic.abilities.boss.boss102.{PutDamageZones, SpawnHound}
 import gamelogic.entities.Entity
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
@@ -67,7 +67,8 @@ final case class Boss102(
   protected def patchResourceAmount(newResourceAmount: ResourceAmount): Boss102 = this
 
   def abilityNames: Map[AbilityId, String] = Map(
-    Ability.boss102PutDamageZones -> "Damage zones"
+    Ability.boss102PutDamageZones -> "Damage zones",
+    Ability.boss102SpawnBossHound -> "Spawn Hound"
   )
 
 }
@@ -94,6 +95,9 @@ object Boss102 extends BossFactory[Boss102] {
         relevantUsedAbilities = Map(
           Ability.boss102PutDamageZones -> Pointed[PutDamageZones].unit.copy(
             time = time - PutDamageZones.cooldown + PutDamageZones.timeToFirstAbility
+          ),
+          Ability.boss102SpawnBossHound -> Pointed[SpawnHound].unit.copy(
+            time = time - SpawnHound.cooldown + SpawnHound.timeToFirstSpawnHound
           )
         ),
         maxLife = maxLife,
@@ -132,5 +136,5 @@ object Boss102 extends BossFactory[Boss102] {
 
   def name: String = "Boss 102"
 
-  final val abilities: Set[Ability.AbilityId] = Set(Ability.boss102PutDamageZones)
+  final val abilities: Set[Ability.AbilityId] = Set(Ability.boss102PutDamageZones, Ability.boss102SpawnBossHound)
 }

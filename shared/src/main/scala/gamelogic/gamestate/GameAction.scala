@@ -1,5 +1,6 @@
 package gamelogic.gamestate
 
+import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions._
 import gamelogic.gamestate.statetransformers.GameStateTransformer
 import io.circe.{Decoder, Encoder, Json}
@@ -52,6 +53,10 @@ trait GameAction extends Ordered[GameAction] {
 
 object GameAction {
 
+  trait EntityCreatorAction {
+    def entityId: Entity.Id
+  }
+
   type Id = Long
 
   import cats.syntax.functor._
@@ -62,6 +67,7 @@ object GameAction {
     a.asJson.mapObject(_.add("action_name", Json.fromString(name)))
 
   implicit val encoder: Encoder[GameAction] = Encoder.instance {
+    case x: boss102.AddBossHound     => customEncode(x, "boss102.AddBossHound")
     case x: boss102.PutDamageZone    => customEncode(x, "boss102.PutDamageZone")
     case x: AddDummyMob              => customEncode(x, "AddDummyMob")
     case x: AddPlayer                => customEncode(x, "AddPlayer")
@@ -95,6 +101,7 @@ object GameAction {
     decoder.validate(_.get[String]("action_name").contains(name), s"Not a $name instance").widen
 
   implicit val decoder: Decoder[GameAction] = List[Decoder[GameAction]](
+    customDecoder[boss102.AddBossHound]("boss102.AddBossHound"),
     customDecoder[boss102.PutDamageZone]("boss102.PutDamageZone"),
     customDecoder[AddDummyMob]("AddDummyMob"),
     customDecoder[AddPlayer]("AddPlayer"),

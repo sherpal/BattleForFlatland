@@ -25,9 +25,6 @@ object Main {
   Asset
   DocsLoader
 
-  println("test")
-  println(DocsLoader.markdown.Test)
-
   final val addPageTitle = ZIO.effectTotal {
     dom.document.title = globals.projectName
   }

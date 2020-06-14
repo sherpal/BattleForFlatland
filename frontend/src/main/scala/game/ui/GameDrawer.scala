@@ -4,7 +4,9 @@ import utils.misc.RGBColour
 import assets.Asset
 import com.raquo.airstream.core.Observer
 import game.Camera
+import game.ui.bossspecificdrawers.Boss102Drawer
 import gamelogic.entities.boss.boss102.DamageZone
+import gamelogic.entities.boss.dawnoftime.Boss102
 import gamelogic.entities.boss.{Boss101, BossEntity}
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.entities.movingstuff.PentagonBullet
@@ -26,16 +28,18 @@ import scala.scalajs.js.|
   * The implementation is full of side effects, probably in the wrong fear of less good performance.
   */
 final class GameDrawer(
-    application: Application,
+    val application: Application,
     resources: PartialFunction[Asset, LoaderResource],
     bossStartPosition: Complex,
     startFightObserver: Observer[Unit]
-) {
+) extends Drawer {
 
   @inline private def stage = application.stage
 
   val camera: Camera = new Camera(application.view.asInstanceOf[html.Canvas])
 
+  val otherStuffContainer: Container = new Container
+  stage.addChild(otherStuffContainer)
   val bulletContainer: Container = new Container
   stage.addChild(bulletContainer)
   val playerContainer: Container = new Container
@@ -48,58 +52,6 @@ final class GameDrawer(
   stage.addChild(movingStuffContainer)
   val obstacleContainer: Container = new Container
   stage.addChild(obstacleContainer)
-  val otherStuffContainer: Container = new Container
-  stage.addChild(otherStuffContainer)
-
-  private def diskTexture(
-      colour: Int,
-      alpha: Double,
-      radius: Double,
-      withBlackDot: Boolean = false
-  ): PIXI.RenderTexture = {
-    val graphics = new Graphics
-    graphics.lineStyle(0) // draw a circle, set the lineStyle to zero so the circle doesn't have an outline
-
-    graphics.beginFill(colour, alpha)
-    graphics.drawCircle(0, 0, radius)
-    graphics.endFill()
-
-    if (withBlackDot) {
-      graphics.beginFill(0x000000, 1)
-      graphics.drawCircle(radius, 0.0, 3.0)
-      graphics.endFill()
-    }
-
-    application.renderer.generateTexture(graphics, 1, 1)
-  }
-
-  private def circleTexture(colour: Int, alpha: Double, radius: Double): PIXI.RenderTexture = {
-    val graphics = new Graphics
-    graphics.lineStyle(1, colour, alpha)
-
-    graphics.beginFill(0xFFFFFF, 0.0)
-    graphics.drawCircle(0, 0, radius)
-
-    application.renderer.generateTexture(graphics, 1, 1)
-
-  }
-
-  private def polygonTexture(colour: Int, shape: gamelogic.physics.shape.Polygon): PIXI.RenderTexture = {
-    val graphics = new Graphics
-    graphics
-      .lineStyle(0)
-      .beginFill(colour, 1)
-      .drawPolygon(
-        shape.vertices
-          .map {
-            case Complex(re, im) => new Point(re, im)
-          }
-          .toJSArray
-          .asInstanceOf[scala.scalajs.js.Array[Double | typings.pixiJs.PIXI.Point]]
-      )
-
-    application.renderer.generateTexture(graphics, 1, 1)
-  }
 
   private val startButton = new BossStartButton(bossStartPosition, resources, startFightObserver)
   stage.addChild(startButton.element)
@@ -224,29 +176,8 @@ final class GameDrawer(
     camera.viewportManager(sprite, obstacle.pos, obstacle.shape.boundingBox)
   }
 
-  private val boss102DamageZones: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
-  private def drawBoss102DamageZones(damageZones: List[DamageZone]): Unit = {
-    boss102DamageZones
-      .collect { case (id, sprite) if !damageZones.map(_.id).contains(id) => (id, sprite) }
-      .foreach {
-        case (id, sprite) =>
-          boss102DamageZones -= id
-          sprite.visible = false
-      }
-
-    damageZones.foreach { zone =>
-      val sprite = boss102DamageZones.getOrElse(
-        zone.id, {
-          val s = new Sprite(diskTexture(RGBColour.red.intColour, 0.5, zone.shape.radius))
-          s.anchor.set(0.5, 0.5)
-          boss102DamageZones += (zone.id -> s)
-          otherStuffContainer.addChild(s)
-          s
-        }
-      )
-      camera.viewportManager(sprite, zone.pos, zone.shape.boundingBox)
-    }
-  }
+  val boss102Drawer =
+    new Boss102Drawer(application, resources, bossStartPosition, startFightObserver, camera, otherStuffContainer)
 
   def drawGameState(gameState: GameState, cameraPosition: Complex, currentTime: Long): Unit = {
     camera.worldCenter = cameraPosition
@@ -256,7 +187,18 @@ final class GameDrawer(
     drawBosses(gameState.bosses.valuesIterator.toList, currentTime)
     drawPentagonBullets(gameState.pentagonBullets.valuesIterator.toList, currentTime)
     drawObstacles(gameState.allObstacles.toList)
-    drawBoss102DamageZones(gameState.otherEntities.valuesIterator.collect { case zone: DamageZone => zone }.toList)
+
+    gameState.bosses.valuesIterator
+      .find(_.isInstanceOf[Boss102])
+      .foreach(
+        _ =>
+          boss102Drawer.drawGameState(
+            gameState,
+            cameraPosition,
+            currentTime
+          )
+      )
+
     startButton.update(gameState, camera)
   }
 

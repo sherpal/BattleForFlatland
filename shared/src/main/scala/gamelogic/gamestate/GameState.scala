@@ -8,6 +8,8 @@ import gamelogic.entities.movingstuff.PentagonBullet
 import gamelogic.entities.staticstuff.Obstacle
 import models.syntax.Pointed
 
+import scala.reflect.ClassTag
+
 /**
   * A [[gamelogic.gamestate.GameState]] has the complete knowledge of everything that exists in the game.
   * Having an instance of a GameState is enough to have all information about the game at that particular moment in time.
@@ -107,6 +109,10 @@ final case class GameState(
     } yield entity1.teamId == entity2.teamId
 
   // todo: look for other kind of entity in all of methods below.
+
+  def otherEntityByIdAs[T](entityId: Entity.Id)(implicit tag: ClassTag[T]): Option[T] =
+    otherEntities.get(entityId).collect { case t: T => t }
+
   def entityById(entityId: Entity.Id): Option[Entity] =
     players
       .get(entityId)
@@ -115,30 +121,40 @@ final case class GameState(
       .orElse(simpleBullets.get(entityId))
       .orElse(pentagonBullets.get(entityId))
       .orElse(obstacles.get(entityId))
+      .orElse(otherEntities.get(entityId))
 
   def allTargetableEntities: Iterator[MovingBody with LivingEntity] =
-    players.valuesIterator ++ bosses.valuesIterator ++ dummyMobs.valuesIterator
+    players.valuesIterator ++ bosses.valuesIterator ++ dummyMobs.valuesIterator ++
+      otherEntities.valuesIterator.collect { case entity: LivingEntity with MovingBody => entity }
 
   // Is there something better?
   def withAbilityEntitiesById(entityId: Entity.Id): Option[WithAbilities] =
     players
       .get(entityId)
       .orElse(bosses.get(entityId))
+      .orElse(otherEntityByIdAs[WithAbilities](entityId))
 
   def livingEntityById(entityId: Entity.Id): Option[LivingEntity] =
     players
       .get(entityId)
       .orElse(bosses.get(entityId))
       .orElse(dummyMobs.get(entityId))
+      .orElse(otherEntityByIdAs[LivingEntity](entityId))
 
   def allLivingEntities: Iterator[LivingEntity with MovingBody] =
-    players.valuesIterator ++ bosses.valuesIterator ++ dummyMobs.valuesIterator
+    players.valuesIterator ++ bosses.valuesIterator ++ dummyMobs.valuesIterator ++
+      otherEntities.valuesIterator.collect { case entity: LivingEntity with MovingBody => entity }
 
   def withThreatEntityById(entityId: Entity.Id): Option[WithThreat] =
-    bosses.get(entityId)
+    bosses.get(entityId).orElse(otherEntityByIdAs[WithThreat](entityId))
 
   def withPositionEntityById(entityId: Entity.Id): Option[WithPosition] =
-    players.get(entityId).orElse(bosses.get(entityId)).orElse(dummyMobs.get(entityId)).orElse(obstacles.get(entityId))
+    players
+      .get(entityId)
+      .orElse(bosses.get(entityId))
+      .orElse(dummyMobs.get(entityId))
+      .orElse(obstacles.get(entityId))
+      .orElse(otherEntityByIdAs[WithPosition](entityId))
 
   def movingBodyEntityById(entityId: Entity.Id): Option[MovingBody] =
     players
@@ -146,6 +162,7 @@ final case class GameState(
       .orElse(bosses.get(entityId))
       .orElse(dummyMobs.get(entityId))
       .orElse(pentagonBullets.get(entityId))
+      .orElse(otherEntityByIdAs[MovingBody](entityId))
 
   def bodyEntityById(entityId: Entity.Id): Option[Body] =
     movingBodyEntityById(entityId)
@@ -157,7 +174,7 @@ final case class GameState(
     } yield entity.asInstanceOf[MovingBody with LivingEntity] // this is ugly as hell. todo: think about it
 
   def withTargetEntityById(entityId: Entity.Id): Option[WithTarget] =
-    bosses.get(entityId)
+    bosses.get(entityId).orElse(otherEntityByIdAs[WithTarget](entityId))
 
   def buffById(entityId: Entity.Id, buffId: Buff.Id): Option[Buff] =
     tickerBuffs

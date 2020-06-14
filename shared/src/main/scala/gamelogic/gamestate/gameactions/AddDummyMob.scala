@@ -14,7 +14,7 @@ final case class AddDummyMob(
 ) extends GameAction {
 
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
-    new WithDummyMob(DummyMob(entityId, time, position, DummyMob.speed, moving = false, 0, 0))
+    new WithDummyMob(DummyMob(entityId, time, position, DummyMob.speed, moving = false, 0.0, 0.0))
 
   def isLegal(gameState: GameState): Boolean = true
 

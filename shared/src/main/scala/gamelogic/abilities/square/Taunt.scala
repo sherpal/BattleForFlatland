@@ -36,7 +36,7 @@ final case class Taunt(useId: Ability.UseId, time: Long, casterId: Entity.Id, ta
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Taunt =
     copy(useId = newId, time = newTime)
 
-  def range: Distance = WithTargetAbility.meleeRange
+  def range: Distance = WithTargetAbility.healRange
 
   def canBeCast(gameState: GameState, time: UseId): Boolean =
     canBeCastEnemyOnly(gameState) && isInRangeAndInSight(gameState, time)

@@ -22,6 +22,8 @@ final class RemoveEntityTransformer(entityId: Entity.Id, time: Long) extends Gam
         gameState.copy(time = time, pentagonBullets = gameState.pentagonBullets - entityId)
       case _: Obstacle =>
         gameState.removeObstacle(entityId, time)
+      case _: gamelogic.entities.boss.boss102.BossHound =>
+        gameState.copy(time = time, otherEntities = gameState.otherEntities - entityId)
       case entity =>
         println(s"Unknown entity class was not removed: $entity")
         gameState

@@ -2,6 +2,7 @@ package gamelogic.gamestate.gameactions
 
 import gamelogic.entities.Entity
 import gamelogic.entities.WithPosition.Angle
+import gamelogic.entities.boss.BossEntity
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
 import gamelogic.gamestate.{GameAction, GameState}
@@ -25,8 +26,10 @@ final case class MovingBodyMoves(
       }
 
   def isLegal(gameState: GameState): Boolean = gameState.movingBodyEntityById(entityId).forall { movingBody =>
-    val afterMovement = movingBody.move(time, position, direction, rotation, speed, moving)
-    gameState.obstaclesLike.forall(obstacle => !obstacle.collides(afterMovement, time))
+    movingBody.isInstanceOf[BossEntity] || {
+      val afterMovement = movingBody.move(time, position, direction, rotation, speed, moving)
+      gameState.obstaclesLike.forall(obstacle => !obstacle.collides(afterMovement, time))
+    }
   }
 
   def changeId(newId: Id): GameAction = copy(id = newId)

@@ -3,9 +3,9 @@ package game.ai
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.classes.PlayerClass
-import gamelogic.entities.{Entity, LivingEntity, MovingBody}
-import gamelogic.gamestate.GameState
-import gamelogic.gamestate.gameactions.MovingBodyMoves
+import gamelogic.entities.{Entity, LivingEntity, MovingBody, WithPosition, WithTarget, WithThreat}
+import gamelogic.gamestate.{GameAction, GameState}
+import gamelogic.gamestate.gameactions.{ChangeTarget, MovingBodyMoves}
 import gamelogic.physics.Complex
 
 package object utils {
@@ -44,7 +44,7 @@ package object utils {
 
   }
 
-  def findTarget(me: BossEntity, currentGameState: GameState): Option[PlayerClass] =
+  def findTarget(me: WithThreat with WithPosition, currentGameState: GameState): Option[PlayerClass] =
     me.damageThreats
       .maxByOption(_._2)
       .map(_._1)
@@ -52,5 +52,8 @@ package object utils {
         currentGameState.players.get // this could change in the future
       )
       .fold(currentGameState.players.values.minByOption(player => (player.pos - me.pos).modulus))(Some(_))
+
+  def changeTarget(me: WithTarget, targetId: Entity.Id, time: Long): Option[GameAction] =
+    Option.unless(targetId == me.targetId)(ChangeTarget(0L, time, me.id, targetId))
 
 }

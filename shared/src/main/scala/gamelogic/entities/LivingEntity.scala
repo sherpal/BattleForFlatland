@@ -10,7 +10,7 @@ trait LivingEntity extends Entity {
   val life: Double
 
   /** Maximum amount of life this entity can have. */
-  val maxLife: Double
+  def maxLife: Double
 
   /** Update the life total by adding the specified delta, clamped to [O, maxLife]. */
   def changeLifeTotal(delta: Double): LivingEntity =

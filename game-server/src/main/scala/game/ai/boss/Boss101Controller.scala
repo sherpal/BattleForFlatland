@@ -67,7 +67,7 @@ object Boss101Controller {
           // In that case, the game either has not started yet or it will end very soon so we don't do anything.
 
           /** changing target */
-          val maybeChangeTarget = Option.unless(target.id == me.targetId)(ChangeTarget(0L, now, me.id, target.id))
+          val maybeChangeTarget = changeTarget(me, target.id, startTime)
 
           val bigHit = BigHit(0L, now, myId, target.id)
 

@@ -3,9 +3,11 @@ package game.ai
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import game.ActionTranslator
+import game.ai.boss.boss102units.BossHoundController
 import game.ai.boss.{Boss101Controller, Boss102Controller}
 import gamelogic.entities.boss.Boss101
 import gamelogic.entities.boss.dawnoftime.Boss102
+import gamelogic.gamestate.gameactions.boss102.AddBossHound
 import gamelogic.gamestate.gameactions.{AddDummyMob, SpawnBoss}
 import gamelogic.gamestate.{GameAction, GameState}
 
@@ -118,6 +120,13 @@ object AIManager {
             val ref = context.spawn(
               Boss102Controller.apply(receiverInfo.actionTranslator, action),
               s"Boss102-${action.entityId}"
+            )
+            context.watchWith(ref, ControllerDied(ref))
+            ref
+          case action: AddBossHound =>
+            val ref = context.spawn(
+              BossHoundController(receiverInfo.actionTranslator, action),
+              s"BossHound-${action.entityId}"
             )
             context.watchWith(ref, ControllerDied(ref))
             ref

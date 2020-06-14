@@ -6,8 +6,10 @@ import game.ActionTranslator
 import game.ai.AIControllerMessage
 import game.ai.AIManager.loopRate
 import game.ai.utils.findTarget
+import gamelogic.entities.{Entity, MovingBody, WithPosition, WithThreat}
 import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.classes.PlayerClass
+import gamelogic.gamestate.GameAction.EntityCreatorAction
 import gamelogic.gamestate.gameactions.SpawnBoss
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
@@ -15,31 +17,38 @@ import gamelogic.physics.Complex
 import scala.concurrent.duration._
 
 /**
-  * The BossController trait contains all the boilerplate that you need for implementing an AI for a given boss.
+  * The AIController trait contains all the boilerplate that you need for implementing an AI.
   *
-  * The only method to implement is the `takeActions` method. It takes the current [[gamelogic.gamestate.GameState]]
-  * and a few pre-computed values. And it returns the list of actions that the boss wants to take given these inputs.
+  * The methods to implement are
+  * - `takeActions` method. It takes the current [[gamelogic.gamestate.GameState]]
+  *   and a few pre-computed values. And it returns the list of actions that the AI wants to take given these inputs.
+  * - `getMe`: how to access this entity based on its id
   */
-trait BossController {
+trait AIController[
+    EntityType <: MovingBody with WithThreat with WithPosition,
+    InitialAction <: GameAction with EntityCreatorAction
+] {
 
   protected def takeActions(
       currentGameState: GameState,
-      me: BossEntity,
+      me: EntityType,
       currentPosition: Complex,
       startTime: Long,
       maybeTarget: Option[PlayerClass]
   ): List[GameAction]
 
+  protected def getMe(gameState: GameState, entityId: Entity.Id): Option[EntityType]
+
   @inline private def now = System.currentTimeMillis
 
   def apply(
       actionTranslator: ActorRef[ActionTranslator.Message],
-      initialMessage: SpawnBoss
+      initialMessage: InitialAction
   ): Behavior[AIControllerMessage] = Behaviors.setup { context =>
     Behaviors.receiveMessage {
       case AIControllerMessage.GameStateWrapper(gameState) =>
         AIControllerMessage.unsafeRunSendMeLoop(context.self, zio.duration.Duration.fromScala(loopRate.millis))
-        receiver(actionTranslator, spawnBoss = initialMessage, currentGameState = gameState)
+        receiver(actionTranslator, initialAction = initialMessage, currentGameState = gameState)
       case _ =>
         //waiting for first game state
         Behaviors.same
@@ -48,28 +57,28 @@ trait BossController {
 
   private def receiver(
       actionTranslator: ActorRef[ActionTranslator.Message],
-      spawnBoss: SpawnBoss,
+      initialAction: InitialAction,
       currentGameState: GameState
   ): Behavior[AIControllerMessage] = Behaviors.receive { (context, message) =>
-    def myId = spawnBoss.entityId
+    val myId = initialAction.entityId
 
     message match {
       case AIControllerMessage.GameStateWrapper(gameState) =>
-        gameState.bosses
-          .get(myId)
+        getMe(gameState, myId)
           .fold(Behaviors.stopped[AIControllerMessage])(
             _ =>
               receiver(
                 actionTranslator,
-                spawnBoss,
+                initialAction,
                 gameState
               )
           )
       case AIControllerMessage.NewActions(_) => Behaviors.same
       case AIControllerMessage.Loop =>
         val startTime       = now
-        val me              = currentGameState.bosses(myId)
-        val currentPosition = me.lastValidPosition(me.currentPosition(startTime), currentGameState.obstaclesLike.toList)
+        val me              = getMe(currentGameState, myId).get
+        val currentPosition = me.currentPosition(startTime)
+        //me.lastValidPosition(me.currentPosition(startTime), currentGameState.obstaclesLike.toList)
 
         val maybeTarget = findTarget(me, currentGameState)
 

@@ -83,8 +83,9 @@ object Ability {
   final val boss101SmallHitId: AbilityId        = 11
   final val squareEnrageId: AbilityId           = 12
   final val boss102PutDamageZones: AbilityId    = 13
-
-  @inline final def gcd = 200L
+  final val boss102SpawnBossHound: AbilityId    = 14
+  final val autoAttackId: AbilityId             = 15
+  @inline final def gcd                         = 200L
 
   /** Encoding. Replace this by more performant stuff in the future. */
   import cats.syntax.functor._
@@ -99,6 +100,7 @@ object Ability {
     case x: boss.boss101.BigHit           => customEncode(x, "boss.boss101.BigHit")
     case x: boss.boss101.SmallHit         => customEncode(x, "boss.boss101.SmallHit")
     case x: boss.boss102.PutDamageZones   => customEncode(x, "boss.boss102.PutDamageZones")
+    case x: boss.boss102.SpawnHound       => customEncode(x, "boss.boss102.SpawnHound")
     case x: hexagon.FlashHeal             => customEncode(x, "hexagon.FlashHeal")
     case x: hexagon.HexagonHot            => customEncode(x, "hexagon.HexagonHot")
     case x: pentagon.CreatePentagonBullet => customEncode(x, "pentagon.CreatePentagonBullet")
@@ -107,6 +109,7 @@ object Ability {
     case x: square.Taunt                  => customEncode(x, "square.Taunt")
     case x: triangle.DirectHit            => customEncode(x, "triangle.DirectHit")
     case x: triangle.UpgradeDirectHit     => customEncode(x, "triangle.UpgradeDirectHit")
+    case x: AutoAttack                    => customEncode(x, "AutoAttack")
     case x: SimpleBullet                  => customEncode(x, "SimpleBullet")
   }
 
@@ -118,6 +121,7 @@ object Ability {
     customDecoder[boss.boss101.BigHit]("boss.boss101.BigHit"),
     customDecoder[boss.boss101.SmallHit]("boss.boss101.SmallHit"),
     customDecoder[boss.boss102.PutDamageZones]("boss.boss102.PutDamageZones"),
+    customDecoder[boss.boss102.SpawnHound]("boss.boss102.SpawnHound"),
     customDecoder[hexagon.FlashHeal]("hexagon.FlashHeal"),
     customDecoder[hexagon.HexagonHot]("hexagon.HexagonHot"),
     customDecoder[pentagon.CreatePentagonBullet]("pentagon.CreatePentagonBullet"),
@@ -126,6 +130,7 @@ object Ability {
     customDecoder[square.Taunt]("square.Taunt"),
     customDecoder[triangle.DirectHit]("triangle.DirectHit"),
     customDecoder[triangle.UpgradeDirectHit]("triangle.UpgradeDirectHit"),
+    customDecoder[AutoAttack]("AutoAttack"),
     customDecoder[SimpleBullet]("SimpleBullet")
   ).reduceLeft(_ or _)
 
