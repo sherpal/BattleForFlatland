@@ -38,8 +38,8 @@ final class GameDrawer(
 
   val camera: Camera = new Camera(application.view.asInstanceOf[html.Canvas])
 
-  val otherStuffContainer: Container = new Container
-  stage.addChild(otherStuffContainer)
+  val otherStuffContainerBelow: Container = new Container
+  stage.addChild(otherStuffContainerBelow)
   val bulletContainer: Container = new Container
   stage.addChild(bulletContainer)
   val playerContainer: Container = new Container
@@ -52,6 +52,8 @@ final class GameDrawer(
   stage.addChild(movingStuffContainer)
   val obstacleContainer: Container = new Container
   stage.addChild(obstacleContainer)
+  val otherStuffContainerAbove: Container = new Container
+  stage.addChild(otherStuffContainerAbove)
 
   private val startButton = new BossStartButton(bossStartPosition, resources, startFightObserver)
   stage.addChild(startButton.element)
@@ -67,7 +69,7 @@ final class GameDrawer(
 
     entities.foreach { entity =>
       val sprite = players.getOrElse(entity.id, {
-        val s = new Sprite(polygonTexture(entity.colour, entity.shape))
+        val s = new Sprite(polygonTexture(entity.colour, 1.0, entity.shape))
         s.anchor.set(0.5, 0.5)
         players += (entity.id -> s)
         playerContainer.addChild(s)
@@ -82,13 +84,15 @@ final class GameDrawer(
   private val dummyMobSprites: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
   private def drawDummyMobs(entities: List[DummyMob], now: Long): Unit =
     entities.foreach { entity =>
-      val sprite = dummyMobSprites.getOrElse(entity.id, {
-        val s = new Sprite(polygonTexture(0xc0c0c0, entity.shape))
-        s.anchor.set(0.5, 0.5)
-        dummyMobSprites += (entity.id -> s)
-        dummyMobContainer.addChild(s)
-        s
-      })
+      val sprite = dummyMobSprites.getOrElse(
+        entity.id, {
+          val s = new Sprite(polygonTexture(0xc0c0c0, 1.0, entity.shape))
+          s.anchor.set(0.5, 0.5)
+          dummyMobSprites += (entity.id -> s)
+          dummyMobContainer.addChild(s)
+          s
+        }
+      )
 
       sprite.rotation = -entity.rotation // orientation is reversed...
       camera.viewportManager(sprite, entity.currentPosition(now), entity.shape.boundingBox)
@@ -166,7 +170,7 @@ final class GameDrawer(
   private def drawObstacles(obstacles: List[Obstacle]): Unit = obstacles.foreach { obstacle =>
     val sprite = obstacleSprites.getOrElse(
       obstacle.id, {
-        val s = new Sprite(polygonTexture(obstacle.colour.intColour, obstacle.shape))
+        val s = new Sprite(polygonTexture(obstacle.colour.intColour, 1.0, obstacle.shape))
         s.anchor.set(0.5, 0.5)
         obstacleSprites += (obstacle.id -> s)
         obstacleContainer.addChild(s)
@@ -177,7 +181,15 @@ final class GameDrawer(
   }
 
   val boss102Drawer =
-    new Boss102Drawer(application, resources, bossStartPosition, startFightObserver, camera, otherStuffContainer)
+    new Boss102Drawer(
+      application,
+      resources,
+      bossStartPosition,
+      startFightObserver,
+      camera,
+      otherStuffContainerBelow,
+      otherStuffContainerAbove
+    )
 
   def drawGameState(gameState: GameState, cameraPosition: Complex, currentTime: Long): Unit = {
     camera.worldCenter = cameraPosition

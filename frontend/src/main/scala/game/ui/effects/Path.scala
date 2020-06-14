@@ -2,6 +2,8 @@ package game.ui.effects
 
 import gamelogic.physics.Complex
 
+import scala.util.Random
+
 /**
   * A [[Path]] is basically a function from time (Long) to a position in the [[gamelogic.physics.Complex]] plane.
   *
@@ -27,6 +29,12 @@ trait Path extends (Long => Complex) {
 
   /** Apply the conformal map */
   def *(z: Complex): Path = Path.factory(maybeDuration, t => apply(t) * z)
+
+  /** Rotates the path by the given angle. */
+  def rotation(angle: Double): Path = this * Complex.rotation(angle)
+
+  /** Applies a random rotation with angle between `-maxAngle` and `maxAngle` */
+  def jitter(maxAngle: Double): Path = rotation(Random.between(-maxAngle, maxAngle))
 
   /**
     * Follows `this` path and then `that` path. If `this` path is infinite, then `that` path is never followed.

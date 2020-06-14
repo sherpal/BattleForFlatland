@@ -90,7 +90,7 @@ final case class BossHound(
 object BossHound {
 
   @inline final def houndMaxLife = 800.0
-  val fullSpeed: Double          = Constants.playerSpeed * 3 / 5 // possible to kite although unlikely a good idea.
+  val fullSpeed: Double          = Constants.playerSpeed * 6 / 5
   val damageOnTick               = 5.0
   val tickRate                   = 1000L
   val range: Double              = Constants.playerRadius * 2

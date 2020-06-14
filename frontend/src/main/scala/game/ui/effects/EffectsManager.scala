@@ -35,7 +35,7 @@ final class EffectsManager(
                 amount.toString,
                 RGBColour.red,
                 time,
-                Path.goDown(2000, 40) + gameState.players.get(playerId).fold(Complex.zero)(_.pos),
+                Path.goDown(2000, 40).jitter(math.Pi / 16) + gameState.players.get(playerId).fold(Complex.zero)(_.pos),
                 camera
               )
             )
@@ -45,7 +45,7 @@ final class EffectsManager(
                 amount.toString,
                 RGBColour.white,
                 time,
-                Path.goUp(2000, 40) + gameState
+                Path.goUp(2000, 40).jitter(math.Pi / 16) + gameState
                   .movingBodyEntityById(entityId)
                   .fold(Complex.zero)(entity => entity.pos + entity.shape.radius * Complex.i),
                 camera
@@ -57,7 +57,9 @@ final class EffectsManager(
                 amount.toString,
                 RGBColour.green,
                 time,
-                Path.goUp(2000, 40) + gameState.movingBodyEntityById(entityId).fold(Complex.zero)(_.pos),
+                Path
+                  .goUp(2000, 40)
+                  .jitter(math.Pi / 16) + gameState.movingBodyEntityById(entityId).fold(Complex.zero)(_.pos),
                 camera
               )
             )

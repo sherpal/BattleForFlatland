@@ -44,11 +44,15 @@ trait Drawer {
 
   }
 
-  protected def polygonTexture(colour: Int, shape: gamelogic.physics.shape.Polygon): PIXI.RenderTexture = {
+  protected def polygonTexture(
+      colour: Int,
+      alpha: Double,
+      shape: gamelogic.physics.shape.Polygon
+  ): PIXI.RenderTexture = {
     val graphics = new Graphics
     graphics
       .lineStyle(0)
-      .beginFill(colour, 1)
+      .beginFill(colour, alpha)
       .drawPolygon(
         shape.vertices
           .map {

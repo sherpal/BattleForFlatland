@@ -10,7 +10,7 @@ import models.bff.outofgame.MenuGameWithPlayers
 import org.scalajs.dom.html
 import services.localstorage._
 import utils.ziohelpers.failIfWith
-import zio.{UIO, ZIO, ZLayer}
+import zio.{Task, UIO, ZIO, ZLayer}
 
 final class GameOptionPanel private (initialGameInfo: MenuGameWithPlayers, socketOutWriter: Observer[WebSocketProtocol])
     extends Component[html.Element] {
@@ -19,7 +19,7 @@ final class GameOptionPanel private (initialGameInfo: MenuGameWithPlayers, socke
 
   val bossNameStorageKey = "lastBossName"
 
-  def selectFirstBoss(maybeInitialBoss: Option[String], selectElement: html.Select) =
+  def selectFirstBoss(maybeInitialBoss: Option[String], selectElement: html.Select): Task[String] =
     (for {
       _ <- failIfWith(maybeInitialBoss.isDefined, maybeInitialBoss.get)
       maybePreviouslySelected <- retrieveFrom[String](bossNameStorageKey)
@@ -37,7 +37,7 @@ final class GameOptionPanel private (initialGameInfo: MenuGameWithPlayers, socke
           }
       )
 
-  def selectNewBoss(bossName: String) =
+  def selectNewBoss(bossName: String): UIO[Unit] =
     (for {
       _ <- ZIO.effect(socketOutWriter.onNext(WebSocketProtocol.UpdateBossName(bossName)))
       _ <- storeAt(bossNameStorageKey, bossName)

@@ -1,10 +1,13 @@
 package game.ui.effects
 
 import game.Camera
+import gamelogic.physics.Complex
 import gamelogic.physics.shape.BoundingBox
 import typings.pixiJs.anon.Align
 import typings.pixiJs.mod.{Text, TextStyle}
 import utils.misc.RGBAColour
+
+import scala.util.Random
 
 /**
   * Creates a simple effect where the given text follows the given movement in time.
