@@ -8,9 +8,42 @@ import gamelogic.entities.boss.BossEntity
 import models.bff.gameantichamber.WebSocketProtocol
 import models.bff.outofgame.MenuGameWithPlayers
 import org.scalajs.dom.html
+import services.localstorage._
+import utils.ziohelpers.failIfWith
+import zio.{UIO, ZIO, ZLayer}
 
 final class GameOptionPanel private (initialGameInfo: MenuGameWithPlayers, socketOutWriter: Observer[WebSocketProtocol])
     extends Component[html.Element] {
+
+  val localStorage: ZLayer[Any, Nothing, LocalStorage] = zio.clock.Clock.live >>> FLocalStorage.live
+
+  val bossNameStorageKey = "lastBossName"
+
+  def selectFirstBoss(maybeInitialBoss: Option[String], selectElement: html.Select) =
+    (for {
+      _ <- failIfWith(maybeInitialBoss.isDefined, maybeInitialBoss.get)
+      maybePreviouslySelected <- retrieveFrom[String](bossNameStorageKey)
+      nextSelected = maybePreviouslySelected.getOrElse(BossEntity.allBossesNames.head)
+      _ <- storeAt(bossNameStorageKey, nextSelected).ignore
+      _ <- ZIO.effect(socketOutWriter.onNext(WebSocketProtocol.UpdateBossName(nextSelected))).orDie
+    } yield nextSelected)
+      .catchSome { case bossName: String => UIO(bossName) }
+      .mapError(ser => new Exception(s"This is weird: $ser"))
+      .provideLayer(localStorage)
+      .tap(
+        bossName =>
+          ZIO.effectTotal {
+            selectElement.value = bossName
+          }
+      )
+
+  def selectNewBoss(bossName: String) =
+    (for {
+      _ <- ZIO.effect(socketOutWriter.onNext(WebSocketProtocol.UpdateBossName(bossName)))
+      _ <- storeAt(bossNameStorageKey, bossName)
+    } yield ()).orDie.provideLayer(localStorage)
+
+  val nextBossNameBus: EventBus[String] = new EventBus
 
   val element: ReactiveHtmlElement[html.Element] = section(
     h2(
@@ -20,15 +53,13 @@ final class GameOptionPanel private (initialGameInfo: MenuGameWithPlayers, socke
     ),
     select(
       BossEntity.allBossesNames.map(name => option(value := name, name)),
-      onMountSet(_ => {
-        initialGameInfo.game.gameConfiguration.maybeBossName
-          .fold(BossEntity.allBossesNames.headOption)(_ => None) // do nothing if boss is already defined
-          .foreach { name =>
-            socketOutWriter.onNext(WebSocketProtocol.UpdateBossName(name))
-          }
-        value := initialGameInfo.game.gameConfiguration.maybeBossName.getOrElse(BossEntity.allBossesNames.head)
-      }),
-      inContext(elem => onChange.mapTo(elem.ref.value).map(WebSocketProtocol.UpdateBossName) --> socketOutWriter)
+      onMountCallback { ctx =>
+        zio.Runtime.default
+          .unsafeRunToFuture(selectFirstBoss(initialGameInfo.game.gameConfiguration.maybeBossName, ctx.thisNode.ref))
+        nextBossNameBus.events
+          .foreach(bossName => zio.Runtime.default.unsafeRunToFuture(selectNewBoss(bossName)))(ctx.owner)
+      },
+      inContext(elem => onChange.mapTo(elem.ref.value) --> nextBossNameBus)
     )
   )
 
