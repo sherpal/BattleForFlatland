@@ -61,7 +61,7 @@ object Pentagon extends PlayerClassBuilder {
     )
   )
 
-  final val abilities: Set[Ability.AbilityId] = Set(Ability.pentagonPentagonBullet)
+  final val abilities: Set[Ability.AbilityId] = Set(Ability.pentagonPentagonBullet, Ability.createPentagonZoneId)
 
   final val shape: Polygon = Shape.regularPolygon(5, Constants.playerRadius)
 

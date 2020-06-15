@@ -9,6 +9,7 @@ import gamelogic.entities.boss.boss102.DamageZone
 import gamelogic.entities.boss.dawnoftime.Boss102
 import gamelogic.entities.boss.{Boss101, BossEntity}
 import gamelogic.entities.classes.PlayerClass
+import gamelogic.entities.classes.pentagon.PentagonZone
 import gamelogic.entities.movingstuff.PentagonBullet
 import gamelogic.entities.staticstuff.Obstacle
 import gamelogic.entities.{DummyMob, Entity, SimpleBulletBody}
@@ -153,6 +154,29 @@ final class GameDrawer(
     }
   }
 
+  private val pentagonZones: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
+  private def drawPentagonZones(zones: List[PentagonZone]): Unit = {
+    pentagonZones.filterNot(zone => zones.exists(_.id == zone._1)).foreach {
+      case (id, sprite) =>
+        sprite.destroy()
+        pentagonZones -= id
+    }
+
+    zones.foreach { zone =>
+      val sprite = pentagonZones.getOrElse(
+        zone.id, {
+          val s = new Sprite(polygonTexture(zone.colour.intColour, zone.colour.alpha, zone.shape))
+          s.anchor.set(0.5)
+          pentagonZones += (zone.id -> s)
+          otherStuffContainerBelow.addChild(s)
+          s.rotation = -zone.rotation // zone rotations are fixed
+          s
+        }
+      )
+      camera.viewportManager(sprite, zone.pos, zone.shape.boundingBox)
+    }
+  }
+
   private val bulletSprites: mutable.Map[Entity.Id, Sprite] = mutable.Map()
   private def drawSimpleBullets(bullets: List[SimpleBulletBody], currentTime: Long): Unit =
     bullets.foreach { bullet =>
@@ -199,6 +223,7 @@ final class GameDrawer(
     drawBosses(gameState.bosses.valuesIterator.toList, currentTime)
     drawPentagonBullets(gameState.pentagonBullets.valuesIterator.toList, currentTime)
     drawObstacles(gameState.allObstacles.toList)
+    drawPentagonZones(gameState.otherEntities.valuesIterator.collect { case zone: PentagonZone => zone }.toList)
 
     gameState.bosses.valuesIterator
       .find(_.isInstanceOf[Boss102])

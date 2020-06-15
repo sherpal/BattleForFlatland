@@ -86,6 +86,7 @@ object Ability {
   final val boss102SpawnBossHound: AbilityId    = 14
   final val autoAttackId: AbilityId             = 15
   final val squareCleaveId: AbilityId           = 16
+  final val createPentagonZoneId: AbilityId     = 17
   @inline final def gcd                         = 200L
 
   /** Encoding. Replace this by more performant stuff in the future. */
@@ -105,6 +106,7 @@ object Ability {
     case x: hexagon.FlashHeal             => customEncode(x, "hexagon.FlashHeal")
     case x: hexagon.HexagonHot            => customEncode(x, "hexagon.HexagonHot")
     case x: pentagon.CreatePentagonBullet => customEncode(x, "pentagon.CreatePentagonBullet")
+    case x: pentagon.CreatePentagonZone   => customEncode(x, "pentagon.CreatePentagonZone")
     case x: square.Cleave                 => customEncode(x, "square.Cleave")
     case x: square.Enrage                 => customEncode(x, "square.Enrage")
     case x: square.HammerHit              => customEncode(x, "square.HammerHit")
@@ -127,6 +129,7 @@ object Ability {
     customDecoder[hexagon.FlashHeal]("hexagon.FlashHeal"),
     customDecoder[hexagon.HexagonHot]("hexagon.HexagonHot"),
     customDecoder[pentagon.CreatePentagonBullet]("pentagon.CreatePentagonBullet"),
+    customDecoder[pentagon.CreatePentagonZone]("pentagon.CreatePentagonZone"),
     customDecoder[square.Cleave]("square.Cleave"),
     customDecoder[square.Enrage]("square.Enrage"),
     customDecoder[square.HammerHit]("square.HammerHit"),

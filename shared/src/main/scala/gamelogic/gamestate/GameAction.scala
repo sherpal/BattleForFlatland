@@ -67,34 +67,35 @@ object GameAction {
     a.asJson.mapObject(_.add("action_name", Json.fromString(name)))
 
   implicit val encoder: Encoder[GameAction] = Encoder.instance {
-    case x: boss102.AddBossHound     => customEncode(x, "boss102.AddBossHound")
-    case x: boss102.PutDamageZone    => customEncode(x, "boss102.PutDamageZone")
-    case x: AddDummyMob              => customEncode(x, "AddDummyMob")
-    case x: AddPlayer                => customEncode(x, "AddPlayer")
-    case x: AddPlayerByClass         => customEncode(x, "AddPlayerByClass")
-    case x: ChangeTarget             => customEncode(x, "ChangeTarget")
-    case x: CreateObstacle           => customEncode(x, "CreateObstacle")
-    case x: DummyEntityMoves         => customEncode(x, "DummyEntityMoves")
-    case x: EndGame                  => customEncode(x, "EndGame")
-    case x: EntityCastingInterrupted => customEncode(x, "EntityCastingInterrupted")
-    case x: EntityGetsHealed         => customEncode(x, "EntityGetsHealed")
-    case x: EntityResourceChanges    => customEncode(x, "EntityResourceChanges")
-    case x: EntityStartsCasting      => customEncode(x, "EntityStartsCasting")
-    case x: EntityTakesDamage        => customEncode(x, "EntityTakesDamage")
-    case x: GameStart                => customEncode(x, "GameStart")
-    case x: MovingBodyMoves          => customEncode(x, "MovingBodyMoves")
-    case x: NewPentagonBullet        => customEncode(x, "NewPentagonBullet")
-    case x: NewSimpleBullet          => customEncode(x, "NewSimpleBullet")
-    case x: PutSimpleBuff            => customEncode(x, "PutSimpleBuff")
-    case x: PutConstantDot           => customEncode(x, "PutConstantDot")
-    case x: RemoveBuff               => customEncode(x, "RemoveBuff")
-    case x: RemoveEntity             => customEncode(x, "RemoveEntity")
-    case x: SpawnBoss                => customEncode(x, "SpawnBoss")
-    case x: ThreatToEntityChange     => customEncode(x, "ThreatToEntityChange")
-    case x: TickerBuffTicks          => customEncode(x, "TickerBuffTicks")
-    case x: UpdateConstantHot        => customEncode(x, "UpdateConstantHot")
-    case x: UpdateTimestamp          => customEncode(x, "UpdateTimestamp")
-    case x: UseAbility               => customEncode(x, "UseAbility")
+    case x: boss102.AddBossHound             => customEncode(x, "boss102.AddBossHound")
+    case x: boss102.PutDamageZone            => customEncode(x, "boss102.PutDamageZone")
+    case x: classes.pentagon.PutPentagonZone => customEncode(x, "classes.pentagon.PutPentagonZone")
+    case x: AddDummyMob                      => customEncode(x, "AddDummyMob")
+    case x: AddPlayer                        => customEncode(x, "AddPlayer")
+    case x: AddPlayerByClass                 => customEncode(x, "AddPlayerByClass")
+    case x: ChangeTarget                     => customEncode(x, "ChangeTarget")
+    case x: CreateObstacle                   => customEncode(x, "CreateObstacle")
+    case x: DummyEntityMoves                 => customEncode(x, "DummyEntityMoves")
+    case x: EndGame                          => customEncode(x, "EndGame")
+    case x: EntityCastingInterrupted         => customEncode(x, "EntityCastingInterrupted")
+    case x: EntityGetsHealed                 => customEncode(x, "EntityGetsHealed")
+    case x: EntityResourceChanges            => customEncode(x, "EntityResourceChanges")
+    case x: EntityStartsCasting              => customEncode(x, "EntityStartsCasting")
+    case x: EntityTakesDamage                => customEncode(x, "EntityTakesDamage")
+    case x: GameStart                        => customEncode(x, "GameStart")
+    case x: MovingBodyMoves                  => customEncode(x, "MovingBodyMoves")
+    case x: NewPentagonBullet                => customEncode(x, "NewPentagonBullet")
+    case x: NewSimpleBullet                  => customEncode(x, "NewSimpleBullet")
+    case x: PutSimpleBuff                    => customEncode(x, "PutSimpleBuff")
+    case x: PutConstantDot                   => customEncode(x, "PutConstantDot")
+    case x: RemoveBuff                       => customEncode(x, "RemoveBuff")
+    case x: RemoveEntity                     => customEncode(x, "RemoveEntity")
+    case x: SpawnBoss                        => customEncode(x, "SpawnBoss")
+    case x: ThreatToEntityChange             => customEncode(x, "ThreatToEntityChange")
+    case x: TickerBuffTicks                  => customEncode(x, "TickerBuffTicks")
+    case x: UpdateConstantHot                => customEncode(x, "UpdateConstantHot")
+    case x: UpdateTimestamp                  => customEncode(x, "UpdateTimestamp")
+    case x: UseAbility                       => customEncode(x, "UseAbility")
   }
 
   private def customDecoder[A <: GameAction](name: String)(implicit decoder: Decoder[A]): Decoder[GameAction] =
@@ -103,6 +104,7 @@ object GameAction {
   implicit val decoder: Decoder[GameAction] = List[Decoder[GameAction]](
     customDecoder[boss102.AddBossHound]("boss102.AddBossHound"),
     customDecoder[boss102.PutDamageZone]("boss102.PutDamageZone"),
+    customDecoder[classes.pentagon.PutPentagonZone]("classes.pentagon.PutPentagonZone"),
     customDecoder[AddDummyMob]("AddDummyMob"),
     customDecoder[AddPlayer]("AddPlayer"),
     customDecoder[AddPlayerByClass]("AddPlayerByClass"),

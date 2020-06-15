@@ -2,6 +2,7 @@ package gamelogic.gamestate.statetransformers
 
 import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.classes.PlayerClass
+import gamelogic.entities.classes.pentagon.PentagonZone
 import gamelogic.entities.movingstuff.PentagonBullet
 import gamelogic.entities.staticstuff.Obstacle
 import gamelogic.entities.{DummyMob, Entity, SimpleBulletBody}
@@ -22,6 +23,8 @@ final class RemoveEntityTransformer(entityId: Entity.Id, time: Long) extends Gam
         gameState.copy(time = time, pentagonBullets = gameState.pentagonBullets - entityId)
       case _: Obstacle =>
         gameState.removeObstacle(entityId, time)
+      case _: PentagonZone =>
+        gameState.copy(time = time, otherEntities = gameState.otherEntities - entityId)
       case _: gamelogic.entities.boss.boss102.BossHound =>
         gameState.copy(time = time, otherEntities = gameState.otherEntities - entityId)
       case entity =>

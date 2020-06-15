@@ -7,14 +7,15 @@ import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.ownership.Owner
 import com.raquo.airstream.signal.{Signal, SignalViewer}
 import game.ui.GameDrawer
-import game.ui.effects.EffectsManager
+import game.ui.effects.{ChoosingAbilityPositionEffect, EffectsManager}
 import game.ui.gui.GUIDrawer
 import gamelogic.abilities.Ability
 import gamelogic.abilities.hexagon.{FlashHeal, HexagonHot}
-import gamelogic.abilities.pentagon.CreatePentagonBullet
+import gamelogic.abilities.pentagon.{CreatePentagonBullet, CreatePentagonZone}
 import gamelogic.abilities.square.{Cleave, Enrage, HammerHit, Taunt}
 import gamelogic.abilities.triangle.{DirectHit, UpgradeDirectHit}
 import gamelogic.entities.WithPosition.Angle
+import gamelogic.entities.classes.pentagon.PentagonZone
 import gamelogic.entities.{Entity, LivingEntity, MovingBody}
 import gamelogic.gamestate.gameactions.{EntityStartsCasting, MovingBodyMoves}
 import gamelogic.gamestate.{AddAndRemoveActions, GameAction, GameState, ImmutableActionCollector}
@@ -22,7 +23,8 @@ import gamelogic.physics.Complex
 import models.bff.ingame.{InGameWSProtocol, UserInput}
 import org.scalajs.dom
 import typings.pixiJs.PIXI.LoaderResource
-import typings.pixiJs.mod.Application
+import typings.pixiJs.mod.{Application, Container}
+import utils.misc.RGBColour
 import utils.pixi.monkeypatching.PIXIPatching._
 
 import scala.scalajs.js.timers.setTimeout
@@ -118,6 +120,43 @@ final class GameStateManager(
   val effectsManager = new EffectsManager(playerId, $actionsWithStates, gameDrawer.camera, application)
 
   val pressedUserInputSignal: SignalViewer[Set[UserInput]] = keyboard.$pressedUserInput.observe
+
+  val choosingAbilityEffectPositionBus = new EventBus[Option[Ability.AbilityId]]
+  val isChoosingAbilityEffectPosition: Signal[Option[Ability.AbilityId]] =
+    choosingAbilityEffectPositionBus.events.startWith(None)
+
+  mouse.$mouseClicks.withCurrentValueOf(isChoosingAbilityEffectPosition)
+    .collect { case (event, Some(id)) => (event, id) }
+    .withCurrentValueOf($gameStates)
+    .foreach {
+      case ((event, abilityId), gameState) =>
+        val now = serverTime
+        choosingAbilityEffectPositionBus.writer.onNext(None)
+        val gamePosition = gameDrawer.camera.mousePosToWorld(mouse.effectiveMousePos(event))
+        (abilityId, gameState.players.get(playerId)) match {
+          case (_, None) =>
+            dom.console.warn("You are dead")
+          case (Ability.createPentagonZoneId, Some(me)) =>
+            val ability = CreatePentagonZone(
+              0L,
+              now,
+              playerId,
+              gamePosition,
+              PentagonZone.damageOnTick,
+              0.0,
+              RGBColour.fromIntColour(me.colour).withAlpha(0.5)
+            )
+            val action = EntityStartsCasting(0L, now, ability.castingTime, ability)
+            if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action
+                  .isLegalDelay($strictGameStates.now, deltaTimeWithServer + 100)) {
+              socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+            } else if (scala.scalajs.LinkingInfo.developmentMode) {
+              dom.console.warn("Can't cast CreatePentagonZone.")
+            }
+          case _ =>
+            dom.console.error(s"I don't manage this ability id: $abilityId.")
+        }
+    }
 
   /** Cast abilities */
   val useAbilityBus = new EventBus[Ability.AbilityId]
@@ -285,6 +324,18 @@ final class GameStateManager(
                     dom.console.warn("You are dead")
                 }
 
+              case Ability.createPentagonZoneId =>
+                gameState.players
+                  .get(playerId)
+                  .foreach(
+                    _ =>
+                      choosingAbilityEffectPositionBus.writer.onNext(
+                        Some(
+                          Ability.createPentagonZoneId
+                        )
+                      )
+                  )
+
               case Ability.squareEnrageId =>
                 gameState.players.get(playerId) match {
                   case Some(me) =>
@@ -308,6 +359,13 @@ final class GameStateManager(
         }
 
     }
+
+  private val choosingAbilityEffect = new ChoosingAbilityPositionEffect(
+    application,
+    new Container,
+    gameDrawer.camera,
+    $gameMousePosition.combineWith(isChoosingAbilityEffectPosition).changes
+  )
 
   /** After [[game.ui.GameDrawer]] so that gui is on top of the game. */
   private val guiDrawer =

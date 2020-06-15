@@ -60,6 +60,6 @@ object CreatePentagonBullet {
 
   final val cost = Resource.ResourceAmount(2.0, Resource.Mana)
 
-  final def damage: Double = 34.0 // approx match triangle direct hit
+  final def damage: Double = 40.0 // approx match triangle direct hit
 
 }

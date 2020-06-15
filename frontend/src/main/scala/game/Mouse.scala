@@ -21,6 +21,7 @@ final class Mouse(canvas: html.Canvas) {
     Complex(clientX - boundingRect.left - canvas.width / 2, -clientY + boundingRect.top + canvas.height / 2)
   }
 
+  /** Returns the [[gamelogic.physics.Complex]] mouse position corresponding to this [[typings.std.MouseEvent]]. */
   def effectiveMousePos(event: MouseEvent): Complex =
     effectiveMousePos(event.clientX, event.clientY)
 
