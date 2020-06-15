@@ -2,7 +2,7 @@ package gamelogic.abilities.triangle
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.{AbilityId, UseId}
-import gamelogic.buffs.{Buff, SimpleBuffs}
+import gamelogic.buffs.Buff
 import gamelogic.entities.Resource.{Energy, ResourceAmount}
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.PutSimpleBuff

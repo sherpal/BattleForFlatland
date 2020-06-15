@@ -3,11 +3,11 @@ package gamelogic.gamestate.gameactions.classes.pentagon
 import gamelogic.buffs.Buff
 import gamelogic.entities.Entity
 import gamelogic.entities.classes.pentagon.PentagonZone
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff, WithEntity}
+import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
-import utils.misc.{Colour, RGBAColour}
+import utils.misc.RGBAColour
 
 /**
   * Adds a [[gamelogic.entities.classes.pentagon.PentagonZone]] to the game with the specified arguments.

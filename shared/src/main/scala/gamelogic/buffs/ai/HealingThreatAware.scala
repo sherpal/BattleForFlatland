@@ -1,6 +1,6 @@
 package gamelogic.buffs.ai
 
-import gamelogic.buffs.Buff.{Id, ResourceIdentifier}
+import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.buffs.{Buff, PassiveBuff}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions.{EntityGetsHealed, ThreatToEntityChange}

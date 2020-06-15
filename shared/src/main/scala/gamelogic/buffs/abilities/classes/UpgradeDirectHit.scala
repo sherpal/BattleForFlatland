@@ -4,7 +4,7 @@ import gamelogic.abilities.triangle.DirectHit
 import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.buffs.{Buff, PassiveBuff}
 import gamelogic.entities.Entity
-import gamelogic.gamestate.gameactions.{EntityStartsCasting, RemoveBuff, UpdateTimestamp}
+import gamelogic.gamestate.gameactions.EntityStartsCasting
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 

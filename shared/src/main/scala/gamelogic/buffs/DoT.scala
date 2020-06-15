@@ -5,7 +5,7 @@ import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.{EntityIdGenerator, IdGeneratorContainer}
+import gamelogic.utils.IdGeneratorContainer
 
 trait DoT extends TickerBuff {
 

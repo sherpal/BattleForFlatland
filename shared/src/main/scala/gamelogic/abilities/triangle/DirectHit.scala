@@ -1,8 +1,8 @@
 package gamelogic.abilities.triangle
 
-import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.abilities.WithTargetAbility.Distance
+import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.entities.Resource.{Energy, ResourceAmount}
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.EntityTakesDamage

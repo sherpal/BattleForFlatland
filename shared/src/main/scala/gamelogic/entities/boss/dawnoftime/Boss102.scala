@@ -1,20 +1,18 @@
 package gamelogic.entities.boss.dawnoftime
 
-import gamelogic.abilities.{Ability, AutoAttack}
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
-import gamelogic.abilities.boss.boss101.{BigDot, BigHit, SmallHit}
 import gamelogic.abilities.boss.boss102.{PutDamageZones, SpawnHound}
+import gamelogic.abilities.{Ability, AutoAttack}
 import gamelogic.entities.Entity
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
-import gamelogic.entities.boss.boss102.BossHound
 import gamelogic.entities.boss.{Boss101, BossEntity, BossFactory}
 import gamelogic.entities.staticstuff.Obstacle
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.gameactions.CreateObstacle
+import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.Circle
 import gamelogic.utils.IdGeneratorContainer

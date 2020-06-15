@@ -2,9 +2,9 @@ package gamelogic.abilities.square
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.{AbilityId, UseId}
-import gamelogic.entities.{Entity, Resource}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.classes.Constants
+import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex

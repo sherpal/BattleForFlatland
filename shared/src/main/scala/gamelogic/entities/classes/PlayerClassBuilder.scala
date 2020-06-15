@@ -1,10 +1,10 @@
 package gamelogic.entities.classes
 
 import gamelogic.abilities.Ability
-import gamelogic.entities.{Entity, Resource}
+import gamelogic.entities.Entity
 import gamelogic.entities.Resource.ResourceAmount
 import gamelogic.gamestate.GameAction
-import gamelogic.physics.shape.{Polygon, Shape}
+import gamelogic.physics.shape.Polygon
 import gamelogic.utils.IdGeneratorContainer
 
 trait PlayerClassBuilder {

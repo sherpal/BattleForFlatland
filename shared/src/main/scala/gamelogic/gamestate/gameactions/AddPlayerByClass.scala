@@ -1,7 +1,7 @@
 package gamelogic.gamestate.gameactions
 
 import gamelogic.entities.Entity
-import gamelogic.entities.classes.{Constants, Hexagon, Pentagon, Square, Triangle}
+import gamelogic.entities.classes._
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
 import gamelogic.gamestate.{GameAction, GameState}

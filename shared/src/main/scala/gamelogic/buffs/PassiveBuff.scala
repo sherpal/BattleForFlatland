@@ -1,7 +1,6 @@
 package gamelogic.buffs
 
-import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.IdGeneratorContainer
+import gamelogic.gamestate.GameAction
 
 /**
   * A [[gamelogic.buffs.PassiveBuff]] affects its bearer in a passive way for the duration of the buff.

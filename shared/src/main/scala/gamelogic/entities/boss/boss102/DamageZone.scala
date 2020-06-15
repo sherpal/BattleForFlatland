@@ -2,10 +2,10 @@ package gamelogic.entities.boss.boss102
 
 import gamelogic.buffs.Buff
 import gamelogic.buffs.boss.boss102.DamageZoneTick
-import gamelogic.entities.{Body, Entity}
 import gamelogic.entities.Entity.TeamId
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.classes.Constants
+import gamelogic.entities.{Body, Entity}
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.Circle
 

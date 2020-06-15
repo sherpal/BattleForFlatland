@@ -4,9 +4,9 @@ import gamelogic.buffs.Buff
 import gamelogic.entities.Entity
 import gamelogic.entities.Entity.TeamId
 import gamelogic.entities.boss.boss102.DamageZone
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff, WithEntity}
+import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 
 final case class PutDamageZone(

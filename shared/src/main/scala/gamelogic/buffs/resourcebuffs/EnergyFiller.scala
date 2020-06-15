@@ -6,7 +6,7 @@ import gamelogic.entities.Entity
 import gamelogic.entities.Resource.Energy
 import gamelogic.gamestate.gameactions.EntityResourceChanges
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.{EntityIdGenerator, IdGeneratorContainer}
+import gamelogic.utils.IdGeneratorContainer
 
 /**
   * Never ending buff which grants its bearer 10 energy every second.

@@ -2,9 +2,9 @@ package gamelogic.abilities.pentagon
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.{AbilityId, UseId}
-import gamelogic.entities.{Entity, Resource}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.movingstuff.PentagonBullet
+import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.NewPentagonBullet
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex

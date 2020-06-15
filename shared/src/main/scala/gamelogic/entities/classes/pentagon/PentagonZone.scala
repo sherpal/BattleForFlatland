@@ -3,9 +3,9 @@ package gamelogic.entities.classes.pentagon
 import gamelogic.buffs.Buff
 import gamelogic.buffs.entities.classes.pentagon.PentagonZoneTick
 import gamelogic.entities.Entity.TeamId
-import gamelogic.entities.{Body, Entity}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.classes.Constants
+import gamelogic.entities.{Body, Entity}
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 import utils.misc.Colour

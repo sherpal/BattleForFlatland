@@ -1,11 +1,11 @@
 package gamelogic.gamestate.gameactions
 
-import gamelogic.buffs.{Buff, SimpleBuffs}
 import gamelogic.buffs.Buff.ResourceIdentifier
+import gamelogic.buffs.{Buff, SimpleBuffs}
 import gamelogic.entities.Entity
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
+import gamelogic.gamestate.{GameAction, GameState}
 
 final case class PutSimpleBuff(
     id: GameAction.Id,

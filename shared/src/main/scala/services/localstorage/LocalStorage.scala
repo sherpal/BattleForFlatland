@@ -4,8 +4,8 @@ import java.time.{LocalDateTime, ZoneOffset}
 import java.util.concurrent.TimeUnit
 
 import io.circe.{Decoder, Encoder, Json}
-import zio.{ZIO, ZLayer}
 import zio.clock.Clock
+import zio.{ZIO, ZLayer}
 
 import scala.concurrent.duration.Duration
 

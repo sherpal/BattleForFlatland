@@ -4,9 +4,9 @@ import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.buffs.Buff
 import gamelogic.entities.Entity.{Id, TeamId}
-import gamelogic.entities.{Entity, LivingEntity, MovingBody, Resource, WithAbilities}
 import gamelogic.entities.Resource.ResourceAmount
 import gamelogic.entities.WithPosition.Angle
+import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.GameAction
 import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.physics.Complex

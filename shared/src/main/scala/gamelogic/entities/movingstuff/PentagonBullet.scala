@@ -1,12 +1,11 @@
 package gamelogic.entities.movingstuff
 
 import gamelogic.entities.Entity.TeamId
-import gamelogic.entities.{Entity, LivingEntity, MovingBody}
 import gamelogic.entities.WithPosition.Angle
+import gamelogic.entities.{Entity, LivingEntity, MovingBody}
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
-import gamelogic.physics.shape.{Circle, Shape}
-import utils.misc.RGBColour
+import gamelogic.physics.shape.Circle
 
 /**
   * A [[PentagonBullet]] is spawned by the ability of the [[gamelogic.entities.classes.Pentagon]]. It moves on a strait

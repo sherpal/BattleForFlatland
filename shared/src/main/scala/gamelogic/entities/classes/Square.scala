@@ -5,7 +5,7 @@ import gamelogic.abilities.Ability.AbilityId
 import gamelogic.buffs.Buff
 import gamelogic.entities.Resource.{Rage, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
-import gamelogic.entities.{Entity, LivingEntity, WithAbilities}
+import gamelogic.entities.{Entity, LivingEntity}
 import gamelogic.gamestate.GameAction
 import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.physics.Complex

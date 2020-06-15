@@ -4,11 +4,10 @@ import gamelogic.entities.Entity
 import gamelogic.entities.Entity.TeamId
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.movingstuff.PentagonBullet
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
+import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
-import utils.misc.RGBColour
 
 final case class NewPentagonBullet(
     id: GameAction.Id,

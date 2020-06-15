@@ -5,7 +5,7 @@ import gamelogic.buffs.{Buff, TickerBuff}
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.EntityResourceChanges
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.{EntityIdGenerator, IdGeneratorContainer}
+import gamelogic.utils.IdGeneratorContainer
 
 /**
   * Mana is restored by 10 every 10 seconds.

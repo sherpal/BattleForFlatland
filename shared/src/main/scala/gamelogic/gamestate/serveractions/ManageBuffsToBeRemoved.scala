@@ -1,6 +1,6 @@
 package gamelogic.gamestate.serveractions
 
-import gamelogic.buffs.{Buff, PassiveBuff, TickerBuff}
+import gamelogic.buffs.Buff
 import gamelogic.gamestate.gameactions.RemoveBuff
 import gamelogic.gamestate.{GameAction, ImmutableActionCollector}
 import gamelogic.utils.IdGeneratorContainer

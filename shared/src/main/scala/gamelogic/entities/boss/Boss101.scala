@@ -4,14 +4,13 @@ import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.boss.boss101.{BigDot, BigHit, SmallHit}
-import gamelogic.buffs.Buff
+import gamelogic.entities.Entity
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
-import gamelogic.entities.{Entity, WithTarget, WithThreat}
 import gamelogic.gamestate.GameAction
-import gamelogic.gamestate.gameactions.{CreateObstacle, PutSimpleBuff}
+import gamelogic.gamestate.gameactions.CreateObstacle
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Circle, Shape}
 import gamelogic.utils.IdGeneratorContainer

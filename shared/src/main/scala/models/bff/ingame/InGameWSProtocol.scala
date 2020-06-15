@@ -2,7 +2,6 @@ package models.bff.ingame
 
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction
-import gamelogic.physics.Complex
 import io.circe.generic.extras.Configuration
 import io.circe.{Decoder, Encoder}
 
