@@ -1,5 +1,6 @@
 package game.ai.boss
 import game.ai.utils.{aiMovementToTarget, changeTarget}
+import gamelogic.abilities.AutoAttack
 import gamelogic.abilities.boss.boss102.{PutDamageZones, SpawnHound}
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.boss.BossEntity
@@ -9,10 +10,10 @@ import gamelogic.gamestate.gameactions.{EntityStartsCasting, SpawnBoss}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 
-object Boss102Controller extends AIController[BossEntity, SpawnBoss] {
+object Boss102Controller extends AIController[Boss102, SpawnBoss] {
   protected def takeActions(
       currentGameState: GameState,
-      me: BossEntity,
+      me: Boss102,
       currentPosition: Complex,
       startTime: Long,
       maybeTarget: Option[PlayerClass]
@@ -55,7 +56,7 @@ object Boss102Controller extends AIController[BossEntity, SpawnBoss] {
           maybeAction.fold(
             List(maybeChangeTarget, maybeMove).flatten
           )(
-            _ =>
+            action =>
               List(
                 maybeChangeTarget,
                 maybeMove.map(_.copy(moving = false)),
@@ -63,11 +64,17 @@ object Boss102Controller extends AIController[BossEntity, SpawnBoss] {
               ).flatten
           )
 
-        val maybeUseAbility = maybePutDamageZones.orElse(maybeSpawnHound)
+        val maybeUseAbility = maybePutDamageZones
+          .orElse(maybeSpawnHound)
+          .orElse(
+            me.maybeAutoAttack(startTime, currentGameState)
+              .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
+          )
 
         useAbility(maybeUseAbility)
       }
       .getOrElse(Nil)
 
-  protected def getMe(gameState: GameState, entityId: Id): Option[BossEntity] = gameState.bosses.get(entityId)
+  protected def getMe(gameState: GameState, entityId: Id): Option[Boss102] =
+    gameState.bosses.get(entityId).collect { case boss102: Boss102 => boss102 }
 }

@@ -1,6 +1,6 @@
 package gamelogic.entities.boss.dawnoftime
 
-import gamelogic.abilities.Ability
+import gamelogic.abilities.{Ability, AutoAttack}
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.boss.boss101.{BigDot, BigHit, SmallHit}
@@ -10,9 +10,10 @@ import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
+import gamelogic.entities.boss.boss102.BossHound
 import gamelogic.entities.boss.{Boss101, BossEntity, BossFactory}
 import gamelogic.entities.staticstuff.Obstacle
-import gamelogic.gamestate.GameAction
+import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.gameactions.CreateObstacle
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.Circle
@@ -68,8 +69,23 @@ final case class Boss102(
 
   def abilityNames: Map[AbilityId, String] = Map(
     Ability.boss102PutDamageZones -> "Damage zones",
-    Ability.boss102SpawnBossHound -> "Spawn Hound"
+    Ability.boss102SpawnBossHound -> "Spawn Hound",
+    Ability.autoAttackId -> "Auto attack"
   )
+
+  def maybeAutoAttack(time: Long, gameState: GameState): Option[AutoAttack] =
+    Some(
+      AutoAttack(
+        0L,
+        time,
+        id,
+        targetId,
+        Boss102.autoAttackDamage,
+        Boss102.autoAttackTickRate,
+        NoResource,
+        Boss102.meleeRange
+      )
+    ).filter(_.canBeCast(gameState, time)).filter(canUseAbility(_, time))
 
 }
 
@@ -83,6 +99,9 @@ object Boss102 extends BossFactory[Boss102] {
 
   final val meleeRange: Distance = shape.radius + 20.0
   final val rangeRange: Distance = 2000.0 // basically infinite distance
+
+  final val autoAttackDamage: Double = 10.0
+  final val autoAttackTickRate: Long = 3000L
 
   @inline final def fullSpeed: Double = 300.0
 
@@ -136,5 +155,6 @@ object Boss102 extends BossFactory[Boss102] {
 
   def name: String = "Boss 102"
 
-  final val abilities: Set[Ability.AbilityId] = Set(Ability.boss102PutDamageZones, Ability.boss102SpawnBossHound)
+  final val abilities: Set[Ability.AbilityId] =
+    Set(Ability.boss102PutDamageZones, Ability.boss102SpawnBossHound, Ability.autoAttackId)
 }
