@@ -1,7 +1,7 @@
 package game.ai.boss
 import game.ai.utils.{aiMovementToTarget, changeTarget}
 import gamelogic.abilities.AutoAttack
-import gamelogic.abilities.boss.boss102.{PutDamageZones, SpawnHound}
+import gamelogic.abilities.boss.boss102.{PutDamageZones, PutLivingDamageZoneOnTarget, SpawnHound}
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.boss.dawnoftime.Boss102
@@ -9,6 +9,8 @@ import gamelogic.entities.classes.PlayerClass
 import gamelogic.gamestate.gameactions.{EntityStartsCasting, SpawnBoss}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
+
+import scala.util.Random
 
 object Boss102Controller extends AIController[Boss102, SpawnBoss] {
   protected def takeActions(
@@ -42,21 +44,32 @@ object Boss102Controller extends AIController[Boss102, SpawnBoss] {
           me.rotation
         )
 
-        val maybePutDamageZones =
+        lazy val maybePutDamageZones =
           Some(PutDamageZones(0L, startTime, me.id, currentGameState.players.valuesIterator.toList.map(_.id)))
             .filter(me.canUseAbility(_, startTime))
             .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
 
-        val maybeSpawnHound =
+        lazy val maybeSpawnHound =
           Some(SpawnHound(0L, startTime, me.id, Complex.zero))
             .filter(me.canUseAbility(_, startTime))
             .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
+
+        lazy val maybeLivingDZ = {
+          val livingDZTarget = Random
+            .shuffle(currentGameState.players.valuesIterator.toList)
+            .find(_.id != target.id)
+            .getOrElse(target)
+          Some(
+            PutLivingDamageZoneOnTarget(0L, startTime, me.id, livingDZTarget.id)
+          ).filter(me.canUseAbility(_, startTime))
+            .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
+        }
 
         def useAbility(maybeAction: Option[EntityStartsCasting]): List[GameAction] =
           maybeAction.fold(
             List(maybeChangeTarget, maybeMove).flatten
           )(
-            action =>
+            _ =>
               List(
                 maybeChangeTarget,
                 maybeMove.map(_.copy(moving = false)),
@@ -66,6 +79,7 @@ object Boss102Controller extends AIController[Boss102, SpawnBoss] {
 
         val maybeUseAbility = maybePutDamageZones
           .orElse(maybeSpawnHound)
+          .orElse(maybeLivingDZ)
           .orElse(
             me.maybeAutoAttack(startTime, currentGameState)
               .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))

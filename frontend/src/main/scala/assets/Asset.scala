@@ -65,6 +65,18 @@ object Asset {
         object xeonBar extends Asset
       }
 
+      object boss {
+        object dawnOfTime {
+          object boss102 {
+            @js.native @JSImport(
+              "resources/assets/in-game/gui/boss/dawn-of-time/boss102/living-damage-zone.png",
+              JSImport.Default
+            )
+            object livingDamageZone extends Asset
+          }
+        }
+      }
+
       object `default-abilities` {
         @js.native @JSImport(
           "resources/assets/in-game/gui/default-abilities/players/square-shield.png",
@@ -98,9 +110,6 @@ object Asset {
 
   // Touching all assets so that there are loaded
   ScalaLogo
-  ingame.gui.bars.liteStepBar
-  ingame.gui.bars.minimalistBar
-  ingame.gui.bars.xeonBar
   ingame.gui.abilities.abilityOverlay
   ingame.gui.abilities.hexagonFlashHeal
   ingame.gui.abilities.hexagonHot
@@ -112,6 +121,10 @@ object Asset {
   ingame.gui.abilities.triangleUpgradeDirectHit
   ingame.gui.abilities.pentagonBullet
   ingame.gui.abilities.pentagonZone
+  ingame.gui.bars.liteStepBar
+  ingame.gui.bars.minimalistBar
+  ingame.gui.bars.xeonBar
+  ingame.gui.boss.dawnOfTime.boss102.livingDamageZone
   ingame.gui.abilities.boss101BigDot
   ingame.gui.`default-abilities`.squareShield
   ingame.gui.`default-abilities`.rageFiller
@@ -139,7 +152,8 @@ object Asset {
     Buff.energyFiller -> ingame.gui.`default-abilities`.energyFiller,
     Buff.manaFiller -> ingame.gui.`default-abilities`.manaFiller,
     Buff.triangleUpgradeDirectHit -> ingame.gui.abilities.triangleUpgradeDirectHit,
-    Buff.squareEnrage -> ingame.gui.abilities.squareEnrage
+    Buff.squareEnrage -> ingame.gui.abilities.squareEnrage,
+    Buff.boss102LivingDamageZone -> ingame.gui.boss.dawnOfTime.boss102.livingDamageZone
   )
 
 }

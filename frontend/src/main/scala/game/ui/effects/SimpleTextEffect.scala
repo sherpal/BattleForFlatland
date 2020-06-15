@@ -1,6 +1,7 @@
 package game.ui.effects
 
 import game.Camera
+import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.BoundingBox
 import typings.pixiJs.anon.Align
@@ -43,13 +44,13 @@ final class SimpleTextEffect(
 
   val boundingBox: BoundingBox = BoundingBox(-pixiText.width, -pixiText.height, pixiText.width, pixiText.height)
 
-  def isOver(currentTime: Long): Boolean    = path.isOver(currentTime - startTime)
-  def isStarted(currentTime: Long): Boolean = currentTime > startTime
+  def isOver(currentTime: Long, gameState: GameState): Boolean = path.isOver(currentTime - startTime)
+  def isStarted(currentTime: Long): Boolean                    = currentTime > startTime
 
   def destroy(): Unit = pixiText.destroy()
 
-  def update(currentTime: Long): Unit =
-    if (isOver(currentTime) || !isStarted(currentTime)) pixiText.visible = false
+  def update(currentTime: Long, gameState: GameState): Unit =
+    if (isOver(currentTime, gameState) || !isStarted(currentTime)) pixiText.visible = false
     else {
       pixiText.visible = true
       camera.viewportManager(pixiText, path(currentTime - startTime), boundingBox)

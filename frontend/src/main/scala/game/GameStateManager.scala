@@ -432,7 +432,7 @@ final class GameStateManager(
       now
     )
     guiDrawer.update(gameState, now)
-    effectsManager.update(now)
+    effectsManager.update(now, gameState)
   }
 
   application.ticker.add(ticker)

@@ -2,7 +2,7 @@ package gamelogic.entities.boss.dawnoftime
 
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
-import gamelogic.abilities.boss.boss102.{PutDamageZones, SpawnHound}
+import gamelogic.abilities.boss.boss102.{PutDamageZones, PutLivingDamageZoneOnTarget, SpawnHound}
 import gamelogic.abilities.{Ability, AutoAttack}
 import gamelogic.entities.Entity
 import gamelogic.entities.Entity.Id
@@ -68,6 +68,7 @@ final case class Boss102(
   def abilityNames: Map[AbilityId, String] = Map(
     Ability.boss102PutDamageZones -> "Damage zones",
     Ability.boss102SpawnBossHound -> "Spawn Hound",
+    Ability.putLivingDamageZoneId -> "Living damage zone",
     Ability.autoAttackId -> "Auto attack"
   )
 
@@ -115,6 +116,9 @@ object Boss102 extends BossFactory[Boss102] {
           ),
           Ability.boss102SpawnBossHound -> Pointed[SpawnHound].unit.copy(
             time = time - SpawnHound.cooldown + SpawnHound.timeToFirstSpawnHound
+          ),
+          Ability.putLivingDamageZoneId -> Pointed[PutLivingDamageZoneOnTarget].unit.copy(
+            time = time - PutLivingDamageZoneOnTarget.cooldown + PutLivingDamageZoneOnTarget.timeToFirstLivingDZ
           )
         ),
         maxLife = maxLife,
@@ -154,5 +158,10 @@ object Boss102 extends BossFactory[Boss102] {
   def name: String = "Boss 102"
 
   final val abilities: Set[Ability.AbilityId] =
-    Set(Ability.boss102PutDamageZones, Ability.boss102SpawnBossHound, Ability.autoAttackId)
+    Set(
+      Ability.boss102PutDamageZones,
+      Ability.boss102SpawnBossHound,
+      Ability.autoAttackId,
+      Ability.putLivingDamageZoneId
+    )
 }

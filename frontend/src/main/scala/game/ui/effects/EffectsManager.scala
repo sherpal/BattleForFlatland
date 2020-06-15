@@ -4,9 +4,13 @@ import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.ownership.Owner
 import game.Camera
 import game.ui.Drawer
+import game.ui.effects.boss.boss102.LivingDamageZoneEffect
 import gamelogic.abilities.Ability
+import gamelogic.abilities.boss.boss102.PutLivingDamageZoneOnTarget
 import gamelogic.abilities.square.Cleave
+import gamelogic.buffs.boss.boss102.LivingDamageZone
 import gamelogic.entities.Entity
+import gamelogic.gamestate.gameactions.boss102.PutLivingDamageZone
 import gamelogic.gamestate.gameactions.{EntityGetsHealed, EntityTakesDamage, UseAbility}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
@@ -79,6 +83,17 @@ final class EffectsManager(
                 polygonTexture(player.colour, 0.9, Cleave.cone)
               )
             }
+          case PutLivingDamageZone(_, time, buffId, bearerId, _, _) =>
+            Some(
+              new LivingDamageZoneEffect(
+                bearerId,
+                buffId,
+                time,
+                circleTexture(0xFF0000, 0.5, LivingDamageZone.range),
+                camera,
+                LivingDamageZone.range
+              )
+            )
           case _ =>
             Option.empty[SimpleTextEffect]
         }
@@ -89,13 +104,13 @@ final class EffectsManager(
 
   }
 
-  def update(currentTime: Long): Unit =
+  def update(currentTime: Long, gameState: GameState): Unit =
     gameEffects.foreach { effect =>
-      if (effect.isOver(currentTime)) {
+      if (effect.isOver(currentTime, gameState)) {
         gameEffects -= effect
         effect.destroy()
       } else {
-        effect.update(currentTime)
+        effect.update(currentTime, gameState)
       }
     }
 

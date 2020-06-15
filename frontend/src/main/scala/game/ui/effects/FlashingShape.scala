@@ -1,6 +1,7 @@
 package game.ui.effects
 
 import game.Camera
+import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 import typings.pixiJs.PIXI.Texture
@@ -25,10 +26,10 @@ final class FlashingShape(
   def destroy(): Unit =
     sprite.destroy()
 
-  override def isOver(currentTime: Long): Boolean = currentTime - startTime > duration
+  override def isOver(currentTime: Long, gameState: GameState): Boolean = currentTime - startTime > duration
 
-  def update(currentTime: Long): Unit =
-    if (isOver(currentTime)) {
+  def update(currentTime: Long, gameState: GameState): Unit =
+    if (isOver(currentTime, gameState)) {
       sprite.visible = false
     } else {
       camera.viewportManager(sprite, position, shape.boundingBox)

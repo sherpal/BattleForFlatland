@@ -4,6 +4,7 @@ import assets.Asset
 import assets.Asset.ingame.gui.`default-abilities`._
 import assets.Asset.ingame.gui.abilities._
 import assets.Asset.ingame.gui.bars._
+import assets.Asset.ingame.gui.boss.dawnOfTime.boss102._
 import com.raquo.airstream.eventbus.EventBus
 import game.GameAssetLoader.ProgressData
 import org.scalablytyped.runtime.StringDictionary
@@ -40,7 +41,8 @@ final class GameAssetLoader(application: Application) {
     squareShield,
     rageFiller,
     energyFiller,
-    manaFiller
+    manaFiller,
+    livingDamageZone
   )
 
   final val $progressData = progressBus.events

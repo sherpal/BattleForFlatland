@@ -69,6 +69,7 @@ object GameAction {
   implicit val encoder: Encoder[GameAction] = Encoder.instance {
     case x: boss102.AddBossHound             => customEncode(x, "boss102.AddBossHound")
     case x: boss102.PutDamageZone            => customEncode(x, "boss102.PutDamageZone")
+    case x: boss102.PutLivingDamageZone      => customEncode(x, "boss102.PutLivingDamageZone")
     case x: classes.pentagon.PutPentagonZone => customEncode(x, "classes.pentagon.PutPentagonZone")
     case x: AddDummyMob                      => customEncode(x, "AddDummyMob")
     case x: AddPlayer                        => customEncode(x, "AddPlayer")
@@ -104,6 +105,7 @@ object GameAction {
   implicit val decoder: Decoder[GameAction] = List[Decoder[GameAction]](
     customDecoder[boss102.AddBossHound]("boss102.AddBossHound"),
     customDecoder[boss102.PutDamageZone]("boss102.PutDamageZone"),
+    customDecoder[boss102.PutLivingDamageZone]("boss102.PutLivingDamageZone"),
     customDecoder[classes.pentagon.PutPentagonZone]("classes.pentagon.PutPentagonZone"),
     customDecoder[AddDummyMob]("AddDummyMob"),
     customDecoder[AddPlayer]("AddPlayer"),

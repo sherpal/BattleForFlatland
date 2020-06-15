@@ -87,6 +87,7 @@ object Ability {
   final val autoAttackId: AbilityId             = 15
   final val squareCleaveId: AbilityId           = 16
   final val createPentagonZoneId: AbilityId     = 17
+  final val putLivingDamageZoneId: AbilityId    = 18
   @inline final def gcd                         = 200L
 
   /** Encoding. Replace this by more performant stuff in the future. */
@@ -98,23 +99,24 @@ object Ability {
     a.asJson.mapObject(_.add("ability_name", Json.fromString(name)))
 
   implicit val encoder: Encoder[Ability] = Encoder.instance {
-    case x: boss.boss101.BigDot           => customEncode(x, "boss.boss101.BigDot")
-    case x: boss.boss101.BigHit           => customEncode(x, "boss.boss101.BigHit")
-    case x: boss.boss101.SmallHit         => customEncode(x, "boss.boss101.SmallHit")
-    case x: boss.boss102.PutDamageZones   => customEncode(x, "boss.boss102.PutDamageZones")
-    case x: boss.boss102.SpawnHound       => customEncode(x, "boss.boss102.SpawnHound")
-    case x: hexagon.FlashHeal             => customEncode(x, "hexagon.FlashHeal")
-    case x: hexagon.HexagonHot            => customEncode(x, "hexagon.HexagonHot")
-    case x: pentagon.CreatePentagonBullet => customEncode(x, "pentagon.CreatePentagonBullet")
-    case x: pentagon.CreatePentagonZone   => customEncode(x, "pentagon.CreatePentagonZone")
-    case x: square.Cleave                 => customEncode(x, "square.Cleave")
-    case x: square.Enrage                 => customEncode(x, "square.Enrage")
-    case x: square.HammerHit              => customEncode(x, "square.HammerHit")
-    case x: square.Taunt                  => customEncode(x, "square.Taunt")
-    case x: triangle.DirectHit            => customEncode(x, "triangle.DirectHit")
-    case x: triangle.UpgradeDirectHit     => customEncode(x, "triangle.UpgradeDirectHit")
-    case x: AutoAttack                    => customEncode(x, "AutoAttack")
-    case x: SimpleBullet                  => customEncode(x, "SimpleBullet")
+    case x: boss.boss101.BigDot                      => customEncode(x, "boss.boss101.BigDot")
+    case x: boss.boss101.BigHit                      => customEncode(x, "boss.boss101.BigHit")
+    case x: boss.boss101.SmallHit                    => customEncode(x, "boss.boss101.SmallHit")
+    case x: boss.boss102.PutDamageZones              => customEncode(x, "boss.boss102.PutDamageZones")
+    case x: boss.boss102.PutLivingDamageZoneOnTarget => customEncode(x, "boss.boss102.PutLivingDamageZoneOnTarget")
+    case x: boss.boss102.SpawnHound                  => customEncode(x, "boss.boss102.SpawnHound")
+    case x: hexagon.FlashHeal                        => customEncode(x, "hexagon.FlashHeal")
+    case x: hexagon.HexagonHot                       => customEncode(x, "hexagon.HexagonHot")
+    case x: pentagon.CreatePentagonBullet            => customEncode(x, "pentagon.CreatePentagonBullet")
+    case x: pentagon.CreatePentagonZone              => customEncode(x, "pentagon.CreatePentagonZone")
+    case x: square.Cleave                            => customEncode(x, "square.Cleave")
+    case x: square.Enrage                            => customEncode(x, "square.Enrage")
+    case x: square.HammerHit                         => customEncode(x, "square.HammerHit")
+    case x: square.Taunt                             => customEncode(x, "square.Taunt")
+    case x: triangle.DirectHit                       => customEncode(x, "triangle.DirectHit")
+    case x: triangle.UpgradeDirectHit                => customEncode(x, "triangle.UpgradeDirectHit")
+    case x: AutoAttack                               => customEncode(x, "AutoAttack")
+    case x: SimpleBullet                             => customEncode(x, "SimpleBullet")
   }
 
   private def customDecoder[A <: Ability](name: String)(implicit decoder: Decoder[A]): Decoder[Ability] =
@@ -124,6 +126,7 @@ object Ability {
     customDecoder[boss.boss101.BigDot]("boss.boss101.BigDot"),
     customDecoder[boss.boss101.BigHit]("boss.boss101.BigHit"),
     customDecoder[boss.boss101.SmallHit]("boss.boss101.SmallHit"),
+    customDecoder[boss.boss102.PutLivingDamageZoneOnTarget]("boss.boss102.PutLivingDamageZoneOnTarget"),
     customDecoder[boss.boss102.PutDamageZones]("boss.boss102.PutDamageZones"),
     customDecoder[boss.boss102.SpawnHound]("boss.boss102.SpawnHound"),
     customDecoder[hexagon.FlashHeal]("hexagon.FlashHeal"),
