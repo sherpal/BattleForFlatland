@@ -38,6 +38,7 @@ object RGBColour {
   final val fuchsia = RGBColour.fromIntColour(0xFF00FF)
   final val aqua    = RGBColour.fromIntColour(0x00FFFF)
   final val gray    = RGBColour.fromIntColour(0xC0C0C0)
+  final val orange  = RGBColour.fromIntColour(0xFF9900)
 
   val someColours: Vector[RGBColour] = Vector(
     red,

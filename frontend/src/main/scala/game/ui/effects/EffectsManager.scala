@@ -1,20 +1,22 @@
 package game.ui.effects
 
+import assets.Asset
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.ownership.Owner
 import game.Camera
 import game.ui.Drawer
-import game.ui.effects.boss.boss102.LivingDamageZoneEffect
+import game.ui.effects.boss.boss102.{HoundLifeBarEffect, LivingDamageZoneEffect}
 import gamelogic.abilities.Ability
 import gamelogic.abilities.boss.boss102.PutLivingDamageZoneOnTarget
 import gamelogic.abilities.square.Cleave
 import gamelogic.buffs.boss.boss102.LivingDamageZone
 import gamelogic.entities.Entity
-import gamelogic.gamestate.gameactions.boss102.PutLivingDamageZone
+import gamelogic.gamestate.gameactions.boss102.{AddBossHound, PutLivingDamageZone}
 import gamelogic.gamestate.gameactions.{EntityGetsHealed, EntityTakesDamage, UseAbility}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
-import typings.pixiJs.mod.{Application, Container}
+import typings.pixiJs.PIXI.LoaderResource
+import typings.pixiJs.mod.{Application, Container, Graphics}
 import utils.misc.RGBColour
 
 import scala.collection.mutable
@@ -23,7 +25,8 @@ final class EffectsManager(
     playerId: Entity.Id,
     $actionsAndStates: EventStream[(GameAction, GameState)],
     camera: Camera,
-    val application: Application
+    val application: Application,
+    resources: PartialFunction[Asset, LoaderResource]
 )(implicit owner: Owner)
     extends Drawer {
 
@@ -92,6 +95,16 @@ final class EffectsManager(
                 circleTexture(0xFF0000, 0.5, LivingDamageZone.range),
                 camera,
                 LivingDamageZone.range
+              )
+            )
+          case AddBossHound(_, time, entityId, _) =>
+            Some(
+              new HoundLifeBarEffect(
+                entityId,
+                time,
+                resources(Asset.ingame.gui.bars.minimalistBar).texture,
+                resources(Asset.ingame.gui.bars.minimalistBar).texture,
+                camera
               )
             )
           case _ =>

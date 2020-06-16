@@ -10,4 +10,5 @@
 - allow players to put markers on the ground to mark positions
 - forbidding players to change their configurations when they are set to "ready"
 - show the game options to the people not game creators
-- 
+- class description documentation
+- service for game server launcher

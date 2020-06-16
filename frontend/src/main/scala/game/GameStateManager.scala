@@ -117,7 +117,7 @@ final class GameStateManager(
 
   val $actionsWithStates: EventStream[(GameAction, GameState)] = newActionsBus.events.withCurrentValueOf($gameStates)
 
-  val effectsManager = new EffectsManager(playerId, $actionsWithStates, gameDrawer.camera, application)
+  val effectsManager = new EffectsManager(playerId, $actionsWithStates, gameDrawer.camera, application, resources)
 
   val pressedUserInputSignal: SignalViewer[Set[UserInput]] = keyboard.$pressedUserInput.observe
 

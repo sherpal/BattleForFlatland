@@ -3,7 +3,7 @@ package game
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import gamelogic.entities.boss.BossFactory
-import gamelogic.gamestate.gameactions.{AddPlayerByClass, GameStart, SpawnBoss}
+import gamelogic.gamestate.gameactions.{AddPlayerByClass, GameStart, SpawnBoss, UpdateTimestamp}
 import gamelogic.gamestate.serveractions._
 import gamelogic.gamestate.{GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
@@ -196,7 +196,11 @@ object GameMaster {
         )
       case GameLoop =>
         val startTime = now
-        val sortedActions = pendingActions.sorted
+
+        /**
+          * Adding a [[gamelogic.gamestate.gameactions.UpdateTimestamp]] so that there are actions even if no
+          * body does anything. (Otherwise the game can crash at launch) */
+        val sortedActions = (UpdateTimestamp(0L, now) +: pendingActions).sorted
           .map(_.changeId(idGeneratorContainer.gameActionIdGenerator()))
 
         val (nextCollector, oldestTimeToRemove, idsToRemove) =
