@@ -2,7 +2,9 @@ package frontend.components.connected.menugames.gamejoined
 
 import com.raquo.airstream.core.Observer
 import com.raquo.airstream.eventbus.EventBus
+import com.raquo.domtypes.jsdom.defs.events.TypedTargetMouseEvent
 import com.raquo.laminar.api.L._
+import com.raquo.laminar.modifiers.EventPropBinder
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
 import frontend.components.utils.laminarutils.reactChildInDiv
@@ -11,6 +13,7 @@ import frontend.components.utils.{ColorPickerWrapper, ToggleButton}
 import models.bff.outofgame.PlayerClasses
 import models.bff.outofgame.gameconfig.PlayerStatus.{NotReady, Ready}
 import models.bff.outofgame.gameconfig.{PlayerInfo, PlayerStatus}
+import org.scalajs.dom
 import org.scalajs.dom.html
 import org.scalajs.dom.html.{Element, Select}
 import utils.misc.{RGBAColour, RGBColour}
@@ -29,6 +32,8 @@ import utils.misc.{RGBAColour, RGBColour}
 final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, playerInfoWriter: Observer[PlayerInfo])
     extends Component[html.Element] {
 
+  private var maybeViewChild: Option[html.Element] = Option.empty
+
   def changeReadyState(ready: PlayerStatus): PlayerInfo => PlayerInfo   = _.copy(status       = ready)
   def changeColour(colour: RGBColour): PlayerInfo => PlayerInfo         = _.copy(playerColour = colour)
   def changeClass(playerClass: PlayerClasses): PlayerInfo => PlayerInfo = _.copy(playerClass  = playerClass)
@@ -36,7 +41,7 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
   val changerBus: EventBus[PlayerInfo => PlayerInfo] = new EventBus
   val readyStateWriter: Observer[PlayerStatus]       = changerBus.writer.contramap(changeReadyState)
   val playerClassWriter: Observer[PlayerClasses]     = changerBus.writer.contramap(changeClass)
-  val colourWriter: Observer[RGBAColour]             = changerBus.writer.contramap(changeColour).contramap(_.removeAlpha)
+  val colourWriter: Observer[RGBAColour]             = changerBus.writer.contramap(changeColour).contramap(_.withoutAlpha)
 
   val $playerInfo: Signal[PlayerInfo] = changerBus.events.fold(initialPlayerInfo) { (info, changer) =>
     changer(info)
@@ -64,6 +69,14 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
     * Players can then chose a colour they like from the picker.
     */
   val pickerPositionBus: EventBus[(Double, Double)] = new EventBus
+  val feedingPickerPosition: EventPropBinder[TypedTargetMouseEvent[dom.Element]] =
+    onClick
+      .map(event => (event.clientX, event.clientY, maybeViewChild))
+      .collect {
+        case (x, y, Some(viewChild)) => (x, y, viewChild.getBoundingClientRect())
+      }
+      .map { case (x, y, rect) => (x - rect.left, y - rect.top) } --> pickerPositionBus
+
   val $maybePickerPosition: Signal[Option[(Double, Double)]] =
     pickerPositionBus.events.fold(Option.empty[(Double, Double)]) {
       case (None, (x, y)) => Some((x, y))
@@ -75,7 +88,7 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
       height := "30px",
       width := "50px",
       backgroundColor <-- $playerInfo.map(_.playerColour.rgb),
-      onClick.map(event => (event.pageX, event.pageY)) --> pickerPositionBus
+      feedingPickerPosition
     ),
     child <-- $maybePickerPosition.map(_.map {
       case (x, y) =>
@@ -97,13 +110,14 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
         "Player Options"
       ),
       "Ready: ",
-      ToggleButton(readyStateWriter.contramap(if (_) Ready else NotReady), initialPlayerInfo.isReady),
+      ToggleButton(readyStateWriter.contramap(PlayerStatus.fromBoolean), initialPlayerInfo.isReady),
       div(
         "Choose a class:",
         classSelector
       ),
       colourSelector,
-      $playerInfo --> playerInfoWriter
+      $playerInfo --> playerInfoWriter,
+      onMountCallback(ctx => maybeViewChild = Some(ctx.thisNode.ref))
     )
 }
 

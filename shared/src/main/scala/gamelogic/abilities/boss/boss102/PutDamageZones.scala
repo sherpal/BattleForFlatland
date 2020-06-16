@@ -45,6 +45,6 @@ object PutDamageZones {
   @inline final def cooldown: Long    = 30000L
   @inline final def castingTime: Long = 3000L
 
-  @inline final def timeToFirstAbility: Long = 2000L
+  @inline final def timeToFirstAbility: Long = 3000L
 
 }

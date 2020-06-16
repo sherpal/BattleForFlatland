@@ -9,6 +9,11 @@ import typings.reactColor.components.ChromePicker
 import typings.reactColor.mod.ColorResult
 import utils.misc.{RGBAColour, RGBColour}
 
+/**
+  * Slinky wrapper for the react-color color picker.
+  * It can be embedded inside a Laminar component using the [[frontend.components.utils.laminarutils.reactChild]]
+  * method.
+  */
 @react final class ColorPickerWrapper extends Component {
   case class Props(colourWriter: Observer[RGBAColour], initialColour: RGBAColour)
   type State = RGBAColour
@@ -16,7 +21,7 @@ import utils.misc.{RGBAColour, RGBColour}
   def initialState: RGBAColour = props.initialColour
 
   def colorResultToRGBColour(color: ColorResult): RGBAColour =
-    RGBColour(color.rgb.r.toInt, color.rgb.g.toInt, color.rgb.b.toInt).withAlpha(color.rgb.a.getOrElse(1.0))
+    RGBAColour(color.rgb.r.toInt, color.rgb.g.toInt, color.rgb.b.toInt, color.rgb.a.getOrElse(1.0))
 
   def render(): ReactElement = div(
     ChromePicker()

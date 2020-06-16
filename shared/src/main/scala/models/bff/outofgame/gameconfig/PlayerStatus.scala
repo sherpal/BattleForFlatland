@@ -15,6 +15,8 @@ object PlayerStatus {
 
   final val statuses = List(Ready, NotReady)
 
+  def fromBoolean(bool: Boolean): PlayerStatus = if (bool) Ready else NotReady
+
   implicit val decoder: Decoder[PlayerStatus] =
     Decoder.decodeString.emapTry(str => Try(statuses.find(_.toString == str).get))
   implicit val encoder: Encoder[PlayerStatus] = Encoder.encodeString.contramap(_.toString)
