@@ -125,7 +125,9 @@ object GameAntiChamberTyped {
               zio.Runtime.default.unsafeRun(
                 updateGameConfiguration(_.withBossName(newBossName))
               )
-
+            case WebSocketProtocol.GameLaunched =>
+              clients.foreach(_ ! protocol(WebSocketProtocol.GameLaunched))
+              Behaviors.same
           }
         case SendHeartBeat =>
           // keeping connection alive

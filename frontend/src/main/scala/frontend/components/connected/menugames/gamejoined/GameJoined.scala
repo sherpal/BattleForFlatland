@@ -4,6 +4,7 @@ import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import docs.DocsLoader
 import frontend.components.Component
+import frontend.components.utils.loading.LoadingScreen
 import frontend.components.utils.tailwind._
 import io.circe.syntax._
 import models.bff.Routes._
@@ -19,7 +20,7 @@ import services.logging.{FLogging, Logging}
 import services.routing.{FRouting, _}
 import utils.laminarzio.Implicits._
 import utils.websocket.JsonWebSocket
-import zio.ZLayer
+import zio.{ZIO, ZLayer}
 import zio.clock.Clock
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -96,7 +97,14 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
     startGameBus.events.flatMap(
       _ =>
         EventStream.fromZIOEffect(
-          sendLaunchGame(gameId).provideLayer(layer)
+          sendLaunchGame(gameId)
+            .provideLayer(layer)
+            .tap(
+              _ =>
+                ZIO.effectTotal {
+                  socket.outWriter.onNext(WebSocketProtocol.GameLaunched)
+                }
+            )
         )
     )
 
@@ -171,10 +179,8 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
               BossDescription($gameInfo.startWith(info).map(_.game.gameConfiguration.maybeBossName))
             )
         ),
-      pre(
-        child.text <-- receivedCredentials.signal.map(_.asJson.spaces2),
-        child.text <-- $tokenForWebSocket
-      )
+      position := "relative",
+      child <-- socket.$in.filter(_ == WebSocketProtocol.GameLaunched).mapTo(LoadingScreen())
     ),
     onMountCallback(ctx => {
       socket.open()(ctx.owner)

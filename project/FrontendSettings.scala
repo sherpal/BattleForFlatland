@@ -22,7 +22,7 @@ object FrontendSettings {
       "@popperjs/core" -> "2.2.0",
       "marked" -> "0.8.2",
       "@types/marked" -> "0.7.3",
-      "tailwindcss" -> "1.2.0",
+      "tailwindcss" -> "1.4.0",
       "@types/react-color" -> "3.0.2",
       "react-color" -> "2.18.1",
       "@types/react" -> "16.9.35",

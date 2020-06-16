@@ -39,7 +39,7 @@ object Cleave {
 
   import Complex._
 
-  @inline final def cooldown: Long                = 10000L
+  @inline final def cooldown: Long                = 5000L
   @inline final def cost: Resource.ResourceAmount = Resource.ResourceAmount(50.0, Resource.Rage)
   @inline final def damage: Double                = 30.0
   @inline final def coneHeight: Double            = 3 * Constants.playerRadius

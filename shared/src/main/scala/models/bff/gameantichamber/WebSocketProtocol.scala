@@ -17,6 +17,9 @@ object WebSocketProtocol {
   case class UpdateMyInfo(userId: String, playerInfo: PlayerInfo) extends WebSocketProtocol
   case class UpdateBossName(newBossName: String) extends WebSocketProtocol
 
+  /** Sent to everybody when the game creator has clicked on the "Launch Game" button. */
+  case object GameLaunched extends WebSocketProtocol
+
   import io.circe.generic.extras.semiauto._
   implicit val genDevConfig: Configuration =
     Configuration.default.withDiscriminator("what_am_i_game_anti_chamber")
