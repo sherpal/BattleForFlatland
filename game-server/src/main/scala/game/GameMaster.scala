@@ -164,7 +164,7 @@ object GameMaster {
   }
 
   /** In millis */
-  final val gameLoopTiming = 1000L / 60L
+  final val gameLoopTiming = 1000L / 30L
 
   private def preGameBehaviour(
       pendingActions: List[GameAction],

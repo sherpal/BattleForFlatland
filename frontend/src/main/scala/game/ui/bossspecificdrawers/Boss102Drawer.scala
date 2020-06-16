@@ -30,6 +30,7 @@ final class Boss102Drawer(
     otherStuffContainerAbove: Container
 ) extends Drawer {
 
+  private val damageZoneTexture   = diskTexture(RGBColour.red.intColour, 0.5, DamageZone.radius)
   private val damageZoneContainer = new ParticleContainer
   otherStuffContainerBelow.addChild(damageZoneContainer)
   private val boss102DamageZones: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
@@ -45,7 +46,7 @@ final class Boss102Drawer(
     damageZones.foreach { zone =>
       val sprite = boss102DamageZones.getOrElse(
         zone.id, {
-          val s = new Sprite(diskTexture(RGBColour.red.intColour, 0.5, zone.shape.radius))
+          val s = new Sprite(damageZoneTexture)
           s.anchor.set(0.5, 0.5)
           boss102DamageZones += (zone.id -> s)
           damageZoneContainer.addChild(s)

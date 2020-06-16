@@ -1,5 +1,6 @@
 package gamelogic.gamestate.serveractions
 
+import gamelogic.entities.Entity
 import gamelogic.gamestate.ImmutableActionCollector
 import gamelogic.gamestate.gameactions.RemoveEntity
 import gamelogic.utils.IdGeneratorContainer
@@ -10,15 +11,16 @@ final class ManageDeadAIs extends ServerAction {
   ): (ImmutableActionCollector, ServerAction.ServerActionOutput) = {
     val now = nowGenerator()
 
-    val actions = currentState.currentGameState.bosses
-      .filter(_._2.life <= 0)
-      .keys
+    val actions = currentState.currentGameState.allLivingEntities
+      .filter(_.teamId == Entity.teams.mobTeam)
+      .filter(_.life <= 0)
       .map(
-        RemoveEntity(
-          idGeneratorContainer.gameActionIdGenerator(),
-          now,
-          _
-        )
+        entity =>
+          RemoveEntity(
+            idGeneratorContainer.gameActionIdGenerator(),
+            now,
+            entity.id
+          )
       )
       .toList
 

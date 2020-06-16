@@ -94,7 +94,7 @@ object Boss102 extends BossFactory[Boss102] {
 
   final val shape: Circle = new Circle(30.0)
 
-  final val maxLife: Double = 20000
+  final val maxLife: Double = 40000
 
   final val meleeRange: Distance = shape.radius + 20.0
   final val rangeRange: Distance = 2000.0 // basically infinite distance

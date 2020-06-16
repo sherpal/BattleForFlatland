@@ -114,7 +114,7 @@ final class GameDrawer(
       )
 
       sprite.rotation = -entity.rotation
-      camera.viewportManager(sprite, entity.currentPosition(now), entity.shape.boundingBox)
+      camera.viewportManager(sprite, entity.pos, entity.shape.boundingBox)
 
       val rangeSprite = bossesRangeIndicator.getOrElse(
         entity.id, {
@@ -126,7 +126,7 @@ final class GameDrawer(
         }
       )
 
-      camera.viewportManager(rangeSprite, entity.currentPosition(now), entity.shape.boundingBox)
+      camera.viewportManager(rangeSprite, entity.pos, entity.shape.boundingBox)
 
     }
 

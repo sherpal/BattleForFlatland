@@ -1,10 +1,9 @@
 # To implement
 
-- show animation with damage and heals <- done, although the implementation, as the rest of the game gui, is awful
 - implement obstacles and path finding for AIs
 - allow to customize keys
 - allow to go fullscreen
-- mini health bar at entities positions
+- mini health bar at entities positions (done for boss 102 hounds, should be easily generalisable)
 - integrate with boopickle
 - integrating sounds
 - allow players to put markers on the ground to mark positions
@@ -12,3 +11,17 @@
 - show the game options to the people not game creators
 - class description documentation
 - service for game server launcher
+- improve end of game feeling (don't return directly to menu game)
+- don't target boss if other entity at the same place
+- key to target furthest ally/enemy
+- click away from the color picker should close it
+- forbidding players to join a game if it is "launched"
+- improve game assets in general
+- the life frame of a dead player should not vanish entirely
+- show player colours in their frames
+- put a kind of "halo" on the selected player to help visualize who is currently targetted
+
+# Bugs
+
+- sometimes the game crashes at the very beginning when clicking on "Start Fight". Unclear (yet) how to reproduce
+- quite slow on Firefox

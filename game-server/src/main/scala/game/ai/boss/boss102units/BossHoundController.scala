@@ -29,7 +29,7 @@ object BossHoundController extends AIController[BossHound, AddBossHound] {
       target.currentPosition(startTime),
       BossHound.range,
       BossHound.fullSpeed,
-      BossHound.fullSpeed,
+      BossHound.fullSpeed / 10,
       me.moving,
       me.rotation
     )
