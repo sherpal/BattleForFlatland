@@ -4,7 +4,6 @@
 - allow to customize keys
 - allow to go fullscreen
 - mini health bar at entities positions (done for boss 102 hounds, should be easily generalisable)
-- integrate with boopickle
 - integrating sounds
 - allow players to put markers on the ground to mark positions
 - forbidding players to change their configurations when they are set to "ready"
