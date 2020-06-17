@@ -11,6 +11,8 @@ import typings.popperjsCore.anon.PartialOptions
 import typings.popperjsCore.typesMod.Instance
 import typings.popperjsCore.{mod => Popper}
 
+import scala.language.implicitConversions
+
 object PopperElement {
 
   def createPopper[ToAttachEl <: html.Element, El <: Element](

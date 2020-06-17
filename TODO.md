@@ -19,7 +19,9 @@
 - improve game assets in general
 - the life frame of a dead player should not vanish entirely
 - show player colours in their frames
-- put a kind of "halo" on the selected player to help visualize who is currently targetted
+- put a kind of "halo" on the selected player to help visualize who is currently targeted
+- enforce limit in number of players allowed in a given boss
+- icon for browser bar
 
 # Bugs
 

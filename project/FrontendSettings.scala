@@ -66,7 +66,8 @@ object FrontendSettings {
     libraryDependencies += "me.shadaj" %%% "slinky-web" % "0.6.5", // React DOM, HTML and SVG tags
     libraryDependencies += "me.shadaj" %%% "slinky-native" % "0.6.5", // React Native components
     scalacOptions += "-Ymacro-annotations",
-    stFlavour := Flavour.Slinky
+    stFlavour := Flavour.Slinky,
+    scalaJSLinkerConfig ~= { _.withESFeatures(_.withUseECMAScript2015(false)) }
   )
 
 }

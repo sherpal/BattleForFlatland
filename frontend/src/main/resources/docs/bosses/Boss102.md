@@ -2,9 +2,11 @@
 
 The *Boss 102* has an auto-attack and 3 special abilities that stay the same from beginning to end.
 
-The boss starts with 20000 life.
+The boss starts with 40000 life.
 
 It is normally affected by damage threats.
+
+The boss is intended for 5 players.
 
 ## Abilities:
 
@@ -34,3 +36,11 @@ Spawn an add (a triangle). These triangles are subject to damage threats. They d
 
 - Cooldown: 10 seconds, first use after 13 seconds.
 - Casting time: 2 seconds
+
+## Suggested configuration
+
+The game is beatable with the following configuration:
+- one square
+- two pentagons
+- one triangle
+- one hexagon

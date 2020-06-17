@@ -7,6 +7,7 @@ import frontend.components.connected.ingame.GamePlayingContainer
 import frontend.components.login.OutsideConnContainer
 import frontend.components.test.Test
 import frontend.components.utils.Redirect
+import frontend.components.utils.modal.UnderModalLayer
 import frontend.router.{Route, Routes}
 import models.bff.Routes._
 import models.users.RouteDefinitions._
@@ -36,7 +37,8 @@ final class App private () extends Component[dom.html.Div] {
       .map {
         case Some(elem) => elem
         case None       => div("uh oh") // todo: 404
-      }
+      },
+    UnderModalLayer.element
   )
 
 }

@@ -34,7 +34,7 @@ final case class Boss102(
     damageThreats: Map[Id, ThreatAmount]
 ) extends BossEntity {
 
-  def name: String = Boss101.name
+  def name: String = Boss102.name
 
   def shape: Circle = Boss101.shape
 

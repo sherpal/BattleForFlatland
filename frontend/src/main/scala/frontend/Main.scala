@@ -3,6 +3,7 @@ package frontend
 import assets.Asset
 import com.raquo.laminar.api.L._
 import docs.DocsLoader
+import frontend.components.utils.modal.UnderModalLayer
 import org.scalajs.dom
 import zio.{UIO, ZIO}
 
@@ -19,9 +20,8 @@ object Tailwind extends js.Object
 
 object Main {
 
-  println("css", IndexCSS)
-  println("Tailwind", Tailwind)
-
+  IndexCSS
+  Tailwind
   Asset
   DocsLoader
 
@@ -49,8 +49,7 @@ object Main {
   final val emptyContainer = ZIO.effect {
     if (scala.scalajs.LinkingInfo.developmentMode) {
       Option(dom.window.asInstanceOf[js.Dynamic].selectDynamic("__laminar_root_unmount"))
-        .filter(x => !js.isUndefined(x))
-        .map(_.asInstanceOf[js.Function0[Unit]])
+        .collect { case x if !js.isUndefined(x) => x.asInstanceOf[js.Function0[Unit]] }
         .foreach { _.apply() }
     }
   }

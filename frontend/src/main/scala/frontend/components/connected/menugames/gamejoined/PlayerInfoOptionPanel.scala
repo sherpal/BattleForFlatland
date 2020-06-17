@@ -8,6 +8,7 @@ import com.raquo.laminar.modifiers.EventPropBinder
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
 import frontend.components.utils.laminarutils.reactChildInDiv
+import frontend.components.utils.modal.UnderModalLayer
 import frontend.components.utils.tailwind.{primaryColour, primaryColourDark}
 import frontend.components.utils.{ColorPickerWrapper, ToggleButton}
 import models.bff.outofgame.PlayerClasses
@@ -69,19 +70,22 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
     * Players can then chose a colour they like from the picker.
     */
   val pickerPositionBus: EventBus[(Double, Double)] = new EventBus
-  val feedingPickerPosition: EventPropBinder[TypedTargetMouseEvent[dom.Element]] =
-    onClick
-      .map(event => (event.clientX, event.clientY, maybeViewChild))
-      .collect {
-        case (x, y, Some(viewChild)) => (x, y, viewChild.getBoundingClientRect())
-      }
-      .map { case (x, y, rect) => (x - rect.left, y - rect.top) } --> pickerPositionBus
+  val feedingPickerPosition =
+    List(
+      onClick
+        .map(event => (event.clientX, event.clientY, maybeViewChild))
+        .collect {
+          case (x, y, Some(viewChild)) => (x, y, viewChild.getBoundingClientRect())
+        }
+        .map { case (x, y, rect) => (x - rect.left, y - rect.top) } --> pickerPositionBus,
+      onClick.mapTo(()) --> UnderModalLayer.showModalWriter
+    )
 
-  val $maybePickerPosition: Signal[Option[(Double, Double)]] =
-    pickerPositionBus.events.fold(Option.empty[(Double, Double)]) {
-      case (None, (x, y)) => Some((x, y))
-      case (Some(_), _)   => None
-    }
+  val $maybePickerPosition: EventStream[Option[(Double, Double)]] = EventStream.merge(
+    pickerPositionBus.events.map(Some(_)),
+    UnderModalLayer.closeModalEvents.mapTo(Option.empty[(Double, Double)])
+  )
+
   val colourSelector: ReactiveHtmlElement[html.Div] = div(
     "Choose a color: ",
     div(
@@ -93,7 +97,7 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
     child <-- $maybePickerPosition.map(_.map {
       case (x, y) =>
         div(
-          zIndex := "2",
+          zIndex := "10",
           position := "absolute",
           left := s"${x + 10}px",
           top := s"${y + 10}px",
