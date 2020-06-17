@@ -12,6 +12,7 @@ import services.database.gametables.GameTable
 import slick.jdbc.PostgresProfile.api._
 import zio.console._
 import zio.{Has, UIO, ZEnv, ZIO}
+import communication.BFFPicklers._
 
 import scala.concurrent.duration._
 
@@ -20,7 +21,7 @@ object Server extends zio.App {
   /** Echo server */
   private val server = new ServerBehavior[InGameWSProtocol, InGameWSProtocol] {
     def socketActor(
-        outerWorld: ActorRef[InGameWSProtocol],
+        outerWorld: ActorRef[Either[InGameWSProtocol, InGameWSProtocol]],
         antiChamber: ActorRef[AntiChamber.Message],
         actionTranslator: ActorRef[ActionTranslator.Message]
     ): Behavior[InGameWSProtocol] =
@@ -30,7 +31,7 @@ object Server extends zio.App {
 
           Behaviors.receiveMessage {
             case Ping(sendingTime) =>
-              outerWorld ! Pong(sendingTime, System.currentTimeMillis)
+              outerWorld ! Left(Pong(sendingTime, System.currentTimeMillis))
               Behaviors.same
             case Ready(userId) =>
               antiChamber ! AntiChamber.Ready(userId, context.self)
@@ -45,7 +46,7 @@ object Server extends zio.App {
               actionTranslator ! ActionTranslator.InGameWSProtocolWrapper(actionWrapper)
               Behaviors.same
             case message: InGameWSProtocol.Incoming => // incoming messages are sent to the frontend
-              outerWorld ! message
+              outerWorld ! Left(message)
               Behaviors.same
           }
         }

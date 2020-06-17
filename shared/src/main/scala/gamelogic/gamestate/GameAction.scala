@@ -4,6 +4,7 @@ import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions._
 import gamelogic.gamestate.statetransformers.GameStateTransformer
 import io.circe.{Decoder, Encoder, Json}
+import boopickle.Default._
 
 trait GameAction extends Ordered[GameAction] {
 
@@ -134,5 +135,7 @@ object GameAction {
     customDecoder[UpdateTimestamp]("UpdateTimestamp"),
     customDecoder[UseAbility]("UseAbility")
   ).reduceLeft(_ or _)
+
+  implicit val gameActionPickler: Pickler[GameAction] = null
 
 }

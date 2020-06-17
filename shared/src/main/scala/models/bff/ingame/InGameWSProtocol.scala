@@ -1,5 +1,7 @@
 package models.bff.ingame
 
+import boopickle.CompositePickler
+import boopickle.Default._
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction
 import io.circe.generic.extras.Configuration
@@ -8,6 +10,8 @@ import io.circe.{Decoder, Encoder}
 sealed trait InGameWSProtocol
 
 object InGameWSProtocol {
+
+  import GameAction.gameActionPickler
 
   /** Messages coming from the server to the client */
   sealed trait Incoming extends InGameWSProtocol

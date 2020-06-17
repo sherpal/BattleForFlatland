@@ -14,7 +14,7 @@ import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage, Upgrade
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes, Uri}
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Flow, Sink}
-import akka.util.Timeout
+import akka.util.{ByteString, Timeout}
 import authentication.TokenBearer
 import errors.ErrorADT
 import game.ai.AIManager
@@ -32,6 +32,7 @@ import urldsl.language.{PathSegment, PathSegmentWithQueryParams}
 import urldsl.vocabulary.UrlMatching
 import utils.streams.TypedActorFlow
 import zio.{Has, ZIO, ZLayer}
+import boopickle.Default._
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future, TimeoutException}
@@ -57,7 +58,7 @@ trait ServerBehavior[In, Out] {
     * The actionTranslotor will receive game messages during the game, and send them to the game master
     */
   def socketActor(
-      outerWorld: ActorRef[Out],
+      outerWorld: ActorRef[Either[Out, Out]],
       antiChamber: ActorRef[AntiChamber.Message],
       actionTranslator: ActorRef[ActionTranslator.Message]
   ): Behavior[In]
@@ -69,28 +70,29 @@ trait ServerBehavior[In, Out] {
     *
     * Bytes should be treated differently, although the idea would be the same...
     */
-  private def webSocketService(viaActor: Flow[In, Out, _])(
+  private def webSocketService(viaActor: Flow[In, Either[Out, Out], _])(
       implicit as: ActorSystem[_],
       decoder: Decoder[In],
-      encoder: Encoder[Out]
-  ): Flow[Message, TextMessage.Strict, NotUsed] =
+      encoder: Encoder[Out],
+      inPickler: Pickler[In],
+      outPickler: Pickler[Out]
+  ): Flow[Message, Message, NotUsed] = {
+    import as.executionContext
     Flow[Message]
       .mapAsync(16) {
         case tm: TextMessage =>
-          tm.toStrict(1.second)
+          tm.toStrict(1.second).map(msg => decode[In](msg.text)).collect { case Right(in) => in }
         case bm: BinaryMessage =>
-          bm.dataStream.runWith(Sink.ignore)
-          Future.successful(TextMessage(""))
+          bm.toStrict(1.second).map(_.data.asByteBuffer).map(Unpickle.apply[In].fromBytes)
       }
-      .map(_.text)
-      //.wireTap(x => println(x))
-      .map(decode[In])
-      .alsoTo(Flow[Either[io.circe.Error, In]].collect { case Left(error) => error }.to(Sink.foreach(println)))
-      .collect { case Right(in) => in }
       .via(viaActor)
-      .map(encoder.apply)
-      .map(_.noSpaces)
-      .map(TextMessage(_))
+      .map {
+        case Left(out) =>
+          BinaryMessage(ByteString(Pickle.intoBytes[Out](out)))
+        case Right(out) => // Right means that we want to send json-encoded out message
+          TextMessage(encoder(out).noSpaces)
+      }
+  }
 
   object ServerRoutes {
 
@@ -112,7 +114,13 @@ trait ServerBehavior[In, Out] {
       tokenBearer: ActorRef[TokenBearer.Message],
       antiChamber: ActorRef[AntiChamber.Message],
       actionTranslator: ActorRef[ActionTranslator.Message]
-  )(implicit decoder: Decoder[In], encoder: Encoder[Out], materializer: Materializer) = {
+  )(
+      implicit decoder: Decoder[In],
+      encoder: Encoder[Out],
+      inPickler: Pickler[In],
+      outPickler: Pickler[Out],
+      materializer: Materializer
+  ) = {
     implicit val ec: ExecutionContext = context.executionContext
     Flow[HttpRequest].mapAsync(1) {
       case HttpRequest(GET, Uri.Path("/"), _, _, _) =>
@@ -156,7 +164,7 @@ trait ServerBehavior[In, Out] {
                 if (_) req.header[UpgradeToWebSocket] match {
                   case Some(upgrade) =>
                     implicit val as: ActorSystem[_] = context.system
-                    val actorFlow = TypedActorFlow.actorRefFromContext[In, Out](
+                    val actorFlow = TypedActorFlow.actorRefFromContext[In, Either[Out, Out]](
                       socketActor(_, antiChamber, actionTranslator),
                       "Connection" + UUID.randomUUID().toString,
                       context
@@ -181,7 +189,9 @@ trait ServerBehavior[In, Out] {
   private def apply(host: String, port: Int)(
       implicit
       decoder: Decoder[In],
-      encoder: Encoder[Out]
+      encoder: Encoder[Out],
+      inPickler: Pickler[In],
+      outPickler: Pickler[Out]
   ): Behavior[ServerMessage] = Behaviors.setup { context =>
     implicit val classic: ClassicActorSystem = context.system.toClassic
 
@@ -266,7 +276,9 @@ trait ServerBehavior[In, Out] {
   )(
       implicit
       decoder: Decoder[In],
-      encoder: Encoder[Out]
+      encoder: Encoder[Out],
+      inPickler: Pickler[In],
+      outPickler: Pickler[Out]
   ): ZLayer[Any, Nothing, Has[ActorSystem[ServerMessage]]] =
     ZLayer.fromAcquireRelease(
       for {

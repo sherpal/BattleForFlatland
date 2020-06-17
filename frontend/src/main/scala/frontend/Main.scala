@@ -2,6 +2,7 @@ package frontend
 
 import assets.Asset
 import com.raquo.laminar.api.L._
+import communication.IngameWebsocketPickler
 import docs.DocsLoader
 import frontend.components.utils.modal.UnderModalLayer
 import org.scalajs.dom
@@ -19,6 +20,8 @@ object IndexCSS extends js.Object
 object Tailwind extends js.Object
 
 object Main {
+
+  IngameWebsocketPickler
 
   IndexCSS
   Tailwind

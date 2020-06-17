@@ -15,14 +15,15 @@ import org.scalajs.dom
 import org.scalajs.dom.html
 import services.http.FHttpClient
 import utils.laminarzio.Implicits._
-import utils.websocket.JsonWebSocket
+import utils.websocket.{BoopickleWebSocket, JsonWebSocket}
 import zio.{UIO, ZIO}
+import communication.BFFPicklers._
 
 final class GamePlaying private (gameId: String, user: User, token: String) extends Component[html.Div] {
 
   private val layer = zio.clock.Clock.live ++ FHttpClient.live
 
-  final val gameSocket = JsonWebSocket[InGameWSProtocol, InGameWSProtocol, (String, String)](
+  final val gameSocket = BoopickleWebSocket[InGameWSProtocol, InGameWSProtocol, (String, String)](
     joinGameServer,
     userIdAndTokenParams,
     (user.userId, token),

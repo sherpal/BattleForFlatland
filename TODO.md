@@ -14,7 +14,6 @@
 - improve end of game feeling (don't return directly to menu game)
 - don't target boss if other entity at the same place
 - key to target furthest ally/enemy
-- click away from the color picker should close it
 - forbidding players to join a game if it is "launched"
 - improve game assets in general
 - the life frame of a dead player should not vanish entirely
@@ -22,6 +21,7 @@
 - put a kind of "halo" on the selected player to help visualize who is currently targeted
 - enforce limit in number of players allowed in a given boss
 - icon for browser bar
+- remember all player choices (class, colour...) from one game to the next
 
 # Bugs
 
