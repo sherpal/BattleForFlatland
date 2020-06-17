@@ -10,11 +10,17 @@ import com.raquo.airstream.ownership.Owner
 import org.scalajs.dom
 import org.scalajs.dom.raw.MessageEvent
 import org.scalajs.dom.{Event, WebSocket}
+import slinky.web.html.value
 import zio.{CancelableFuture, UIO, ZIO}
 
+import scala.collection.mutable
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.scalajs.js
 import scala.scalajs.js.typedarray.{ArrayBuffer, Uint8Array}
+import scala.util.{Failure, Success}
 
+// todo: make a WebSocketEndpoint above the Boopickle and the Circe one.
 final class BoopickleWebSocket[In, Out, P, Q] private (
     pathWithQueryParams: PathSegmentWithQueryParams[P, _, Q, _],
     p: P,
@@ -34,36 +40,55 @@ final class BoopickleWebSocket[In, Out, P, Q] private (
   private val errorBus: EventBus[dom.Event] = new EventBus
   private val openBus: EventBus[dom.Event]  = new EventBus
 
+  /**
+    * Data currently comes in as blob, which need to be translated into array buffer. However, this is asynchronous and
+    * we can't be sure that the order of message will be preserved. That implies that we need to do the following
+    * nonsense.
+    */
+  private var lastMessageId: Long                      = 0L
+  private var lastMessageIdWentThrough: Long           = 0L
+  private val waitingMessages: mutable.Set[(In, Long)] = mutable.Set.empty
+
+  private def sendThroughMessages(nextIn: In, nextId: Long): Unit =
+    if (nextId == lastMessageIdWentThrough + 1) {
+      lastMessageIdWentThrough += 1
+      inBus.writer.onNext(nextIn)
+      waitingMessages.find(_._2 == lastMessageIdWentThrough + 1).foreach {
+        case (in, id) =>
+          waitingMessages.remove((in, id))
+          sendThroughMessages(in, id)
+      }
+    } else {
+      waitingMessages += ((nextIn, nextId))
+    }
+
   private def openWebSocketConnection(implicit owner: Owner) =
     for {
       webSocket <- UIO(socket)
       _ <- UIO {
         webSocket.onmessage = (event: MessageEvent) => {
-          val blob = event.data.asInstanceOf[dom.Blob]
+          val blob = event.data.asInstanceOf[typings.std.Blob]
+          val messageId = {
+            lastMessageId += 1
+            lastMessageId
+          }
 
-          val fr = new dom.FileReader()
-          fr.onload = (event: dom.UIEvent) =>
-            inBus.writer.onNext(
-              Unpickle
-                .apply[In]
-                .fromBytes({
-                  val arrayBuffer = event.target.asInstanceOf[js.Dynamic].result.asInstanceOf[ArrayBuffer]
-                  val uint8Array  = new Uint8Array(arrayBuffer)
-                  ByteBuffer.wrap(uint8Array.toArray.map(_.asInstanceOf[Byte]))
-                })
-            )
-          fr.onerror = println(_)
-          fr.readAsArrayBuffer(blob)
-//          decode[In](event.data.asInstanceOf[String]) match {
-//            case Right(in) => inBus.writer.onNext(in)
-//            case Left(error) =>
-//              dom.console.log("data", event.data)
-//              dom.console.error(error)
-//          }
+          (blob.arrayBuffer().toFuture zip Future.successful(messageId)).onComplete {
+            case Failure(exception) =>
+              throw exception
+            case Success((arrayBuffer, messageId)) =>
+              val in = {
+                val array = new Uint8Array(arrayBuffer)
+                Unpickle
+                  .apply[In]
+                  .fromBytes(ByteBuffer.wrap(array.toArray.map(_.asInstanceOf[Byte])))
+              }
+
+              sendThroughMessages(in, messageId)
+          }
         }
       }
       _ <- UIO {
-        //outBus.events.map(encoder.apply).map(_.noSpaces).foreach(webSocket.send)
         outBus.events
           .map(Pickle.intoBytes[Out])
           .map { byteBuffer =>

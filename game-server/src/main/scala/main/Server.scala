@@ -11,7 +11,7 @@ import services.database.db
 import services.database.gametables.GameTable
 import slick.jdbc.PostgresProfile.api._
 import zio.console._
-import zio.{Has, UIO, ZEnv, ZIO}
+import zio.{UIO, ZEnv, ZIO}
 import communication.BFFPicklers._
 
 import scala.concurrent.duration._

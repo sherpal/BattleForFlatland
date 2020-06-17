@@ -51,11 +51,12 @@ trait ServerBehavior[In, Out] {
   /**
     * Specify the actor that processes incoming web socket messages.
     * The Behaviour has to sent Out messages to the `outerWorld` actor, which will then be sent to
-    * the WebSocket client.
+    * the WebSocket client. "Left" messages will be sent to the frontend using boopickle as byte array while "Right"
+    * messages will be sent using Json serialization via circe.
     * Incoming In messages from the client will be sent to the output Behaviour.
     *
     * The antiChamber will receive the [[game.AntiChamber.Ready]] message once the client is ready.
-    * The actionTranslotor will receive game messages during the game, and send them to the game master
+    * The actionTranslator will receive game messages during the game, and send them to the game master
     */
   def socketActor(
       outerWorld: ActorRef[Either[Out, Out]],

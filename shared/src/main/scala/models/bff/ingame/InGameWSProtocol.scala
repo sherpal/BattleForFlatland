@@ -11,8 +11,6 @@ sealed trait InGameWSProtocol
 
 object InGameWSProtocol {
 
-  import GameAction.gameActionPickler
-
   /** Messages coming from the server to the client */
   sealed trait Incoming extends InGameWSProtocol
 
