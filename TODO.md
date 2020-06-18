@@ -9,7 +9,6 @@
 - forbidding players to change their configurations when they are set to "ready"
 - show the game options to the people not game creators
 - class description documentation
-- service for game server launcher
 - improve end of game feeling (don't return directly to menu game)
 - don't target boss if other entity at the same place
 - key to target furthest ally/enemy
@@ -19,7 +18,10 @@
 - show player colours in their frames
 - put a kind of "halo" on the selected player to help visualize who is currently targeted
 - enforce limit in number of players allowed in a given boss
-- icon for browser bar
+
+# Done but need improvement
+
+- icon for browser bar (simply change the `icon.ico` in `frontend/src/main/resources`)
 
 # Bugs
 

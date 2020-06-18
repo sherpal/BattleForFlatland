@@ -67,7 +67,7 @@ module.exports = {
       },
       // "file" loader for svg
       {
-        test: /\.(svg|png)$/,
+        test: /\.(svg|png|ico)$/,
         use: [
           {
             loader: "file-loader",

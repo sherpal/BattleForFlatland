@@ -14,6 +14,10 @@ import scala.scalajs.js.annotation.{JSExportTopLevel, JSImport}
 @js.native
 object IndexCSS extends js.Object
 
+@JSImport("resources/icon.ico", JSImport.Default)
+@js.native
+object Icon extends js.Object
+
 @JSImport("resources/tailwind-index.css", JSImport.Default)
 @js.native
 object Tailwind extends js.Object
@@ -24,6 +28,7 @@ object Main {
   Tailwind
   Asset
   DocsLoader
+  Icon
 
   final val addPageTitle = ZIO.effectTotal {
     dom.document.title = globals.projectName
@@ -74,6 +79,13 @@ object Main {
     container <- createElement
     _ <- emptyContainer
     _ <- renderAppInContainer.provide(container)
+    _ <- ZIO.effectTotal {
+      val link = dom.document.createElement("link").asInstanceOf[dom.html.Link]
+      link.`type` = "image/x-icon"
+      link.rel    = "shortcut icon"
+      link.href   = Icon.asInstanceOf[String]
+      dom.document.head.appendChild(link)
+    }
   } yield ()
   @JSExportTopLevel("main")
   def main(): Unit =
