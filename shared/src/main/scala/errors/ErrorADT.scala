@@ -123,6 +123,9 @@ object ErrorADT {
   case object InvalidGameConfiguration extends MenuGameError {
     def httpErrorType: HTTPResultType = BadRequest
   }
+  case object GameServerLauncherCouldNotBeReached extends MenuGameError {
+    def httpErrorType: HTTPResultType = Internal
+  }
 
   sealed trait GameAntiChamberError extends BackendError
   case class GameHasBeenCancelled(gameId: String) extends GameAntiChamberError {

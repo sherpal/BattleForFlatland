@@ -21,6 +21,7 @@ import services.crypto._
 import services.database.db.Database.dbProvider
 import services.database.gamecredentials.GameCredentialsDB
 import services.database.gametables.GameTable
+import services.gameserverlauncher.BGameServerLauncher
 import services.logging.PlayLogging
 import slick.jdbc.JdbcProfile
 import utils.ReadsImplicits._
@@ -28,7 +29,7 @@ import utils.playzio.PlayZIO._
 import utils.streams.TypedActorFlow
 import websocketkeepers.gameantichamber.{AntiChamberClientTyped, JoinedGameDispatcherTyped}
 import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeperTyped
-import zio.UIO
+import zio.{UIO, ZLayer}
 import zio.clock.Clock
 
 import scala.concurrent.ExecutionContext
@@ -53,7 +54,8 @@ final class GameAntiChamberController @Inject()(
     TypedActorProvider.live(
       typedGameMenuRoomBookKeeperRef,
       typedJoinedGameDispatcherRef
-    )
+    ) ++
+    ((Clock.live ++ PlayLogging.live(logger) ++ ZLayer.succeed(actorSystem)) >>> BGameServerLauncher.usingLocalExternalNodeServer)
 
   type AntiChamberProtocol = gameantichamber.WebSocketProtocol
 
