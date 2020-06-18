@@ -25,7 +25,7 @@ object PlayerClasses {
     def builder: PlayerClassBuilder = gamelogic.entities.classes.Pentagon
   }
 
-  final val allChoices: List[PlayerClasses] = List(Square, Hexagon, Triangle, Pentagon)
+  final val allChoices: List[PlayerClasses] = List(Triangle, Square, Pentagon, Hexagon)
 
   def playerClassByName(name: String): Option[PlayerClasses] = allChoices.find(_.toString == name)
 

@@ -31,6 +31,10 @@ import zio.{CancelableFuture, UIO, ZIO, ZLayer}
   *
   * That means: their class, their colour...
   *
+  * If the colour or class is not set in the `initialPlayerInfo` (mainly when a new player joins, not when they
+  * refreshed the page), we search for the last used in the local storage. If we find one, and it is not expired, we
+  * use these instead.
+  *
   * @param initialPlayerInfo the initial player info as it is currently in the database. This is important because the
   *                          player can refresh their screen and need to have up to date information
   * @param playerInfoWriter each time the player makes a change to their character, the new information is sent to the
@@ -74,6 +78,7 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
     * Choosing a different option goes to the playerClassWriter above
     */
   val classSelector: ReactiveHtmlElement[Select] = select(
+    disabled <-- $playerInfo.map(_.isReady),
     PlayerClasses.allChoices.map(_.toString).map(cls => option(value := cls, cls)),
     inContext(
       elem =>
@@ -97,6 +102,13 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
     * Players can then chose a colour they like from the picker.
     */
   val pickerPositionBus: EventBus[(Double, Double)] = new EventBus
+  val $maybePickerPosition: EventStream[(Option[(Double, Double)], PlayerInfo)] = EventStream
+    .merge(
+      pickerPositionBus.events.map(Some(_)),
+      UnderModalLayer.closeModalEvents.mapTo(Option.empty[(Double, Double)])
+    )
+    .withCurrentValueOf($playerInfo)
+    .filter(!_._2.isReady)
   val feedingPickerPosition =
     List(
       onClick
@@ -105,13 +117,9 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
           case (x, y, Some(viewChild)) => (x, y, viewChild.getBoundingClientRect())
         }
         .map { case (x, y, rect) => (x - rect.left, y - rect.top) } --> pickerPositionBus,
-      onClick.mapTo(()) --> UnderModalLayer.showModalWriter
+      $maybePickerPosition.filter(_._1.isDefined)
+        .mapTo(()) --> UnderModalLayer.showModalWriter
     )
-
-  val $maybePickerPosition: EventStream[Option[(Double, Double)]] = EventStream.merge(
-    pickerPositionBus.events.map(Some(_)),
-    UnderModalLayer.closeModalEvents.mapTo(Option.empty[(Double, Double)])
-  )
 
   val playerColourStorageKey: String                               = "playerColour"
   def storePlayerColour(colour: RGBColour): CancelableFuture[Unit] = storeElement(playerColourStorageKey, colour)
@@ -121,24 +129,29 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
     div(
       height := "30px",
       width := "50px",
+      cursor <-- $playerInfo.map(_.isReady).map(if (_) "not-allowed" else "pointer"),
       backgroundColor <-- $playerInfo.map(_.maybePlayerColour.getOrElse(RGBColour.white).rgb),
       feedingPickerPosition
     ),
-    child <-- $maybePickerPosition.map(_.map {
-      case (x, y) =>
-        div(
-          zIndex := "10",
-          position := "absolute",
-          left := s"${x + 10}px",
-          top := s"${y + 10}px",
-          reactChildInDiv(
-            ColorPickerWrapper(
-              colourWriter,
-              initialPlayerInfo.maybePlayerColour.getOrElse(RGBColour.white).withAlpha(1.0)
+    child <-- $maybePickerPosition.map {
+      case (maybePosition, maybeInfo) =>
+        maybePosition.zip(Some(maybeInfo))
+    }.map(_.map {
+        case ((x, y), playerInfo) =>
+          div(
+            zIndex := "10",
+            position := "absolute",
+            left := s"${x + 10}px",
+            top := s"${y + 10}px",
+            reactChildInDiv(
+              ColorPickerWrapper(
+                colourWriter,
+                playerInfo.maybePlayerColour.getOrElse(RGBColour.white).withAlpha(1.0)
+              )
             )
           )
-        )
-    }).map(_.getOrElse(emptyNode)),
+      })
+      .map(_.getOrElse(emptyNode)),
     onMountCallback { ctx =>
       $playerInfo.changes
         .map(_.maybePlayerColour)
