@@ -42,8 +42,14 @@ final class GameViewContainer private (
 
   private val maybeTargetBus: EventBus[Option[Entity]] = new EventBus
 
-  val application: Application = new Application(ApplicationOptions(backgroundColor = 0x1099bb))
-  val loader                   = new GameAssetLoader(application)
+  val application: Application = new Application(
+    ApplicationOptions(
+      backgroundColor = 0x1099bb,
+      width           = 1200,
+      height          = 800
+    )
+  )
+  val loader = new GameAssetLoader(application)
 
   val assetLoading: Signal[Double] = loader.$progressData.map(_.completion).startWith(0.0)
 

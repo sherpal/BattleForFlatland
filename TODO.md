@@ -20,7 +20,6 @@
 - put a kind of "halo" on the selected player to help visualize who is currently targeted
 - enforce limit in number of players allowed in a given boss
 - icon for browser bar
-- remember all player choices (class, colour...) from one game to the next
 
 # Bugs
 

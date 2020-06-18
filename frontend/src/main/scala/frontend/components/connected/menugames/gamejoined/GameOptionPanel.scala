@@ -24,7 +24,7 @@ final class GameOptionPanel private (initialGameInfo: MenuGameWithPlayers, socke
       _ <- failIfWith(maybeInitialBoss.isDefined, maybeInitialBoss.get)
       maybePreviouslySelected <- retrieveFrom[String](bossNameStorageKey)
       nextSelected = maybePreviouslySelected.getOrElse(BossEntity.allBossesNames.head)
-      _ <- storeAt(bossNameStorageKey, nextSelected).ignore
+      _ <- storeAt(bossNameStorageKey, nextSelected)
       _ <- ZIO.effect(socketOutWriter.onNext(WebSocketProtocol.UpdateBossName(nextSelected))).orDie
     } yield nextSelected)
       .catchSome { case bossName: String => UIO(bossName) }

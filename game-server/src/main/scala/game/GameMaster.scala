@@ -10,6 +10,7 @@ import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
 import models.bff.ingame.InGameWSProtocol
 import models.bff.outofgame.MenuGameWithPlayers
+import models.bff.outofgame.gameconfig.GameConfiguration.ValidGameConfiguration
 import zio.ZIO
 import zio.duration.Duration.fromScala
 
@@ -268,64 +269,75 @@ object GameMaster {
               // first message that kick off the actor and will trigger others
               val timeNow = now
 
-              try {
+              gameInfo.game.gameConfiguration.asValid match {
+                case None =>
+                  println("""
+                      |I received game information with an invalid game configuration.
+                      |This should not happen. Something went terribly wrong upstream.
+                      |
+                      |Shutting down now...
+                      |""".stripMargin)
+                  Behaviors.stopped
+                case Some(gameConfiguration) =>
+                  try {
 
-                def maybeBossFactory =
-                  gameInfo.game.gameConfiguration.maybeBossName.toList
-                    .flatMap(BossFactory.factoriesByBossName.get)
-                if (maybeBossFactory.isEmpty) {
-                  println("Starting Game without boss, that's weird.")
-                }
+                    def maybeBossFactory = BossFactory.factoriesByBossName.get(gameConfiguration.bossName).toList
 
-                val refsByName = gameInfo.players.map(user => user.userName -> playerMap(user.userId)).toMap
+                    if (maybeBossFactory.isEmpty) {
+                      println("Starting Game without boss, that's weird.")
+                    }
 
-                val playersPosition = maybeBossFactory
-                  .map(_.playersStartingPosition)
-                  .head
+                    val refsByName = gameInfo.players.map(user => user.userName -> playerMap(user.userId)).toMap
 
-                val bossStartingPosition = maybeBossFactory.headOption.fold(Complex.zero)(_.bossStartingPosition)
+                    val playersPosition = maybeBossFactory
+                      .map(_.playersStartingPosition)
+                      .head
 
-                val newPlayerActions = gameInfo.game.gameConfiguration.playersInfo.values.map { info =>
-                  val playerId = idGeneratorContainer.entityIdGenerator()
-                  (
-                    refsByName(info.playerName),
-                    playerId,
-                    AddPlayerByClass(
-                      0L,
-                      timeNow - 2,
-                      playerId,
-                      playersPosition,
-                      info.playerClass,
-                      info.playerColour.intColour,
-                      info.playerName
-                    ) +: info.playerClass.builder.startingActions(timeNow - 1, playerId, idGeneratorContainer)
-                  )
+                    val bossStartingPosition = maybeBossFactory.headOption.fold(Complex.zero)(_.bossStartingPosition)
 
-                }
+                    val newPlayerActions = gameConfiguration.playersInfo.values.map { info =>
+                      val playerId = idGeneratorContainer.entityIdGenerator()
+                      (
+                        refsByName(info.playerName),
+                        playerId,
+                        AddPlayerByClass(
+                          0L,
+                          timeNow - 2,
+                          playerId,
+                          playersPosition,
+                          info.playerClass,
+                          info.playerColour.intColour,
+                          info.playerName
+                        ) +: info.playerClass.builder.startingActions(timeNow - 1, playerId, idGeneratorContainer)
+                      )
 
-                val bossCreationActions = gameInfo.game.gameConfiguration.maybeBossName.toList.flatMap { name =>
-                  BossFactory.factoriesByBossName
-                    .get(name)
-                    .fold(List.empty[GameAction])(_.stagingBossActions(timeNow, idGeneratorContainer))
-                }
+                    }
 
-                newPlayerActions.foreach {
-                  case (ref, playerId, _) =>
-                    ref ! InGameWSProtocol.YourEntityIdIs(playerId)
-                    ref ! InGameWSProtocol.StartingBossPosition(bossStartingPosition.re, bossStartingPosition.im)
-                }
+                    val bossCreationActions = gameInfo.game.gameConfiguration.maybeBossName.toList.flatMap { name =>
+                      BossFactory.factoriesByBossName
+                        .get(name)
+                        .fold(List.empty[GameAction])(_.stagingBossActions(timeNow, idGeneratorContainer))
+                    }
 
-                setupBehaviour(
-                  actionUpdateCollector,
-                  Some(gameInfo),
-                  Set(),
-                  Some(newPlayerActions.flatMap(_._3).toList ++ bossCreationActions)
-                )
+                    newPlayerActions.foreach {
+                      case (ref, playerId, _) =>
+                        ref ! InGameWSProtocol.YourEntityIdIs(playerId)
+                        ref ! InGameWSProtocol.StartingBossPosition(bossStartingPosition.re, bossStartingPosition.im)
+                    }
 
-              } catch {
-                case e: Throwable =>
-                  e.printStackTrace()
-                  throw e
+                    setupBehaviour(
+                      actionUpdateCollector,
+                      Some(gameInfo),
+                      Set(),
+                      Some(newPlayerActions.flatMap(_._3).toList ++ bossCreationActions)
+                    )
+
+                  } catch {
+                    case e: Throwable =>
+                      e.printStackTrace()
+                      throw e
+                  }
+
               }
 
             case IAmReadyToStart(userId) =>

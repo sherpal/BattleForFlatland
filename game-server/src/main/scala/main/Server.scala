@@ -13,6 +13,7 @@ import slick.jdbc.PostgresProfile.api._
 import zio.console._
 import zio.{UIO, ZEnv, ZIO}
 import communication.BFFPicklers._
+import errors.ErrorADT.InvalidGameConfiguration
 
 import scala.concurrent.duration._
 
@@ -66,7 +67,8 @@ object Server extends zio.App {
         actorSystem <- ZIO.service[ActorSystem[ServerBehavior.ServerMessage]]
         _ <- putStrLn("""Execute curl -X POST "http://localhost:22222/stop" to close the server.""")
         allGameInfo <- setup.fetchGameInfo(credentials, actorSystem)
-        _ <- putStrLn(allGameInfo.asJson.spaces2)
+        _ <- if (allGameInfo.gameInfo.game.gameConfiguration.isValid) ZIO.unit
+        else ZIO.fail(InvalidGameConfiguration)
         _ <- ZIO.effectTotal(
           actorSystem ! ServerBehavior.ReceivedCredentials(
             allGameInfo.gameInfo.players,
@@ -76,7 +78,7 @@ object Server extends zio.App {
         )
         _ <- server.waitForServerToStop(actorSystem)
       } yield 0)
-        .catchAll(error => putStrLn(error.toString) *> UIO(1))
+        .catchAll(error => putStrLn(error.toString) *> UIO(1)) // todo: warn server that something went wrong
         .provideLayer(layer)
     case None => UIO(1)
   }

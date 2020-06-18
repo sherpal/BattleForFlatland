@@ -2,6 +2,8 @@ package models.bff.outofgame.gameconfig
 
 import io.circe.generic.auto._
 import io.circe.syntax._
+import models.bff.outofgame.gameconfig.GameConfiguration.ValidGameConfiguration
+import models.bff.outofgame.gameconfig.PlayerInfo.ValidPlayerInfo
 import models.syntax.Pointed
 
 /**
@@ -40,6 +42,28 @@ final case class GameConfiguration(
 
   def withBossName(bossName: String): GameConfiguration = copy(maybeBossName = Some(bossName))
 
+  def isValid: Boolean = asValid.isDefined
+
+  def asValid: Option[ValidGameConfiguration] =
+    for {
+      bossName <- maybeBossName
+      validPlayersInfo = playersInfo
+        .map { case (name, info) => name -> info.asValid }
+        .collect { case (name, Some(info)) => name -> info }
+      if validPlayersInfo.size == playersInfo.size
+    } yield ValidGameConfiguration(validPlayersInfo, bossName)
+
   def json: String = this.asJson.noSpaces
+
+}
+
+object GameConfiguration {
+
+  final case class ValidGameConfiguration(
+      playersInfo: Map[String, ValidPlayerInfo],
+      bossName: String
+  ) {
+    def json: String = this.asJson.noSpaces
+  }
 
 }

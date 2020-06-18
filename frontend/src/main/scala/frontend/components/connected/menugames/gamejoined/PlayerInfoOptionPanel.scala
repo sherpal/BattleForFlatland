@@ -11,13 +11,19 @@ import frontend.components.utils.laminarutils.reactChildInDiv
 import frontend.components.utils.modal.UnderModalLayer
 import frontend.components.utils.tailwind.{primaryColour, primaryColourDark}
 import frontend.components.utils.{ColorPickerWrapper, ToggleButton}
+import io.circe.{Decoder, Encoder}
 import models.bff.outofgame.PlayerClasses
 import models.bff.outofgame.gameconfig.PlayerStatus.{NotReady, Ready}
 import models.bff.outofgame.gameconfig.{PlayerInfo, PlayerStatus}
+import models.syntax.Pointed
 import org.scalajs.dom
 import org.scalajs.dom.html
 import org.scalajs.dom.html.{Element, Select}
+import services.localstorage.FLocalStorage
 import utils.misc.{RGBAColour, RGBColour}
+import services.localstorage._
+import zio.clock.Clock
+import zio.{CancelableFuture, UIO, ZIO, ZLayer}
 
 /**
   * This component is displayed in the GameJoined component, and allows the player to select the game configuration
@@ -33,20 +39,35 @@ import utils.misc.{RGBAColour, RGBColour}
 final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, playerInfoWriter: Observer[PlayerInfo])
     extends Component[html.Element] {
 
+  val localStorage: ZLayer[Clock, Nothing, LocalStorage] = FLocalStorage.live
+
+  def storeElement[A](key: String, element: A)(implicit encoder: Encoder[A]): CancelableFuture[Unit] =
+    zio.Runtime.default.unsafeRunToFuture(storeAt(key, element).provideLayer(localStorage))
+  def retrieveElement[A](key: String)(implicit decoder: Decoder[A]): ZIO[Clock, Nothing, Option[A]] =
+    retrieveFrom[A](key).catchAll(_ => UIO.none).provideLayer(localStorage)
+
+  /** Used to access the client bounded rect of the element. */
   private var maybeViewChild: Option[html.Element] = Option.empty
 
-  def changeReadyState(ready: PlayerStatus): PlayerInfo => PlayerInfo   = _.copy(status       = ready)
-  def changeColour(colour: RGBColour): PlayerInfo => PlayerInfo         = _.copy(playerColour = colour)
-  def changeClass(playerClass: PlayerClasses): PlayerInfo => PlayerInfo = _.copy(playerClass  = playerClass)
+  def changeReadyState(ready: PlayerStatus): PlayerInfo => PlayerInfo      = _.copy(status = ready)
+  def changeColour(colour: RGBColour): PlayerInfo => PlayerInfo            = _.copy(maybePlayerColour = Some(colour))
+  def changeClass(playerClass: PlayerClasses): PlayerInfo => PlayerInfo    = _.copy(maybePlayerClass = Some(playerClass))
+  def overridePlayerInfo(playerInfo: PlayerInfo): PlayerInfo => PlayerInfo = _ => playerInfo
 
   val changerBus: EventBus[PlayerInfo => PlayerInfo] = new EventBus
   val readyStateWriter: Observer[PlayerStatus]       = changerBus.writer.contramap(changeReadyState)
   val playerClassWriter: Observer[PlayerClasses]     = changerBus.writer.contramap(changeClass)
   val colourWriter: Observer[RGBAColour]             = changerBus.writer.contramap(changeColour).contramap(_.withoutAlpha)
+  val overrideWriter: Observer[PlayerInfo]           = changerBus.writer.contramap(overridePlayerInfo)
 
   val $playerInfo: Signal[PlayerInfo] = changerBus.events.fold(initialPlayerInfo) { (info, changer) =>
     changer(info)
   }
+
+  val playerClassStorageKey = "playerClass"
+
+  def storePlayerClassChoice(playerClasses: PlayerClasses): CancelableFuture[Unit] =
+    storeElement(playerClassStorageKey, playerClasses)
 
   /**
     * This is the selector for the Player class.
@@ -60,7 +81,13 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
           case Some(value) => value
         } --> playerClassWriter
     ),
-    onMountSet(_ => value := initialPlayerInfo.playerClass.toString)
+    inContext(
+      elem =>
+        onChange.mapTo(elem.ref.value).map(PlayerClasses.playerClassByName).collect {
+          case Some(value) => value
+        } --> (cls => storePlayerClassChoice(cls))
+    ),
+    value <-- $playerInfo.changes.map(_.maybePlayerClass).collect { case Some(cls) => cls.toString }
   )
 
   /**
@@ -86,12 +113,15 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
     UnderModalLayer.closeModalEvents.mapTo(Option.empty[(Double, Double)])
   )
 
+  val playerColourStorageKey: String                               = "playerColour"
+  def storePlayerColour(colour: RGBColour): CancelableFuture[Unit] = storeElement(playerColourStorageKey, colour)
+
   val colourSelector: ReactiveHtmlElement[html.Div] = div(
     "Choose a color: ",
     div(
       height := "30px",
       width := "50px",
-      backgroundColor <-- $playerInfo.map(_.playerColour.rgb),
+      backgroundColor <-- $playerInfo.map(_.maybePlayerColour.getOrElse(RGBColour.white).rgb),
       feedingPickerPosition
     ),
     child <-- $maybePickerPosition.map(_.map {
@@ -101,10 +131,36 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
           position := "absolute",
           left := s"${x + 10}px",
           top := s"${y + 10}px",
-          reactChildInDiv(ColorPickerWrapper(colourWriter, initialPlayerInfo.playerColour))
+          reactChildInDiv(
+            ColorPickerWrapper(
+              colourWriter,
+              initialPlayerInfo.maybePlayerColour.getOrElse(RGBColour.white).withAlpha(1.0)
+            )
+          )
         )
-    }).map(_.getOrElse(emptyNode))
+    }).map(_.getOrElse(emptyNode)),
+    onMountCallback { ctx =>
+      $playerInfo.changes
+        .map(_.maybePlayerColour)
+        .collect { case Some(colour) => colour }
+        .foreach(storePlayerColour)(ctx.owner)
+    }
   )
+
+  def fillInitialInfoWithStorage(initialPlayerInfo: PlayerInfo): ZIO[Clock, Nothing, Unit] =
+    for {
+      colour <- ZIO
+        .fromOption(initialPlayerInfo.maybePlayerColour)
+        .catchAll(_ => retrieveElement[RGBColour](playerColourStorageKey).map(_.getOrElse(Pointed[RGBColour].unit)))
+      playerClass <- ZIO.fromOption(initialPlayerInfo.maybePlayerClass).catchAll { _ =>
+        retrieveElement[PlayerClasses](playerClassStorageKey).map(_.getOrElse(Pointed[PlayerClasses].unit))
+      }
+      playerInfo = initialPlayerInfo.copy(
+        maybePlayerClass  = Some(playerClass),
+        maybePlayerColour = Some(colour)
+      )
+      _ <- ZIO.effectTotal(overrideWriter.onNext(playerInfo))
+    } yield ()
 
   val element: ReactiveHtmlElement[Element] =
     section(
@@ -121,7 +177,10 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
       ),
       colourSelector,
       $playerInfo --> playerInfoWriter,
-      onMountCallback(ctx => maybeViewChild = Some(ctx.thisNode.ref))
+      onMountCallback(ctx => maybeViewChild = Some(ctx.thisNode.ref)),
+      onMountCallback { _ =>
+        zio.Runtime.default.unsafeRunToFuture(fillInitialInfoWithStorage(initialPlayerInfo))
+      }
     )
 }
 

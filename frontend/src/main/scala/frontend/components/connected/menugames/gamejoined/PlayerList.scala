@@ -27,9 +27,10 @@ object PlayerList {
               td(
                 tableData,
                 className := "flex justify-center",
-                span(className := "rounded-full h-4 w-4 flex", backgroundColor := player.playerColour.rgb)
+                player.maybePlayerColour
+                  .map(colour => span(className := "rounded-full h-4 w-4 flex", backgroundColor := colour.rgb))
               ),
-              td(tableData, player.playerClass.toString),
+              td(tableData, player.maybePlayerClass.fold("No class")(_.toString)),
               td(
                 tableData,
                 className := "flex justify-center",
