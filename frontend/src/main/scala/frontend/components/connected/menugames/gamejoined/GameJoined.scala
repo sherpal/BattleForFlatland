@@ -2,7 +2,7 @@ package frontend.components.connected.menugames.gamejoined
 
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import docs.DocsLoader
+import errors.ErrorADT
 import frontend.components.Component
 import frontend.components.utils.loading.LoadingScreen
 import frontend.components.utils.tailwind._
@@ -22,6 +22,7 @@ import utils.laminarzio.Implicits._
 import utils.websocket.JsonWebSocket
 import zio.{ZIO, ZLayer}
 import zio.clock.Clock
+import utils.laminarzio.Implicits.zioFlattenStrategy
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -66,7 +67,7 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
       socket.$closed,
       socket.$error.mapTo(())
     )
-    .flatMap(_ => EventStream.fromZIOEffect(moveTo(RouteDefinitions.homeRoute).provideLayer(layer)))
+    .flatMap(_ => moveTo(RouteDefinitions.homeRoute).provideLayer(layer))
 
   val $updateCreds: EventStream[Unit] = socket.$in.collect {
     case WebSocketProtocol.GameUserCredentialsWrapper(gameUserCredentials) =>
@@ -93,19 +94,18 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
     cancelGameBus.events.flatMap(_ => EventStream.fromZIOEffect(sendCancelGame(gameId).provideLayer(layer)))
 
   val startGameBus = new EventBus[Unit]
-  val $startGame: EventStream[Int] =
+  val $startGame: EventStream[Either[ErrorADT, Int]] =
     startGameBus.events.flatMap(
       _ =>
-        EventStream.fromZIOEffect(
-          sendLaunchGame(gameId)
-            .provideLayer(layer)
-            .tap(
-              _ =>
-                ZIO.effectTotal {
-                  socket.outWriter.onNext(WebSocketProtocol.GameLaunched)
-                }
-            )
-        )
+        sendLaunchGame(gameId)
+          .provideLayer(layer)
+          .tap(
+            _ =>
+              ZIO.effectTotal {
+                socket.outWriter.onNext(WebSocketProtocol.GameLaunched)
+              }
+          )
+          .either
     )
 
   val leaveGameBus = new EventBus[Unit]
@@ -117,8 +117,6 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
     className <-- $shouldMoveBackToHome.mapTo(""), // kicking off stream
     className <-- $cancelGame.mapTo(""), // kicking off stream
     className <-- $leaveGame.mapTo(""), // kicking off stream
-    className <-- $updateCreds.mapTo(""), // kicking off stream // todo: delete this
-    className <-- $startGame.mapTo(""),
     className <-- $moveToGame.mapTo(""), // kicking off stream
     div(
       mainContent,
@@ -155,12 +153,12 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
                   if (_)
                     button(
                       btn,
-                      className <-- $gameInfo.map(_.game.everyBodyReady)
+                      className <-- $gameInfo.map(_.game.gameConfigurationIsValid)
                         .startWith(false)
                         .map(if (_) primaryButtonContent else primaryButtonDisabledContent),
                       "Launch game!",
                       onClick.mapTo(()) --> startGameBus,
-                      disabled <-- $gameInfo.map(!_.game.everyBodyReady)
+                      disabled <-- $gameInfo.map(!_.game.gameConfigurationIsValid)
                     )
                   else emptyNode
                 },
@@ -180,7 +178,14 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
             )
         ),
       position := "relative",
-      child <-- socket.$in.filter(_ == WebSocketProtocol.GameLaunched).mapTo(LoadingScreen())
+      child <-- socket.$in.filter(_ == WebSocketProtocol.GameLaunched).mapTo(LoadingScreen()),
+      child <-- $startGame.collect { // todo: improve error management
+        case Left(error) =>
+          pre(
+            "Something went terribly wrong when launching the game:\n",
+            error.asJson.spaces2
+          )
+      }
     ),
     onMountCallback(ctx => {
       socket.open()(ctx.owner)

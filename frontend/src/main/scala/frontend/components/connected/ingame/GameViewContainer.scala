@@ -60,6 +60,7 @@ final class GameViewContainer private (
 
   val element: ReactiveHtmlElement[html.Div] = div(
     className := "GameViewContainer",
+    className := "flex items-center justify-center",
     onMountCallback(ctx => componentDidMount(ctx.owner)),
     div(child <-- assetLoading.map(_ < 100).map(if (_) loadingProgressBar else emptyNode))
   )

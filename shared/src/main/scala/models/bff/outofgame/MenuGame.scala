@@ -32,7 +32,7 @@ final case class MenuGame(
     gameCreator         = gameCreator.onlyName
   )
 
-  def everyBodyReady: Boolean = gameConfiguration.playersInfo.values.forall(_.isReady)
+  def gameConfigurationIsValid: Boolean = gameConfiguration.isValid
 
 }
 
