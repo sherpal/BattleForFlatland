@@ -5,20 +5,16 @@ import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
 import game.{GameAssetLoader, GameStateManager, Keyboard, Mouse}
 import gamelogic.entities.Entity
-import gamelogic.entities.boss.Boss101
-import gamelogic.entities.classes.{Hexagon, Pentagon, Square, Triangle}
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
-import io.circe.generic.auto._
-import io.circe.syntax._
 import models.bff.ingame.InGameWSProtocol.ReadyToStart
 import models.bff.ingame.{InGameWSProtocol, KeyboardControls}
 import models.syntax.Pointed
 import models.users.User
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Progress
-import typings.pixiJs.mod.Application
 import typings.pixiJs.anon.{Antialias => ApplicationOptions}
+import typings.pixiJs.mod.Application
 import zio.ZIO
 
 /**

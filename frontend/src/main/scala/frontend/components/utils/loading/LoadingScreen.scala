@@ -1,10 +1,10 @@
 package frontend.components.utils.loading
 
+import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Div
-import com.raquo.laminar.api.L._
 
 final class LoadingScreen private () extends Component[html.Div] {
 

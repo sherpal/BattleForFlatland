@@ -16,10 +16,10 @@ import services.config.Configuration
 import services.database.gamecredentials.GameCredentialsDB
 import services.database.gametables._
 import utils.playzio.HasRequest
+import utils.ziohelpers.failIfWith
 import websocketkeepers.gameantichamber.GameAntiChamberTyped.GameCredentialsWrapper
 import zio.clock.Clock
 import zio.{Has, UIO, ZIO}
-import utils.ziohelpers.failIfWith
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._

@@ -13,9 +13,10 @@ import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage, UpgradeToWebSocket}
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes, Uri}
 import akka.stream.Materializer
-import akka.stream.scaladsl.{Flow, Sink}
+import akka.stream.scaladsl.Flow
 import akka.util.{ByteString, Timeout}
 import authentication.TokenBearer
+import boopickle.Default._
 import errors.ErrorADT
 import game.ai.AIManager
 import game.{ActionTranslator, ActionUpdateCollector, AntiChamber, GameMaster}
@@ -32,7 +33,6 @@ import urldsl.language.{PathSegment, PathSegmentWithQueryParams}
 import urldsl.vocabulary.UrlMatching
 import utils.streams.TypedActorFlow
 import zio.{Has, ZIO, ZLayer}
-import boopickle.Default._
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future, TimeoutException}

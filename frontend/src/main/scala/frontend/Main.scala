@@ -3,7 +3,6 @@ package frontend
 import assets.Asset
 import com.raquo.laminar.api.L._
 import docs.DocsLoader
-import frontend.components.utils.modal.UnderModalLayer
 import org.scalajs.dom
 import zio.{UIO, ZIO}
 

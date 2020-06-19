@@ -6,8 +6,6 @@ import com.raquo.airstream.ownership.Owner
 import game.Camera
 import game.ui.Drawer
 import game.ui.effects.boss.boss102.{HoundLifeBarEffect, LivingDamageZoneEffect}
-import gamelogic.abilities.Ability
-import gamelogic.abilities.boss.boss102.PutLivingDamageZoneOnTarget
 import gamelogic.abilities.square.Cleave
 import gamelogic.buffs.boss.boss102.LivingDamageZone
 import gamelogic.entities.Entity
@@ -16,7 +14,7 @@ import gamelogic.gamestate.gameactions.{EntityGetsHealed, EntityTakesDamage, Use
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import typings.pixiJs.PIXI.LoaderResource
-import typings.pixiJs.mod.{Application, Container, Graphics}
+import typings.pixiJs.mod.{Application, Container}
 import utils.misc.RGBColour
 
 import scala.collection.mutable

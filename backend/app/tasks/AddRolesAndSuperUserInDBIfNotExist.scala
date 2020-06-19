@@ -1,6 +1,5 @@
 package tasks
 
-import akka.actor.ActorSystem
 import javax.inject.Inject
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}

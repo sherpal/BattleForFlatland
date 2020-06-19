@@ -5,13 +5,12 @@ import akka.actor.typed.{ActorRef, Behavior}
 import game.ActionTranslator
 import game.ai.AIControllerMessage
 import game.ai.AIManager.loopRate
+import game.ai.utils._
 import gamelogic.abilities.Ability
 import gamelogic.abilities.boss.boss101.{BigDot, BigHit, SmallHit}
 import gamelogic.entities.boss.Boss101
 import gamelogic.gamestate.GameState
-import gamelogic.gamestate.gameactions.{ChangeTarget, EntityStartsCasting, MovingBodyMoves, SpawnBoss}
-
-import game.ai.utils._
+import gamelogic.gamestate.gameactions.{EntityStartsCasting, MovingBodyMoves, SpawnBoss}
 
 import scala.concurrent.duration._
 import scala.util.Random

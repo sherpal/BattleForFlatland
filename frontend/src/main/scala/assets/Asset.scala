@@ -3,7 +3,6 @@ package assets
 import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff
 
-import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport

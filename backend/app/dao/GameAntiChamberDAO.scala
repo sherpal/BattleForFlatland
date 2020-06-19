@@ -7,8 +7,6 @@ import java.util.concurrent.TimeUnit
 import akka.actor.ActorSystem
 import akka.actor.typed.Scheduler
 import akka.actor.typed.scaladsl.AskPattern._
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse, Uri}
 import akka.util.Timeout
 import errors.ErrorADT.GameHasBeenCancelled
 import guards.Guards
@@ -31,7 +29,6 @@ import websocketkeepers.gamemenuroom.GameMenuRoomBookKeeperTyped
 import zio.clock.{Clock, _}
 import zio.{Has, UIO, ZIO}
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 object GameAntiChamberDAO {

@@ -2,9 +2,9 @@ package main
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
+import communication.BFFPicklers._
+import errors.ErrorADT.InvalidGameConfiguration
 import game.{ActionTranslator, AntiChamber}
-import io.circe.generic.auto._
-import io.circe.syntax._
 import models.bff.ingame.InGameWSProtocol.{GameActionWrapper, LetsBegin, Ping, Pong, Ready, ReadyToStart}
 import models.bff.ingame.{GameCredentials, InGameWSProtocol}
 import services.database.db
@@ -12,8 +12,6 @@ import services.database.gametables.GameTable
 import slick.jdbc.PostgresProfile.api._
 import zio.console._
 import zio.{UIO, ZEnv, ZIO}
-import communication.BFFPicklers._
-import errors.ErrorADT.InvalidGameConfiguration
 
 import scala.concurrent.duration._
 

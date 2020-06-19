@@ -1,15 +1,12 @@
 package game.ui.gui.components
 
-import assets.Asset
 import com.raquo.airstream.core.Observer
-import game.ui.gui.components.buffs.BuffContainer
-import gamelogic.entities.{Entity, LivingEntity, MovingBody}
+import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
-import typings.pixiJs.anon.Align
+import typings.pixiJs.PIXI.Texture
 import typings.pixiJs.PIXI.interaction.{InteractionEvent, InteractionEventTypes}
-import typings.pixiJs.PIXI.{LoaderResource, Texture}
+import typings.pixiJs.anon.Align
 import typings.pixiJs.mod.{Graphics, Sprite, Text, TextStyle}
-import org.w3c.dom.css.RGBColor
 import utils.misc.RGBColour
 
 final class BossFrame(

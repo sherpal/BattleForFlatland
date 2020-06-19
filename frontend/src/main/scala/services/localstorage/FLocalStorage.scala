@@ -1,11 +1,11 @@
 package services.localstorage
 
-import io.circe.{Decoder, Encoder}
-import services.localstorage.LocalStorage.Key
-import zio.{ZIO, ZLayer}
-import zio.clock.Clock
 import io.circe.parser.decode
+import io.circe.{Decoder, Encoder}
 import org.scalajs.dom
+import services.localstorage.LocalStorage.Key
+import zio.clock.Clock
+import zio.{ZIO, ZLayer}
 
 object FLocalStorage {
 

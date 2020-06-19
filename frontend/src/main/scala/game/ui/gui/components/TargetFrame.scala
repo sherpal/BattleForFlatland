@@ -5,8 +5,8 @@ import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.entities.{LivingEntity, MovingBody}
 import gamelogic.gamestate.GameState
-import typings.pixiJs.anon.Align
 import typings.pixiJs.PIXI.Texture
+import typings.pixiJs.anon.Align
 import typings.pixiJs.mod.{Text, TextStyle}
 import utils.misc.RGBColour
 

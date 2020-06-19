@@ -1,16 +1,16 @@
 package frontend.components.connected.menugames.gamejoined
 
 import com.raquo.airstream.signal.Signal
+import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
+import docs.DocsLoader
 import frontend.components.Component
+import frontend.components.utils.tailwind._
+import laika.api.Transformer
+import laika.ast._
+import laika.format.{HTML, Markdown}
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Div
-import com.raquo.laminar.api.L._
-import docs.DocsLoader
-import laika.api.Transformer
-import laika.ast.{Header, Id, NoOpt, Options, Styles, Title}
-import laika.format.{HTML, Markdown}
-import frontend.components.utils.tailwind._
 
 final class BossDescription private (bossNames: Signal[Option[String]]) extends Component[html.Div] {
 

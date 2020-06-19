@@ -8,7 +8,6 @@ final class CasterUsesAbility(ability: Ability) extends GameStateTransformer {
     gameState
       .withAbilityEntitiesById(ability.casterId)
       .fold {
-        println("entity was non existent")
         gameState
       } { entity =>
         gameState.copy(

@@ -3,8 +3,8 @@ package game.ui.gui.components
 import gamelogic.entities.Entity
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.gamestate.GameState
-import typings.pixiJs.anon.Align
 import typings.pixiJs.PIXI.Texture
+import typings.pixiJs.anon.Align
 import typings.pixiJs.mod.{Text, TextStyle}
 import utils.misc.RGBColour
 

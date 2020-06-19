@@ -3,7 +3,7 @@ package game.ui.effects
 import game.Camera
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
-import gamelogic.physics.shape.{Polygon, Shape}
+import gamelogic.physics.shape.Shape
 import typings.pixiJs.PIXI.Texture
 import typings.pixiJs.mod.{Container, Sprite}
 

@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse, Uri}
 import errors.ErrorADT.GameServerLauncherCouldNotBeReached
 import models.bff.ingame.GameCredentials
 import services.logging.{log, Logging}
-import zio.{Has, Layer, UIO, ZIO, ZLayer}
+import zio._
 
 object BGameServerLauncher {
 

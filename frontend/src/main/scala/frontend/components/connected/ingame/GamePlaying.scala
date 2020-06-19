@@ -2,6 +2,7 @@ package frontend.components.connected.ingame
 
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
+import communication.BFFPicklers._
 import frontend.components.Component
 import frontend.components.utils.tailwind._
 import gamelogic.entities.Entity
@@ -15,9 +16,8 @@ import org.scalajs.dom
 import org.scalajs.dom.html
 import services.http.FHttpClient
 import utils.laminarzio.Implicits._
-import utils.websocket.{BoopickleWebSocket, JsonWebSocket}
+import utils.websocket.BoopickleWebSocket
 import zio.{UIO, ZIO}
-import communication.BFFPicklers._
 
 final class GamePlaying private (gameId: String, user: User, token: String) extends Component[html.Div] {
 
@@ -69,16 +69,33 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
       case ((id, bossPosition), delta) =>
         GameViewContainer(user, id, bossPosition, $actionsFromServer, gameSocket.outWriter, delta)
     },
-    span(
-      btn,
-      secondaryButton,
-      "Stop game",
-      onClick --> { _ =>
-        zio.Runtime.default
-          .unsafeRunToFuture(programs.frontend.ingame.cancelGame(user, gameId, token).provideLayer(layer))
-      }
-    ),
-    onMountCallback(ctx => componentDidMount(ctx.owner))
+    child <-- gameSocket.$closed.map(_ => false)
+      .startWith(true)
+      .map(
+        if (_)
+          span(
+            btn,
+            secondaryButton,
+            "Stop game",
+            onClick --> { _ =>
+              zio.Runtime.default
+                .unsafeRunToFuture(programs.frontend.ingame.cancelGame(user, gameId, token).provideLayer(layer))
+            }
+          )
+        else emptyNode
+      ),
+    onMountCallback(ctx => componentDidMount(ctx.owner)),
+    child <-- gameSocket.$closed.map(
+      _ =>
+        span(
+          btn,
+          secondaryButton,
+          onClick --> { _ =>
+            dom.document.location.href = dom.document.location.origin.asInstanceOf[String]
+          },
+          "Back to home"
+        )
+    )
   )
 
   def componentDidMount(owner: Owner): Unit = {
@@ -86,9 +103,10 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
     gameSocket
       .open()(owner)
 
-    gameSocket.$closed.foreach(_ => dom.document.location.href = dom.document.location.origin.asInstanceOf[String])(
-      owner
-    )
+//    gameSocket.$closed.foreach(_ => dom.document.location.href = dom.document.location.origin.asInstanceOf[String])(
+//      owner
+//    )
+    gameSocket.$closed.foreach(_ => dom.console.warn("Socket connection closed."))(owner)
 
     gameSocket.$open.flatMap(
       _ =>

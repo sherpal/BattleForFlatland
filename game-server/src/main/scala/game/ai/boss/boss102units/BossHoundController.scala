@@ -6,8 +6,8 @@ import gamelogic.entities.Entity.Id
 import gamelogic.entities.boss.boss102.BossHound
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.gamestate.gameactions.EntityStartsCasting
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.gameactions.boss102.AddBossHound
+import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 
 object BossHoundController extends AIController[BossHound, AddBossHound] {

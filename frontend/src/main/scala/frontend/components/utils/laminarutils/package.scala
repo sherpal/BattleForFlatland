@@ -2,11 +2,10 @@ package frontend.components.utils
 
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import slinky.core.KeyAndRefAddingStage
-import slinky.web.ReactDOM
 import org.scalajs.dom.html
-import org.scalajs.dom
+import slinky.core.KeyAndRefAddingStage
 import slinky.core.facade.ReactInstance
+import slinky.web.ReactDOM
 
 package object laminarutils {
 

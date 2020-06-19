@@ -6,16 +6,13 @@ import assets.Asset.ingame.gui.bars._
 import com.raquo.airstream.core.Observer
 import com.raquo.airstream.signal.SignalViewer
 import game.Camera
-import game.ui.effects.{Path, SimpleTextEffect}
+import game.ui.gui.components._
 import game.ui.gui.components.buffs.BuffContainer
 import game.ui.gui.components.gridcontainer.GridContainer
-import game.ui.gui.components._
 import gamelogic.abilities.Ability
-import gamelogic.abilities.boss.boss101.{BigDot, BigHit, SmallHit}
 import gamelogic.entities.{Entity, LivingEntity, MovingBody}
 import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.LoaderResource
-import typings.pixiJs.PIXI.interaction.{InteractionEvent, InteractionEventTypes}
 import typings.pixiJs.mod.{Application, Container, Graphics}
 import utils.misc.RGBColour
 

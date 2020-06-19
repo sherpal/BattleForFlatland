@@ -10,7 +10,6 @@ import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
 import models.bff.ingame.InGameWSProtocol
 import models.bff.outofgame.MenuGameWithPlayers
-import models.bff.outofgame.gameconfig.GameConfiguration.ValidGameConfiguration
 import zio.ZIO
 import zio.duration.Duration.fromScala
 

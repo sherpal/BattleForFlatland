@@ -6,11 +6,9 @@ import game.ActionTranslator
 import game.ai.AIControllerMessage
 import game.ai.AIManager.loopRate
 import game.ai.utils.findTarget
-import gamelogic.entities.{Entity, MovingBody, WithPosition, WithThreat}
-import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.classes.PlayerClass
+import gamelogic.entities.{Entity, MovingBody, WithPosition, WithThreat}
 import gamelogic.gamestate.GameAction.EntityCreatorAction
-import gamelogic.gamestate.gameactions.SpawnBoss
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 

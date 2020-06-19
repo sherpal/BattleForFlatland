@@ -7,7 +7,7 @@ import slinky.core.facade.ReactElement
 import slinky.web.html.div
 import typings.reactColor.components.ChromePicker
 import typings.reactColor.mod.ColorResult
-import utils.misc.{RGBAColour, RGBColour}
+import utils.misc.RGBAColour
 
 /**
   * Slinky wrapper for the react-color color picker.

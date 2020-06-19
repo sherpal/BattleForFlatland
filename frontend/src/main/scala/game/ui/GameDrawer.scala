@@ -1,11 +1,9 @@
 package game.ui
 
-import utils.misc.RGBColour
 import assets.Asset
 import com.raquo.airstream.core.Observer
 import game.Camera
 import game.ui.bossspecificdrawers.Boss102Drawer
-import gamelogic.entities.boss.boss102.DamageZone
 import gamelogic.entities.boss.dawnoftime.Boss102
 import gamelogic.entities.boss.{Boss101, BossEntity}
 import gamelogic.entities.classes.PlayerClass
@@ -16,13 +14,10 @@ import gamelogic.entities.{DummyMob, Entity, SimpleBulletBody}
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import org.scalajs.dom.html
-import typings.pixiJs.PIXI
-import typings.pixiJs.mod._
 import typings.pixiJs.PIXI.LoaderResource
+import typings.pixiJs.mod._
 
 import scala.collection.mutable
-import scala.scalajs.js.JSConverters._
-import scala.scalajs.js.|
 
 /**
   * This class is used to draw the game state at any moment in time.

@@ -1,12 +1,12 @@
 package game.ai
 
 import gamelogic.entities.WithPosition.Angle
-import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.classes.PlayerClass
-import gamelogic.entities.{Entity, LivingEntity, MovingBody, WithPosition, WithTarget, WithThreat}
-import gamelogic.gamestate.{GameAction, GameState}
+import gamelogic.entities.{Entity, WithPosition, WithTarget, WithThreat}
 import gamelogic.gamestate.gameactions.{ChangeTarget, MovingBodyMoves}
+import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
+
 import scala.Ordering.Double.TotalOrdering
 
 package object utils {

@@ -2,11 +2,11 @@ package utils.playzio
 
 import akka.stream.scaladsl.Flow
 import errors.ErrorADT
+import izumi.reflect.Tag
 import play.api.mvc.WebSocket.MessageFlowTransformer
 import play.api.mvc._
 import utils.playzio.ErrorsTransformer._
 import zio.{Has, Runtime, ZIO, ZLayer}
-import izumi.reflect.Tag
 
 object PlayZIO {
 

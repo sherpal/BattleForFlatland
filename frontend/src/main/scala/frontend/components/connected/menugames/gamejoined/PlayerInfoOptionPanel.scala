@@ -2,9 +2,7 @@ package frontend.components.connected.menugames.gamejoined
 
 import com.raquo.airstream.core.Observer
 import com.raquo.airstream.eventbus.EventBus
-import com.raquo.domtypes.jsdom.defs.events.TypedTargetMouseEvent
 import com.raquo.laminar.api.L._
-import com.raquo.laminar.modifiers.EventPropBinder
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
 import frontend.components.utils.laminarutils.reactChildInDiv
@@ -13,15 +11,12 @@ import frontend.components.utils.tailwind.{primaryColour, primaryColourDark}
 import frontend.components.utils.{ColorPickerWrapper, ToggleButton}
 import io.circe.{Decoder, Encoder}
 import models.bff.outofgame.PlayerClasses
-import models.bff.outofgame.gameconfig.PlayerStatus.{NotReady, Ready}
 import models.bff.outofgame.gameconfig.{PlayerInfo, PlayerStatus}
 import models.syntax.Pointed
-import org.scalajs.dom
 import org.scalajs.dom.html
 import org.scalajs.dom.html.{Element, Select}
-import services.localstorage.FLocalStorage
+import services.localstorage.{FLocalStorage, _}
 import utils.misc.{RGBAColour, RGBColour}
-import services.localstorage._
 import zio.clock.Clock
 import zio.{CancelableFuture, UIO, ZIO, ZLayer}
 

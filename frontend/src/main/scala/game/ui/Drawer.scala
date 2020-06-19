@@ -4,8 +4,8 @@ import gamelogic.physics.Complex
 import typings.pixiJs.PIXI
 import typings.pixiJs.mod.{Application, Graphics, Point}
 
-import scala.scalajs.js.|
 import scala.scalajs.js.JSConverters._
+import scala.scalajs.js.|
 
 trait Drawer {
 

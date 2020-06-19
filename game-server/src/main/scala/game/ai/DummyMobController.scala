@@ -3,9 +3,9 @@ package game.ai
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import game.ActionTranslator
+import game.ai.AIManager.loopRate
 import gamelogic.gamestate.GameState
 import gamelogic.gamestate.gameactions.{AddDummyMob, MovingBodyMoves}
-import game.ai.AIManager.loopRate
 
 import scala.Ordering.Double.TotalOrdering
 import scala.concurrent.duration._

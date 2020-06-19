@@ -18,11 +18,10 @@ import programs.frontend.games._
 import services.http.{FHttpClient, HttpClient}
 import services.logging.{FLogging, Logging}
 import services.routing.{FRouting, _}
-import utils.laminarzio.Implicits._
+import utils.laminarzio.Implicits.{zioFlattenStrategy, _}
 import utils.websocket.JsonWebSocket
-import zio.{ZIO, ZLayer}
 import zio.clock.Clock
-import utils.laminarzio.Implicits.zioFlattenStrategy
+import zio.{ZIO, ZLayer}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._

@@ -1,9 +1,7 @@
 package game.ai.boss
 import game.ai.utils.{aiMovementToTarget, changeTarget}
-import gamelogic.abilities.AutoAttack
 import gamelogic.abilities.boss.boss102.{PutDamageZones, PutLivingDamageZoneOnTarget, SpawnHound}
 import gamelogic.entities.Entity.Id
-import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.boss.dawnoftime.Boss102
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.gamestate.gameactions.{EntityStartsCasting, SpawnBoss}

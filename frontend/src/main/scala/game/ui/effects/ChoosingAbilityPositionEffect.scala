@@ -2,13 +2,12 @@ package game.ui.effects
 
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.ownership.Owner
-import game.{Camera, Mouse}
+import game.Camera
 import game.ui.Drawer
 import gamelogic.abilities.Ability
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.BoundingBox
-import typings.pixiJs.mod.Sprite
-import typings.pixiJs.mod.{Application, Container}
+import typings.pixiJs.mod.{Application, Container, Sprite}
 
 final class ChoosingAbilityPositionEffect(
     val application: Application,
