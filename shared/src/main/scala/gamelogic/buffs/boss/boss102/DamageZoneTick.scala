@@ -11,7 +11,7 @@ import gamelogic.utils.IdGeneratorContainer
 final case class DamageZoneTick(buffId: Buff.Id, bearerId: Entity.Id, appearanceTime: Long, lastTickTime: Long)
     extends TickerBuff {
   def tickEffect(gameState: GameState, time: Long, idGenerator: IdGeneratorContainer): List[GameAction] =
-    gameState.otherEntities.get(bearerId).collect { case zone: DamageZone => zone }.fold(List[GameAction]()) { zone =>
+    gameState.entities.get(bearerId).collect { case zone: DamageZone => zone }.fold(List[GameAction]()) { zone =>
       gameState.players.valuesIterator
         .filter(_.collides(zone, time))
         .map { player =>

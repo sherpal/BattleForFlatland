@@ -38,7 +38,7 @@ final class GameViewContainer private (
     deltaTimeWithServer: Long
 ) extends Component[html.Div] {
 
-  private def container = element.ref.firstChild.asInstanceOf[html.Div]
+  private def containerViewChild: html.Div = element.ref.firstChild.asInstanceOf[html.Div]
 
   private val maybeTargetBus: EventBus[Option[Entity]] = new EventBus
 
@@ -92,7 +92,7 @@ final class GameViewContainer private (
 
   def componentDidMount(owner: Owner): Unit =
     zio.Runtime.default.unsafeRunAsync(
-      mountEffect(container, owner)
+      mountEffect(containerViewChild, owner)
     )(println(_))
 
 }

@@ -16,7 +16,7 @@ final case class PentagonZoneTick(
     duration: Long
 ) extends TickerBuff {
   def tickEffect(gameState: GameState, time: Long, idGenerator: IdGeneratorContainer): List[GameAction] =
-    gameState.otherEntityByIdAs[PentagonZone](bearerId).fold(List[GameAction]()) { zone =>
+    gameState.entityByIdAs[PentagonZone](bearerId).fold(List[GameAction]()) { zone =>
       gameState.allLivingEntities
         .filterNot(_.teamId == zone.teamId)
         .filter(_.collides(zone, time))

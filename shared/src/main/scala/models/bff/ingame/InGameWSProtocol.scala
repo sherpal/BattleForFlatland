@@ -1,7 +1,5 @@
 package models.bff.ingame
 
-import boopickle.CompositePickler
-import boopickle.Default._
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction
 import io.circe.generic.extras.Configuration

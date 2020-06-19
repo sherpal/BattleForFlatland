@@ -6,8 +6,8 @@ import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.NoResource
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
-import gamelogic.entities.classes.Constants
 import gamelogic.entities._
+import gamelogic.entities.classes.Constants
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 

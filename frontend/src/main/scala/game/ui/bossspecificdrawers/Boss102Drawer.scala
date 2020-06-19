@@ -86,7 +86,7 @@ final class Boss102Drawer(
   }
 
   def drawGameState(gameState: GameState, cameraPosition: Complex, currentTime: Long): Unit = {
-    drawBoss102DamageZones(gameState.otherEntities.valuesIterator.collect { case zone: DamageZone => zone }.toList)
-    drawHounds(gameState.otherEntities.valuesIterator.collect { case hound: BossHound             => hound }.toList)
+    drawBoss102DamageZones(gameState.entities.valuesIterator.collect { case zone: DamageZone => zone }.toList)
+    drawHounds(gameState.entities.valuesIterator.collect { case hound: BossHound             => hound }.toList)
   }
 }

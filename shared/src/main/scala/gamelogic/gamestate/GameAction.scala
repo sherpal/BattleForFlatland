@@ -1,10 +1,10 @@
 package gamelogic.gamestate
 
+import boopickle.Default._
 import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions._
 import gamelogic.gamestate.statetransformers.GameStateTransformer
 import io.circe.{Decoder, Encoder, Json}
-import boopickle.Default._
 
 trait GameAction extends Ordered[GameAction] {
 

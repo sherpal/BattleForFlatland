@@ -51,7 +51,7 @@ final class HoundLifeBarEffect(
   def destroy(): Unit = barContainer.destroy()
 
   def update(currentTime: Long, gameState: GameState): Unit =
-    gameState.otherEntityByIdAs[BossHound](entityId).fold[Unit](barContainer.visible = false) { hound =>
+    gameState.entityByIdAs[BossHound](entityId).fold[Unit](barContainer.visible = false) { hound =>
       if (!barContainer.visible) barContainer.visible = true
 
       val lifePercentage = computeValue(hound)
@@ -78,7 +78,7 @@ final class HoundLifeBarEffect(
     }
 
   def isOver(currentTime: Long, gameState: GameState): Boolean =
-    currentTime > startTime && !gameState.otherEntities.contains(entityId)
+    currentTime > startTime && !gameState.entities.contains(entityId)
 
   def addToContainer(container: Container): Unit = container.addChild(barContainer)
 }

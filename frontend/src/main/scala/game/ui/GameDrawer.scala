@@ -223,7 +223,7 @@ final class GameDrawer(
     drawBosses(gameState.bosses.valuesIterator.toList, currentTime)
     drawPentagonBullets(gameState.pentagonBullets.valuesIterator.toList, currentTime)
     drawObstacles(gameState.allObstacles.toList)
-    drawPentagonZones(gameState.otherEntities.valuesIterator.collect { case zone: PentagonZone => zone }.toList)
+    drawPentagonZones(gameState.entities.valuesIterator.collect { case zone: PentagonZone => zone }.toList)
 
     gameState.bosses.valuesIterator
       .find(_.isInstanceOf[Boss102])

@@ -2,7 +2,7 @@ package gamelogic.gamestate.gameactions
 
 import gamelogic.entities.{DummyMob, Entity}
 import gamelogic.gamestate.GameAction.Id
-import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithDummyMob}
+import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 
@@ -14,7 +14,7 @@ final case class AddDummyMob(
 ) extends GameAction {
 
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
-    new WithDummyMob(DummyMob(entityId, time, position, DummyMob.speed, moving = false, 0.0, 0.0))
+    new WithEntity(DummyMob(entityId, time, position, DummyMob.speed, moving = false, 0.0, 0.0), time = time)
 
   def isLegal(gameState: GameState): Boolean = true
 

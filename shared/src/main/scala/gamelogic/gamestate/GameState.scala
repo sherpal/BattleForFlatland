@@ -1,6 +1,7 @@
 package gamelogic.gamestate
 
 import gamelogic.buffs.{Buff, PassiveBuff, TickerBuff}
+import gamelogic.entities.Entity.Id
 import gamelogic.entities._
 import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.classes.PlayerClass
@@ -26,16 +27,10 @@ final case class GameState(
     time: Long,
     startTime: Option[Long],
     endTime: Option[Long],
-    players: Map[Entity.Id, PlayerClass],
-    bosses: Map[Entity.Id, BossEntity],
-    dummyMobs: Map[Entity.Id, DummyMob],
-    simpleBullets: Map[Entity.Id, SimpleBulletBody],
-    pentagonBullets: Map[Entity.Id, PentagonBullet],
     castingEntityInfo: Map[Entity.Id, EntityCastingInfo],
     passiveBuffs: Map[Entity.Id, Map[Buff.Id, PassiveBuff]],
     tickerBuffs: Map[Entity.Id, Map[Buff.Id, TickerBuff]],
-    otherEntities: Map[Entity.Id, Entity],
-    private val obstacles: Map[Entity.Id, Obstacle]
+    entities: Map[Entity.Id, Entity]
 ) {
 
   def started: Boolean = startTime.isDefined
@@ -110,71 +105,48 @@ final case class GameState(
 
   // todo: look for other kind of entity in all of methods below.
 
-  def otherEntityByIdAs[T](entityId: Entity.Id)(implicit tag: ClassTag[T]): Option[T] =
-    otherEntities.get(entityId).collect { case t: T => t }
+  def entityByIdAs[T](entityId: Entity.Id)(implicit tag: ClassTag[T]): Option[T] =
+    entities.get(entityId).collect { case t: T => t }
 
-  def entityById(entityId: Entity.Id): Option[Entity] =
-    players
-      .get(entityId)
-      .orElse(bosses.get(entityId))
-      .orElse(dummyMobs.get(entityId))
-      .orElse(simpleBullets.get(entityId))
-      .orElse(pentagonBullets.get(entityId))
-      .orElse(obstacles.get(entityId))
-      .orElse(otherEntities.get(entityId))
+  def filterT[T <: Entity](implicit tag: ClassTag[T]): PartialFunction[Entity, T] = { case entity: T => entity }
+
+  def allTEntities[T](implicit tag: ClassTag[T]): Map[Entity.Id, T] =
+    entities.collect { case (id, entity: T) => (id, entity) }
+
+  lazy val players: Map[Id, PlayerClass]                   = allTEntities[PlayerClass]
+  lazy val bosses: Map[Entity.Id, BossEntity]              = allTEntities[BossEntity]
+  lazy val dummyMobs: Map[Entity.Id, DummyMob]             = allTEntities[DummyMob]
+  lazy val simpleBullets: Map[Entity.Id, SimpleBulletBody] = allTEntities[SimpleBulletBody]
+  lazy val pentagonBullets: Map[Entity.Id, PentagonBullet] = allTEntities[PentagonBullet]
+  lazy val obstacles: Map[Entity.Id, Obstacle]             = allTEntities[Obstacle]
+
+  def entityById(entityId: Entity.Id): Option[Entity] = entities.get(entityId)
 
   def allTargetableEntities: Iterator[MovingBody with LivingEntity] =
-    players.valuesIterator ++ bosses.valuesIterator ++ dummyMobs.valuesIterator ++
-      otherEntities.valuesIterator.collect { case entity: LivingEntity with MovingBody => entity }
+    entities.valuesIterator.collect(filterT[LivingEntity with MovingBody])
 
   // Is there something better?
-  def withAbilityEntitiesById(entityId: Entity.Id): Option[WithAbilities] =
-    players
-      .get(entityId)
-      .orElse(bosses.get(entityId))
-      .orElse(otherEntityByIdAs[WithAbilities](entityId))
+  def withAbilityEntitiesById(entityId: Entity.Id): Option[WithAbilities] = entityByIdAs[WithAbilities](entityId)
 
-  def livingEntityById(entityId: Entity.Id): Option[LivingEntity] =
-    players
-      .get(entityId)
-      .orElse(bosses.get(entityId))
-      .orElse(dummyMobs.get(entityId))
-      .orElse(otherEntityByIdAs[LivingEntity](entityId))
+  def livingEntityById(entityId: Entity.Id): Option[LivingEntity] = entityByIdAs[LivingEntity](entityId)
 
   def allLivingEntities: Iterator[LivingEntity with MovingBody] =
-    players.valuesIterator ++ bosses.valuesIterator ++ dummyMobs.valuesIterator ++
-      otherEntities.valuesIterator.collect { case entity: LivingEntity with MovingBody => entity }
+    entities.valuesIterator.collect { case entity: LivingEntity with MovingBody => entity }
 
-  def withThreatEntityById(entityId: Entity.Id): Option[WithThreat] =
-    bosses.get(entityId).orElse(otherEntityByIdAs[WithThreat](entityId))
+  def withThreatEntityById(entityId: Entity.Id): Option[WithThreat] = entityByIdAs[WithThreat](entityId)
 
-  def withPositionEntityById(entityId: Entity.Id): Option[WithPosition] =
-    players
-      .get(entityId)
-      .orElse(bosses.get(entityId))
-      .orElse(dummyMobs.get(entityId))
-      .orElse(obstacles.get(entityId))
-      .orElse(otherEntityByIdAs[WithPosition](entityId))
+  def withPositionEntityById(entityId: Entity.Id): Option[WithPosition] = entityByIdAs[WithPosition](entityId)
 
-  def movingBodyEntityById(entityId: Entity.Id): Option[MovingBody] =
-    players
-      .get(entityId)
-      .orElse(bosses.get(entityId))
-      .orElse(dummyMobs.get(entityId))
-      .orElse(pentagonBullets.get(entityId))
-      .orElse(otherEntityByIdAs[MovingBody](entityId))
+  def movingBodyEntityById(entityId: Entity.Id): Option[MovingBody] = entityByIdAs[MovingBody](entityId)
 
   def bodyEntityById(entityId: Entity.Id): Option[Body] =
     movingBodyEntityById(entityId)
 
   def livingEntityAndMovingBodyById(entityId: Entity.Id): Option[MovingBody with LivingEntity] =
-    for {
-      _ <- movingBodyEntityById(entityId)
-      entity <- livingEntityById(entityId)
-    } yield entity.asInstanceOf[MovingBody with LivingEntity] // this is ugly as hell. todo: think about it
+    entityByIdAs[MovingBody with LivingEntity](entityId)
 
   def withTargetEntityById(entityId: Entity.Id): Option[WithTarget] =
-    bosses.get(entityId).orElse(otherEntityByIdAs[WithTarget](entityId))
+    entityByIdAs[WithTarget](entityId)
 
   def buffById(entityId: Entity.Id, buffId: Buff.Id): Option[Buff] =
     tickerBuffs
@@ -195,9 +167,9 @@ final case class GameState(
     * a simple Map in the future. Perhaps something like a QuadTree would be better for performances.
     */
   def withObstacle(obstacle: Obstacle): GameState =
-    copy(time = obstacle.time, obstacles = obstacles + (obstacle.id -> obstacle))
+    copy(time = obstacle.time, entities = entities + (obstacle.id -> obstacle))
   def removeObstacle(obstacleId: Entity.Id, time: Long): GameState =
-    copy(obstacles = obstacles - obstacleId, time = time)
+    copy(entities = entities - obstacleId, time = time)
 
 }
 

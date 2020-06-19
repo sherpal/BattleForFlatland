@@ -3,9 +3,9 @@ package gamelogic.gamestate.gameactions.boss102
 import gamelogic.buffs.Buff
 import gamelogic.buffs.boss.boss102.LivingDamageZone
 import gamelogic.entities.Entity
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
+import gamelogic.gamestate.{GameAction, GameState}
 
 /**
   * Puts the [[gamelogic.buffs.boss.boss102.LivingDamageZone]] debuff on the `bearerId` target.

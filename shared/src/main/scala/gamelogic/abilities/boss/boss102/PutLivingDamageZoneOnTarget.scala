@@ -1,8 +1,8 @@
 package gamelogic.abilities.boss.boss102
 
-import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.abilities.WithTargetAbility.Distance
+import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.buffs.boss.boss102.LivingDamageZone
 import gamelogic.entities.boss.dawnoftime.Boss102
 import gamelogic.entities.{Entity, Resource}

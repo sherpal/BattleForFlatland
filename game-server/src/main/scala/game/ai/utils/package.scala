@@ -7,6 +7,7 @@ import gamelogic.entities.{Entity, LivingEntity, MovingBody, WithPosition, WithT
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.gameactions.{ChangeTarget, MovingBodyMoves}
 import gamelogic.physics.Complex
+import scala.Ordering.Double.TotalOrdering
 
 package object utils {
 
