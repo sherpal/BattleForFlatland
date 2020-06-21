@@ -40,11 +40,7 @@ final class Home private () extends Component[html.Div] {
   )
 
   val $redirect: EventStream[Unit] = $me.filter(_.isLeft).flatMap(
-    _ => {
-      EventStream.fromZIOEffect(
-        moveTo(RouteDefinitions.loginRoute).provideLayer(layer)
-      )
-    }
+    _ => moveTo(RouteDefinitions.loginRoute).provideLayer(layer)
   )
 
   val element: ReactiveHtmlElement[html.Div] = div(

@@ -45,12 +45,12 @@ trait SimpleForm[FormData, SubmitReturn] { self: Component[_] =>
 
   type FormDataChanger = FormData => FormData
 
-  /** 
-   * FormData instance to use at the beginning. Typically given by an implicit [[models.syntax.Pointed]]. 
-   * 
-   * IMPORTANT: the initialData has to be defined at the very beginning (or even better, in the constructor) for the
-   * extending concrete classes, otherwise you expose yourself to NPEs...
-   */
+  /**
+    * FormData instance to use at the beginning. Typically given by an implicit [[models.syntax.Pointed]].
+    *
+    * IMPORTANT: the initialData has to be defined at the very beginning (or even better, in the constructor) for the
+    * extending concrete classes, otherwise you expose yourself to NPEs...
+    */
   val initialData: FormData
 
   /**
@@ -111,8 +111,7 @@ trait SimpleForm[FormData, SubmitReturn] { self: Component[_] =>
   lazy val $submitEvents: EventStream[SubmitReturn] = submitBus.events
     .withCurrentValueOf($formData)
     .map(_._2)
-    .map(submitProgram)
-    .flatMap(EventStream.fromZIOEffect)
+    .flatMap(submitProgram)
 
   /** Stream indicating whether the stream is currently submitting. */
   final lazy val $isSubmitting: EventStream[Boolean] = EventStream.merge(

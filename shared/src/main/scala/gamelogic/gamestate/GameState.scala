@@ -23,15 +23,33 @@ import scala.reflect.ClassTag
   *
   * @param time in millis
   */
-final case class GameState(
-    time: Long,
-    startTime: Option[Long],
-    endTime: Option[Long],
-    castingEntityInfo: Map[Entity.Id, EntityCastingInfo],
-    passiveBuffs: Map[Entity.Id, Map[Buff.Id, PassiveBuff]],
-    tickerBuffs: Map[Entity.Id, Map[Buff.Id, TickerBuff]],
-    entities: Map[Entity.Id, Entity]
+final class GameState(
+    val time: Long,
+    val startTime: Option[Long],
+    val endTime: Option[Long],
+    val castingEntityInfo: Map[Entity.Id, EntityCastingInfo],
+    val passiveBuffs: Map[Entity.Id, Map[Buff.Id, PassiveBuff]],
+    val tickerBuffs: Map[Entity.Id, Map[Buff.Id, TickerBuff]],
+    val entities: Map[Entity.Id, Entity]
 ) {
+
+  def copy(
+      time: Long                                              = time,
+      startTime: Option[Long]                                 = startTime,
+      endTime: Option[Long]                                   = endTime,
+      castingEntityInfo: Map[Entity.Id, EntityCastingInfo]    = castingEntityInfo,
+      passiveBuffs: Map[Entity.Id, Map[Buff.Id, PassiveBuff]] = passiveBuffs,
+      tickerBuffs: Map[Entity.Id, Map[Buff.Id, TickerBuff]]   = tickerBuffs,
+      entities: Map[Entity.Id, Entity]                        = entities
+  ): GameState = new GameState(
+    time,
+    startTime,
+    endTime,
+    castingEntityInfo,
+    passiveBuffs,
+    tickerBuffs,
+    entities
+  )
 
   def started: Boolean = startTime.isDefined
   def ended: Boolean   = endTime.isDefined
@@ -174,6 +192,10 @@ final case class GameState(
 }
 
 object GameState {
+
+  implicit def pointed: Pointed[GameState] = Pointed.factory(
+    new GameState(0L, None, None, Map(), Map(), Map(), Map())
+  )
 
   def empty: GameState = Pointed[GameState].unit
 

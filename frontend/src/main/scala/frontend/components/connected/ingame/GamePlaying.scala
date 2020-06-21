@@ -99,7 +99,6 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
   )
 
   def componentDidMount(owner: Owner): Unit = {
-    println(s"Game id: $gameId.")
     gameSocket
       .open()(owner)
 
@@ -115,7 +114,6 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
           .zipLeft(ZIO.effectTotal(gameSocket.outWriter.onNext(Ready(user.userId))))
           .provideLayer(layer)
     ).foreach(delta => {
-      println(s"Delta is: $delta")
       deltaWithServerBus.writer.onNext(delta.toLong)
     })(owner)
 
