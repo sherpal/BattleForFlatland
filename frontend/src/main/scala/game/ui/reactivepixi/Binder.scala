@@ -1,9 +1,8 @@
 package game.ui.reactivepixi
 
 import com.raquo.airstream.ownership.Subscription
-import typings.pixiJs.PIXI.DisplayObject
 
-trait Binder[-El <: DisplayObject] extends PixiModifier[El] {
+trait Binder[-El <: ReactivePixiElement.Base] extends PixiModifier[El] {
 
   def bind(element: El): Unit
 
@@ -13,6 +12,6 @@ trait Binder[-El <: DisplayObject] extends PixiModifier[El] {
 
 object Binder {
 
-  def apply[El <: DisplayObject](binding: El => Subscription): Binder[El] = (element: El) => binding(element)
+  def apply[El <: ReactivePixiElement.Base](binding: El => Subscription): Binder[El] = (element: El) => binding(element)
 
 }

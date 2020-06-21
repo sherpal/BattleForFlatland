@@ -21,6 +21,11 @@ import scala.reflect.ClassTag
   *
   * Ticker and passive buffs have very different behaviours, and that's why we separate them below.
   *
+  * /!\ Internal: [[GameState]] is deliberately *not* a case class because we put game state inside Airstream signals
+  * (in the frontend) and those test equality before emitting. Since we don't want that (a [[GameState]] always changes
+  * and is heavy to test equality), we don't make it a case class. The only drawbacks are that we need to implement the
+  * `copy` method ourselves and can't rely on magnolia to generate the [[models.syntax.Pointed]] instance.
+  *
   * @param time in millis
   */
 final class GameState(
@@ -121,14 +126,21 @@ final class GameState(
       entity2 <- entityById(entityId2)
     } yield entity1.teamId == entity2.teamId
 
-  // todo: look for other kind of entity in all of methods below.
+  /**
+    * Returns the entity with the given Id if it exists and if it is of type `T`. Returns None otherwise.
+    */
+  def entityByIdAs[T <: Entity](entityId: Entity.Id)(implicit tag: ClassTag[T]): Option[T] =
+    entities.get(entityId).collect(filterT[T])
 
-  def entityByIdAs[T](entityId: Entity.Id)(implicit tag: ClassTag[T]): Option[T] =
-    entities.get(entityId).collect { case t: T => t }
-
+  /**
+    * Creates a partial function which filters all [[gamelogic.entities.Entity]] of the specified type `T`.
+    */
   def filterT[T <: Entity](implicit tag: ClassTag[T]): PartialFunction[Entity, T] = { case entity: T => entity }
 
-  def allTEntities[T](implicit tag: ClassTag[T]): Map[Entity.Id, T] =
+  /**
+    * Creates a Map from entity id to the corresponding entity, but only for those of type `T`.
+    */
+  def allTEntities[T <: Entity](implicit tag: ClassTag[T]): Map[Entity.Id, T] =
     entities.collect { case (id, entity: T) => (id, entity) }
 
   lazy val players: Map[Id, PlayerClass]                   = allTEntities[PlayerClass]

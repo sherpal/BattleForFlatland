@@ -1,6 +1,6 @@
 package game
 
-import assets.Asset
+import assets.{Asset, ScalaLogo}
 import assets.Asset.ingame.gui.`default-abilities`._
 import assets.Asset.ingame.gui.abilities._
 import assets.Asset.ingame.gui.bars._
@@ -23,6 +23,7 @@ final class GameAssetLoader(application: Application) {
   private val progressBus: EventBus[ProgressData] = new EventBus
 
   val assets: List[String] = List(
+    ScalaLogo,
     xeonBar,
     liteStepBar,
     minimalistBar,
