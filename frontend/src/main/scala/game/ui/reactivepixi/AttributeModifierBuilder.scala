@@ -2,7 +2,8 @@ package game.ui.reactivepixi
 
 import com.raquo.airstream.core.Observable
 import gamelogic.physics.Complex
-import typings.pixiJs.PIXI.{DisplayObject, Graphics, IHitArea, Rectangle}
+import typings.pixiJs.PIXI.{DisplayObject, Graphics, IHitArea, Rectangle, TextStyle}
+import typings.pixiJs.mod
 import utils.misc.Colour
 
 trait AttributeModifierBuilder[-El <: ReactivePixiElement.Base, A] {
@@ -37,7 +38,8 @@ object AttributeModifierBuilder {
     element.ref.x = pos.re
     element.ref.y = pos.im
   }
-  final val visible = attributeModifierBuilderFactory[ReactiveDisplayObject, Boolean](_.ref.visible = _)
+  final val visible     = attributeModifierBuilderFactory[ReactiveDisplayObject, Boolean](_.ref.visible     = _)
+  final val interactive = attributeModifierBuilderFactory[ReactiveDisplayObject, Boolean](_.ref.interactive = _)
 
   final val anchor = attributeModifierBuilderFactory[ReactiveSprite, Double](_.ref.anchor.set(_))
   final val anchorXY = attributeModifierBuilderFactory[ReactiveSprite, (Double, Double)] {
@@ -83,5 +85,8 @@ object AttributeModifierBuilder {
   final val moveGraphics = attributeModifierBuilderFactory[ReactiveGraphics, Graphics => Unit] { (element, effect) =>
     effect(element.ref)
   }
+
+  final val text      = attributeModifierBuilderFactory[ReactiveText, String](_.ref.text     = _)
+  final val textStyle = attributeModifierBuilderFactory[ReactiveText, TextStyle](_.ref.style = _)
 
 }

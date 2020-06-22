@@ -1,8 +1,10 @@
 package game.ui.reactivepixi
 
+import com.raquo.airstream.eventbus.EventBus
+import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.ownership.Owner
 import org.scalajs.dom
-import typings.pixiJs.PIXI.{Container, DisplayObject, Graphics, Sprite, Texture}
+import typings.pixiJs.PIXI.{Container, DisplayObject, Graphics, Rectangle, Sprite, Text, Texture}
 import typings.pixiJs.mod
 import typings.pixiJs.mod.Application
 
@@ -12,10 +14,7 @@ import scala.language.implicitConversions
 trait ReactivePixiElement[+Ref <: DisplayObject] extends Owner {
   val ref: Ref
 
-  private[reactivepixi] var children: Vector[ReactivePixiElement.Base] = Vector.empty
-
-  private def allChildren: Iterator[ReactivePixiElement.Base] =
-    children.iterator.flatMap(child => Iterator(child) ++ child.allChildren)
+  private[reactivepixi] var destroyCallbacks: Vector[() => Unit] = Vector(() => killSubscriptions())
 
   def amend(mods: PixiModifier[this.type]*): this.type = {
     mods.foreach(_(this))
@@ -31,7 +30,7 @@ trait ReactivePixiElement[+Ref <: DisplayObject] extends Owner {
     * (mainly bad stuff) will happen.
     */
   def destroy(): Unit = {
-    allChildren.foreach(_.kill())
+    kill()
     ref.destroy()
   }
 
@@ -42,6 +41,7 @@ object ReactivePixiElement {
   type ReactiveContainer     = ReactivePixiElement[Container]
   type ReactiveSprite        = ReactivePixiElement[Sprite]
   type ReactiveGraphics      = ReactivePixiElement[Graphics]
+  type ReactiveText          = ReactivePixiElement[Text]
 
   type Base = ReactiveDisplayObject
 
@@ -71,20 +71,22 @@ object ReactivePixiElement {
     reactiveGraphics
   }
 
+  def pixiText(text: String, modifiers: PixiModifier[ReactiveText]*): ReactiveText = {
+    val reactiveText = new ReactiveText {
+      val ref: Text = new mod.Text(text)
+    }
+    modifiers.foreach(_(reactiveText))
+    reactiveText
+  }
+
   implicit def reactiveElementIsModifier[El <: Base](newChild: El): PixiModifier[ReactiveContainer] =
     (element: ReactiveContainer) => addChildTo(element, newChild)
 
   private[reactivepixi] def addChildTo[El <: ReactiveDisplayObject](element: ReactiveContainer, newChild: El): Unit = {
-    element.children :+= newChild
+    element.destroyCallbacks :+= { () =>
+      newChild.kill()
+    }
     element.ref.addChild(newChild.ref)
-  }
-
-  private[reactivepixi] def removeChildFrom[El <: ReactiveDisplayObject](
-      element: ReactiveContainer,
-      child: El
-  ): Unit = {
-    element.children = element.children.filterNot(_ == child)
-    child.destroy()
   }
 
 }

@@ -40,6 +40,7 @@ final class ReactiveStage(val application: Application) extends ReactivePixiElem
 
   private val clickEventBus: EventBus[InteractionEvent] = new EventBus[InteractionEvent]
   ref.addListener(InteractionEventTypes.click, { (event: InteractionEvent) =>
+    println("Stage has been clicked on")
     clickEventBus.writer.onNext(event)
   })
 

@@ -94,8 +94,8 @@ final class GUIDrawer(
   abilityButtonContainer.container.y = application.view.height - 30
   guiContainer.addChild(abilityButtonContainer.container)
 
-  private var maybeBossThreatMeter: Option[BossThreatMeter] = Option.empty
-  private var maybeBossFrame: Option[BossFrame]             = Option.empty
+  private var maybeBossThreatMeter: Option[BossThreatMeter]        = Option.empty
+  private var maybeBossFrame: Option[reactivecomponents.BossFrame] = Option.empty
 
   def update(gameState: GameState, currentTime: Long): Unit = {
     //castingBar.update(gameState, currentTime)
@@ -192,19 +192,19 @@ final class GUIDrawer(
 
     maybeBossFrame = maybeBossFrame.fold(
       gameState.bosses.headOption.map(_._1).map { bossId =>
-        val bossFrame = new BossFrame(bossId, {
+        val bossFrame = new reactivecomponents.BossFrame(bossId, {
           val graphics = new Graphics
           graphics.lineStyle(2, 0).beginFill(0, 1).drawRect(0, 0, 200, 15).endFill()
           application.renderer.generateTexture(graphics, 1, 1)
-        }, resources(minimalistBar).texture, resources(minimalistBar).texture, targetFromGUIWriter)
-        bossFrame.container.x = (application.view.width - bossFrame.container.width) / 2
-        guiContainer.addChild(bossFrame.container)
+        }, resources(minimalistBar).texture, resources(minimalistBar).texture, targetFromGUIWriter, updateBus.events)
+        bossFrame.container.ref.x = (application.view.width - bossFrame.container.ref.width) / 2
+        guiContainer.addChild(bossFrame.container.ref)
         bossFrame
       }
     )(Some(_))
 
     maybeBossThreatMeter.foreach(_.update(gameState, currentTime))
-    maybeBossFrame.foreach(_.update(gameState, currentTime))
+    //maybeBossFrame.foreach(_.update(gameState, currentTime))
 
     playerFrameGridContainer.currentElements.foreach(_.update(gameState, currentTime))
     playerFrameGridContainer.display()

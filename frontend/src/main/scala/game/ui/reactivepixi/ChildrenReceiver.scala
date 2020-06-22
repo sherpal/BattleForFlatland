@@ -9,17 +9,25 @@ object ChildrenReceiver {
       childrenObs: Observable[List[ReactivePixiElement.Base]]
   ): PixiModifier[ReactivePixiElement.ReactiveContainer] =
     new PixiModifier[ReactiveContainer] {
-      def apply(element: ReactiveContainer): Unit =
+
+      var currentChildren: Vector[ReactivePixiElement.Base] = Vector.empty
+
+      def apply(element: ReactiveContainer): Unit = {
+        element.destroyCallbacks :+= { () =>
+          currentChildren.foreach(_.destroy())
+        }
         childrenObs.foreach { children =>
           // todo: probably optimize this
-          val (remaining, leaving) = element.children.partition(children.contains)
-          element.children = remaining
-          leaving.foreach(_.destroy())
+          val (remaining, leaving) = currentChildren.partition(children.contains)
+          currentChildren = remaining
+          leaving.foreach { _.destroy() }
           val newChildren = children.filterNot(remaining.contains)
+          currentChildren ++= newChildren
           newChildren.foreach(ReactivePixiElement.addChildTo(element, _))
         } {
           element
         }
+      }
     }
 
   def children: ChildrenReceiver.type = this

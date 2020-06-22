@@ -85,14 +85,11 @@ final class GameStateManager(
         targetFromGUIBus.events.withCurrentValueOf($gameStates).map {
           case (id, gameState) => gameState.livingEntityAndMovingBodyById(id)
         },
-        mouse.$mouseClicks.map(mouse.effectiveMousePos)
-          .map(gameDrawer.camera.mousePosToWorld)
-          .withCurrentValueOf($gameStates)
-          .map {
-            case (mousePosition, state) =>
-              state.allTargetableEntities
-                .find(entity => entity.shape.contains(mousePosition, entity.pos, entity.rotation))
-          }
+        reactiveStage.clickEventsWorldPositions.withCurrentValueOf($gameStates).map {
+          case (mousePosition, state) =>
+            state.allTargetableEntities
+              .find(entity => entity.shape.contains(mousePosition, entity.pos, entity.rotation))
+        }
       )
       .startWith(Option.empty[MovingBody with LivingEntity])
 
