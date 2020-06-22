@@ -1,48 +1,65 @@
 package game.ui.gui.components
 
+import com.raquo.airstream.eventbus.EventBus
+import com.raquo.airstream.eventstream.EventStream
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.Texture
 import typings.pixiJs.mod.{Container, Graphics, Sprite}
+import game.ui.reactivepixi.ReactivePixiElement._
+import game.ui.reactivepixi.AttributeModifierBuilder._
+import utils.misc.RGBColour
 
 final class CastingBar(
     entityId: Entity.Id,
     uiContainer: Container,
     frameTexture: Texture,
-    innerTexture: Texture
+    innerTexture: Texture,
+    updateStream: EventStream[(GameState, Long)]
 ) extends GUIComponent {
 
-  private val frameSprite = new Sprite(frameTexture)
-  private val innerSprite = new Sprite(innerTexture)
-  innerSprite.tint   = 0xFF0000
-  innerSprite.width  = frameSprite.width
-  innerSprite.height = frameSprite.height
-  private val mask = new Graphics()
-  innerSprite.mask = mask
+  val barWidth  = 200.0
+  val barHeight = 15.0
 
-  val containerSprite: Container = {
-    val s = new Container
-    container.addChild(s)
-    s.addChild(innerSprite)
-    s.addChild(frameSprite)
-    s.addChild(mask)
-    s
+  private val maybeCastingInfoStream = updateStream.map {
+    case (gameState, time) =>
+      gameState.castingEntityInfo.get(entityId).map((_, time))
   }
 
+  private val innerGraphicsDrawingEvents = maybeCastingInfoStream.collect {
+    case Some((castingInfo, currentTime)) =>
+      val currentCastTime    = (currentTime - castingInfo.startedTime).toDouble
+      val castingProgression = currentCastTime / castingInfo.ability.castingTime
+
+      val redrawGraphics: typings.pixiJs.PIXI.Graphics => Unit =
+        _.clear()
+          .beginFill(0xc0c0c0)
+          .drawRect(0, 0, barWidth * castingProgression, barHeight)
+      redrawGraphics
+  }
+
+  val frameSprite = pixiSprite(frameTexture, width := barWidth, height := barHeight)
+
+  val maskG = pixiGraphics(moveGraphics <-- innerGraphicsDrawingEvents)
+
+  val innerSprite = pixiSprite(
+    innerTexture,
+    tint := RGBColour.red,
+    width := barWidth,
+    height := barHeight,
+    mask := maskG
+  )
+
+  val ctnr: ReactiveContainer = pixiContainer(
+    visible <-- maybeCastingInfoStream.map(_.isDefined).startWith(true),
+    innerSprite,
+    frameSprite,
+    maskG
+  )
+
   uiContainer.addChild(container)
+  container.addChild(ctnr.ref)
 
-  def update(gameState: GameState, currentTime: Long): Unit =
-    gameState.castingEntityInfo.get(entityId) match {
-      case Some(castingInfo) =>
-        containerSprite.visible = true
-
-        val currentCastTime    = (currentTime - castingInfo.startedTime).toDouble
-        val castingProgression = currentCastTime / castingInfo.ability.castingTime
-
-        mask.clear().beginFill(0xc0c0c0).drawRect(0, 0, innerSprite.width * castingProgression, innerSprite.height)
-
-      case None =>
-        containerSprite.visible = false
-    }
+  def update(gameState: GameState, currentTime: Long): Unit = ()
 
 }

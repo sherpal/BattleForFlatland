@@ -115,6 +115,34 @@ final class Camera(canvas: html.Canvas) {
       container.visible = false
     }
 
+  /**
+    * Same as `viewPortManager` above, but returns information to be set instead of setting it directly.
+    */
+  def effectViewportManager(
+      worldPos: Complex,
+      boundingBoxCenter: Complex,
+      boundingBox: BoundingBox
+  ): (Boolean, Option[(Double, Double)], Option[Complex]) =
+    if (inView(boundingBoxCenter, boundingBox)) {
+      (
+        true,
+        Some((scaleX, scaleY)),
+        Some(worldToLocal(worldPos))
+      )
+    } else {
+      (
+        false,
+        Option.empty[(Double, Double)],
+        Option.empty[Complex]
+      )
+    }
+
+  def effectViewportManager(
+      worldPos: Complex,
+      boundingBox: BoundingBox
+  ): (Boolean, Option[(Double, Double)], Option[Complex]) =
+    effectViewportManager(worldPos, worldPos, boundingBox)
+
   def viewportManagerSized(
       container: Container,
       worldPos: Complex,

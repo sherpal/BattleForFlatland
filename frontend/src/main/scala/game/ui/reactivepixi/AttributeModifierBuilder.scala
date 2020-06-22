@@ -1,6 +1,7 @@
 package game.ui.reactivepixi
 
 import com.raquo.airstream.core.Observable
+import gamelogic.physics.Complex
 import typings.pixiJs.PIXI.{DisplayObject, Graphics, IHitArea, Rectangle}
 import utils.misc.Colour
 
@@ -32,6 +33,21 @@ object AttributeModifierBuilder {
 
   final val x = attributeModifierBuilderFactory[ReactiveDisplayObject, Double](_.ref.x = _)
   final val y = attributeModifierBuilderFactory[ReactiveDisplayObject, Double](_.ref.y = _)
+  final val position = attributeModifierBuilderFactory[ReactiveDisplayObject, Complex] { (element, pos) =>
+    element.ref.x = pos.re
+    element.ref.y = pos.im
+  }
+  final val visible = attributeModifierBuilderFactory[ReactiveDisplayObject, Boolean](_.ref.visible = _)
+
+  final val anchor = attributeModifierBuilderFactory[ReactiveSprite, Double](_.ref.anchor.set(_))
+  final val anchorXY = attributeModifierBuilderFactory[ReactiveSprite, (Double, Double)] {
+    case (element, (x, y)) => element.ref.anchor.set(x, y)
+  }
+
+  final val scale = attributeModifierBuilderFactory[ReactiveContainer, Double](_.ref.scale.set(_))
+  final val scaleXY = attributeModifierBuilderFactory[ReactiveContainer, (Double, Double)] {
+    case (element, (scaleX, scaleY)) => element.ref.scale.set(scaleX, scaleY)
+  }
 
   final val hitArea = attributeModifierBuilderFactory[ReactiveDisplayObject, Rectangle] { (element, rectangle) =>
     element.ref.hitArea = rectangle.asInstanceOf[IHitArea]

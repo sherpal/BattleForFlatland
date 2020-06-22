@@ -9,6 +9,7 @@ import com.raquo.airstream.signal.{Signal, SignalViewer}
 import game.ui.GameDrawer
 import game.ui.effects.{ChoosingAbilityPositionEffect, EffectsManager}
 import game.ui.gui.GUIDrawer
+import game.ui.reactivepixi.ReactiveStage
 import gamelogic.abilities.Ability
 import gamelogic.abilities.hexagon.{FlashHeal, HexagonHot}
 import gamelogic.abilities.pentagon.{CreatePentagonBullet, CreatePentagonZone}
@@ -30,7 +31,7 @@ import utils.pixi.monkeypatching.PIXIPatching._
 import scala.scalajs.js.timers.setTimeout
 
 final class GameStateManager(
-    application: Application,
+    reactiveStage: ReactiveStage,
     initialGameState: GameState,
     $actionsFromServer: EventStream[AddAndRemoveActions],
     socketOutWriter: Observer[InGameWSProtocol.Outgoing],
@@ -43,13 +44,15 @@ final class GameStateManager(
     maybeTargetWriter: Observer[Option[Entity]]
 )(implicit owner: Owner) {
 
+  @inline def application: Application = reactiveStage.application
+
   def serverTime: Long = System.currentTimeMillis() + deltaTimeWithServer
 
   val abilityCodes: List[String] = (1 to 9).map("Digit" + _).toList
 
   private var actionCollector = ImmutableActionCollector(initialGameState)
   private val gameDrawer = new GameDrawer(
-    application,
+    reactiveStage,
     resources,
     bossStartingPosition,
     socketOutWriter.contramap[Unit](_ => InGameWSProtocol.LetsBegin)

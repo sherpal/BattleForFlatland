@@ -4,6 +4,7 @@ import assets.Asset
 import assets.Asset.ingame.gui.abilities._
 import assets.Asset.ingame.gui.bars._
 import com.raquo.airstream.core.Observer
+import com.raquo.airstream.eventbus.EventBus
 import com.raquo.airstream.signal.SignalViewer
 import game.Camera
 import game.ui.gui.components._
@@ -29,12 +30,15 @@ final class GUIDrawer(
 
   application.stage.addChild(guiContainer)
 
+  /** This stream is fed up on the update game loop. */
+  val updateBus: EventBus[(GameState, Long)] = new EventBus
+
   /** Casting bar of the player */
   val castingBar = new CastingBar(playerId, guiContainer, {
     val graphics = new Graphics
     graphics.lineStyle(2, 0xccc).beginFill(0, 0).drawRect(0, 0, 200, 15).endFill()
     application.renderer.generateTexture(graphics, 1, 1)
-  }, resources(liteStepBar).texture)
+  }, resources(liteStepBar).texture, updateBus.events)
   castingBar.container.x = (application.view.width - castingBar.container.width) / 2
   castingBar.container.y = application.view.height - castingBar.container.height
 
@@ -94,7 +98,9 @@ final class GUIDrawer(
   private var maybeBossFrame: Option[BossFrame]             = Option.empty
 
   def update(gameState: GameState, currentTime: Long): Unit = {
-    castingBar.update(gameState, currentTime)
+    //castingBar.update(gameState, currentTime)
+
+    updateBus.writer.onNext((gameState, currentTime))
 
     gameState.players.keys.filterNot(playerFrameGridContainer.currentElements.map(_.entityId).contains).foreach {
       entityId =>

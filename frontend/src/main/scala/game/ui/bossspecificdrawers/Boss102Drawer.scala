@@ -8,8 +8,8 @@ import gamelogic.entities.Entity
 import gamelogic.entities.boss.boss102.{BossHound, DamageZone}
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
-import typings.pixiJs.PIXI.LoaderResource
-import typings.pixiJs.mod.{Application, Container, ParticleContainer, Sprite}
+import typings.pixiJs.PIXI.{Container, LoaderResource}
+import typings.pixiJs.mod.{Application, ParticleContainer, Sprite}
 import utils.misc.RGBColour
 
 import scala.collection.mutable

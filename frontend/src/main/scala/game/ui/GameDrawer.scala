@@ -2,8 +2,11 @@ package game.ui
 
 import assets.Asset
 import com.raquo.airstream.core.Observer
+import com.raquo.airstream.eventbus.EventBus
+import com.raquo.airstream.eventstream.EventStream
 import game.Camera
 import game.ui.bossspecificdrawers.Boss102Drawer
+import game.ui.reactivepixi.ReactiveStage
 import gamelogic.entities.boss.dawnoftime.Boss102
 import gamelogic.entities.boss.{Boss101, BossEntity}
 import gamelogic.entities.classes.PlayerClass
@@ -16,6 +19,9 @@ import gamelogic.physics.Complex
 import org.scalajs.dom.html
 import typings.pixiJs.PIXI.LoaderResource
 import typings.pixiJs.mod._
+import game.ui.reactivepixi.ReactivePixiElement._
+import game.ui.reactivepixi.AttributeModifierBuilder._
+import game.ui.reactivepixi.ChildrenReceiver.children
 
 import scala.collection.mutable
 
@@ -24,35 +30,37 @@ import scala.collection.mutable
   * The implementation is full of side effects, probably in the wrong fear of less good performance.
   */
 final class GameDrawer(
-    val application: Application,
+    reactiveStage: ReactiveStage,
     resources: PartialFunction[Asset, LoaderResource],
     bossStartPosition: Complex,
     startFightObserver: Observer[Unit]
 ) extends Drawer {
 
-  @inline private def stage = application.stage
+  @inline def application: Application = reactiveStage.application
+  @inline def camera: Camera           = reactiveStage.camera
 
-  val camera: Camera = new Camera(application.view.asInstanceOf[html.Canvas])
+  val otherStuffContainerBelow: ReactiveContainer = pixiContainer()
+  val bulletContainer: ReactiveContainer          = pixiContainer()
+  val playerContainer: ReactiveContainer          = pixiContainer()
+  val dummyMobContainer: ReactiveContainer        = pixiContainer()
+  val bossesContainer: ReactiveContainer          = pixiContainer()
+  val movingStuffContainer: ReactiveContainer     = pixiContainer()
+  val obstacleContainer: ReactiveContainer        = pixiContainer()
+  val otherStuffContainerAbove: ReactiveContainer = pixiContainer()
 
-  val otherStuffContainerBelow: Container = new Container
-  stage.addChild(otherStuffContainerBelow)
-  val bulletContainer: Container = new Container
-  stage.addChild(bulletContainer)
-  val playerContainer: Container = new Container
-  stage.addChild(playerContainer)
-  val dummyMobContainer: Container = new Container
-  stage.addChild(dummyMobContainer)
-  val bossesContainer: Container = new Container
-  stage.addChild(bossesContainer)
-  val movingStuffContainer: Container = new Container
-  stage.addChild(movingStuffContainer)
-  val obstacleContainer: Container = new Container
-  stage.addChild(obstacleContainer)
-  val otherStuffContainerAbove: Container = new Container
-  stage.addChild(otherStuffContainerAbove)
+  reactiveStage(
+    otherStuffContainerBelow,
+    bulletContainer,
+    playerContainer,
+    dummyMobContainer,
+    bossesContainer,
+    movingStuffContainer,
+    obstacleContainer,
+    otherStuffContainerAbove
+  )
 
   private val startButton = new BossStartButton(bossStartPosition, resources, startFightObserver)
-  stage.addChild(startButton.element)
+  reactiveStage.ref.addChild(startButton.element)
 
   private val players: mutable.Map[Entity.Id, Sprite] = mutable.Map()
 
@@ -64,13 +72,15 @@ final class GameDrawer(
     }
 
     entities.foreach { entity =>
-      val sprite = players.getOrElse(entity.id, {
-        val s = new Sprite(polygonTexture(entity.colour, 1.0, entity.shape))
-        s.anchor.set(0.5, 0.5)
-        players += (entity.id -> s)
-        playerContainer.addChild(s)
-        s
-      })
+      val sprite = players.getOrElse(
+        entity.id, {
+          val s = new Sprite(polygonTexture(entity.colour, 1.0, entity.shape))
+          s.anchor.set(0.5, 0.5)
+          players += (entity.id -> s)
+          playerContainer.ref.addChild(s)
+          s
+        }
+      )
 
       sprite.rotation = -entity.rotation
       camera.viewportManager(sprite, entity.pos, entity.shape.boundingBox)
@@ -85,7 +95,7 @@ final class GameDrawer(
           val s = new Sprite(polygonTexture(0xc0c0c0, 1.0, entity.shape))
           s.anchor.set(0.5, 0.5)
           dummyMobSprites += (entity.id -> s)
-          dummyMobContainer.addChild(s)
+          dummyMobContainer.ref.addChild(s)
           s
         }
       )
@@ -103,7 +113,7 @@ final class GameDrawer(
           val s = new Sprite(diskTexture(0xFFFFFF, 1, entity.shape.radius, withBlackDot = true))
           s.anchor.set(0.5, 0.5)
           bossesSprites += (entity.id -> s)
-          bossesContainer.addChild(s)
+          bossesContainer.ref.addChild(s)
           s
         }
       )
@@ -116,7 +126,7 @@ final class GameDrawer(
           val s = new Sprite(circleTexture(0xFFFFFF, 0.5, Boss101.meleeRange))
           s.anchor.set(0.5, 0.5)
           bossesRangeIndicator += (entity.id -> s)
-          bossesContainer.addChild(s)
+          bossesContainer.ref.addChild(s)
           s
         }
       )
@@ -141,13 +151,33 @@ final class GameDrawer(
           val s = new Sprite(diskTexture(bullet.colour, 1, bullet.shape.radius))
           s.anchor.set(0.5, 0.5)
           pentagonBullets += (bullet.id -> s)
-          movingStuffContainer.addChild(s)
+          movingStuffContainer.ref.addChild(s)
           s
         }
       )
       camera.viewportManager(sprite, bullet.currentPosition(currentTime), bullet.shape.boundingBox)
     }
   }
+
+  val pentagonBulletBus = new EventBus[List[(PentagonBullet, Long)]]
+
+  val pentagonBulletsStream: EventStream[List[ReactiveSprite]] = pentagonBulletBus.events.split(_._1.id) {
+    case (_, (initialBullet, _), nextBullets) =>
+      val viewportInfoStream = nextBullets.map {
+        case (bullet, currentTime) =>
+          camera.effectViewportManager(bullet.currentPosition(currentTime), bullet.shape.boundingBox)
+      }
+
+      pixiSprite(
+        diskTexture(initialBullet.colour, 1, initialBullet.shape.radius),
+        anchor := 0.5,
+        visible <-- viewportInfoStream.map(_._1).startWith(true), // signal so that we don't change when not needed
+        scaleXY <-- viewportInfoStream.map(_._2).collect { case Some(s) => s }.startWith((1.0, 1.0)),
+        position <-- viewportInfoStream.map(_._3).collect { case Some(pos) => pos }
+      )
+  }
+
+  movingStuffContainer.amend(children <-- pentagonBulletsStream)
 
   private val pentagonZones: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
   private def drawPentagonZones(zones: List[PentagonZone]): Unit = {
@@ -163,7 +193,7 @@ final class GameDrawer(
           val s = new Sprite(polygonTexture(zone.colour.intColour, zone.colour.alpha, zone.shape))
           s.anchor.set(0.5)
           pentagonZones += (zone.id -> s)
-          otherStuffContainerBelow.addChild(s)
+          otherStuffContainerBelow.ref.addChild(s)
           s.rotation = -zone.rotation // zone rotations are fixed
           s
         }
@@ -175,13 +205,15 @@ final class GameDrawer(
   private val bulletSprites: mutable.Map[Entity.Id, Sprite] = mutable.Map()
   private def drawSimpleBullets(bullets: List[SimpleBulletBody], currentTime: Long): Unit =
     bullets.foreach { bullet =>
-      val sprite = bulletSprites.getOrElse(bullet.id, {
-        val s = new Sprite(diskTexture(0x000000, 1, bullet.shape.radius))
-        s.anchor.set(0.5, 0.5)
-        bulletSprites += (bullet.id -> s)
-        bulletContainer.addChild(s)
-        s
-      })
+      val sprite = bulletSprites.getOrElse(
+        bullet.id, {
+          val s = new Sprite(diskTexture(0x000000, 1, bullet.shape.radius))
+          s.anchor.set(0.5, 0.5)
+          bulletSprites += (bullet.id -> s)
+          bulletContainer.ref.addChild(s)
+          s
+        }
+      )
       camera.viewportManager(sprite, bullet.currentPosition(currentTime), bullet.shape.boundingBox)
     }
 
@@ -192,7 +224,7 @@ final class GameDrawer(
         val s = new Sprite(polygonTexture(obstacle.colour.intColour, 1.0, obstacle.shape))
         s.anchor.set(0.5, 0.5)
         obstacleSprites += (obstacle.id -> s)
-        obstacleContainer.addChild(s)
+        obstacleContainer.ref.addChild(s)
         s
       }
     )
@@ -206,8 +238,8 @@ final class GameDrawer(
       bossStartPosition,
       startFightObserver,
       camera,
-      otherStuffContainerBelow,
-      otherStuffContainerAbove
+      otherStuffContainerBelow.ref,
+      otherStuffContainerAbove.ref
     )
 
   def drawGameState(gameState: GameState, cameraPosition: Complex, currentTime: Long): Unit = {
@@ -216,7 +248,10 @@ final class GameDrawer(
     drawSimpleBullets(gameState.simpleBullets.values.toList, currentTime)
     drawDummyMobs(gameState.dummyMobs.values.toList, currentTime)
     drawBosses(gameState.bosses.valuesIterator.toList, currentTime)
-    drawPentagonBullets(gameState.pentagonBullets.valuesIterator.toList, currentTime)
+    //drawPentagonBullets(gameState.pentagonBullets.valuesIterator.toList, currentTime)
+
+    pentagonBulletBus.writer.onNext(gameState.pentagonBullets.valuesIterator.toList.map((_, currentTime)))
+
     drawObstacles(gameState.allObstacles.toList)
     drawPentagonZones(gameState.entities.valuesIterator.collect { case zone: PentagonZone => zone }.toList)
 

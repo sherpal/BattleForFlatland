@@ -3,6 +3,7 @@ package frontend.components.connected.ingame
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
+import game.ui.reactivepixi.ReactivePixiElement
 import game.{GameAssetLoader, GameStateManager, Keyboard, Mouse}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
@@ -66,7 +67,7 @@ final class GameViewContainer private (
       resources <- loader.loadAssets
       // todo!: remove hardcoded stuff
       _ = new GameStateManager(
-        application,
+        ReactivePixiElement.stage(application),
         GameState.empty,
         $actionsFromServer,
         socketOutWriter,

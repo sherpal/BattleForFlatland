@@ -12,7 +12,7 @@ import scala.language.implicitConversions
 trait ReactivePixiElement[+Ref <: DisplayObject] extends Owner {
   val ref: Ref
 
-  private[reactivepixi] val children: mutable.Set[ReactivePixiElement.Base] = mutable.Set.empty
+  private[reactivepixi] var children: Vector[ReactivePixiElement.Base] = Vector.empty
 
   private def allChildren: Iterator[ReactivePixiElement.Base] =
     children.iterator.flatMap(child => Iterator(child) ++ child.allChildren)
@@ -75,8 +75,16 @@ object ReactivePixiElement {
     (element: ReactiveContainer) => addChildTo(element, newChild)
 
   private[reactivepixi] def addChildTo[El <: ReactiveDisplayObject](element: ReactiveContainer, newChild: El): Unit = {
-    element.children += newChild
+    element.children :+= newChild
     element.ref.addChild(newChild.ref)
+  }
+
+  private[reactivepixi] def removeChildFrom[El <: ReactiveDisplayObject](
+      element: ReactiveContainer,
+      child: El
+  ): Unit = {
+    element.children = element.children.filterNot(_ == child)
+    child.destroy()
   }
 
 }
