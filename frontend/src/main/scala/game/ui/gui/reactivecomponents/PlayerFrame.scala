@@ -28,11 +28,12 @@ final class PlayerFrame(
 
   val maybeEntityEvents: EventStream[Option[PlayerClass]] = gameStateUpdates.map(_._1).map(_.players.get(entityId))
   val entityEvents: EventStream[PlayerClass]              = maybeEntityEvents.collect { case Some(entity) => entity }
-  val entityWithDimensionsEvents: EventStream[(PlayerClass, (Double, Double))] =
-    entityEvents.withCurrentValueOf(dimensions)
 
   val heightSignal: Signal[Double]    = dimensions.map(_._2)
   val barsWidthSignal: Signal[Double] = dimensions.map { case (w, h) => w - h }
+
+  val entityWithDimensionsEvents: EventStream[(PlayerClass, (Double, Double))] =
+    entityEvents.withCurrentValueOf(barsWidthSignal.combineWith(heightSignal))
 
   val lifeProportion                       = 0.8
   val lifeSpriteHeight: Signal[Double]     = heightSignal.map(_ * lifeProportion)
@@ -87,17 +88,21 @@ final class PlayerFrame(
 
   val playerNameText: ReactiveText = pixiText(
     "",
-    text <-- entityEvents.map(_.life.toInt.toString).toSignal(""),
+    text <-- entityEvents.map(_.name).toSignal(""),
     textStyle := new TextStyle(
       Align(
         fontSize = 10.0
       )
-    )
+    ),
+    x <-- heightSignal.map(_ + 4),
+    y := 2,
+    tint := RGBColour.white
   )
 
   val lifeText: ReactiveText = pixiText(
     "",
-    x <-- dimensions.map(_._2 - 30),
+    text <-- entityEvents.map(_.life.toInt.toString).toSignal(""),
+    x <-- dimensions.map(_._1 - 30),
     textStyle := new TextStyle(Align(fontSize = 15.0))
   )
 

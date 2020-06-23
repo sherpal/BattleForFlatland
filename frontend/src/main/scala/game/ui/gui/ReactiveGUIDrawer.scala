@@ -18,6 +18,7 @@ import reactivecomponents._
 import typings.pixiJs.mod.Graphics
 import assets.Asset.ingame.gui.abilities._
 import assets.Asset.ingame.gui.bars._
+import game.ui.gui.reactivecomponents.gridcontainer.GridContainer
 
 final class ReactiveGUIDrawer(
     playerId: Entity.Id,
@@ -57,7 +58,7 @@ final class ReactiveGUIDrawer(
   )
   guiContainer.amend(castingBar)
 
-  val targetFrame = new TargetFrame(
+  val targetFrame: ReactiveContainer = new TargetFrame(
     $maybeTarget.map(_.map(_.id)),
     resources(minimalistBar).texture,
     gameStateUpdates,
@@ -89,5 +90,39 @@ final class ReactiveGUIDrawer(
             })
       }
   )
+
+  val playerFrameGridContainer: ReactiveContainer = new GridContainer(
+    GridContainer.Row,
+    gameStateUpdates
+      .map(_._1.players.valuesIterator.map(_.id).toList.sorted)
+      .toSignal(Nil)
+      .split(identity) {
+        case (entityId, _, _) =>
+          new PlayerFrame(
+            entityId, {
+              val graphics = new Graphics
+
+              graphics
+                .lineStyle(2, 0xccc)
+                .beginFill(0, 0)
+                .drawRect(0, 0, 15, 15)
+                .endFill()
+
+              stage.application.renderer.generateTexture(graphics, 1, 1)
+            },
+            resources(minimalistBar).texture,
+            resources(minimalistBar).texture,
+            Val((120.0, 30.0)),
+            resources,
+            targetFromGUIWriter,
+            gameStateUpdates
+          ): ReactiveContainer
+      },
+    5
+  ).amend(
+    y := 150
+  )
+
+  guiContainer.amend(playerFrameGridContainer)
 
 }
