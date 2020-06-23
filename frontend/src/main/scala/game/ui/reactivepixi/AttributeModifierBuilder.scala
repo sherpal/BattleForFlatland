@@ -8,9 +8,25 @@ import utils.misc.Colour
 
 trait AttributeModifierBuilder[-El <: ReactivePixiElement.Base, A] {
 
-  def :=(a: A): Setter[El]
+  def modifying(element: El, a: A): Unit
 
-  def <--(as: Observable[A]): Binder[El]
+  def contramap[B](f: B => A): AttributeModifierBuilder[El, B] =
+    AttributeModifierBuilder.factory[El, B] { (element, b) =>
+      modifying(element, f(b))
+    }
+
+  def :=(a: A): Setter[El] = Setter(modifying(_, a))
+
+  def <--(as: Observable[A]): Binder[El] = Binder(
+    element => as.foreach(modifying(element, _))(element)
+  )
+
+  def zip[El1 <: El, B](that: AttributeModifierBuilder[El1, B]): AttributeModifierBuilder[El1, (A, B)] =
+    AttributeModifierBuilder.factory[El1, (A, B)] {
+      case (element, (a, b)) =>
+        this.modifying(element, a)
+        that.modifying(element, b)
+    }
 
 }
 
@@ -21,49 +37,42 @@ object AttributeModifierBuilder {
   /**
     * Creates a modifier builder with the specified modifying function.
     */
-  def attributeModifierBuilderFactory[El <: ReactivePixiElement.Base, A](
+  def factory[El <: ReactivePixiElement.Base, A](
       modifying: (El, A) => Unit
-  ): AttributeModifierBuilder[El, A] =
-    new AttributeModifierBuilder[El, A] {
-      def :=(a: A): Setter[El] = Setter(modifying(_, a))
+  ): AttributeModifierBuilder[El, A] = (element: El, a: A) => modifying(element, a)
 
-      def <--(as: Observable[A]): Binder[El] = Binder(
-        element => as.foreach(modifying(element, _))(element)
-      )
-    }
+  final val x           = factory[ReactiveDisplayObject, Double](_.ref.x = _)
+  final val y           = factory[ReactiveDisplayObject, Double](_.ref.y = _)
+  final val position    = (x zip y).contramap[Complex](_.tuple)
+  final val visible     = factory[ReactiveDisplayObject, Boolean](_.ref.visible = _)
+  final val interactive = factory[ReactiveDisplayObject, Boolean](_.ref.interactive = _)
 
-  final val x = attributeModifierBuilderFactory[ReactiveDisplayObject, Double](_.ref.x = _)
-  final val y = attributeModifierBuilderFactory[ReactiveDisplayObject, Double](_.ref.y = _)
-  final val position = attributeModifierBuilderFactory[ReactiveDisplayObject, Complex] { (element, pos) =>
-    element.ref.x = pos.re
-    element.ref.y = pos.im
-  }
-  final val visible     = attributeModifierBuilderFactory[ReactiveDisplayObject, Boolean](_.ref.visible     = _)
-  final val interactive = attributeModifierBuilderFactory[ReactiveDisplayObject, Boolean](_.ref.interactive = _)
-
-  final val anchor = attributeModifierBuilderFactory[ReactiveSprite, Double](_.ref.anchor.set(_))
-  final val anchorXY = attributeModifierBuilderFactory[ReactiveSprite, (Double, Double)] {
+  final val anchor = factory[ReactiveSprite, Double](_.ref.anchor.set(_))
+  final val anchorXY = factory[ReactiveSprite, (Double, Double)] {
     case (element, (x, y)) => element.ref.anchor.set(x, y)
   }
 
-  final val scale = attributeModifierBuilderFactory[ReactiveContainer, Double](_.ref.scale.set(_))
-  final val scaleXY = attributeModifierBuilderFactory[ReactiveContainer, (Double, Double)] {
+  final val scale = factory[ReactiveContainer, Double](_.ref.scale.set(_))
+  final val scaleXY = factory[ReactiveContainer, (Double, Double)] {
     case (element, (scaleX, scaleY)) => element.ref.scale.set(scaleX, scaleY)
   }
 
-  final val hitArea = attributeModifierBuilderFactory[ReactiveDisplayObject, Rectangle] { (element, rectangle) =>
+  final val hitArea = factory[ReactiveDisplayObject, Rectangle] { (element, rectangle) =>
     element.ref.hitArea = rectangle.asInstanceOf[IHitArea]
   }
 
-  final val width  = attributeModifierBuilderFactory[ReactiveContainer, Double](_.ref.width  = _)
-  final val height = attributeModifierBuilderFactory[ReactiveContainer, Double](_.ref.height = _)
+  final val width  = factory[ReactiveContainer, Double](_.ref.width = _)
+  final val height = factory[ReactiveContainer, Double](_.ref.height = _)
+  final val dims   = width zip height
 
-  final val tint = attributeModifierBuilderFactory[ReactiveSprite, Colour] { (element, colour) =>
+  final val tint = factory[ReactiveSprite, Colour] { (element, colour) =>
     element.ref.tint = colour.intColour
   }
-  final val tintInt = attributeModifierBuilderFactory[ReactiveSprite, Int](_.ref.tint = _)
+  final val tintInt = factory[ReactiveSprite, Int](_.ref.tint = _)
 
-  final val mask = attributeModifierBuilderFactory[
+  final val alpha = factory[ReactiveSprite, Double](_.ref.alpha = _)
+
+  final val mask = factory[
     ReactiveDisplayObject,
     ReactiveContainer
   ]((displayObj, container) => displayObj.ref.mask = container.ref)
@@ -71,7 +80,7 @@ object AttributeModifierBuilder {
   /**
     * Same as mask, but automatically add the child to the parent.
     */
-  final val maskChild = attributeModifierBuilderFactory[ReactiveContainer, ReactiveContainer] { (parent, child) =>
+  final val maskChild = factory[ReactiveContainer, ReactiveContainer] { (parent, child) =>
     parent.ref.mask = child.ref
     ReactivePixiElement.addChildTo(parent, child)
   }
@@ -82,11 +91,11 @@ object AttributeModifierBuilder {
     *
     * // todo: probably build an ADT on top of graphics drawing capabilities
     */
-  final val moveGraphics = attributeModifierBuilderFactory[ReactiveGraphics, Graphics => Unit] { (element, effect) =>
+  final val moveGraphics = factory[ReactiveGraphics, Graphics => Unit] { (element, effect) =>
     effect(element.ref)
   }
 
-  final val text      = attributeModifierBuilderFactory[ReactiveText, String](_.ref.text     = _)
-  final val textStyle = attributeModifierBuilderFactory[ReactiveText, TextStyle](_.ref.style = _)
+  final val text      = factory[ReactiveText, String](_.ref.text     = _)
+  final val textStyle = factory[ReactiveText, TextStyle](_.ref.style = _)
 
 }

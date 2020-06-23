@@ -2,6 +2,7 @@ package game.ui.gui.reactivecomponents
 
 import com.raquo.airstream.core.Observer
 import com.raquo.airstream.eventstream.EventStream
+import com.raquo.airstream.signal.Signal
 import gamelogic.entities.{Entity, EntityCastingInfo}
 import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.Texture
@@ -19,7 +20,8 @@ final class BossFrame(
     lifeTexture: Texture,
     castingBarTexture: Texture,
     targetFromGUIWriter: Observer[Entity.Id],
-    gameStateUpdates: EventStream[(GameState, Long)]
+    gameStateUpdates: EventStream[(GameState, Long)],
+    dimensions: Signal[(Double, Double)]
 ) extends GUIComponent {
 
   val maybeBossEvents: EventStream[Option[BossEntity]] = gameStateUpdates.map(_._1).map(_.bosses.get(entityId))
@@ -28,40 +30,46 @@ final class BossFrame(
   val maybeCastingInfoEvents: EventStream[Option[(EntityCastingInfo, Long)]] =
     gameStateUpdates.map { case (gameState, time) => gameState.castingEntityInfo.get(entityId).map((_, time)) }
 
-  val componentWidth  = 200.0
-  val componentHeight = 15.0
+  val widthSignal  = dimensions.map(_._1)
+  val heightSignal = dimensions.map(_._2)
 
-  val lifeSpriteHeight: Double = componentHeight * 2 / 3
-  val castingBarHeight: Double = componentHeight - lifeSpriteHeight
+  val lifeSpriteHeight = heightSignal.map(_ * 2 / 3)
+  val castingBarHeight = heightSignal.map(_ * 1 / 3)
 
   val lifeMask: ReactiveGraphics = pixiGraphics(
-    moveGraphics <-- bossEvents.map { boss =>
-      _.clear().beginFill(0xc0c0c0).drawRect(0, 0, componentWidth * boss.life / boss.maxLife, lifeSpriteHeight)
+    moveGraphics <-- bossEvents.withCurrentValueOf(widthSignal).withCurrentValueOf(lifeSpriteHeight).map {
+      case ((boss, width), height) =>
+        _.clear().beginFill(0xc0c0c0).drawRect(0, 0, width * boss.life / boss.maxLife, height)
     }
   ) // lifeMask
 
   val castingBarMask: ReactiveGraphics = pixiGraphics( // castingBarMask
-    moveGraphics <-- maybeCastingInfoEvents.collect {
-      case Some((castingInfo, currentTime)) =>
-        val currentCastTime    = (currentTime - castingInfo.startedTime).toDouble
-        val castingProgression = currentCastTime / castingInfo.ability.castingTime
-        _.clear().beginFill(0xc0c0c0).drawRect(0, 0, componentWidth * castingProgression, castingBarHeight)
-    },
-    y := lifeSpriteHeight
+    moveGraphics <-- maybeCastingInfoEvents
+      .collect {
+        case Some((castingInfo, currentTime)) => (castingInfo, currentTime)
+      }
+      .withCurrentValueOf(widthSignal)
+      .withCurrentValueOf(castingBarHeight)
+      .map {
+        case (((castingInfo, currentTime), width), height) =>
+          val currentCastTime    = (currentTime - castingInfo.startedTime).toDouble
+          val castingProgression = currentCastTime / castingInfo.ability.castingTime
+          _.clear().beginFill(0xc0c0c0).drawRect(0, 0, width * castingProgression, height)
+      },
+    y <-- lifeSpriteHeight
   )
 
   container.amend(
     interactive := true,
-    onClick.stopPropagation().mapTo(entityId) --> targetFromGUIWriter,
+    onClick.stopPropagation.mapTo(entityId) --> targetFromGUIWriter,
     pixiSprite( // backgroundSprite
       backgroundTexture,
-      width := componentWidth,
-      height := componentHeight
+      dims <-- dimensions
     ),
     pixiSprite( // lifeSprite
       lifeTexture,
-      width := componentWidth,
-      height := lifeSpriteHeight,
+      width <-- widthSignal,
+      height <-- lifeSpriteHeight,
       tint := RGBColour.green,
       mask := lifeMask
     ),
@@ -69,9 +77,9 @@ final class BossFrame(
     pixiSprite( // castingBar
       castingBarTexture,
       visible <-- maybeCastingInfoEvents.map(_.isDefined).toSignal(false),
-      width := componentWidth,
-      y := lifeSpriteHeight,
-      height := castingBarHeight,
+      width <-- widthSignal,
+      y <-- lifeSpriteHeight,
+      height <-- castingBarHeight,
       tint := RGBColour.red,
       mask := castingBarMask
     ),

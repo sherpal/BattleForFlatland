@@ -8,7 +8,7 @@ import com.raquo.airstream.ownership.Owner
 import com.raquo.airstream.signal.{Signal, SignalViewer}
 import game.ui.GameDrawer
 import game.ui.effects.{ChoosingAbilityPositionEffect, EffectsManager}
-import game.ui.gui.GUIDrawer
+import game.ui.gui.{GUIDrawer, ReactiveGUIDrawer}
 import game.ui.reactivepixi.ReactiveStage
 import gamelogic.abilities.Ability
 import gamelogic.abilities.hexagon.{FlashHeal, HexagonHot}
@@ -45,6 +45,9 @@ final class GameStateManager(
 )(implicit owner: Owner) {
 
   @inline def application: Application = reactiveStage.application
+
+  private val gameStateUpdatesBus                      = new EventBus[(GameState, Long)]
+  val gameStateUpdates: EventStream[(GameState, Long)] = gameStateUpdatesBus.events
 
   def serverTime: Long = System.currentTimeMillis() + deltaTimeWithServer
 
@@ -368,16 +371,25 @@ final class GameStateManager(
   )
 
   /** After [[game.ui.GameDrawer]] so that gui is on top of the game. */
-  private val guiDrawer =
-    new GUIDrawer(
-      playerId,
-      application,
-      resources,
-      targetFromGUIBus.writer,
-      $maybeTarget.observe,
-      useAbilityBus.writer,
-      gameDrawer.camera
-    )
+//  private val guiDrawer =
+//    new GUIDrawer(
+//      playerId,
+//      application,
+//      resources,
+//      targetFromGUIBus.writer,
+//      $maybeTarget.observe,
+//      useAbilityBus.writer,
+//      gameDrawer.camera
+//    )
+  val guiDrawer = new ReactiveGUIDrawer(
+    playerId,
+    reactiveStage,
+    resources,
+    targetFromGUIBus.writer,
+    $maybeTarget,
+    useAbilityBus.writer,
+    gameStateUpdates
+  )
 
   var lastTimeStamp = 0L
 
@@ -431,8 +443,11 @@ final class GameStateManager(
         .getOrElse(Complex.zero),
       now
     )
-    guiDrawer.update(gameState, now)
+    //guiDrawer.update(gameState, now)
     effectsManager.update(now, gameState)
+
+    gameStateUpdatesBus.writer.onNext((gameState, now))
+
   }
 
   application.ticker.add(ticker)

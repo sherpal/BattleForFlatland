@@ -26,3 +26,4 @@
 
 - sometimes the game crashes at the very beginning when clicking on "Start Fight". Unclear (yet) how to reproduce
 - quite slow on Firefox
+- in the GameJoined component, when the page is refreshed while the player is Ready, the selector doesn't go to the correct class name

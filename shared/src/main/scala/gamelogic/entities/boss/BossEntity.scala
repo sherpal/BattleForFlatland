@@ -16,7 +16,7 @@ import gamelogic.physics.shape.Circle
   *
   * A boss often has "adds", which are other entities helping it in some way.
   */
-trait BossEntity extends LivingEntity with MovingBody with WithAbilities with WithThreat with WithTarget {
+trait BossEntity extends LivingEntity with MovingBody with WithAbilities with WithThreat with WithTarget with WithName {
 
   /**
     * Bosses always have a target (in general one of the players when they attack) and players can know about it.

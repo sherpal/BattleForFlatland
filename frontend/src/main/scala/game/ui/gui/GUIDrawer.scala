@@ -5,7 +5,7 @@ import assets.Asset.ingame.gui.abilities._
 import assets.Asset.ingame.gui.bars._
 import com.raquo.airstream.core.Observer
 import com.raquo.airstream.eventbus.EventBus
-import com.raquo.airstream.signal.SignalViewer
+import com.raquo.airstream.signal.{SignalViewer, Val}
 import game.Camera
 import game.ui.gui.components._
 import game.ui.gui.components.buffs.BuffContainer
@@ -196,7 +196,7 @@ final class GUIDrawer(
           val graphics = new Graphics
           graphics.lineStyle(2, 0).beginFill(0, 1).drawRect(0, 0, 200, 15).endFill()
           application.renderer.generateTexture(graphics, 1, 1)
-        }, resources(minimalistBar).texture, resources(minimalistBar).texture, targetFromGUIWriter, updateBus.events)
+        }, resources(minimalistBar).texture, resources(minimalistBar).texture, targetFromGUIWriter, updateBus.events, Val((200.0, 15.0)))
         bossFrame.container.ref.x = (application.view.width - bossFrame.container.ref.width) / 2
         guiContainer.addChild(bossFrame.container.ref)
         bossFrame

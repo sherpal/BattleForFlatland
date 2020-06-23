@@ -68,6 +68,8 @@ final case class Complex(re: Double, im: Double) {
 
   @inline def unary_! : Double = modulus
 
+  def tuple: (Double, Double) = (re, im)
+
   override def equals(that: Any): Boolean = that match {
     case that: Complex => math.max(math.abs(that.re - re), math.abs(that.im - im)) < 1e-6
     case _             => false

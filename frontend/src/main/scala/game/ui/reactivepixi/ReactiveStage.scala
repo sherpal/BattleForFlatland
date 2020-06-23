@@ -2,6 +2,7 @@ package game.ui.reactivepixi
 
 import com.raquo.airstream.eventbus.EventBus
 import com.raquo.airstream.eventstream.EventStream
+import com.raquo.airstream.signal.Signal
 import game.Camera
 import game.ui.reactivepixi.ReactivePixiElement.ReactiveContainer
 import gamelogic.physics.Complex
@@ -74,7 +75,12 @@ final class ReactiveStage(val application: Application) extends ReactivePixiElem
   /**
     * Emits new width and height of the underlying canvas when it is resized.
     */
-  val resizeEvents: EventStream[(Double, Double)] = resizeEventBus.events
+  val resizeEvents: Signal[(Double, Double)] = resizeEventBus.events.toSignal(
+    (
+      application.view.width,
+      application.view.height
+    )
+  )
 
   /**
     * This function *has* to be called on every size change of the application view.
