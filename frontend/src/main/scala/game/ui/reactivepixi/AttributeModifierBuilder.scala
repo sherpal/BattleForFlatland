@@ -2,10 +2,28 @@ package game.ui.reactivepixi
 
 import com.raquo.airstream.core.Observable
 import gamelogic.physics.Complex
-import typings.pixiJs.PIXI.{DisplayObject, Graphics, IHitArea, Rectangle, TextStyle}
-import typings.pixiJs.mod
+import typings.pixiJs.PIXI.{Graphics, IHitArea, Rectangle, TextStyle}
 import utils.misc.Colour
 
+/**
+  * An [[AttributeModifierBuilder]] is the base trait for creating simple [[PixiModifier]] modifying attributes of
+  * elements, such as `x`, `y`, `tint` and so on.
+  *
+  * Builders basically have to methods for creating modifiers: `:=` and `<--`. There are very similar. The difference
+  * being that `:=` takes a fixed value whereas `<--` takes an [[com.raquo.airstream.core.Observable]].
+  *
+  * You also have methods for transforming or combining builders.
+  *
+  * Ultimately, the "core" implementation of the builder sits in the `modifying` methods, which actually tels how the
+  * affected [[ReactivePixiElement]] should be modified.
+  *
+  * @tparam El type of [[ReactivePixiElement]] that this [[AttributeModifierBuilder]] creates [[PixiModifier]] for.
+  *            For example, a `AttributeModifierBuilder[ReactivePixiContainer]` creates modifyers for reactive pixi
+  *            containers.
+  * @tparam A type of the attribute being affected. For example, [[java.lang.Double]] for `x`, [[utils.misc.Colour]] for
+  *           `tint`. The type is sometimes a little bit more involved than the js type, in order to increase type
+  *           safety. However, a more "close to the metals" alternative should always exist.
+  */
 trait AttributeModifierBuilder[-El <: ReactivePixiElement.Base, A] {
 
   def modifying(element: El, a: A): Unit

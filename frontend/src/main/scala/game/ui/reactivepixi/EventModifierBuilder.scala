@@ -1,7 +1,6 @@
 package game.ui.reactivepixi
 
 import com.raquo.airstream.core.Observer
-import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.Signal
 import game.ui.reactivepixi.EventModifierBuilder.ReactiveInteractionEvent
 import game.ui.reactivepixi.ReactivePixiElement.Base
@@ -9,6 +8,23 @@ import typings.pixiJs.PIXI.interaction.{InteractionEvent, InteractionEventTypes}
 
 import scala.scalajs.js
 
+/**
+  * This is thought to be a builder for [[PixiModifier]] involving JavaScript events, such as an `onClick`. However, this
+  * particular design is not reflected in the type system, with the exception of the `stopPropagation` method.
+  *
+  * Attaching a "event handler" to a reactive element is done through this class, and the events, augmented with the
+  * [[ReactivePixiElement]], are sent to an [[com.raquo.airstream.core.Observer]].
+  * However, the event content can be modified before entering the observer, via methods such as
+  * - map or mapTo
+  * - stopPropagation
+  * - withCurrentValueOf
+  *
+  * The design is somewhat different than the one used in Laminar, where accessing the element is done via a context,
+  * but I think it is consistent enough for Pixi.
+  *
+  * @tparam El type of the [[ReactivePixiElement]] affected by the built modifier
+  * @tparam T type of elements entering in the observer.
+  */
 trait EventModifierBuilder[-El <: ReactivePixiElement.Base, T] {
 
   def map[U](f: T => U): EventModifierBuilder[El, U] =

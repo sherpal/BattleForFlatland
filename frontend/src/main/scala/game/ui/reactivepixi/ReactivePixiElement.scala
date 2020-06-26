@@ -1,21 +1,29 @@
 package game.ui.reactivepixi
 
-import com.raquo.airstream.eventbus.EventBus
-import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.ownership.Owner
-import org.scalajs.dom
-import typings.pixiJs.PIXI.{Container, DisplayObject, Graphics, Rectangle, Sprite, Text, Texture}
+import typings.pixiJs.PIXI._
 import typings.pixiJs.mod
 import typings.pixiJs.mod.Application
 
-import scala.collection.mutable
 import scala.language.implicitConversions
 
+/**
+  * This is the base element of each reactive pixi element.
+  *
+  * A [[ReactivePixiElement]] is a thin layer on top of a Pixi [[DisplayObject]]. If you embrace the reactive layer,
+  * you should create your pixi elements via the helper methods like `pixiSprite`.
+  * You will always have access to the underlying [[DisplayObject]] via the `ref` field.
+  */
 trait ReactivePixiElement[+Ref <: DisplayObject] extends Owner {
   val ref: Ref
 
   private[reactivepixi] var destroyCallbacks: Vector[() => Unit] = Vector(() => killSubscriptions())
 
+  /**
+    * This method with side effect allows you to modify the [[ReactivePixiElement]] after its creating, by adding more
+    * modifiers.
+    * @return the same element.
+    */
   def amend(mods: PixiModifier[this.type]*): this.type = {
     mods.foreach(_(this))
     this
@@ -47,6 +55,7 @@ object ReactivePixiElement {
 
   def stage(application: Application) = new ReactiveStage(application)
 
+  /** Creates a reactive pixi container */
   def pixiContainer(modifiers: PixiModifier[ReactiveContainer]*): ReactiveContainer = {
     val rc = new ReactiveContainer {
       val ref: Container = new mod.Container
@@ -55,6 +64,7 @@ object ReactivePixiElement {
     rc
   }
 
+  /** Creates a reactive pixi Sprite */
   def pixiSprite(texture: Texture, modifiers: PixiModifier[ReactiveSprite]*): ReactiveSprite = {
     val reactiveSprite = new ReactiveSprite {
       val ref: Sprite = new mod.Sprite(texture)
@@ -63,6 +73,7 @@ object ReactivePixiElement {
     reactiveSprite
   }
 
+  /** Creates a reactive pixi Graphics object */
   def pixiGraphics(modifiers: PixiModifier[ReactiveGraphics]*): ReactiveGraphics = {
     val reactiveGraphics = new ReactiveGraphics {
       val ref: Graphics = new mod.Graphics()
@@ -71,6 +82,7 @@ object ReactivePixiElement {
     reactiveGraphics
   }
 
+  /** Creates a reactive pixi Text object */
   def pixiText(text: String, modifiers: PixiModifier[ReactiveText]*): ReactiveText = {
     val reactiveText = new ReactiveText {
       val ref: Text = new mod.Text(text)
