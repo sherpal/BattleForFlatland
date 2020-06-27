@@ -30,11 +30,13 @@ final class TargetFrame(
     }
 
   val bar = new StatusBar(
-    maybeTargetEvents.map {
-      _.fold(0.0) { entity =>
-        entity.life / entity.maxLife
+    maybeTargetEvents
+      .map {
+        _.fold(0.0) { entity =>
+          entity.life / entity.maxLife
+        }
       }
-    },
+      .startWith(0.0),
     Val(RGBColour.green),
     Val(true),
     barTexture,
@@ -54,7 +56,7 @@ final class TargetFrame(
     }
 
   val castingBar: ReactiveContainer = new StatusBar(
-    maybeFillingRatio.map(_.getOrElse(0.0)),
+    maybeFillingRatio.map(_.getOrElse(0.0)).startWith(0.0),
     Val(RGBColour.red),
     maybeFillingRatio.map(_.isDefined).toSignal(false),
     barTexture,

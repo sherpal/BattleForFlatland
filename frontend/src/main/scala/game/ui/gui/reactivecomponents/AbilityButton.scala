@@ -31,16 +31,18 @@ final class AbilityButton(
       height <-- dimensions.map(_._2)
     ),
     new StatusBar(
-      gameStateUpdates.map {
-        case (gameState, currentTime) =>
-          (for {
-            player <- gameState.players.get(playerId)
-            lastUse <- player.relevantUsedAbilities.get(abilityId)
-            elapsedTime = currentTime - lastUse.time
-            value       = 1.0 - elapsedTime / lastUse.cooldown.toDouble
-          } yield value max 0.0).getOrElse(0.0)
+      gameStateUpdates
+        .map {
+          case (gameState, currentTime) =>
+            (for {
+              player <- gameState.players.get(playerId)
+              lastUse <- player.relevantUsedAbilities.get(abilityId)
+              elapsedTime = currentTime - lastUse.time
+              value       = 1.0 - elapsedTime / lastUse.cooldown.toDouble
+            } yield value max 0.0).getOrElse(0.0)
 
-      },
+        }
+        .toSignal(0.0),
       Val(RGBAColour(0, 0, 0, 0.4)),
       Val(true),
       overlayTexture,

@@ -22,6 +22,9 @@ import scala.scalajs.js
   * The design is somewhat different than the one used in Laminar, where accessing the element is done via a context,
   * but I think it is consistent enough for Pixi.
   *
+  * Note: having these "event handlers" to work often requires that `interactive` is set to true on the display object.
+  * Turning interactive on and off is better than disabling or enabling the events yourself.
+  *
   * @tparam El type of the [[ReactivePixiElement]] affected by the built modifier
   * @tparam T type of elements entering in the observer.
   */

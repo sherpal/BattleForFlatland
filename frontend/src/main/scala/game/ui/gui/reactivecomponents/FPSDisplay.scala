@@ -10,8 +10,12 @@ import typings.pixiJs.mod.TextStyle
 
 /**
   * Small pixi component for displaying the frame rate, computed over 100 ticks.
+  *
+  * @param ticks [[com.raquo.airstream.eventstream.EventStream]] with message each time the frames are updated.
+  *              typed to [[scala.Any]] since we don't care what we get. We could type to [[scala.Unit]] but
+  *              that often requires mapping once more for no reason.
   */
-final class FPSDisplay(ticks: EventStream[Unit]) extends GUIComponent {
+final class FPSDisplay(ticks: EventStream[Any]) extends GUIComponent {
 
   val fps: EventStream[Long] = ticks
     .mapTo(System.currentTimeMillis())
@@ -23,6 +27,7 @@ final class FPSDisplay(ticks: EventStream[Unit]) extends GUIComponent {
     .changes
     .map(queue => 1000 * queue.size.toDouble / (queue.last - queue.head))
     .map(math.round)
+    .map(_ / 4 * 4) // rounding to change less often.
 
   container.amend(
     pixiText(

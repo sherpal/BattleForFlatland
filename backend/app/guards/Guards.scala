@@ -65,7 +65,7 @@ object Guards {
     * @tparam A type of the body contained in the request.
     */
   def authenticated[A](
-      implicit tagged: zio.Tagged[A]
+      implicit tagged: zio.Tag[A]
   ): ZIO[Clock with Configuration with Has[HasRequest[Request, A]], ErrorADT, SessionRequest[A]] =
     for {
       request <- simpleZIORequest[A]
@@ -93,7 +93,7 @@ object Guards {
     * Creates a [[guards.JoinedGameRequest]].
     */
   def partOfGame[A](gameId: String)(
-      implicit tagged: zio.Tagged[A]
+      implicit tagged: zio.Tag[A]
   ): ZIO[GameTable with Clock with Configuration with Has[HasRequest[Request, A]], Throwable, JoinedGameRequest[A]] =
     for {
       sessionRequest <- authenticated[A].refineOrDie(ErrorADT.onlyErrorADT)
@@ -109,7 +109,7 @@ object Guards {
     * otherwise)
     */
   def headOfGame[A](gameId: String)(
-      implicit tagged: zio.Tagged[A]
+      implicit tagged: zio.Tag[A]
   ): ZIO[GameTable with Clock with Configuration with Has[HasRequest[Request, A]], Throwable, JoinedGameRequest[A]] =
     for {
       joinedGameRequest <- partOfGame[A](gameId)

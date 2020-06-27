@@ -23,16 +23,18 @@ final class CooldownBar(
 ) extends GUIComponent {
 
   val bar: StatusBar = new StatusBar(
-    gameStateUpdates.map {
-      case (gameState, currentTime) =>
-        (for {
-          entity <- gameState.withAbilityEntitiesById(entityId)
-          lastUse <- entity.relevantUsedAbilities.get(abilityId)
-          elapsedTime = currentTime - lastUse.time
-          cooldown    = lastUse.cooldown
-        } yield (cooldown - elapsedTime) / cooldown.toDouble)
-          .getOrElse(0.0)
-    },
+    gameStateUpdates
+      .map {
+        case (gameState, currentTime) =>
+          (for {
+            entity <- gameState.withAbilityEntitiesById(entityId)
+            lastUse <- entity.relevantUsedAbilities.get(abilityId)
+            elapsedTime = currentTime - lastUse.time
+            cooldown    = lastUse.cooldown
+          } yield (cooldown - elapsedTime) / cooldown.toDouble)
+            .getOrElse(0.0)
+      }
+      .toSignal(0.0),
     Val(colour),
     gameStateUpdates
       .map {

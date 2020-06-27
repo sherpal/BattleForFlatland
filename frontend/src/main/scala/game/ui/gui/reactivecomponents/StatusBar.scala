@@ -19,7 +19,7 @@ import game.ui.reactivepixi.AttributeModifierBuilder._
   * @param texture texture to draw the bar.
   */
 final class StatusBar(
-    barFillingEvents: EventStream[Double],
+    barFillingEvents: Signal[Double],
     colourSignal: Signal[Colour],
     visibleSignal: Signal[Boolean],
     texture: Texture,
@@ -50,9 +50,7 @@ final class StatusBar(
 
   val graphicsMask: ReactiveGraphics = pixiGraphics(
     moveGraphics <-- barFillingEvents
-      .withCurrentValueOf(visibleSignal)
-      .collect { case (value, true) => value }
-      .withCurrentValueOf(dimensions)
+      .combineWith(dimensions)
       .map(graphicsFilling.tupled)
   )
 

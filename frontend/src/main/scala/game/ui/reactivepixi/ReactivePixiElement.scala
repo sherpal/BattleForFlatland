@@ -65,31 +65,22 @@ object ReactivePixiElement {
   }
 
   /** Creates a reactive pixi Sprite */
-  def pixiSprite(texture: Texture, modifiers: PixiModifier[ReactiveSprite]*): ReactiveSprite = {
-    val reactiveSprite = new ReactiveSprite {
+  def pixiSprite(texture: Texture, modifiers: PixiModifier[ReactiveSprite]*): ReactiveSprite =
+    new ReactiveSprite {
       val ref: Sprite = new mod.Sprite(texture)
-    }
-    modifiers.foreach(_(reactiveSprite))
-    reactiveSprite
-  }
+    }.amend(modifiers: _*)
 
   /** Creates a reactive pixi Graphics object */
-  def pixiGraphics(modifiers: PixiModifier[ReactiveGraphics]*): ReactiveGraphics = {
-    val reactiveGraphics = new ReactiveGraphics {
+  def pixiGraphics(modifiers: PixiModifier[ReactiveGraphics]*): ReactiveGraphics =
+    new ReactiveGraphics {
       val ref: Graphics = new mod.Graphics()
-    }
-    modifiers.foreach(_(reactiveGraphics))
-    reactiveGraphics
-  }
+    }.amend(modifiers: _*)
 
   /** Creates a reactive pixi Text object */
-  def pixiText(text: String, modifiers: PixiModifier[ReactiveText]*): ReactiveText = {
-    val reactiveText = new ReactiveText {
+  def pixiText(text: String, modifiers: PixiModifier[ReactiveText]*): ReactiveText =
+    new ReactiveText {
       val ref: Text = new mod.Text(text)
-    }
-    modifiers.foreach(_(reactiveText))
-    reactiveText
-  }
+    }.amend(modifiers: _*)
 
   implicit def reactiveElementIsModifier[El <: Base](newChild: El): PixiModifier[ReactiveContainer] =
     (element: ReactiveContainer) => addChildTo(element, newChild)

@@ -33,7 +33,59 @@ final class ReactiveGUIDrawer(
   val guiContainer: ReactiveContainer = pixiContainer()
   stage(guiContainer)
 
-  stage.amend(new FPSDisplay(gameStateUpdates.map(_ => ())))
+  guiContainer.amend(new FPSDisplay(gameStateUpdates))
+
+  private val playerFrameDimensions = Val((120.0, 30.0))
+  val playerFrame: ReactiveContainer = new PlayerFrame(
+    playerId, {
+      val graphics = new Graphics
+
+      graphics
+        .lineStyle(2, 0xccc)
+        .beginFill(0, 0)
+        .drawRect(0, 0, 15, 15)
+        .endFill()
+
+      stage.application.renderer.generateTexture(graphics, 1, 1)
+    },
+    resources(minimalistBar).texture,
+    resources(minimalistBar).texture,
+    playerFrameDimensions,
+    resources,
+    targetFromGUIWriter,
+    gameStateUpdates
+  ).amend(
+    position <-- stage.resizeEvents.map {
+      case (viewWidth, viewHeight) =>
+        Complex(viewWidth / 2 - playerFrameDimensions.now._1, viewHeight - 70)
+    }
+  )
+  guiContainer.amend(playerFrame)
+
+  val abilityButtonContainer: ReactiveContainer = new GridContainer(
+    GridContainer.Column,
+    gameStateUpdates
+      .map(_._1.players.get(playerId))
+      .collect { case Some(player) => player.abilities }
+      .toSignal(Set())
+      .map { abilities =>
+        abilities.toList.map { abilityId =>
+          new AbilityButton(
+            abilityId,
+            playerId,
+            useAbilityWriter,
+            resources(Asset.abilityAssetMap(abilityId)).texture,
+            resources(abilityOverlay).texture,
+            gameStateUpdates,
+            Val((32, 32))
+          ): ReactiveContainer
+        }
+      },
+    10
+  ).amend(
+    y <-- stage.resizeEvents.map(_._2 - 32)
+  )
+  guiContainer.amend(abilityButtonContainer)
 
   val castingBarDimensions: Val[(Double, Double)] = Val((200.0, 15.0))
 
@@ -91,6 +143,7 @@ final class ReactiveGUIDrawer(
       }
   )
 
+  // todo: change with events when new player appears
   val playerFrameGridContainer: ReactiveContainer = new GridContainer(
     GridContainer.Row,
     gameStateUpdates
@@ -122,7 +175,29 @@ final class ReactiveGUIDrawer(
   ).amend(
     y := 150
   )
-
   guiContainer.amend(playerFrameGridContainer)
+
+  // todo: change with events when new boss appears
+  guiContainer.amend(
+    children <--
+      gameStateUpdates
+        .map(_._1.bosses.keys.toList.headOption)
+        .collect {
+          case Some(bossId) => bossId
+        }
+        .map(List(_))
+        .toSignal(Nil)
+        .map { bossIds =>
+          bossIds.map { bossId =>
+            new BossThreatMeter(
+              bossId,
+              resources(minimalistBar).texture,
+              gameStateUpdates, //.throttle(500),
+              stage.resizeEvents
+            )
+
+          }
+        }
+  )
 
 }

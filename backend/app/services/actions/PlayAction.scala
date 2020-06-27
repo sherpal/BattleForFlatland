@@ -8,8 +8,8 @@ object PlayAction {
   def action[A, R[_]](
       request: R[A]
   )(
-      implicit rTagged: Tagged[R[A]],
-      aTagged: Tagged[A],
+      implicit rTagged: Tag[R[A]],
+      aTagged: Tag[A],
       ev: R[A] <:< Request[A]
   ): Layer[Nothing, Has[Action.Service[A]]] =
     ZLayer.succeed(new Action.Service[A] {
