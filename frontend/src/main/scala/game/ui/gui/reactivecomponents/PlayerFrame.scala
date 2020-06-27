@@ -3,7 +3,8 @@ package game.ui.gui.reactivecomponents
 import assets.Asset
 import com.raquo.airstream.core.Observer
 import com.raquo.airstream.eventstream.EventStream
-import com.raquo.airstream.signal.Signal
+import com.raquo.airstream.signal.{Signal, Val}
+import game.ui.gui.reactivecomponents.buffcontainer.BuffContainer
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.{Graphics, LoaderResource, Texture}
@@ -11,6 +12,7 @@ import game.ui.reactivepixi.ReactivePixiElement._
 import game.ui.reactivepixi.AttributeModifierBuilder._
 import game.ui.reactivepixi.EventModifierBuilder._
 import gamelogic.entities.classes.PlayerClass
+import gamelogic.physics.Complex
 import typings.pixiJs.anon.Align
 import typings.pixiJs.mod.{Rectangle, TextStyle}
 import utils.misc.RGBColour
@@ -23,7 +25,8 @@ final class PlayerFrame(
     dimensions: Signal[(Double, Double)], // signal for width and height
     resources: PartialFunction[Asset, LoaderResource],
     targetFromGUIWriter: Observer[Entity.Id],
-    gameStateUpdates: EventStream[(GameState, Long)]
+    gameStateUpdates: EventStream[(GameState, Long)],
+    buffIconSize: Double
 ) extends GUIComponent {
 
   val maybeEntityEvents: EventStream[Option[PlayerClass]] = gameStateUpdates.map(_._1).map(_.players.get(entityId))
@@ -106,6 +109,14 @@ final class PlayerFrame(
     textStyle := new TextStyle(Align(fontSize = 15.0))
   )
 
+  val buffContainer = new BuffContainer(
+    entityId,
+    resources,
+    gameStateUpdates,
+    Val(buffIconSize),
+    dimensions.map { case (_, height) => Complex(0, height) }
+  )
+
   container.amend(
     shapeSprite,
     backgroundLifeSprite,
@@ -115,6 +126,7 @@ final class PlayerFrame(
     resourceMask,
     playerNameText,
     lifeText,
+    buffContainer,
     interactive := true,
     hitArea <-- dimensions.map { case (width, height) => new Rectangle(0, 0, width, height) },
     onClick.stopPropagation.mapTo(entityId) --> targetFromGUIWriter

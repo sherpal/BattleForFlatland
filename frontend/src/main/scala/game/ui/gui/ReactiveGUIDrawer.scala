@@ -2,7 +2,7 @@ package game.ui.gui
 
 import assets.Asset
 import assets.Asset.ingame.gui.bars.liteStepBar
-import com.raquo.airstream.core.Observer
+import com.raquo.airstream.core.{Observable, Observer, Transaction}
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.{Signal, Val}
 import game.ui.reactivepixi.ReactiveStage
@@ -18,8 +18,11 @@ import reactivecomponents._
 import typings.pixiJs.mod.Graphics
 import assets.Asset.ingame.gui.abilities._
 import assets.Asset.ingame.gui.bars._
+import com.raquo.airstream.features.SingleParentObservable
 import game.ui.gui.reactivecomponents.gridcontainer.GridContainer
 import game.ui.gui.reactivecomponents.threatmeter.BossThreatMeter
+
+import scala.util.Try
 
 final class ReactiveGUIDrawer(
     playerId: Entity.Id,
@@ -30,6 +33,16 @@ final class ReactiveGUIDrawer(
     useAbilityWriter: Observer[Ability.AbilityId],
     gameStateUpdates: EventStream[(GameState, Long)]
 ) {
+
+  private var lastGameStateUpdate: Long = System.currentTimeMillis()
+
+  val slowGameStateUpdates: EventStream[(GameState, Long)] = gameStateUpdates.filter { _ =>
+    val now = System.currentTimeMillis()
+    if (now - lastGameStateUpdate > 500) {
+      lastGameStateUpdate = now
+      true
+    } else false
+  }
 
   val guiContainer: ReactiveContainer = pixiContainer()
   stage(guiContainer)
@@ -54,7 +67,8 @@ final class ReactiveGUIDrawer(
     playerFrameDimensions,
     resources,
     targetFromGUIWriter,
-    gameStateUpdates
+    gameStateUpdates,
+    20
   ).amend(
     position <-- stage.resizeEvents.map {
       case (viewWidth, viewHeight) =>
@@ -169,7 +183,8 @@ final class ReactiveGUIDrawer(
             Val((120.0, 30.0)),
             resources,
             targetFromGUIWriter,
-            gameStateUpdates
+            gameStateUpdates,
+            15
           ): ReactiveContainer
       },
     5
@@ -193,7 +208,7 @@ final class ReactiveGUIDrawer(
             new BossThreatMeter(
               bossId,
               resources(minimalistBar).texture,
-              gameStateUpdates, //.throttle(500),
+              slowGameStateUpdates,
               stage.resizeEvents
             )
 
