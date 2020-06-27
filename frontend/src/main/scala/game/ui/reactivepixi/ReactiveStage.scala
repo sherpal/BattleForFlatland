@@ -6,10 +6,13 @@ import com.raquo.airstream.signal.Signal
 import game.Camera
 import game.ui.reactivepixi.ReactivePixiElement.ReactiveContainer
 import gamelogic.physics.Complex
+import org.scalajs.dom
 import typings.pixiJs.PIXI.{Container, IHitArea}
 import typings.pixiJs.PIXI.interaction.{InteractionEvent, InteractionEventTypes}
 import typings.pixiJs.mod.{Application, Rectangle}
 import typings.std.MouseEvent
+
+import scala.scalajs.js
 
 /**
   * Reactive container based on the application stage.
@@ -27,6 +30,10 @@ final class ReactiveStage(val application: Application) extends ReactivePixiElem
   val camera: Camera = new Camera(application.view)
 
   override val ref: Container = application.stage
+
+  if (scala.scalajs.LinkingInfo.developmentMode) {
+    dom.window.asInstanceOf[js.Dynamic].updateDynamic("pixi_stage_scala")(ref)
+  }
 
   def setHitArea(): Unit =
     ref.hitArea = new Rectangle(0, 0, application.view.width, application.view.height).asInstanceOf[IHitArea]

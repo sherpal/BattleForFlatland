@@ -19,6 +19,7 @@ import typings.pixiJs.mod.Graphics
 import assets.Asset.ingame.gui.abilities._
 import assets.Asset.ingame.gui.bars._
 import game.ui.gui.reactivecomponents.gridcontainer.GridContainer
+import game.ui.gui.reactivecomponents.threatmeter.BossThreatMeter
 
 final class ReactiveGUIDrawer(
     playerId: Entity.Id,

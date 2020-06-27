@@ -23,14 +23,7 @@ object ChildrenReceiver {
           leaving.foreach { _.destroy() }
           val newChildren = children.filterNot(remaining.contains)
           currentChildren ++= newChildren
-          if (newChildren.nonEmpty) {
-            println("new children: " + newChildren)
-          }
-          if (leaving.nonEmpty) {
-            println("leaving: " + leaving)
-          }
           newChildren.foreach(ReactivePixiElement.addChildTo(element, _))
-          if (newChildren.nonEmpty) {}
         } {
           element
         }

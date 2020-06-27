@@ -13,13 +13,13 @@ import game.ui.reactivepixi.AttributeModifierBuilder._
   * As extending [[game.ui.gui.components.GUIComponent]], you have access to the `container` member to set dimensions
   * and alpha.
   *
-  * @param barFillingEvents the percentage of filling that this bar must have (number between 0 and 1).
+  * @param barFillingSignal the percentage of filling that this bar must have (number between 0 and 1).
   * @param colourSignal computes the tint value the bar must have
   * @param visibleSignal determine whether this bar should be visible
   * @param texture texture to draw the bar.
   */
 final class StatusBar(
-    barFillingEvents: Signal[Double],
+    barFillingSignal: Signal[Double],
     colourSignal: Signal[Colour],
     visibleSignal: Signal[Boolean],
     texture: Texture,
@@ -49,7 +49,7 @@ final class StatusBar(
     }
 
   val graphicsMask: ReactiveGraphics = pixiGraphics(
-    moveGraphics <-- barFillingEvents
+    moveGraphics <-- barFillingSignal
       .combineWith(dimensions)
       .map(graphicsFilling.tupled)
   )
