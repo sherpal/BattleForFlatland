@@ -55,7 +55,8 @@ final class CooldownBar(
     abilityName,
     textStyle := new TextStyle(
       Align(
-        fontSize = 10.0
+        fontSize = 10.0,
+        fill     = colour.matchingTextColour.rgb
       )
     )
   )

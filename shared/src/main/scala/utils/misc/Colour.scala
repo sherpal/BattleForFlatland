@@ -17,6 +17,8 @@ trait Colour {
   def luma: Int         = (0.2126 * red + 0.7152 * green + 0.0722 * blue).toInt
   def isBright: Boolean = luma > 128
 
+  def matchingTextColour: RGBColour = if (isBright) RGBColour.black else RGBColour.white
+
   def asRGBAColour: RGBAColour
 
 }

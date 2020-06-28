@@ -17,7 +17,7 @@ final class BuffIcon(
     val buffId: Buff.Id,
     texture: Texture,
     gameStateUpdates: EventStream[(GameState, Long)],
-    dimensions: Signal[(Double, Double)]
+    iconSizes: Signal[Double]
 ) extends GUIComponent {
 
   private val maybeBuffEvents = gameStateUpdates.map {
@@ -39,14 +39,15 @@ final class BuffIcon(
   container.amend(
     pixiSprite(
       texture,
-      dims <-- dimensions
+      width <-- iconSizes,
+      height <-- iconSizes
     ),
     new StatusBar(
       barFilling.toSignal(0.0),
       Val(RGBColour.black.withAlpha(0.5)),
       maybeBuffEvents.map(_._1.isDefined).toSignal(true),
       texture,
-      dimensions,
+      iconSizes.map(x => (x, x)),
       StatusBar.Vertical
     )
   )

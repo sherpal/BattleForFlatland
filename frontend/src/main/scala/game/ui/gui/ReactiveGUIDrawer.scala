@@ -21,6 +21,7 @@ import assets.Asset.ingame.gui.bars._
 import com.raquo.airstream.features.SingleParentObservable
 import game.ui.gui.reactivecomponents.gridcontainer.GridContainer
 import game.ui.gui.reactivecomponents.threatmeter.BossThreatMeter
+import utils.misc.RGBColour
 
 import scala.util.Try
 
@@ -33,6 +34,18 @@ final class ReactiveGUIDrawer(
     useAbilityWriter: Observer[Ability.AbilityId],
     gameStateUpdates: EventStream[(GameState, Long)]
 ) {
+
+  private val blackTexture = {
+    val graphics = new Graphics
+
+    graphics
+      .lineStyle(2, 0)
+      .beginFill(0, 0)
+      .drawRect(0, 0, 32, 32)
+      .endFill()
+
+    stage.application.renderer.generateTexture(graphics, 1, 1)
+  }
 
   private var lastGameStateUpdate: Long = System.currentTimeMillis()
 
@@ -214,6 +227,35 @@ final class ReactiveGUIDrawer(
 
           }
         }
+  )
+
+  private val bossCDBarsSize = Val((150.0, 20.0))
+  guiContainer.amend(
+    children <-- gameStateUpdates
+      .map(_._1.bosses.valuesIterator.toList.headOption.map(boss => (boss.id, boss.abilityNames)))
+      .toSignal(Option.empty)
+      .map {
+        case None => List.empty[ReactiveContainer]
+        case Some((bossId, abilityNames)) =>
+          abilityNames.zipWithIndex.map {
+            case ((abilityId, name), idx) =>
+              println("creating cooldown bar")
+              new CooldownBar(
+                bossId,
+                abilityId,
+                name,
+                RGBColour.someColours(idx % RGBColour.someColours.length),
+                resources(minimalistBar).texture,
+                gameStateUpdates,
+                bossCDBarsSize
+              ).amend(
+                position <-- stage.resizeEvents.combineWith(bossCDBarsSize).map {
+                  case ((viewWidth, _), (width, height)) =>
+                    Complex(viewWidth - width, idx * height)
+                }
+              )
+          }.toList
+      }
   )
 
 }

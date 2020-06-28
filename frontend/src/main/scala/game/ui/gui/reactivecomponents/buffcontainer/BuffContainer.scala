@@ -9,8 +9,11 @@ import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import game.ui.reactivepixi.ReactivePixiElement.ReactiveContainer
 import gamelogic.physics.Complex
-import typings.pixiJs.PIXI.LoaderResource
+import typings.pixiJs.PIXI.{LoaderResource, Texture}
 import game.ui.reactivepixi.AttributeModifierBuilder._
+
+import utils.laminarzio.Implicits._
+import scala.concurrent.duration._
 
 final class BuffContainer(
     entityId: Entity.Id,
@@ -20,7 +23,9 @@ final class BuffContainer(
     positions: Signal[Complex]
 ) extends GUIComponent {
 
-  private val buffIcons = gameStateUpdates
+  val slowGameStateUpdates: EventStream[(GameState, Long)] = gameStateUpdates.spacedBy(500.millis)
+
+  private val buffIcons: Signal[List[ReactiveContainer]] = gameStateUpdates
     .map(_._1)
     .map(_.allBuffsOfEntity(entityId).toList)
     .map(_.map(buff => (buff.buffId, buff.resourceIdentifier)))
@@ -31,10 +36,11 @@ final class BuffContainer(
           entityId,
           buffId,
           resources(Asset.buffAssetMap(identifier)).texture,
-          gameStateUpdates,
-          iconSizeSignal.map(x => (x, x))
-        ): ReactiveContainer
+          slowGameStateUpdates,
+          iconSizeSignal
+        )
     }
+    .map(_.sortBy(_.buffId).map(x => x: ReactiveContainer))
 
   container.amend(
     new GridContainer[ReactiveContainer](
