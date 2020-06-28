@@ -80,7 +80,7 @@ final class GameStateManager(
     * Signal containing the current target of the user, starting with no target.
     *
     * This target only has meaning inside the GUI (it is not encoded in the game state). However, it used when using
-    * abilities involving targetting something.
+    * abilities involving targeting something.
     */
   val $maybeTarget: Signal[Option[MovingBody with LivingEntity]] =
     EventStream
@@ -341,7 +341,7 @@ final class GameStateManager(
 
               case Ability.squareEnrageId =>
                 gameState.players.get(playerId) match {
-                  case Some(me) =>
+                  case Some(_) =>
                     val ability = Enrage(0L, now, playerId)
                     val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
                     if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
@@ -371,16 +371,6 @@ final class GameStateManager(
   )
 
   /** After [[game.ui.GameDrawer]] so that gui is on top of the game. */
-//  private val guiDrawer =
-//    new GUIDrawer(
-//      playerId,
-//      application,
-//      resources,
-//      targetFromGUIBus.writer,
-//      $maybeTarget.observe,
-//      useAbilityBus.writer,
-//      gameDrawer.camera
-//    )
   val guiDrawer = new ReactiveGUIDrawer(
     playerId,
     reactiveStage,

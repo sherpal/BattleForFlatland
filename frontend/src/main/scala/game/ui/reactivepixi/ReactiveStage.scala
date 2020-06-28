@@ -75,7 +75,8 @@ final class ReactiveStage(val application: Application) extends ReactivePixiElem
   /**
     * Returns the world position at which click event occurred.
     */
-  val clickEventsWorldPositions: EventStream[Complex] = clickEventsPositions.map(camera.mousePosToWorld)
+  val clickEventsWorldPositions: EventStream[Complex] =
+    clickEventsPositions.map(camera.canvasToComplex).map(camera.mousePosToWorld)
 
   private val resizeEventBus = new EventBus[(Double, Double)]
 

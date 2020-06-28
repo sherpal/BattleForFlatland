@@ -19,6 +19,16 @@ final class Camera(canvas: html.Canvas) {
   }
 
   /**
+    * Transform a coordinate where top right of canvas is 0 and imaginary increase to the bottom
+    * into the corresponding coordinate where the center of canvas is 0 and imaginary increase to the top.
+    */
+  def canvasToComplex(canvasPosition: Complex): Complex =
+    Complex(
+      canvasPosition.re - width / 2,
+      height / 2 - canvasPosition.im
+    )
+
+  /**
     * Change coordinates between the mouse position and the world position.
     */
   def mousePosToWorld(z: Complex): Complex = worldCenter + Complex(z.re / scaleX, z.im / scaleY)
