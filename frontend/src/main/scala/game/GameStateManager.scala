@@ -8,7 +8,7 @@ import com.raquo.airstream.ownership.Owner
 import com.raquo.airstream.signal.{Signal, SignalViewer}
 import game.ui.GameDrawer
 import game.ui.effects.{ChoosingAbilityPositionEffect, EffectsManager}
-import game.ui.gui.{GUIDrawer, ReactiveGUIDrawer}
+import game.ui.gui.ReactiveGUIDrawer
 import game.ui.reactivepixi.ReactiveStage
 import gamelogic.abilities.Ability
 import gamelogic.abilities.hexagon.{FlashHeal, HexagonHot}
@@ -90,7 +90,8 @@ final class GameStateManager(
         },
         reactiveStage.clickEventsWorldPositions.withCurrentValueOf($gameStates).map {
           case (mousePosition, state) =>
-            state.allTargetableEntities
+            state.allTargetableEntities.toList
+              .sortBy(_.shape.radius)
               .find(entity => entity.shape.contains(mousePosition, entity.pos, entity.rotation))
         }
       )
@@ -433,7 +434,6 @@ final class GameStateManager(
         .getOrElse(Complex.zero),
       now
     )
-    //guiDrawer.update(gameState, now)
     effectsManager.update(now, gameState)
 
     gameStateUpdatesBus.writer.onNext((gameState, now))

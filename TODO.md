@@ -9,7 +9,6 @@
 - show the game options to the people not game creators
 - class description documentation
 - improve end of game feeling (don't return directly to menu game)
-- don't target boss if other entity at the same place
 - key to target furthest ally/enemy
 - forbidding players to join a game if it is "launched"
 - improve game assets in general
