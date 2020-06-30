@@ -20,7 +20,7 @@ trait ReactivePixiElement[+Ref <: DisplayObject] extends Owner {
   private[reactivepixi] var destroyCallbacks: Vector[() => Unit] = Vector(() => killSubscriptions())
 
   /**
-    * This method with side effect allows you to modify the [[ReactivePixiElement]] after its creating, by adding more
+    * This method with side effect allows you to modify the [[ReactivePixiElement]] after its creation, by adding more
     * modifiers.
     * @return the same element.
     */
@@ -50,6 +50,7 @@ object ReactivePixiElement {
   type ReactiveSprite        = ReactivePixiElement[Sprite]
   type ReactiveGraphics      = ReactivePixiElement[Graphics]
   type ReactiveText          = ReactivePixiElement[Text]
+  type ReactiveBitmapText    = ReactivePixiElement[BitmapText]
 
   type Base = ReactiveDisplayObject
 
@@ -77,9 +78,9 @@ object ReactivePixiElement {
     }.amend(modifiers: _*)
 
   /** Creates a reactive pixi Text object */
-  def pixiText(text: String, modifiers: PixiModifier[ReactiveText]*): ReactiveText =
+  def pixiText(initialText: String, modifiers: PixiModifier[ReactiveText]*): ReactiveText =
     new ReactiveText {
-      val ref: Text = new mod.Text(text)
+      val ref: Text = new mod.Text(initialText)
     }.amend(modifiers: _*)
 
   implicit def reactiveElementIsModifier[El <: Base](newChild: El): PixiModifier[ReactiveContainer] =

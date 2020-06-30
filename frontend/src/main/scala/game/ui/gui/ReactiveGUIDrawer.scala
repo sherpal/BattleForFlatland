@@ -22,6 +22,9 @@ import com.raquo.airstream.features.SingleParentObservable
 import game.ui.gui.reactivecomponents.gridcontainer.GridContainer
 import game.ui.gui.reactivecomponents.threatmeter.BossThreatMeter
 import utils.misc.RGBColour
+import utils.laminarzio.Implicits._
+
+import scala.concurrent.duration._
 
 import scala.util.Try
 
@@ -47,20 +50,13 @@ final class ReactiveGUIDrawer(
     stage.application.renderer.generateTexture(graphics, 1, 1)
   }
 
-  private var lastGameStateUpdate: Long = System.currentTimeMillis()
-
-  val slowGameStateUpdates: EventStream[(GameState, Long)] = gameStateUpdates.filter { _ =>
-    val now = System.currentTimeMillis()
-    if (now - lastGameStateUpdate > 500) {
-      lastGameStateUpdate = now
-      true
-    } else false
-  }
+  val slowGameStateUpdates: EventStream[(GameState, Long)] = gameStateUpdates.spacedBy(500.millis)
 
   val guiContainer: ReactiveContainer = pixiContainer()
   stage(guiContainer)
 
   guiContainer.amend(new FPSDisplay(gameStateUpdates))
+  guiContainer.amend(new ClockDisplay(slowGameStateUpdates, Val(Complex(10, 50))))
 
   private val playerFrameDimensions = Val((120.0, 30.0))
   val playerFrame: ReactiveContainer = new PlayerFrame(

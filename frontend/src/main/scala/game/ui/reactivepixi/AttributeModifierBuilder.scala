@@ -9,7 +9,7 @@ import utils.misc.Colour
   * An [[AttributeModifierBuilder]] is the base trait for creating simple [[PixiModifier]] modifying attributes of
   * elements, such as `x`, `y`, `tint` and so on.
   *
-  * Builders basically have to methods for creating modifiers: `:=` and `<--`. There are very similar. The difference
+  * Builders basically have two methods for creating modifiers: `:=` and `<--`. There are very similar. The difference
   * being that `:=` takes a fixed value whereas `<--` takes an [[com.raquo.airstream.core.Observable]].
   *
   * You also have methods for transforming or combining builders.
@@ -18,7 +18,7 @@ import utils.misc.Colour
   * affected [[ReactivePixiElement]] should be modified.
   *
   * @tparam El type of [[ReactivePixiElement]] that this [[AttributeModifierBuilder]] creates [[PixiModifier]] for.
-  *            For example, a `AttributeModifierBuilder[ReactivePixiContainer]` creates modifyers for reactive pixi
+  *            For example, a `AttributeModifierBuilder[ReactivePixiContainer, _]` creates modifiers for reactive pixi
   *            containers.
   * @tparam A type of the attribute being affected. For example, [[java.lang.Double]] for `x`, [[utils.misc.Colour]] for
   *           `tint`. The type is sometimes a little bit more involved than the js type, in order to increase type
@@ -59,10 +59,11 @@ object AttributeModifierBuilder {
       modifying: (El, A) => Unit
   ): AttributeModifierBuilder[El, A] = (element: El, a: A) => modifying(element, a)
 
-  final val x           = factory[ReactiveDisplayObject, Double](_.ref.x = _)
-  final val y           = factory[ReactiveDisplayObject, Double](_.ref.y = _)
-  final val position    = (x zip y).contramap[Complex](_.tuple)
-  final val visible     = factory[ReactiveDisplayObject, Boolean](_.ref.visible = _)
+  final val x        = factory[ReactiveDisplayObject, Double](_.ref.x = _)
+  final val y        = factory[ReactiveDisplayObject, Double](_.ref.y = _)
+  final val position = (x zip y).contramap[Complex](_.tuple)
+
+  final val visible     = factory[ReactiveDisplayObject, Boolean](_.ref.visible     = _)
   final val interactive = factory[ReactiveDisplayObject, Boolean](_.ref.interactive = _)
 
   final val anchor = factory[ReactiveSprite, Double](_.ref.anchor.set(_))

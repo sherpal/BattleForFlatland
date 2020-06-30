@@ -93,7 +93,7 @@ final class GameDrawer(
       val sprite = dummyMobSprites.getOrElse(
         entity.id, {
           val s = new Sprite(polygonTexture(0xc0c0c0, 1.0, entity.shape))
-          s.anchor.set(0.5, 0.5)
+          s.anchor.set(0.5)
           dummyMobSprites += (entity.id -> s)
           dummyMobContainer.ref.addChild(s)
           s
