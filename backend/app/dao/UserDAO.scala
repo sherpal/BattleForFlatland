@@ -3,7 +3,7 @@ package dao
 import java.util.concurrent.TimeUnit
 
 import errors.ErrorADT
-import errors.ErrorADT.UserExists
+import errors.ErrorADT.{PendingRegistrationDoesNotExist, UserExists}
 import guards.Guards
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -63,6 +63,19 @@ object UserDAO extends Results {
       (userAdded, pendingRemoved) <- confirmPendingRegistration(registrationKey)
       _ <- log.info(s"User added ($userAdded), pending registration removed ($pendingRemoved).")
     } yield Ok).refineOrDie(ErrorADT.onlyErrorADT)
+
+  /**
+    * Returns the registration key corresponding to the given `userName`.
+    *
+    * /!\ This effect will only be used in development, waiting for the mailing service to be set up.
+    */
+  def registrationKeyFromName(
+      userName: String
+  ): ZIO[Users, ErrorADT, Result] =
+    for {
+      maybePendingRegistration <- selectPendingRegistrationByUserName(userName).refineOrDie(ErrorADT.onlyErrorADT)
+      pendingRegistration <- getOrFail(maybePendingRegistration, PendingRegistrationDoesNotExist(userName))
+    } yield Ok(pendingRegistration.registrationKey)
 
   val login: ZIO[Clock with Users with Crypto with Logging with Has[HasRequest[Request, LoginUser]], ErrorADT, Result] =
     (for {

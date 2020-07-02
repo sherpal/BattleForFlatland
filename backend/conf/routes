@@ -40,6 +40,7 @@ GET     /api/users/am-i-super-user      controllers.UsersController.amISuperUser
 GET     /api/users/users                controllers.UsersController.users(from: Long, to: Long)
 POST    /api/users/register             controllers.UsersController.register
 POST    /api/users/confirm-registration controllers.UsersController.confirmRegistration(registrationKey)
+POST    /api/registration-key-from-name controllers.UsersController.registrationKeyFromName(userName)
 POST    /api/users/login                controllers.UsersController.login
 POST    /api/users/logout               controllers.UsersController.logout
 

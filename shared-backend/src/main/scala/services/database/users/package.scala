@@ -60,6 +60,9 @@ package object users {
   ): ZIO[Users with Crypto with Clock, Throwable, String] =
     ZIO.accessM(_.get[Users.Service].addPendingRegistration(userName, rawPassword, mailAddress))
 
+  def selectPendingRegistrationByUserName(userName: String): ZIO[Users, Throwable, Option[PendingRegistration]] =
+    ZIO.accessM(_.get[Users.Service].selectPendingRegistrationByUserName(userName))
+
   def selectPendingRegistrationByEmail(email: String): ZIO[Users, Throwable, Option[PendingRegistration]] =
     ZIO.accessM(_.get[Users.Service].selectPendingRegistrationByEmail(email))
 

@@ -49,6 +49,11 @@ final class UsersController @Inject()(
     UserDAO.confirmRegistration(registrationKey).provideLayer(layer)
   )
 
+  /** This is going to be used only in development, while I don't have emails set up */
+  def registrationKeyFromName(userName: String): Action[AnyContent] = Action.zio(
+    UserDAO.registrationKeyFromName(userName).provideLayer(layer)
+  )
+
   def login: Action[LoginUser] = Action.zio(parse.json[LoginUser])(
     UserDAO.login.provideButRequest[Request, LoginUser](layer)
   )
