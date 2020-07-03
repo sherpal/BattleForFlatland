@@ -54,7 +54,7 @@ object Asset {
       }
 
       object bars {
-        @js.native @JSImport("resources/assets/in-game/gui/bars/LiteStep.png", JSImport.Default)
+        @js.native @JSImport("resources/assets/in-game/gui/bars/LiteStep_wenakari.png", JSImport.Default)
         object liteStepBar extends Asset
 
         @js.native @JSImport("resources/assets/in-game/gui/bars/Minimalist.png", JSImport.Default)

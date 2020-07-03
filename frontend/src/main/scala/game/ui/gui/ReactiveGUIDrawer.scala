@@ -26,8 +26,6 @@ import utils.laminarzio.Implicits._
 
 import scala.concurrent.duration._
 
-import scala.util.Try
-
 final class ReactiveGUIDrawer(
     playerId: Entity.Id,
     stage: ReactiveStage,

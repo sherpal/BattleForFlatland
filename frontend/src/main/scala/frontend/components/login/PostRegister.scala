@@ -12,14 +12,14 @@ import zio.ZIO
 
 final class PostRegister private (userName: String) extends Component[html.Element] {
 
-  val autoConfirmRegistration: ZIO[Routing with HttpClient, Throwable, Int] = for {
+  val autoConfirmRegistration: ZIO[Routing with HttpClient, Throwable, Unit] = for {
     _ <- ZIO.effectTotal { println("Asking registration key") }
     registrationKey <- post[String, String](
       RouteDefinitions.registrationKeyFromNameRoute,
       RouteDefinitions.userNameParam
     )(userName)
     _ <- moveTo(RouteDefinitions.confirmRoute)(registrationKey)
-  } yield 2
+  } yield ()
 
   val element: ReactiveHtmlElement[html.Element] = section(
     p(s"Thank you, $userName, for registering to Battle For Flatland!"),
