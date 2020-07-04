@@ -27,6 +27,8 @@ import typings.pixiJs.PIXI.LoaderResource
 import typings.pixiJs.mod.{Application, Container}
 import utils.misc.RGBColour
 import utils.pixi.monkeypatching.PIXIPatching._
+import utils.laminarzio.Implicits._
+import scala.concurrent.duration._
 
 import scala.scalajs.js.timers.setTimeout
 
@@ -45,6 +47,9 @@ final class GameStateManager(
 )(implicit owner: Owner) {
 
   @inline def application: Application = reactiveStage.application
+
+  val slowSocketOutWriterBus = new EventBus[InGameWSProtocol.Outgoing]
+  slowSocketOutWriterBus.events.spacedBy(100.millis).foreach(socketOutWriter.onNext)
 
   private val gameStateUpdatesBus                      = new EventBus[(GameState, Long)]
   val gameStateUpdates: EventStream[(GameState, Long)] = gameStateUpdatesBus.events

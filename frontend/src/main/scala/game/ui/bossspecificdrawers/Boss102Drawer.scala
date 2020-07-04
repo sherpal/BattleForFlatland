@@ -47,6 +47,7 @@ final class Boss102Drawer(
       val sprite = boss102DamageZones.getOrElse(
         zone.id, {
           val s = new Sprite(damageZoneTexture)
+          s.cacheAsBitmap = true
           s.anchor.set(0.5, 0.5)
           boss102DamageZones += (zone.id -> s)
           damageZoneContainer.addChild(s)
@@ -60,6 +61,8 @@ final class Boss102Drawer(
   private val particleContainer = new ParticleContainer
   otherStuffContainerAbove.addChild(particleContainer)
   private val houndsSprites: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
+
+  private val houndTexture = polygonTexture(RGBColour.gray.intColour, 0.5, BossHound.shape)
   private def drawHounds(hounds: List[BossHound]): Unit = {
     houndsSprites
       .filter { case (id, _) => !hounds.map(_.id).contains(id) }
@@ -72,7 +75,8 @@ final class Boss102Drawer(
     hounds.foreach { hound =>
       val sprite = houndsSprites.getOrElse(
         hound.id, {
-          val s = new Sprite(polygonTexture(RGBColour.gray.intColour, 0.5, hound.shape))
+          val s = new Sprite(houndTexture)
+          s.cacheAsBitmap = true
           s.anchor.set(0.5, 0.5)
           houndsSprites += (hound.id -> s)
           particleContainer.addChild(s)

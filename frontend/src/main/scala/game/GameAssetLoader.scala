@@ -21,6 +21,7 @@ import zio.{UIO, ZIO}
 final class GameAssetLoader(application: Application) {
 
   private val progressBus: EventBus[ProgressData] = new EventBus
+  private val endedBus: EventBus[Unit]            = new EventBus
 
   val assets: List[String] = List(
     ScalaLogo,
@@ -46,7 +47,8 @@ final class GameAssetLoader(application: Application) {
     livingDamageZone
   )
 
-  final val $progressData = progressBus.events
+  final val $progressData     = progressBus.events
+  final val endedLoadingEvent = endedBus.events
 
   // todo: handle errors when loading
   val loadAssets: ZIO[Any, Nothing, PartialFunction[Asset, LoaderResource]] = for {
@@ -65,6 +67,7 @@ final class GameAssetLoader(application: Application) {
       }
       .fork
     resources <- fiber.join
+    _ <- ZIO.effectTotal { endedBus.writer.onNext(()) }
     fn <- UIO({
       case asset: Asset if resources.isDefinedAt(asset) => resources(asset)
     }: PartialFunction[Asset, LoaderResource])

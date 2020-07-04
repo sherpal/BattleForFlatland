@@ -129,7 +129,7 @@ final class PlayerFrame(
     buffContainer,
     interactive := true,
     pixiGraphics(
-      moveGraphics := (_.beginFill(0, 1).drawRect(0, 0, buffIconSize, buffIconSize).endFill()),
+      moveGraphics := (_.beginFill(0, 0).drawRect(0, 0, buffIconSize, buffIconSize).endFill()),
       y <-- dimensions.map(_._2)
     ),
     hitArea <-- dimensions.map { case (width, height) => new Rectangle(0, 0, width, height) },

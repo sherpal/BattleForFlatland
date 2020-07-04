@@ -25,7 +25,7 @@ final class BuffContainer(
 
   val slowGameStateUpdates: EventStream[(GameState, Long)] = gameStateUpdates.spacedBy(500.millis)
 
-  private val buffIcons: Signal[List[ReactiveContainer]] = gameStateUpdates
+  private val buffIcons: Signal[List[ReactiveContainer]] = slowGameStateUpdates
     .map(_._1)
     .map(_.allBuffsOfEntity(entityId).toList)
     .map(_.map(buff => (buff.buffId, buff.resourceIdentifier)))
@@ -40,7 +40,7 @@ final class BuffContainer(
           iconSizeSignal
         )
     }
-    .map(_.sortBy(_.buffId).map(x => x: ReactiveContainer))
+    .map(_.sortBy(_.buffId).map(_.container))
 
   container.amend(
     new GridContainer[ReactiveContainer](

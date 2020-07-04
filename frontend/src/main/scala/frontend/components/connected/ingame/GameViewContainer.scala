@@ -48,7 +48,13 @@ final class GameViewContainer private (
   )
   val loader = new GameAssetLoader(application)
 
-  val assetLoading: Signal[Double] = loader.$progressData.map(_.completion).startWith(0.0)
+  val assetLoading: Signal[Double] =
+    EventStream
+      .merge(
+        loader.$progressData.map(_.completion),
+        loader.endedLoadingEvent.mapTo(100.0)
+      )
+      .startWith(0.0)
 
   val loadingProgressBar: ReactiveHtmlElement[Progress] = progress(
     maxAttr := "100",

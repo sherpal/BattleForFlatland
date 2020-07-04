@@ -1,7 +1,7 @@
 package game.ui.gui.reactivecomponents
 
 import com.raquo.airstream.eventstream.EventStream
-import com.raquo.airstream.signal.Signal
+import com.raquo.airstream.signal.{Signal, Val}
 import typings.pixiJs.PIXI.{Graphics, Texture}
 import utils.misc.Colour
 import game.ui.reactivepixi.ReactivePixiElement._
