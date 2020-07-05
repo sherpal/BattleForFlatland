@@ -15,12 +15,14 @@ trait PixiModifier[-El] {
 
 object PixiModifier {
 
-  def factory[El](applyMethod: El => Unit): PixiModifier[El] = new PixiModifier[El] {
-    def apply(element: El): Unit = applyMethod(element)
-  }
+  val unit: PixiModifier[Any] = (_: Any) => ()
 
-  implicit def fromList[El](modifiers: List[PixiModifier[El]]): PixiModifier[El] = new PixiModifier[El] {
-    def apply(element: El): Unit = modifiers.foreach(_(element))
-  }
+  def factory[El](applyMethod: El => Unit): PixiModifier[El] = (element: El) => applyMethod(element)
+
+  implicit def fromList[El](modifiers: List[PixiModifier[El]]): PixiModifier[El] =
+    (element: El) => modifiers.foreach(_(element))
+
+  implicit def fromOption[El](maybeModifier: Option[PixiModifier[El]]): PixiModifier[El] =
+    maybeModifier.getOrElse(unit)
 
 }

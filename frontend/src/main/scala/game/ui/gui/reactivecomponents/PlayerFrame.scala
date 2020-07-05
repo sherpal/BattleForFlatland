@@ -11,13 +11,20 @@ import typings.pixiJs.PIXI.{Graphics, LoaderResource, Texture}
 import game.ui.reactivepixi.ReactivePixiElement._
 import game.ui.reactivepixi.AttributeModifierBuilder._
 import game.ui.reactivepixi.EventModifierBuilder._
-import gamelogic.entities.classes.PlayerClass
+import game.ui.reactivepixi.PixiModifier
+import gamelogic.abilities.WithTargetAbility
+import gamelogic.entities.classes.{Constants, PlayerClass}
 import gamelogic.physics.Complex
+import models.bff.outofgame.PlayerClasses.Hexagon
 import typings.pixiJs.anon.Align
 import typings.pixiJs.mod.{Rectangle, TextStyle}
 import utils.misc.RGBColour
+import utils.laminarzio.Implicits._
+
+import scala.concurrent.duration._
 
 final class PlayerFrame(
+    maybeMyId: Option[Entity.Id], // possibility to give the id of the playing player to check in range distance
     val entityId: Entity.Id,
     entityShapeTexture: Texture,
     lifeTexture: Texture,
@@ -42,6 +49,24 @@ final class PlayerFrame(
   val lifeSpriteHeight: Signal[Double]     = heightSignal.map(_ * lifeProportion)
   val resourceSpriteHeight: Signal[Double] = heightSignal.map(_ * (1 - lifeProportion))
 
+  val maybeOutOfRangeAlphaModifier: PixiModifier[ReactiveSprite] = maybeMyId.map { playingPlayerId =>
+    alpha <-- gameStateUpdates
+      .spacedBy(500.millis)
+      .map(_._1)
+      .map { gameState =>
+        (for {
+          me <- gameState.players.get(playingPlayerId)
+          they <- gameState.players.get(entityId)
+          distance = (me.pos - they.pos).modulus
+        } yield distance < WithTargetAbility.healRange) match {
+          case Some(true)  => 1.0
+          case Some(false) => 0.3
+          case None        => 1.0
+        }
+      }
+      .toSignal(1.0)
+  }
+
   private def adaptMask(width: Double, height: Double, ratio: Double): Graphics => Unit =
     _.clear().beginFill(0x000000).drawRect(0, 0, width * ratio, height)
 
@@ -54,14 +79,16 @@ final class PlayerFrame(
   )
   val shapeSprite: ReactiveSprite = pixiSprite(
     entityShapeTexture,
-    dims <-- heightSignal.map(h => (h, h))
+    dims <-- heightSignal.map(h => (h, h)),
+    tintInt <-- entityEvents.map(_.colour).toSignal(0)
   )
   val backgroundLifeSprite: ReactiveSprite = pixiSprite(
     lifeTexture,
     tint := RGBColour.gray,
     x <-- heightSignal,
     width <-- barsWidthSignal,
-    height <-- lifeSpriteHeight
+    height <-- lifeSpriteHeight,
+    maybeOutOfRangeAlphaModifier
   )
   val lifeSprite: ReactiveSprite = pixiSprite(
     lifeTexture,
@@ -69,7 +96,8 @@ final class PlayerFrame(
     tint := RGBColour.green,
     x <-- heightSignal,
     width <-- barsWidthSignal,
-    height <-- lifeSpriteHeight
+    height <-- lifeSpriteHeight,
+    maybeOutOfRangeAlphaModifier
   )
   val resourceMask: ReactiveGraphics = pixiGraphics(
     x <-- heightSignal,
@@ -128,7 +156,7 @@ final class PlayerFrame(
     lifeText,
     buffContainer,
     interactive := true,
-    pixiGraphics(
+    pixiGraphics( // this is used to immediately set the height of the total frame with the buff container
       moveGraphics := (_.beginFill(0, 0).drawRect(0, 0, buffIconSize, buffIconSize).endFill()),
       y <-- dimensions.map(_._2)
     ),

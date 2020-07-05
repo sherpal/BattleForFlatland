@@ -9,7 +9,7 @@ import game.ui.reactivepixi.ReactiveStage
 import gamelogic.abilities.Ability
 import gamelogic.entities.{Entity, LivingEntity, MovingBody}
 import gamelogic.gamestate.GameState
-import typings.pixiJs.PIXI.LoaderResource
+import typings.pixiJs.PIXI.{LoaderResource, RenderTexture}
 import game.ui.reactivepixi.ReactivePixiElement._
 import game.ui.reactivepixi.AttributeModifierBuilder._
 import game.ui.reactivepixi.ChildrenReceiver._
@@ -56,19 +56,23 @@ final class ReactiveGUIDrawer(
   guiContainer.amend(new FPSDisplay(gameStateUpdates))
   guiContainer.amend(new ClockDisplay(slowGameStateUpdates, Val(Complex(10, 50))))
 
+  val playerFrameShapeTexture: RenderTexture = {
+    val graphics = new Graphics
+
+    graphics
+      .lineStyle(0, 0xffffff)
+      .beginFill(0xffffff, 1)
+      .drawRect(0, 0, 15, 15)
+      .endFill()
+
+    stage.application.renderer.generateTexture(graphics, 1, 1)
+  }
+
   private val playerFrameDimensions = Val((120.0, 30.0))
   val playerFrame: ReactiveContainer = new PlayerFrame(
-    playerId, {
-      val graphics = new Graphics
-
-      graphics
-        .lineStyle(2, 0xccc)
-        .beginFill(0, 0)
-        .drawRect(0, 0, 15, 15)
-        .endFill()
-
-      stage.application.renderer.generateTexture(graphics, 1, 1)
-    },
+    Option.empty[Entity.Id],
+    playerId,
+    playerFrameShapeTexture,
     resources(minimalistBar).texture,
     resources(minimalistBar).texture,
     playerFrameDimensions,
@@ -174,17 +178,9 @@ final class ReactiveGUIDrawer(
       .split(identity) {
         case (entityId, _, _) =>
           new PlayerFrame(
-            entityId, {
-              val graphics = new Graphics
-
-              graphics
-                .lineStyle(2, 0xccc)
-                .beginFill(0, 0)
-                .drawRect(0, 0, 15, 15)
-                .endFill()
-
-              stage.application.renderer.generateTexture(graphics, 1, 1)
-            },
+            Some(playerId),
+            entityId,
+            playerFrameShapeTexture,
             resources(minimalistBar).texture,
             resources(minimalistBar).texture,
             Val((120.0, 30.0)),
@@ -233,7 +229,6 @@ final class ReactiveGUIDrawer(
         case Some((bossId, abilityNames)) =>
           abilityNames.zipWithIndex.map {
             case ((abilityId, name), idx) =>
-              println("creating cooldown bar")
               new CooldownBar(
                 bossId,
                 abilityId,
