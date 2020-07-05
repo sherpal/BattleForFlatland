@@ -3,7 +3,7 @@ package frontend.components.login
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import errors.ErrorADT
-import errors.ErrorADT.{ErrorOr, MultipleErrorsMap}
+import errors.ErrorADT.{ErrorOr, MultipleErrorsMap, ShouldNotContain, ValidatorError}
 import frontend.components.Component
 import frontend.components.forms.SimpleForm
 import frontend.components.utils.popper.PopperElement
@@ -52,15 +52,15 @@ final class RegisterForm extends Component[html.Form] with SimpleForm[NewUser, E
           case _             => "bg-green-500"
         }
       )
-    ),
-    span(
-      "What is this?",
-      dataAttr("container") := "body",
-      title := "",
-      dataAttr("content") := "This bar attempts to reflects the strength of your password. There is no need to panic if it is not fully green!",
-      dataAttr("origin-title") := "Password strength",
-      PopperElement.attachPopover
     )
+//    span(
+//      "What is this?",
+//      dataAttr("container") := "body",
+//      title := "",
+//      dataAttr("content") := "This bar attempts to reflects the strength of your password. There is no need to panic if it is not fully green!",
+//      dataAttr("origin-title") := "Password strength",
+//      PopperElement.attachPopover
+//    )
   )
 
   val program: ZIO[NewUser, Nothing, Either[ErrorADT, Int]] = (for {
@@ -73,6 +73,20 @@ final class RegisterForm extends Component[html.Form] with SimpleForm[NewUser, E
 
   def submitProgram(formData: NewUser): UIO[ErrorOr[Int]] = program.provide(formData)
 
+  val errorsEvents: EventStream[Map[String, List[ErrorADT]]] = $submitEvents.collect {
+    case Left(MultipleErrorsMap(errors)) => errors
+    case Left(error)                     => Map("single" -> List(error))
+  }
+
+  val resetNameErrorsBus: EventBus[Unit] = new EventBus
+
+  val nameErrorsEvents: EventStream[List[ValidatorError]] = EventStream.merge(
+    resetNameErrorsBus.events.mapTo(List.empty[ValidatorError]),
+    errorsEvents.map(_.get("name")).collect {
+      case Some(errors) => errors.collect { case ve: ValidatorError => ve }: List[ValidatorError]
+    }
+  )
+
   val element: ReactiveHtmlElement[Form] = form(
     submit,
     fieldSet(
@@ -82,8 +96,22 @@ final class RegisterForm extends Component[html.Form] with SimpleForm[NewUser, E
         formInput(
           "text",
           placeholder := "Choose user name",
-          inContext(elem => onChange.mapTo(elem.ref.value) --> nameChanger)
+          inContext(elem => onChange.mapTo(elem.ref.value) --> nameChanger),
+          onChange.mapTo(()) --> resetNameErrorsBus,
+          onMountFocus
         )
+      ),
+      div(
+        child.text <-- nameErrorsEvents.map { errors =>
+          errors
+            .map {
+              case ShouldNotContain(" ", _) => s"Name should not contain spaces."
+              case ShouldNotContain(str, _) => s"Name should not contain `$str`."
+              case other                    => other.toString // todo
+            }
+            .headOption
+            .getOrElse("")
+        }
       ),
       div(
         formGroup,

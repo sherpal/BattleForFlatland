@@ -68,6 +68,8 @@ final case class Complex(re: Double, im: Double) {
 
   @inline def unary_! : Double = modulus
 
+  @inline def distanceTo(that: Complex): Double = (that - this).modulus
+
   def tuple: (Double, Double) = (re, im)
 
   override def equals(that: Any): Boolean = that match {

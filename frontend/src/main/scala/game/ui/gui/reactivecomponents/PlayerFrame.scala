@@ -13,9 +13,8 @@ import game.ui.reactivepixi.AttributeModifierBuilder._
 import game.ui.reactivepixi.EventModifierBuilder._
 import game.ui.reactivepixi.PixiModifier
 import gamelogic.abilities.WithTargetAbility
-import gamelogic.entities.classes.{Constants, PlayerClass}
+import gamelogic.entities.classes.PlayerClass
 import gamelogic.physics.Complex
-import models.bff.outofgame.PlayerClasses.Hexagon
 import typings.pixiJs.anon.Align
 import typings.pixiJs.mod.{Rectangle, TextStyle}
 import utils.misc.RGBColour
@@ -55,9 +54,9 @@ final class PlayerFrame(
       .map(_._1)
       .map { gameState =>
         (for {
-          me <- gameState.players.get(playingPlayerId)
-          they <- gameState.players.get(entityId)
-          distance = (me.pos - they.pos).modulus
+          my <- gameState.players.get(playingPlayerId)
+          their <- gameState.players.get(entityId)
+          distance = my.pos distanceTo their.pos
         } yield distance < WithTargetAbility.healRange) match {
           case Some(true)  => 1.0
           case Some(false) => 0.3
