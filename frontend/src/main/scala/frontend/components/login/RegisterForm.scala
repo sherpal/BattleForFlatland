@@ -97,7 +97,7 @@ final class RegisterForm extends Component[html.Form] with SimpleForm[NewUser, E
           "text",
           placeholder := "Choose user name",
           inContext(elem => onChange.mapTo(elem.ref.value) --> nameChanger),
-          onChange.mapTo(()) --> resetNameErrorsBus,
+          onInput.mapTo(()) --> resetNameErrorsBus,
           onMountFocus
         )
       ),
@@ -154,11 +154,13 @@ final class RegisterForm extends Component[html.Form] with SimpleForm[NewUser, E
         )
       )
     ),
-    child <-- $submitEvents.map {
-      case Left(MultipleErrorsMap(errors)) => errors.toString
-      case Left(error)                     => error.toString
-      case Right(code)                     => code.toString
-    }
+    pre(
+      child <-- $submitEvents.map {
+        case Left(MultipleErrorsMap(errors)) => errors.toString
+        case Left(error)                     => error.toString
+        case Right(code)                     => code.toString
+      }
+    )
   )
 
 }

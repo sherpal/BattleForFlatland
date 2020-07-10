@@ -55,19 +55,19 @@ trait Path extends (Long => Complex) {
 
 object Path {
 
-  def factory(duration: Option[Long], path: Long => Complex): Path = {
-    val _duration = duration
-    new Path {
-      def maybeDuration: Option[Long] = _duration
-
-      def apply(t: Long): Complex = path(t)
-    }
+  def factory(duration: Option[Long], path: Long => Complex): Path = new Path {
+    def maybeDuration: Option[Long] = duration
+    def apply(t: Long): Complex     = path(t)
   }
 
   def infiniteFactory(path: Long => Complex): Path = new Path {
     def maybeDuration: Option[Long] = None
+    def apply(time: Long): Complex  = path(time)
+  }
 
-    def apply(time: Long): Complex = path(time)
+  def finiteFactory(duration: Long, path: Long => Complex): Path = new Path {
+    def maybeDuration: Option[Long] = Some(duration)
+    def apply(time: Long): Complex  = path(time)
   }
 
   val positiveRealLine: Path = Path.infiniteFactory(Complex(_, 0))
@@ -86,5 +86,14 @@ object Path {
     infiniteFactory(t => radius * Complex.rotation(2 * math.Pi * t / loopDuration))
 
   def circle(duration: Long, radius: Double): Path = circleLoop(radius, duration).stopAfter(duration)
+
+  def arc(duration: Long, radius: Double, fromAngle: Double, toAngle: Double): Path =
+    finiteFactory(
+      duration,
+      t =>
+        radius * Complex.rotation(
+          fromAngle + t * (toAngle - fromAngle) / duration.toDouble
+        )
+    )
 
 }

@@ -61,7 +61,7 @@ object FrontendSettings {
     webpackBundlingMode in fastOptJS := BundlingMode.LibraryOnly(),
     requireJsDomEnv in Test := true,
     // laminar
-    libraryDependencies += "com.raquo" %%% "laminar" % "0.9.0",
+    libraryDependencies += "com.raquo" %%% "laminar" % "0.9.2",
     libraryDependencies += "me.shadaj" %%% "slinky-core" % "0.6.5", // core React functionality, no React DOM
     libraryDependencies += "me.shadaj" %%% "slinky-web" % "0.6.5", // React DOM, HTML and SVG tags
     libraryDependencies += "me.shadaj" %%% "slinky-native" % "0.6.5", // React Native components

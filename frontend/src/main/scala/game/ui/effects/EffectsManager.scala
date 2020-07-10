@@ -13,9 +13,11 @@ import gamelogic.gamestate.gameactions.boss102.{AddBossHound, PutLivingDamageZon
 import gamelogic.gamestate.gameactions.{EntityGetsHealed, EntityTakesDamage, UseAbility}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
-import typings.pixiJs.PIXI.LoaderResource
-import typings.pixiJs.mod.{Application, Container}
+import typings.pixiJs.PIXI.{LoaderResource, RenderTexture}
+import typings.pixiJs.mod.{Application, Container, Graphics}
 import utils.misc.RGBColour
+import gamelogic.abilities
+import gamelogic.entities.classes.Constants
 
 import scala.collection.mutable
 
@@ -27,6 +29,15 @@ final class EffectsManager(
     resources: PartialFunction[Asset, LoaderResource]
 )(implicit owner: Owner)
     extends Drawer {
+
+  val triangleHitTexture: RenderTexture = {
+    val graphics = new Graphics()
+      .beginFill(0)
+      .drawRect(0, 0, 20, 2)
+      .endFill()
+
+    application.renderer.generateTexture(graphics, 1, 1)
+  }
 
   private val container: Container = new Container
   application.stage.addChild(container)
@@ -84,6 +95,16 @@ final class EffectsManager(
                 polygonTexture(player.colour, 0.9, Cleave.cone)
               )
             }
+          case UseAbility(_, time, casterId, _, ability: abilities.triangle.DirectHit) =>
+            for {
+              target <- gameState.livingEntityAndMovingBodyById(ability.targetId)
+              caster <- gameState.players.get(casterId)
+              angle = (caster.pos - target.pos).arg
+              path  = -Path.arc(200, Constants.playerRadius * 1.5, angle - math.Pi / 4, angle + math.Pi / 4)
+            } yield new MovingSpriteEffect(triangleHitTexture, time, path, (_, currentTime) => path(currentTime).arg, {
+              (gameState, currentTime) =>
+                gameState.players.get(casterId).fold(Complex.zero)(_.currentPosition(currentTime))
+            }, camera)
           case PutLivingDamageZone(_, time, buffId, bearerId, _, _) =>
             Some(
               new LivingDamageZoneEffect(

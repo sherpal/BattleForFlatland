@@ -43,11 +43,9 @@ object BGameServerLauncher {
                 .filter(_.status.isSuccess)
             }
             .unit
-            .timeout(zio.duration.Duration(1000, java.util.concurrent.TimeUnit.MILLISECONDS))
-            .flatMap {
-              case Some(success) => UIO(success)
-              case None          => ZIO.fail(new Exception("Timeout"))
-            }
+            .timeoutFail(new java.util.concurrent.TimeoutException("Timed out"))(
+              zio.duration.Duration(1000, java.util.concurrent.TimeUnit.MILLISECONDS)
+            )
             .tapError(error => log.error(error.getMessage))
             .orElseFail(GameServerLauncherCouldNotBeReached)
             .provideLayer(ZLayer.succeed(logging) ++ ZLayer.succeed(clock))
