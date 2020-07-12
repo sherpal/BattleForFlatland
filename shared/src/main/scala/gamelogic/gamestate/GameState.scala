@@ -189,8 +189,8 @@ final class GameState(
     tickerBuffs.getOrElse(entityId, Map()).valuesIterator ++
       passiveBuffs.getOrElse(entityId, Map()).valuesIterator
 
-  def obstaclesLike: Iterator[Body]    = obstacles.valuesIterator
-  def allObstacles: Iterator[Obstacle] = obstacles.valuesIterator
+  def obstaclesLike: Iterator[PolygonBody] = obstacles.valuesIterator
+  def allObstacles: Iterator[Obstacle]     = obstacles.valuesIterator
 
   /**
     * We build an interface on top of accessing and changing obstacles because the implementation could be different than

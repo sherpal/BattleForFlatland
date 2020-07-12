@@ -56,6 +56,8 @@ final case class Complex(re: Double, im: Double) {
     */
   def orthogonal: Complex = Complex(-im, re)
 
+  def rotate(angle: Double): Complex = this * Complex.rotation(angle)
+
   def normalized: Complex = this / modulus
 
   def safeNormalized: Complex = if (modulus == 0) 0 else normalized

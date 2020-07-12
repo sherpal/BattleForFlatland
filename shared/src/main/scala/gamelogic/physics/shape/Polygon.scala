@@ -65,6 +65,9 @@ trait Polygon extends Shape {
 
   def edges: Vector[Segment] = vertices.zip(vertices.tail :+ vertices(0)).map(Segment.tupled)
 
+  def translateAndRotationVertices(translation: Complex, rotation: Double): Vector[Complex] =
+    vertices.map(_.rotate(rotation) + translation)
+
   /**
     * Returns the polygon where all the edges are translated radius away to the exterior.
     */

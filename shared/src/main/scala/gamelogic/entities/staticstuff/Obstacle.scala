@@ -2,7 +2,7 @@ package gamelogic.entities.staticstuff
 
 import gamelogic.entities.Entity.TeamId
 import gamelogic.entities.WithPosition.Angle
-import gamelogic.entities.{Body, Entity}
+import gamelogic.entities.{Body, Entity, PolygonBody}
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{ConvexPolygon, Polygon}
 import utils.misc.RGBColour
@@ -13,7 +13,7 @@ import utils.misc.RGBColour
   * Also, it has its importance for spells with a target. When there is an obstacle between two entities, one can not
   * use an ability which targets the other one.
   */
-final case class Obstacle(id: Entity.Id, time: Long, pos: Complex, shape: Polygon) extends Body {
+final case class Obstacle(id: Entity.Id, time: Long, pos: Complex, shape: Polygon) extends PolygonBody {
   def rotation: Angle = 0.0
 
   def teamId: TeamId = Entity.teams.neutralTeam

@@ -9,11 +9,8 @@ import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import game.ui.reactivepixi.ReactivePixiElement.ReactiveContainer
 import gamelogic.physics.Complex
-import typings.pixiJs.PIXI.{LoaderResource, Texture}
+import typings.pixiJs.PIXI.LoaderResource
 import game.ui.reactivepixi.AttributeModifierBuilder._
-
-import utils.laminarzio.Implicits._
-import scala.concurrent.duration._
 
 final class BuffContainer(
     entityId: Entity.Id,

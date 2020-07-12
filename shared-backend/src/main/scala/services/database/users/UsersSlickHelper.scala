@@ -16,8 +16,6 @@ abstract class UsersSlickHelper(api: JdbcProfile#API) {
   protected val crossQuery    = CrossUsersRolesTable.query
   protected val pendingRQuery = PendingRegistrationsTable.query
 
-  userQuery.filter(_.tableName === "1")
-
   protected val usersToRole = crossQuery
     .joinLeft(roleQuery)
     .on(_.roleId === _.roleId)
