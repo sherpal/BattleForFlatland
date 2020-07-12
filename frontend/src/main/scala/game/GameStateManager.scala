@@ -29,6 +29,7 @@ import utils.misc.RGBColour
 import utils.pixi.monkeypatching.PIXIPatching._
 import utils.laminarzio.Implicits._
 import scala.concurrent.duration._
+import scala.Ordering.Double.TotalOrdering
 
 import scala.scalajs.js.timers.setTimeout
 
@@ -49,7 +50,7 @@ final class GameStateManager(
   @inline def application: Application = reactiveStage.application
 
   val slowSocketOutWriterBus = new EventBus[InGameWSProtocol.Outgoing]
-  slowSocketOutWriterBus.events.spacedBy(100.millis).foreach(socketOutWriter.onNext)
+  slowSocketOutWriterBus.events.throttle(100).foreach(socketOutWriter.onNext)
 
   private val gameStateUpdatesBus                      = new EventBus[(GameState, Long)]
   val gameStateUpdates: EventStream[(GameState, Long)] = gameStateUpdatesBus.events

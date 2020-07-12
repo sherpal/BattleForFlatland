@@ -48,7 +48,7 @@ final class ReactiveGUIDrawer(
     stage.application.renderer.generateTexture(graphics, 1, 1)
   }
 
-  val slowGameStateUpdates: EventStream[(GameState, Long)] = gameStateUpdates.spacedBy(500.millis)
+  val slowGameStateUpdates: EventStream[(GameState, Long)] = gameStateUpdates.throttle(500)
 
   val guiContainer: ReactiveContainer = pixiContainer()
   stage(guiContainer)

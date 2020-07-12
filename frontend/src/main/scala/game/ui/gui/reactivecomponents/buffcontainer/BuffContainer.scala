@@ -23,7 +23,7 @@ final class BuffContainer(
     positions: Signal[Complex]
 ) extends GUIComponent {
 
-  val slowGameStateUpdates: EventStream[(GameState, Long)] = gameStateUpdates.spacedBy(500.millis)
+  val slowGameStateUpdates: EventStream[(GameState, Long)] = gameStateUpdates.throttle(500)
 
   private val buffIcons: Signal[List[ReactiveContainer]] = slowGameStateUpdates
     .map(_._1)

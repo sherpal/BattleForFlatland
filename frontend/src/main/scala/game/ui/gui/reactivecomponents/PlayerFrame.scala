@@ -50,7 +50,7 @@ final class PlayerFrame(
 
   val maybeOutOfRangeAlphaModifier: PixiModifier[ReactiveSprite] = maybeMyId.map { playingPlayerId =>
     alpha <-- gameStateUpdates
-      .spacedBy(500.millis)
+      .throttle(500)
       .map(_._1)
       .map { gameState =>
         (for {
