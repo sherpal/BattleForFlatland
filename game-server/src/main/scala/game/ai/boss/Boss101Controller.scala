@@ -161,6 +161,7 @@ object Boss101Controller {
         )
 
         Behaviors.same
+      case AIControllerMessage.ObstacleGraph(_) => Behaviors.unhandled
     }
   }
 

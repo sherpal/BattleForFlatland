@@ -1,6 +1,6 @@
 package gamelogic.physics.quadtree
 
-import gamelogic.entities.PolygonBody
+import gamelogic.entities.{Entity, PolygonBody}
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 
@@ -18,6 +18,15 @@ final class ShapeQT(val shapes: List[PolygonBody]) {
     */
   def :+(shape: PolygonBody): ShapeQT = new ShapeQT(shape +: shapes)
 
+  /** Adds all the new shapes. We prepend to have a O(length(newShapes)). Most of the time they are empty. */
+  def ++(newShapes: List[PolygonBody]): ShapeQT = new ShapeQT(newShapes ++ shapes)
+
+  /**
+    * Removes the shapes with given ids. We check whether the ids that we want to remove are empty to increase
+    * performance. That way, removing the empty list is O(1) (which happens all the time).
+    */
+  def --(ids: List[Entity.Id]): ShapeQT = if (ids.isEmpty) this else new ShapeQT(shapes.filterNot(ids contains _.id))
+
   /** Checks whether there is a shape among these colliding the other given shape. */
   def collides(shape: Shape, translation: Complex, rotation: Double): Boolean =
     shapes.exists(body => body.collidesShape(shape, translation, rotation, 0))
@@ -28,4 +37,8 @@ final class ShapeQT(val shapes: List[PolygonBody]) {
   /** Checks whether there exists a shape here containing the given point. */
   def contains(point: Complex): Boolean = shapes.exists(_.shape.contains(point))
 
+}
+
+object ShapeQT {
+  def empty: ShapeQT = new ShapeQT(Nil)
 }

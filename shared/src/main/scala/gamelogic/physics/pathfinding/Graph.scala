@@ -1,6 +1,9 @@
 package gamelogic.physics.pathfinding
 
 import gamelogic.physics.Complex
+import gamelogic.physics.shape.Shape
+
+import scala.Ordering.Double.TotalOrdering
 
 /**
   * A Graph is a set of vertices that are connected together.
@@ -9,6 +12,17 @@ import gamelogic.physics.Complex
   * @param neighboursMap describes the relationship between vertices.
   */
 final class Graph(val vertices: Vector[Complex], val neighboursMap: Map[Complex, List[Complex]]) {
+
+  lazy val allEdges: List[(Complex, Complex)] =
+    neighboursMap
+      .flatMap { case (z, ws) => ws.map((z, _)) }
+      .toList
+      .distinctBy { case (z, w) => if (Complex.polarOrder(z, w) <= 0) (z, w) else (w, z) }
+
+  def closestPointTo(z: Complex): Option[Complex] =
+    vertices
+      .find(_ == z) // this is unlikely to happen, should we keep this check?
+      .orElse(allEdges.map(Shape.closestToSegment(_, z)).minByOption(z.distanceTo))
 
   /**
     * Finds the shortest path between the start and the end in the graph.
@@ -36,7 +50,7 @@ final class Graph(val vertices: Vector[Complex], val neighboursMap: Map[Complex,
     }
 
     def h(z: Complex): Double               = heuristicFunction(z, end)
-    def d(z1: Complex, z2: Complex): Double = !(z1 - z2)
+    def d(z1: Complex, z2: Complex): Double = euclideanDistance(z1, z2)
 
     final case class Score(f: Double, g: Double)
     val defaultScore = Score(Double.MaxValue, Double.MaxValue)
@@ -97,7 +111,7 @@ final class Graph(val vertices: Vector[Complex], val neighboursMap: Map[Complex,
   /** Usual distance in the plane. */
   val euclideanDistance: (Complex, Complex) => Double = _ distanceTo _
 
-  /** Applies the A* algorithm with the enclidean distance. See `a_*` for details. */
+  /** Applies the A* algorithm with the euclidean distance. See `a_*` for details. */
   def euclideanA_*(start: Complex, end: Complex): Option[List[Complex]] = a_*(start, end, euclideanDistance)
 
 }

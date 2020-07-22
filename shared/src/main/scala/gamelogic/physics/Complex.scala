@@ -72,6 +72,8 @@ final case class Complex(re: Double, im: Double) {
 
   @inline def distanceTo(that: Complex): Double = (that - this).modulus
 
+  def isInfinite: Boolean = re.isInfinite || im.isInfinite
+
   def tuple: (Double, Double) = (re, im)
 
   override def equals(that: Any): Boolean = that match {
@@ -155,6 +157,14 @@ object Complex {
 
   implicit class DoubleWithI(x: Double) {
     def i: Complex = x * Complex.i
+  }
+
+  /**
+    * Compares z1 and z2 by first looking at their modulus, then looking at their argument.
+    */
+  def polarOrder(z1: Complex, z2: Complex): Int = (z1.modulus compare z2.modulus, z1.arg compare z2.arg) match {
+    case (0, x) => x
+    case (x, _) => x
   }
 
 }

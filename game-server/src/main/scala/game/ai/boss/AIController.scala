@@ -6,11 +6,13 @@ import game.ActionTranslator
 import game.ai.AIControllerMessage
 import game.ai.AIManager.loopRate
 import game.ai.utils.findTarget
+import game.ai.utils.pathfinders.PathFinder
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.entities.{Entity, MovingBody, WithPosition, WithThreat}
 import gamelogic.gamestate.GameAction.EntityCreatorAction
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
+import gamelogic.physics.pathfinding.Graph
 
 import scala.concurrent.duration._
 
@@ -41,22 +43,37 @@ trait AIController[
 
   def apply(
       actionTranslator: ActorRef[ActionTranslator.Message],
-      initialMessage: InitialAction
+      initialMessage: InitialAction,
+      pathFinder: ActorRef[PathFinder.Message]
   ): Behavior[AIControllerMessage] = Behaviors.setup { context =>
     Behaviors.receiveMessage {
       case AIControllerMessage.GameStateWrapper(gameState) =>
         AIControllerMessage.unsafeRunSendMeLoop(context.self, zio.duration.Duration.fromScala(loopRate.millis))
-        receiver(actionTranslator, initialAction = initialMessage, currentGameState = gameState)
+        pathFinder ! PathFinder.NewSubscriber(context.self)
+        waitingForGraph(actionTranslator, initialMessage = initialMessage, gameState = gameState)
       case _ =>
         //waiting for first game state
         Behaviors.same
     }
   }
 
+  private def waitingForGraph(
+      actionTranslator: ActorRef[ActionTranslator.Message],
+      initialMessage: InitialAction,
+      gameState: GameState
+  ): Behavior[AIControllerMessage] = Behaviors.receiveMessage {
+    case AIControllerMessage.GameStateWrapper(newGameState) =>
+      waitingForGraph(actionTranslator, initialMessage, newGameState)
+    case AIControllerMessage.ObstacleGraph(graph) =>
+      receiver(actionTranslator, initialMessage, gameState, graph)
+    case _ => Behaviors.unhandled
+  }
+
   private def receiver(
       actionTranslator: ActorRef[ActionTranslator.Message],
       initialAction: InitialAction,
-      currentGameState: GameState
+      currentGameState: GameState,
+      obstacleGraph: Graph
   ): Behavior[AIControllerMessage] = Behaviors.receive { (context, message) =>
     val myId = initialAction.entityId
 
@@ -68,7 +85,8 @@ trait AIController[
               receiver(
                 actionTranslator,
                 initialAction,
-                gameState
+                gameState,
+                obstacleGraph
               )
           )
       case AIControllerMessage.NewActions(_) => Behaviors.same
@@ -94,6 +112,8 @@ trait AIController[
           )
         )
         Behaviors.same
+      case AIControllerMessage.ObstacleGraph(graph) =>
+        receiver(actionTranslator, initialAction, currentGameState, graph)
     }
   }
 

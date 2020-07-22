@@ -4,11 +4,12 @@ import gamelogic.physics.Complex
 import gamelogic.physics.quadtree.ShapeQT
 import gamelogic.physics.shape.{NonConvexPolygon, Segment, Shape}
 
+import scala.Ordering.Double.TotalOrdering
+
 /**
   * Constructs a graph for the mobs to live in, avoiding obstacles in the way.
   *
-  * The algorithm to build the graph is quite naive but I believe fast enough for the purpose of the games
-  * I want to implement.
+  * The algorithm to build the graph is quite naive but I believe fast enough for the purpose of BFF.
   *
   * - We "inflate" all the obstacles to get the maximum area where a mob of a given radius can live in
   * - For each pair of these newly created obstacles, we keep only those that do not cross another obstacle.
@@ -58,19 +59,33 @@ object AIWanderGraph {
       .map(obstacle => obstacle.shape.translateAndRotationVertices(obstacle.pos, obstacle.rotation))
       .map(new NonConvexPolygon(_))
 
-    val verticesPerObstacles = obstacles.map(_.inflateWithoutPolygon(radius))
+    //val verticesPerObstacles = obstacles.map(_.inflateWithoutPolygon(radius))
 
     val inflatedEdges = obstacles
       .map(_.inflateWithoutPolygon(radius * 0.9))
       .flatMap(vertices => vertices.zip(vertices.tail :+ vertices(0)).map(Segment.tupled))
 
-    val allVertices = verticesPerObstacles.flatten.toVector
+    def sliceSegment(segment: Segment, otherSegments: Iterable[Segment]): Iterable[Segment] = {
+      val allIntersections =
+        otherSegments.map(_.intersectionPoint(segment)).collect { case Some(intersection) => intersection }
+
+      val newVertices = segment.z1 +: (allIntersections.toList.sortBy(segment.z1.distanceTo) :+ segment.z2)
+
+      newVertices.zip(newVertices.tail).map(Segment.tupled)
+    }
+
+    val slicedInflatedEdges = inflatedEdges.flatMap { segment =>
+      sliceSegment(segment, inflatedEdges.filterNot(_.hasEdge(segment.z1)).filterNot(_.hasEdge(segment.z2)))
+    }
+
+    //val allVertices = verticesPerObstacles.flatten.toVector
+    val allVertices = slicedInflatedEdges.flatMap(_.edges).distinct.toVector
 
     val neighboursMapOneWay: Map[Complex, List[Complex]] =
       allVertices.indices
         .map(idx => {
           val v1               = allVertices(idx)
-          val possibleSegments = inflatedEdges.filterNot(_.hasEdge(v1))
+          val possibleSegments = slicedInflatedEdges.filterNot(_.hasEdge(v1))
           val connectedTo: List[Complex] = {
             for {
               idx2 <- idx + 1 until allVertices.length

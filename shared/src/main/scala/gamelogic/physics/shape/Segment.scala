@@ -20,4 +20,6 @@ final case class Segment(z1: Complex, z2: Complex) {
 
   def middle: Complex = (z1 + z2) / 2
 
+  def edges: List[Complex] = List(z1, z2)
+
 }

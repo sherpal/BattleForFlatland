@@ -143,10 +143,48 @@ object Shape {
       val coef1 = (x11 - x21) * v2y - (y11 - y21) * v2x
       val coef2 = (x11 - x21) * v1y - (y11 - y21) * v1x
 
-      if ((det >= 0 && coef1 <= det && coef2 <= det && coef1 >= 0 && coef2 >= 0) ||
-          (coef1 <= 0 && coef2 <= 0 && coef1 >= det && coef2 >= det)) {
-        Some(Complex(x11, y11) + coef1 / det * Complex(x12 - x11, y12 - y11))
-      } else None
+      Option.when(
+        (det >= 0 && coef1 <= det && coef2 <= det && coef1 >= 0 && coef2 >= 0) ||
+          (coef1 <= 0 && coef2 <= 0 && coef1 >= det && coef2 >= det)
+      ) {
+        Complex(x11, y11) + coef1 / det * Complex(x12 - x11, y12 - y11)
+      }
+
+//      if ((det >= 0 && coef1 <= det && coef2 <= det && coef1 >= 0 && coef2 >= 0) ||
+//          (coef1 <= 0 && coef2 <= 0 && coef1 >= det && coef2 >= det)) {
+//        Some(Complex(x11, y11) + coef1 / det * Complex(x12 - x11, y12 - y11))
+//      } else None
+    }
+  }
+
+  /**
+    * If it exists, returns the intersection of segments [z1, z2] and [w1, w2].
+    */
+  @inline def intersectionPoint(z1: Complex, z2: Complex, w1: Complex, w2: Complex): Option[Complex] =
+    intersectionPoint(z1.re, z1.im, z2.re, z2.im, w1.re, w1.im, w2.re, w2.im)
+
+  /**
+    * Returns the point of the segment [z1, z2] the closest to z.
+    *
+    * We first create a segment that is perpendicular to the segment [z1, z2], whose middle is z and its length is twice
+    * the min between the distance to z1 and z2. (Taking the min is fine since the distance to the closest point to z
+    * has to be smaller than the distance to both z1 and z2.)
+    * That way, if that segment intersect [z1, z2], it is the closest point. Otherwise, we need to take z1 or z2,
+    * whichever is closer to z.
+    */
+  def closestToSegment(segment: (Complex, Complex), z: Complex): Complex = {
+    val (z1, z2) = segment
+    if (z1 == z2) z1
+    else {
+
+      val distanceToZ1 = z distanceTo z1
+      val distanceToZ2 = z distanceTo z2
+
+      val zDisplacement = (distanceToZ1 min distanceToZ2) * (z2 - z1).orthogonal.normalized
+
+      intersectionPoint(z1, z2, z - zDisplacement, z + zDisplacement).getOrElse {
+        if (distanceToZ1 < distanceToZ2) z1 else z2
+      }
     }
   }
 

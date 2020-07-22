@@ -5,10 +5,12 @@ import akka.actor.typed.{ActorRef, Behavior}
 import game.ActionTranslator
 import game.ai.boss.boss102units.BossHoundController
 import game.ai.boss.{Boss101Controller, Boss102Controller}
+import game.ai.utils.pathfinders.{OnlyObstaclesPathFinder, PathFinder}
 import gamelogic.entities.boss.Boss101
 import gamelogic.entities.boss.dawnoftime.Boss102
+import gamelogic.entities.classes.Constants
 import gamelogic.gamestate.gameactions.boss102.AddBossHound
-import gamelogic.gamestate.gameactions.{AddDummyMob, SpawnBoss}
+import gamelogic.gamestate.gameactions.{AddDummyMob, CreateObstacle, SpawnBoss}
 import gamelogic.gamestate.{GameAction, GameState}
 
 /**
@@ -52,13 +54,16 @@ object AIManager {
 
   private case class ControllerDied(ref: ActorRef[Nothing]) extends Message
 
-  def apply(actionTranslator: ActorRef[ActionTranslator.Message]): Behavior[Message] = receiver(
-    ReceiverInfo(
-      actionTranslator,
-      GameState.empty, // dummy game state when initialized
-      Set.empty
+  def apply(actionTranslator: ActorRef[ActionTranslator.Message]): Behavior[Message] = Behaviors.setup { context =>
+    receiver(
+      ReceiverInfo(
+        actionTranslator,
+        GameState.empty, // dummy game state when initialized
+        Set.empty,
+        context.spawn(new OnlyObstaclesPathFinder(Constants.playerRadius)(GameState.empty), "OnlyObstaclesPathFinder")
+      )
     )
-  )
+  }
 
   /**
     * This class carries all the information the `receiver` needs.
@@ -70,7 +75,8 @@ object AIManager {
   private case class ReceiverInfo(
       actionTranslator: ActorRef[ActionTranslator.Message],
       lastGameState: GameState,
-      entityControllers: Set[ActorRef[AIControllerMessage]]
+      entityControllers: Set[ActorRef[AIControllerMessage]],
+      onlyObstaclesPathFinder: ActorRef[PathFinder.Message]
   ) {
 
     def withGameState(gameState: GameState): ReceiverInfo = copy(lastGameState = gameState)
@@ -98,6 +104,9 @@ object AIManager {
         val unRemovedActions = newActions
           .filterNot(actions => idsToRemove.contains(actions.id))
 
+        receiverInfo.onlyObstaclesPathFinder ! PathFinder
+          .GameActionsWrapper(unRemovedActions, receiverInfo.lastGameState)
+
         val newEntityControllers = unRemovedActions.collect {
           case action: AddDummyMob =>
             val ref =
@@ -118,14 +127,14 @@ object AIManager {
             ref
           case action: SpawnBoss if action.bossName == Boss102.name =>
             val ref = context.spawn(
-              Boss102Controller.apply(receiverInfo.actionTranslator, action),
+              Boss102Controller.apply(receiverInfo.actionTranslator, action, receiverInfo.onlyObstaclesPathFinder),
               s"Boss102-${action.entityId}"
             )
             context.watchWith(ref, ControllerDied(ref))
             ref
           case action: AddBossHound =>
             val ref = context.spawn(
-              BossHoundController(receiverInfo.actionTranslator, action),
+              BossHoundController.apply(receiverInfo.actionTranslator, action, receiverInfo.onlyObstaclesPathFinder),
               s"BossHound-${action.entityId}"
             )
             context.watchWith(ref, ControllerDied(ref))
@@ -138,8 +147,7 @@ object AIManager {
         }
 
         if (newEntityControllers.isEmpty) Behaviors.same
-        else
-          receiver(receiverInfo.addEntityControllers(newEntityControllers))
+        else receiver(receiverInfo.addEntityControllers(newEntityControllers))
 
       case ControllerDied(ref) =>
         receiver(receiverInfo.removeEntityController(ref))

@@ -73,6 +73,8 @@ object DummyMobController {
           .fold(Behaviors.stopped[AIControllerMessage])(_ => receiver(actionTranslator, addDummyMob, gameState))
       case AIControllerMessage.NewActions(_) =>
         Behaviors.same // we do nothing here (currently)
+      case AIControllerMessage.ObstacleGraph(_) =>
+        Behaviors.unhandled
     }
   }
 

@@ -2,6 +2,7 @@ package game.ai
 
 import akka.actor.typed.ActorRef
 import gamelogic.gamestate.{GameAction, GameState}
+import gamelogic.physics.pathfinding.Graph
 import zio.ZIO
 
 /**
@@ -28,6 +29,9 @@ object AIControllerMessage {
 
   /** Sent by a controller to itself to tell itself to take decisions. */
   case object Loop extends AIControllerMessage
+
+  /** Sent by a [[game.ai.utils.pathfinders.PathFinder]] when the graph changes. */
+  case class ObstacleGraph(graph: Graph) extends AIControllerMessage
 
   private def sendMeLoop(to: ActorRef[Loop.type], in: zio.duration.Duration) =
     for {

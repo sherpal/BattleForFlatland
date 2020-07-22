@@ -131,14 +131,13 @@ object GameMaster {
               idsToRemove
             ) merge output
             if (finalOutput.createdActions.nonEmpty) {
+              actionUpdateCollector ! ActionUpdateCollector.GameStateWrapper(finalCollector.currentGameState)
               actionUpdateCollector ! ActionUpdateCollector
                 .AddAndRemoveActions(
                   finalOutput.createdActions,
                   finalOutput.oldestTimeToRemove,
                   finalOutput.idsOfIdsToRemove
                 )
-
-              actionUpdateCollector ! ActionUpdateCollector.GameStateWrapper(finalCollector.currentGameState)
             }
 
             /** Set up for next loop. */
@@ -213,14 +212,14 @@ object GameMaster {
         )
 
         if (output.createdActions.nonEmpty) {
+
+          actionUpdateCollector ! ActionUpdateCollector.GameStateWrapper(nextCollector.currentGameState)
           actionUpdateCollector ! ActionUpdateCollector
             .AddAndRemoveActions(
               output.createdActions,
               output.oldestTimeToRemove,
               output.idsOfIdsToRemove
             )
-
-          actionUpdateCollector ! ActionUpdateCollector.GameStateWrapper(nextCollector.currentGameState)
         }
 
         /** Set up for next loop. */
