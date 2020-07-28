@@ -9,6 +9,7 @@ import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
+import gamelogic.entities.classes.Constants
 import gamelogic.gamestate.GameAction
 import gamelogic.gamestate.gameactions.CreateObstacle
 import gamelogic.physics.Complex
@@ -85,7 +86,7 @@ final case class Boss101(
 }
 
 object Boss101 extends BossFactory[Boss101] {
-  final val shape: Circle = new Circle(30.0)
+  final val shape: Circle = new Circle(Constants.bossRadius)
 
   final val maxLife: Double = 20000
 

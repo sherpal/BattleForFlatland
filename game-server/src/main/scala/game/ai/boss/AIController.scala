@@ -34,7 +34,8 @@ trait AIController[
       me: EntityType,
       currentPosition: Complex,
       startTime: Long,
-      maybeTarget: Option[PlayerClass]
+      maybeTarget: Option[PlayerClass],
+      obstacleGraph: Graph
   ): List[GameAction]
 
   protected def getMe(gameState: GameState, entityId: Entity.Id): Option[EntityType]
@@ -98,7 +99,7 @@ trait AIController[
 
         val maybeTarget = findTarget(me, currentGameState)
 
-        val actions = takeActions(currentGameState, me, currentPosition, startTime, maybeTarget)
+        val actions = takeActions(currentGameState, me, currentPosition, startTime, maybeTarget, obstacleGraph)
 
         if (actions.nonEmpty) {
           actionTranslator ! ActionTranslator.GameActionsWrapper(actions)

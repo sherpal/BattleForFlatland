@@ -1,7 +1,7 @@
 package game.ai.boss.boss102units
 
 import game.ai.boss.AIController
-import game.ai.utils.{aiMovementToTarget, changeTarget}
+import game.ai.utils._
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.boss.boss102.BossHound
 import gamelogic.entities.classes.PlayerClass
@@ -9,6 +9,7 @@ import gamelogic.gamestate.gameactions.EntityStartsCasting
 import gamelogic.gamestate.gameactions.boss102.AddBossHound
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
+import gamelogic.physics.pathfinding.Graph
 
 object BossHoundController extends AIController[BossHound, AddBossHound] {
   protected def takeActions(
@@ -16,7 +17,8 @@ object BossHoundController extends AIController[BossHound, AddBossHound] {
       me: BossHound,
       currentPosition: Complex,
       startTime: Long,
-      maybeTarget: Option[PlayerClass]
+      maybeTarget: Option[PlayerClass],
+      obstacleGraph: Graph
   ): List[GameAction] = maybeTarget.fold(List[GameAction]()) { target =>
     /** changing target */
     val maybeChangeTarget = changeTarget(me, target.id, startTime)

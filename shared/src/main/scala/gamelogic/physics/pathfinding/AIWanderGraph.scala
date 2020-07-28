@@ -62,7 +62,7 @@ object AIWanderGraph {
     //val verticesPerObstacles = obstacles.map(_.inflateWithoutPolygon(radius))
 
     val inflatedEdges = obstacles
-      .map(_.inflateWithoutPolygon(radius * 0.9))
+      .map(_.inflateWithoutPolygon(radius))
       .flatMap(vertices => vertices.zip(vertices.tail :+ vertices(0)).map(Segment.tupled))
 
     def sliceSegment(segment: Segment, otherSegments: Iterable[Segment]): Iterable[Segment] = {
@@ -85,15 +85,15 @@ object AIWanderGraph {
       allVertices.indices
         .map(idx => {
           val v1               = allVertices(idx)
-          val possibleSegments = slicedInflatedEdges.filterNot(_.hasEdge(v1))
+          val possibleSegments = slicedInflatedEdges //.filterNot(_.hasEdge(v1))
           val connectedTo: List[Complex] = {
             for {
               idx2 <- idx + 1 until allVertices.length
               v2 = allVertices(idx2)
-              if !possibleSegments
-                .filterNot(_.hasEdge(v2))
-                .exists(segment => Shape.intersectingSegments(v1, v2, segment.z1, segment.z2))
-              if !quadTree.contains((v1 + v2) / 2)
+//              if !possibleSegments
+//                .filterNot(_.hasEdge(v2))
+//                .exists(segment => Shape.intersectingSegments(v1, v2, segment.z1, segment.z2))
+              //if !quadTree.contains((v1 + v2) / 2)
             } yield v2
           }.toList
           v1 -> connectedTo
@@ -107,7 +107,7 @@ object AIWanderGraph {
       .groupBy(_._1)
       .map { case (key, value) => key -> value.map(_._2) }
 
-    (new Graph(allVertices, neighboursMap), inflatedEdges)
+    (new Graph(allVertices, neighboursMap, quadTree, inflatedEdges), inflatedEdges)
   }
 
 }

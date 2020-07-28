@@ -1,7 +1,8 @@
 package gamelogic.physics.pathfinding
 
 import gamelogic.physics.Complex
-import gamelogic.physics.shape.Shape
+import gamelogic.physics.quadtree.ShapeQT
+import gamelogic.physics.shape.{Segment, Shape}
 
 import scala.Ordering.Double.TotalOrdering
 
@@ -11,7 +12,12 @@ import scala.Ordering.Double.TotalOrdering
   * @param vertices complex numbers in the graph
   * @param neighboursMap describes the relationship between vertices.
   */
-final class Graph(val vertices: Vector[Complex], val neighboursMap: Map[Complex, List[Complex]]) {
+final class Graph(
+    val vertices: Vector[Complex],
+    val neighboursMap: Map[Complex, List[Complex]],
+    quadTree: ShapeQT,
+    inflatedEdges: Iterable[Segment]
+) {
 
   lazy val allEdges: List[(Complex, Complex)] =
     neighboursMap
@@ -23,6 +29,36 @@ final class Graph(val vertices: Vector[Complex], val neighboursMap: Map[Complex,
     vertices
       .find(_ == z) // this is unlikely to happen, should we keep this check?
       .orElse(allEdges.map(Shape.closestToSegment(_, z)).minByOption(z.distanceTo))
+
+  def addVertex(
+      vertex: Complex
+  ): Graph = {
+    val newNeighboursMap =
+      if (neighboursMap.isDefinedAt(vertex)) neighboursMap
+      else {
+        val possibleSegments = inflatedEdges.filterNot(_.hasEdge(vertex))
+        val connectedTo = (for {
+          v <- neighboursMap.keys
+          if !possibleSegments
+            .filterNot(_.hasEdge(v))
+            .exists(segment => Shape.intersectingSegments(vertex, v, segment.z1, segment.z2))
+          if !quadTree.contains((vertex + v) / 2)
+        } yield v).toList
+
+        val finalConnectedTo =
+          if (connectedTo.isEmpty && neighboursMap.nonEmpty)
+            List(neighboursMap.keys.minBy(z => (vertex - z).modulus2))
+          else connectedTo
+
+        (neighboursMap ++ finalConnectedTo.map(v => v -> (vertex +: neighboursMap(v)))) + (vertex -> finalConnectedTo)
+      }
+
+    new Graph(vertices :+ vertex, newNeighboursMap, quadTree, inflatedEdges)
+  }
+
+  def addVertices(
+      vertices: Complex*
+  ): Graph = vertices.foldLeft(this)(_.addVertex(_))
 
   /**
     * Finds the shortest path between the start and the end in the graph.
