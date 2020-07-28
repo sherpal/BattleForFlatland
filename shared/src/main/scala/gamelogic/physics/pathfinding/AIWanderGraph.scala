@@ -100,12 +100,19 @@ object AIWanderGraph {
         })
         .toMap
 
+    println(
+      s"there are ${allVertices.length} vertices, which means ${allVertices.length * (allVertices.length - 1) / 2} edges," +
+        s"and the one way map induce ${neighboursMapOneWay.valuesIterator.map(_.length).sum} edges."
+    )
+
     val neighboursMap = neighboursMapOneWay ++ neighboursMapOneWay.toList
       .flatMap {
         case (z, zs) => zs.map(_ -> z)
       }
       .groupBy(_._1)
       .map { case (key, value) => key -> value.map(_._2) }
+
+    println(neighboursMap.valuesIterator.map(_.length).sum)
 
     (new Graph(allVertices, neighboursMap, quadTree, inflatedEdges), inflatedEdges)
   }

@@ -31,7 +31,7 @@ object Boss102Controller extends AIController[Boss102, SpawnBoss] {
         /** changing target */
         val maybeChangeTarget = changeTarget(me, target.id, startTime)
 
-        val maybeMove = aiMovementToTarget(
+        val maybeMove2 = aiMovementToTarget(
           me.id,
           startTime,
           currentPosition,
@@ -44,7 +44,7 @@ object Boss102Controller extends AIController[Boss102, SpawnBoss] {
           me.rotation
         )
 
-        val maybeMove2 = aiMovementToTargetWithGraph(
+        val maybeMove = aiMovementToTargetWithGraph(
           me.id,
           startTime,
           currentPosition,
