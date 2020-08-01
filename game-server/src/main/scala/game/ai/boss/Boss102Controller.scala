@@ -31,18 +31,18 @@ object Boss102Controller extends AIController[Boss102, SpawnBoss] {
         /** changing target */
         val maybeChangeTarget = changeTarget(me, target.id, startTime)
 
-        val maybeMove2 = aiMovementToTarget(
-          me.id,
-          startTime,
-          currentPosition,
-          me.shape.radius,
-          target.currentPosition(startTime),
-          Boss102.meleeRange,
-          Boss102.fullSpeed,
-          Boss102.fullSpeed / 4,
-          me.moving,
-          me.rotation
-        )
+//        val maybeMove2 = aiMovementToTarget(
+//          me.id,
+//          startTime,
+//          currentPosition,
+//          me.shape.radius,
+//          target.currentPosition(startTime),
+//          Boss102.meleeRange,
+//          Boss102.fullSpeed,
+//          Boss102.fullSpeed / 4,
+//          me.moving,
+//          me.rotation
+//        )
 
         val maybeMove = aiMovementToTargetWithGraph(
           me.id,
