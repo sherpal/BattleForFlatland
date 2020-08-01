@@ -59,8 +59,6 @@ object AIWanderGraph {
       .map(obstacle => obstacle.shape.translateAndRotationVertices(obstacle.pos, obstacle.rotation))
       .map(new NonConvexPolygon(_))
 
-    //val verticesPerObstacles = obstacles.map(_.inflateWithoutPolygon(radius))
-
     val inflatedEdges = obstacles
       .map(_.inflateWithoutPolygon(radius))
       .flatMap(vertices => vertices.zip(vertices.tail :+ vertices(0)).map(Segment.tupled))
@@ -78,7 +76,6 @@ object AIWanderGraph {
       sliceSegment(segment, inflatedEdges.filterNot(_.hasEdge(segment.z1)).filterNot(_.hasEdge(segment.z2)))
     }
 
-    //val allVertices = verticesPerObstacles.flatten.toVector
     val allVertices = slicedInflatedEdges.flatMap(_.edges).distinct.toVector
 
     val neighboursMapOneWay: Map[Complex, List[Complex]] =
