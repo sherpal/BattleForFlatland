@@ -85,34 +85,25 @@ object AIWanderGraph {
       allVertices.indices
         .map(idx => {
           val v1               = allVertices(idx)
-          val possibleSegments = slicedInflatedEdges //.filterNot(_.hasEdge(v1))
+          val possibleSegments = slicedInflatedEdges.filterNot(_.hasEdge(v1))
           val connectedTo: List[Complex] = {
             for {
               idx2 <- idx + 1 until allVertices.length
               v2 = allVertices(idx2)
-//              if !possibleSegments
-//                .filterNot(_.hasEdge(v2))
-//                .exists(segment => Shape.intersectingSegments(v1, v2, segment.z1, segment.z2))
-              //if !quadTree.contains((v1 + v2) / 2)
+              if !possibleSegments
+                .filterNot(_.hasEdge(v2))
+                .exists(segment => Shape.intersectingSegments(v1, v2, segment.z1, segment.z2))
+              if !quadTree.contains((v1 + v2) / 2)
             } yield v2
           }.toList
           v1 -> connectedTo
         })
         .toMap
 
-    println(
-      s"there are ${allVertices.length} vertices, which means ${allVertices.length * (allVertices.length - 1) / 2} edges," +
-        s"and the one way map induce ${neighboursMapOneWay.valuesIterator.map(_.length).sum} edges."
-    )
-
-    val neighboursMap = neighboursMapOneWay ++ neighboursMapOneWay.toList
-      .flatMap {
-        case (z, zs) => zs.map(_ -> z)
-      }
+    val neighboursMap = neighboursMapOneWay.toList
+      .flatMap { case (z, zs) => zs.flatMap(w => List(z -> w, w -> z)) }
       .groupBy(_._1)
-      .map { case (key, value) => key -> value.map(_._2) }
-
-    println(neighboursMap.valuesIterator.map(_.length).sum)
+      .map { case (key, value) => key -> value.map(_._2).distinct }
 
     (new Graph(allVertices, neighboursMap, quadTree, inflatedEdges), inflatedEdges)
   }

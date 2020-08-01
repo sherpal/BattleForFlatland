@@ -35,7 +35,7 @@ final class ShapeQT(val shapes: List[PolygonBody]) {
   def contains(shape: Shape): Boolean = shapes.contains(shape)
 
   /** Checks whether there exists a shape here containing the given point. */
-  def contains(point: Complex): Boolean = shapes.exists(_.shape.contains(point))
+  def contains(point: Complex): Boolean = shapes.exists(_.containsPoint(point, 0))
 
 }
 

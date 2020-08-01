@@ -20,9 +20,8 @@ final class Graph(
 ) {
 
   lazy val allEdges: List[(Complex, Complex)] =
-    neighboursMap
+    neighboursMap.toList
       .flatMap { case (z, ws) => ws.map((z, _)) }
-      .toList
       .distinctBy { case (z, w) => if (Complex.polarOrder(z, w) <= 0) (z, w) else (w, z) }
 
   def closestPointTo(z: Complex): Option[Complex] =

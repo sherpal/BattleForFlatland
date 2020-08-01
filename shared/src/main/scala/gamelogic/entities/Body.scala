@@ -26,6 +26,10 @@ trait Body extends WithPosition {
   def collidesShape(thatShape: Shape, thatTranslation: Complex, thatRotation: Double, currentTime: Long): Boolean =
     shape.collides(currentPosition(currentTime), rotation, thatShape, thatTranslation, thatRotation)
 
+  /** Checks whether this [[Body]] contains the given point. */
+  def containsPoint(point: Complex, currentTime: Long): Boolean =
+    shape.contains(point, currentPosition(currentTime), rotation)
+
   /**
     * Finds the first position, going from pos and towards rotation, where this body does not collide the bodies.
     *
