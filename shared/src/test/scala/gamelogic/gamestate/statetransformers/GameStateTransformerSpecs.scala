@@ -9,19 +9,20 @@ import zio.test._
 
 object GameStateTransformerSpecs extends DefaultRunnableSpec {
 
-  def spec = suite("Game state transofmers")(
+  def spec = suite("Game state transformers")(
     testM("Starting and ending game at once should give same result") {
       val gameState = GameState.empty
       val gameStart = GameStart(0, 1)
       val endGame   = EndGame(1, 2)
 
-      assertM(UIO(gameState.applyActions(List(gameStart, endGame))))(
+      assertM(UIO(gameState.applyActions(List(gameStart, endGame)).endTime))(
         equalTo(
           List(gameStart, endGame)
             .map(_.createGameStateTransformer(gameState))
             .foldLeft(
               GameStateTransformer.identityTransformer
             )(_ ++ _)(gameState)
+            .endTime
         )
       )
 
