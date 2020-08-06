@@ -54,7 +54,7 @@ object AIWanderGraph {
       (neighboursMap ++ finalConnectedTo.map(v => v -> (vertex +: neighboursMap(v)))) + (vertex -> finalConnectedTo)
     }
 
-  def apply(quadTree: ShapeQT, radius: Double): (Graph, List[Segment]) = {
+  def apply(quadTree: ShapeQT, radius: Double): (FiniteGraph, List[Segment]) = {
     val obstacles = quadTree.shapes
       .map(obstacle => obstacle.shape.translateAndRotationVertices(obstacle.pos, obstacle.rotation))
       .map(new NonConvexPolygon(_))
@@ -102,7 +102,7 @@ object AIWanderGraph {
       .groupBy(_._1)
       .map { case (key, value) => key -> value.map(_._2).distinct }
 
-    (new Graph(allVertices, neighboursMap, quadTree, inflatedEdges), inflatedEdges)
+    (new FiniteGraph(allVertices, neighboursMap, quadTree, inflatedEdges), inflatedEdges)
   }
 
 }

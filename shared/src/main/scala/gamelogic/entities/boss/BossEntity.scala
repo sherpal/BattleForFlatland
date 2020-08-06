@@ -2,7 +2,7 @@ package gamelogic.entities.boss
 
 import gamelogic.abilities.Ability
 import gamelogic.entities._
-import gamelogic.entities.boss.dawnoftime.Boss102
+import gamelogic.entities.boss.dawnoftime.{Boss102, Boss103}
 import gamelogic.physics.shape.Circle
 
 /**
@@ -47,7 +47,7 @@ trait BossEntity extends LivingEntity with MovingBody with WithAbilities with Wi
 
 object BossEntity {
 
-  private def allBossesFactories: List[BossFactory[_ <: BossEntity]] = List(Boss101, Boss102)
+  private def allBossesFactories: List[BossFactory[_ <: BossEntity]] = List(Boss101, Boss102, Boss103)
 
   final def allBossesNames: List[String] = allBossesFactories.map(_.name)
 

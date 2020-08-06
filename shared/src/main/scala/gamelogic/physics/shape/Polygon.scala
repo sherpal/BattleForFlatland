@@ -11,6 +11,15 @@ trait Polygon extends Shape {
   val center: Complex = vertices.sum / vertices.length
   val radius: Double  = math.sqrt(vertices.map(z => (z - center).modulus2).max)
 
+  def isConvex: Boolean =
+    (for {
+      j <- vertices.indices
+      vertex   = vertices(j)
+      next     = vertices(if (j == vertices.length - 1) 0 else j + 1)
+      previous = vertices(if (j == 0) vertices.length - 1 else j - 1)
+    } yield (vertex - previous).crossProduct(next - vertex))
+      .forall(_ > 0)
+
   def collides(
       thisTranslation: Complex,
       thisRotation: Double,
@@ -102,6 +111,8 @@ trait Polygon extends Shape {
       )
     }
   }
+
+  override def toString: String = vertices.mkString("Polygon(", ", ", ")")
 
 }
 

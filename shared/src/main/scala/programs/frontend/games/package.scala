@@ -19,10 +19,9 @@ import scala.concurrent.duration._
 
 package object games {
 
-  val streamExpl: ZStream[Clock, Nothing, Int] =
+  val streamExpl =
     ZStream
       .fromSchedule(Schedule.spaced(zio.duration.Duration.fromScala(2.seconds)))
-      .tap(x => UIO(println(x)))
 
   val downloadGames: ZIO[HttpClient, ErrorADT, List[MenuGame]] =
     get[List[MenuGame]](allGames).refineOrDie(ErrorADT.onlyErrorADT)

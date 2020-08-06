@@ -7,7 +7,7 @@ object SharedSettings {
 
   val circeVersion = "0.13.0"
   val catsVersion  = "2.1.2"
-  val zioVersion   = "1.0.0-RC19-2"
+  val zioVersion   = "1.0.0"
 
   def apply(): Seq[Def.Setting[_]] = settings(
     libraryDependencies ++= Seq(
@@ -20,7 +20,8 @@ object SharedSettings {
       "com.propensive" %%% "magnolia" % "0.16.0",
       "org.scala-lang" % "scala-reflect" % "2.13.1" % Provided,
       "org.planet42" %%% "laika-core" % "0.15.0",
-      "io.suzaku" %%% "boopickle" % "1.3.3"
+      "io.suzaku" %%% "boopickle" % "1.3.3",
+      "org.scalacheck" %%% "scalacheck" % "1.14.3" % Test
     ) ++ Seq( // circe for json serialisation
       "io.circe" %%% "circe-core",
       "io.circe" %%% "circe-generic",

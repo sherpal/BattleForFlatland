@@ -48,6 +48,8 @@ final case class Complex(re: Double, im: Double) {
 
   @inline def modulus2: Double = re * re + im * im
 
+  @inline def conjugate: Complex = Complex(re, -im)
+
   /**
     * Returns the unique complex such that
     * - this scalaProduct that == 0,

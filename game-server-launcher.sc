@@ -6,7 +6,7 @@
 import $ivy.`com.typesafe.akka::akka-actor-typed:2.6.4`
 import $ivy.`com.typesafe.akka::akka-stream-typed:2.6.4`
 import $ivy.`com.typesafe.akka::akka-http:10.1.12`
-import $ivy.`com.lihaoyi::os-lib:0.7.0` 
+import $ivy.`com.lihaoyi::os-lib:0.7.1`
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http

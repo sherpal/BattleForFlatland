@@ -3,7 +3,7 @@ package gamelogic.entities.boss
 import gamelogic.buffs.Buff
 import gamelogic.entities.Entity
 import gamelogic.entities.Entity.Id
-import gamelogic.entities.boss.dawnoftime.Boss102
+import gamelogic.entities.boss.dawnoftime.{Boss102, Boss103}
 import gamelogic.gamestate.GameAction
 import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.physics.Complex
@@ -53,7 +53,8 @@ object BossFactory {
 
   val factoriesByBossName: Map[String, BossFactory[_]] = List(
     Boss101,
-    Boss102
+    Boss102,
+    Boss103
   ).map(factory => factory.name -> factory).toMap
 
 }

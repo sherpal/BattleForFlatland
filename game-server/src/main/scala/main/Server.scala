@@ -11,7 +11,7 @@ import services.database.db
 import services.database.gametables.GameTable
 import slick.jdbc.PostgresProfile.api._
 import zio.console._
-import zio.{UIO, ZEnv, ZIO}
+import zio.{ExitCode, UIO, URIO, ZEnv, ZIO}
 
 import scala.concurrent.duration._
 
@@ -52,33 +52,34 @@ object Server extends zio.App {
       }
   }
 
-  def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] = CLIConfig.makeConfig(args) match {
-    case Some(config) =>
-      val dbObject = Database.forConfig("slick.dbs.default.db")
+  def run(args: List[String]): URIO[ZEnv, ExitCode] =
+    (CLIConfig.makeConfig(args) match {
+      case Some(config) =>
+        val dbObject = Database.forConfig("slick.dbs.default.db")
 
-      val layer = ZEnv.live ++ (db.Database.autoClosedDbProvider(dbObject) >>> GameTable.live) ++
-        server.launchServer(config.host, config.port)
+        val layer = ZEnv.live ++ (db.Database.autoClosedDbProvider(dbObject) >>> GameTable.live) ++
+          server.launchServer(config.host, config.port)
 
-      (for {
-        _ <- putStrLn(s"Game server running for game ${config.gameId}")
-        credentials <- UIO(GameCredentials(config.gameId, config.gameSecret))
-        actorSystem <- ZIO.service[ActorSystem[ServerBehavior.ServerMessage]]
-        _ <- putStrLn("""Execute curl -X POST "http://localhost:22222/stop" to close the server.""")
-        allGameInfo <- setup.fetchGameInfo(credentials, actorSystem)
-        _ <- if (allGameInfo.gameInfo.game.gameConfiguration.isValid) ZIO.unit
-        else ZIO.fail(InvalidGameConfiguration)
-        _ <- ZIO.effectTotal(
-          actorSystem ! ServerBehavior.ReceivedCredentials(
-            allGameInfo.gameInfo.players,
-            allGameInfo.allGameCredentials.allGameUserCredentials,
-            allGameInfo.gameInfo
+        (for {
+          _ <- putStrLn(s"Game server running for game ${config.gameId}")
+          credentials <- UIO(GameCredentials(config.gameId, config.gameSecret))
+          actorSystem <- ZIO.service[ActorSystem[ServerBehavior.ServerMessage]]
+          _ <- putStrLn("""Execute curl -X POST "http://localhost:22222/stop" to close the server.""")
+          allGameInfo <- setup.fetchGameInfo(credentials, actorSystem)
+          _ <- if (allGameInfo.gameInfo.game.gameConfiguration.isValid) ZIO.unit
+          else ZIO.fail(InvalidGameConfiguration)
+          _ <- ZIO.effectTotal(
+            actorSystem ! ServerBehavior.ReceivedCredentials(
+              allGameInfo.gameInfo.players,
+              allGameInfo.allGameCredentials.allGameUserCredentials,
+              allGameInfo.gameInfo
+            )
           )
-        )
-        _ <- server.waitForServerToStop(actorSystem)
-      } yield 0)
-        .catchAll(error => putStrLn(error.toString) *> UIO(1)) // todo: warn server that something went wrong
-        .provideLayer(layer)
-    case None => UIO(1)
-  }
+          _ <- server.waitForServerToStop(actorSystem)
+        } yield 0)
+          .catchAll(error => putStrLn(error.toString) *> UIO(1)) // todo: warn server that something went wrong
+          .provideLayer(layer): URIO[ZEnv, Int]
+      case None => UIO(1)
+    }).map(ExitCode(_))
 
 }

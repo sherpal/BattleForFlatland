@@ -228,6 +228,7 @@ final class GameDrawer(
         s
       }
     )
+
     camera.viewportManager(sprite, obstacle.pos, obstacle.shape.boundingBox)
   }
 

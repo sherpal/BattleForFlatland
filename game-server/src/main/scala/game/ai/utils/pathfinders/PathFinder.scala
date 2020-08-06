@@ -5,8 +5,9 @@ import akka.actor.typed.scaladsl.Behaviors
 import game.ai.AIControllerMessage
 import gamelogic.entities.{Entity, PolygonBody}
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.physics.pathfinding.{AIWanderGraph, Graph}
+import gamelogic.physics.pathfinding.{AIWanderGraph, Graph, ManhattanGraph}
 import gamelogic.physics.quadtree.ShapeQT
+import gamelogic.physics.shape.Circle
 
 /**
   * A [[PathFinder]] actor is responsible for gathering information about some obstacles that pop in or are removed from
@@ -51,7 +52,9 @@ trait PathFinder {
     def removeSubscriber(ref: ActorRef[Nothing]): PathFinderInfo =
       copy(subscribers = subscribers - ref.unsafeUpcast[AIControllerMessage.ObstacleGraph])
 
-    lazy val graph: Graph = AIWanderGraph(shapeQT, entityRadius)._1
+    //lazy val graph: Graph = AIWanderGraph(shapeQT, entityRadius)._1
+    lazy val graph: Graph =
+      new ManhattanGraph(10, 1000, pos => !shapeQT.collides(new Circle(entityRadius), pos, 0), entityRadius + 5)
 
   }
 
@@ -71,9 +74,6 @@ trait PathFinder {
         // We add before removing otherwise we could end up in an inconsistent state.
         receiver(pathFinderInfo.addObstacles(newObstacles).removeObstaclesByIds(deletedObstacleIds))
       case GraphUpdated =>
-        println("Graph has been updated.")
-        println(pathFinderInfo.graph.allEdges.length)
-        println("*" * 60)
         pathFinderInfo.subscribers.foreach(_ ! AIControllerMessage.ObstacleGraph(pathFinderInfo.graph))
         Behaviors.same
       case NewSubscriber(ref) =>

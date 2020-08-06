@@ -55,6 +55,7 @@ trait Drawer {
       .beginFill(colour, alpha)
       .drawPolygon(
         shape.vertices
+          .map(_.conjugate)
           .map {
             case Complex(re, im) => new Point(re, im)
           }

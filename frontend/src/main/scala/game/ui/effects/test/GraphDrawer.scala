@@ -3,13 +3,13 @@ package game.ui.effects.test
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.Signal
 import game.Camera
-import gamelogic.physics.pathfinding.Graph
+import gamelogic.physics.pathfinding.FiniteGraph
 import game.ui.reactivepixi.ReactivePixiElement.{pixiGraphics, ReactiveGraphics}
 import game.ui.reactivepixi.AttributeModifierBuilder.moveGraphics
 import gamelogic.physics.Complex
 import typings.pixiJs.PIXI.Graphics
 
-final class GraphDrawer(graphSignal: EventStream[Graph], camera: Camera) {
+final class GraphDrawer(graphSignal: EventStream[FiniteGraph], camera: Camera) {
 
   val graphics: ReactiveGraphics = pixiGraphics(
     moveGraphics <-- graphSignal.map(_.allEdges).map { edges =>

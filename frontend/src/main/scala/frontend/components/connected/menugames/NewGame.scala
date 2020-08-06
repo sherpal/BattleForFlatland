@@ -55,7 +55,7 @@ final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
             "text",
             placeholder := "Choose a game name",
             inContext(elem => onChange.mapTo(elem.ref.value) --> gameNameChanger),
-            focus <-- createdBus.events.mapTo(true).map(x => { println(x); x })
+            onMountFocus
           )
         ),
         div(

@@ -4,10 +4,10 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import game.ActionTranslator
 import game.ai.boss.boss102units.BossHoundController
-import game.ai.boss.{Boss101Controller, Boss102Controller}
+import game.ai.boss.{Boss101Controller, Boss102Controller, Boss103Controller}
 import game.ai.utils.pathfinders.{OnlyObstaclesPathFinder, PathFinder}
 import gamelogic.entities.boss.Boss101
-import gamelogic.entities.boss.dawnoftime.Boss102
+import gamelogic.entities.boss.dawnoftime.{Boss102, Boss103}
 import gamelogic.entities.classes.Constants
 import gamelogic.gamestate.gameactions.boss102.AddBossHound
 import gamelogic.gamestate.gameactions.{AddDummyMob, CreateObstacle, SpawnBoss}
@@ -144,6 +144,17 @@ object AIManager {
                 receiverInfo.onlyObstaclesPathFinders(Constants.bossRadius)
               ),
               s"Boss102-${action.entityId}"
+            )
+            context.watchWith(ref, ControllerDied(ref))
+            ref
+          case action: SpawnBoss if action.bossName == Boss103.name =>
+            val ref = context.spawn(
+              Boss103Controller.apply(
+                receiverInfo.actionTranslator,
+                action,
+                receiverInfo.onlyObstaclesPathFinders(Constants.bossRadius)
+              ),
+              s"Boss103-${action.entityId}"
             )
             context.watchWith(ref, ControllerDied(ref))
             ref

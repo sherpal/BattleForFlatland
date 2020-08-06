@@ -112,6 +112,10 @@ object Shape {
     (0 until nbrSides).map(j => radius * Complex.exp(Complex.i * 2 * math.Pi * j / nbrSides)).toVector
   )
 
+  def regularPolygon(nbrSides: Int, radius: Double, rotation: Double): ConvexPolygon = new ConvexPolygon(
+    (0 until nbrSides).map(j => radius * Complex.rotation(2 * math.Pi * j / nbrSides + rotation)).toVector
+  )
+
   def translatedRegularPolygon(nbrSides: Int, radius: Double, translation: Complex): ConvexPolygon = new ConvexPolygon(
     (0 until nbrSides).map(j => translation + radius * Complex.exp(Complex.i * 2 * math.Pi * j / nbrSides)).toVector
   )
