@@ -205,6 +205,149 @@ case action: SpawnBoss if action.bossName == Boss103.name =>
 
 Note that this way of doing could change in the future. In that case, I will hopefully not forget to change this doc.
 
+Note that we are here using the pathfinding algorithm to make the boss move. You can chose not to do that, and instead (for example) go in straight line to target (if the boss domain is convex) or implement your own. In that case, you should give an implementation of the `gamelogic.physics.pathfinding.Graph` trait.
+
+#### Adding the first ability
+
+Now that the boss moves towards its target, it is time to make it attack. As many other bosses in the game, Boss 103 will have a small "auto-attack". Usually the goal of the auto-attack is to keep healers busy in quite phases, and give the tank some rage. Of course, for your own bosses, you can opt in not to have an auto-attack, or to have a "default" attack that the boss does when its has nothing else to do, and which could be a range attack (like casting a ball in a random direction, whatever pleases you).
+
+Adding the auto-attack to the boss is straightforward since it is already implemented. You simply need to that the `Ability.autoAttackId` to `abilities` member and `Ability.autoAttackId -> "Auto attack"` to the `abilityNames` member. Alternatively, you could implement the `abilities` method as the set of keys of the `abilityNames` Map. The `abilityNames` map is used by the frontend to display the names of the attacks in the UI.
+
+What happens now? Well, the `abilities` member is the list of all abilities that the entity is allowed to use. By adding the auto-attack id, we inform the game that this entity (the Boss 103) can indeed use the auto-attack ability. Are we done, then? Can we launch the game and see it in action? Not quite, because we only define the legality of the action, we didn't learn (or tell) the AI Boss 103 controller to actually use it. In order to do that, it's convenient to set a method `maybeAutoAttack` taking as input the current time and the current game state, and (maybe) returning the auto attack that can happen in that case. A possible implementation is as follows:
+
+```scala
+def maybeAutoAttack(time: Long, gameState: GameState): Option[AutoAttack] =
+  Some(
+    AutoAttack(
+      0L,
+      time,
+      id,
+      targetId,
+      Boss103.autoAttackDamage,
+      Boss103.autoAttackTickRate,
+      NoResource,
+      Boss103.meleeRange
+    )
+  ).filter(_.canBeCast(gameState, time)).filter(canUseAbility(_, time))
+```
+
+As you can guess, the members of `Boss103` that we are using need to be defined.
+
+We thus now go to the `Boss103Controller.scala`. Previously, the potential actions that the boss need to take where defined using the line
+
+```scala
+List(maybeChangeTarget, maybeMove).flatten
+```
+
+We need to take into account that the AI could use its auto-attack ability. The `AIController` trait has a utility method `useAbility` to do just that:
+
+```scala
+        useAbility(
+          List(
+            me.maybeAutoAttack(startTime, currentGameState)
+              .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
+          ),
+          maybeChangeTarget,
+          maybeMove
+        )
+```
+
+The first argument specifies all the attack to try, in order. In this case, there is currently only one attack. That means that if `maybeAutoAttack` returns something defined, the boss is going to use its ability. Otherwise it will do as before (maybe change target and maybe move towards its destination).
+
+You may now launch the game, and you'll see that the boss, when in range, is going to attack you. You can also see on the (currently) top right of your screen that the "cooldown" (aka the time before the ability is usable again) will be properly displayed as a status bar.
+
+This is about as involved as the AI in Battle for Flatland are going to get. You can of course go crazy and implement very complex AIs, with behaviour changing depending on their opponents, but most of the time it will be that: defining abilities and checking in order whether the boss can use it. Speaking of defining abilities, let us defined our first ability specifically for Boss 103.
+
+#### Cleansing nova
+
+The first ability is a classic in games like this. Regularly, the boss will cast a big ability which kills every one in sight. Remember that Boss 103's room has pillars spread in a circle. One goal of these pillars is for the players to hide against this ability.
+
+We need to
+
+- implement the `gamelogic.abilities.Ability` representing the game
+- add its `gamelogic.abilities.Ability.AbilityId` to the list of abilities that the boss have
+- define in `Boss103.scala` how much time before the first use of that ability (could be instantly, but usually we let players "warm up", just like a JVM, before going to business).
+- tell the `Boss103Controller.scala` to use it when it is legal
+
+##### Implement the ability
+
+First, let us create a package `boss103` inside `gamelogic.abilities.boss`. Then, we create a new case class, `CleansingNova` extending `gamelogic.abilities.Ability`.
+
+We need to implement a bunch of stuff left abstract by the `Ability` trait. The `useId`, `time` and `casterId` should be taken as constructor arguments. The `cost` ability will simply be 0 of `NoResource`, and the `copyWithNewTimeAndId` method is implemented using the `copy` method acquired by being a case class. The `abilityId` member is a unique (across the application) Int identifier for the ability. In order to define it, we simply add a `boss103CleansingNovaId: AbilityId = [...]` to the companion object of the `Ability` trait. The value of `[...]` simply depends on what is already present (we simply add 1 to the previous id). As you can see, this is a potential source of conflicts while merging branches. However, these conflicts will be extremely easy to fix.
+
+The `cooldown` and `castingTime` member are constant that can for example be defined in the companion object of the `CleansingNova` class. Note that, in some circomstances, these values could also be defined in the constructor arguments. It could make sense to do that if the cooldown or the casting time depend on the status of the game when the ability is used. These times must be defined as a `Long` in milliseconds, and in this case will respectively be 60000L and 4000L (subject to change when testing the boss!).
+
+The `canBeCast` method checks whether the caster is legally authorized to use the ability at the given time. We are simply implement it by returning `true`, as the actual validity will be taken care of by the `Boss103Controller`.
+
+Now the pièce de résistance is the implementation of the `createActions` method. This method will be called by the `GameMaster.scala` and thus rely on the fact that it is always right. In particular, we do not need to check legality of actions, and we can use random effects in there. Indeed, when the ability finished being cast, the game master creates the abilities with that method and send them as is to all players and AIs. In this case, the implementation is straightforward. We filter all players to keep only those who are in sight, and we deal them 300 damages, which is enough to kill them all (unless they use some ability they may have to protect them). For reference, here it is:
+
+```scala
+def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
+  gameState.players.valuesIterator
+    .filter(player => gameState.areTheyInSight(casterId, player.id, time).getOrElse(false))
+    .map { player =>
+      EntityTakesDamage(idGeneratorContainer.gameActionIdGenerator(), time, player.id, 300.0, casterId)
+    }
+    .toList
+```
+
+(The member `time` comes from the action and will be fed by the game master as the time at which the ability finished being cast.)
+
+The last tiny bit of stuff that we need to do, without which the game will crash, is to inform the boopickle pickler that this class exists. You do that by adding the line
+
+```scala
+.addConcreteType[boss.boss103.CleansingNova]
+```
+
+to the `communication.BFFPickler` object.
+
+##### Adding the ability id and time before first use
+
+This step takes no time. Simply update the `abilities` and `abilityNames` member of the `Boss103` class and we are done for adding the ability.
+
+Then, in order to set a time before first use, we need to change the value returned by the `initialBoss` method in the companion object of `Boss103`. The trick is to add this ability to the map of `relevantUsedAbilities`, with a time before the beginning of the game that will take into account the cooldown of the ability. Here is an example:
+
+```scala
+relevantUsedAbilities = Map(
+  Ability.boss103CleansingNovaId -> Pointed[CleansingNova].unit.copy(
+    time = time - CleansingNova.cooldown + CleansingNova.timeToFirstAbility
+  )
+)
+```
+
+##### Making the Boss 103 controller use it
+
+This is litteraly five lines of codes. The four first maybe define the action of starting casting the ability:
+
+```scala
+val maybeUseCleansingNova =
+  Some(CleansingNova(0L, startTime, me.id))
+    .filter(me.canUseAbility(_, startTime))
+    .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
+```
+
+and the fifth is to add it to the queue of possible ability to use, by adding `maybeUseCleansingNova` to the list passed as argument to the `useAbility` method. Usually abilities with longer cooldowns get higher priority, so we put it first on the list (before the auto-attack, that is).
+
+And that's it! Now the `Boss103Controller` will cast cleansing nova whenever it can. the `canUseAbility` method takes care of checking that the cooldown since last ability is passed.
+
+You can now launch a game (preferably with a healer to heal the auto-attacks) and you'll see that:
+
+- after 30s, the boss will cast its first cleansing nova
+- if you manage to hide behind a pillar before the end of the cast, you live
+- if you however stay in sight (no matter the distance), you will die.
+
+#### Other abilities
+
+We need to do that procedure once for each ability that the boss will have. Some abilities will for example require you to create entities (see, for example, the `PutDamageZones` ability of Boss102). Others will perhaps require an AI a little bit more invovled. However, the general idea stays the same.
+
+#### Attack animation
+
+One thing that may be missing in the case of the cleansing nova is an animation to show that it actually happened. To do that, we could for example show a line for half a second between the boss and each target, where the colour would be gray if the player was hidden and red (or whatever) if the player got hit.
+
+We will implement that in what follows. Not that it will most likely have changed by the time you read this, as (hopefully) I will improve graphics in the future (or ask help from people actually qualified to do it).
+
+#### What about static abilities?
+
 ## Internal
 
 ### Adding a new Service

@@ -10,6 +10,7 @@ import game.ai.utils.pathfinders.PathFinder
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.entities.{Entity, MovingBody, WithPosition, WithThreat}
 import gamelogic.gamestate.GameAction.EntityCreatorAction
+import gamelogic.gamestate.gameactions.{ChangeTarget, EntityStartsCasting, MovingBodyMoves}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import gamelogic.physics.pathfinding.Graph
@@ -116,6 +117,33 @@ trait AIController[
       case AIControllerMessage.ObstacleGraph(graph) =>
         receiver(actionTranslator, initialAction, currentGameState, graph)
     }
+  }
+
+  /**
+    * Utility method usable by sub classes which will (maybe) determine what action(s) need to be performed.
+    *
+    * @param maybeActions list of legal attack that could be used at the given time. The attack, if any, which will be
+    *                     performed correspond to the first defined element in the list.
+    * @param maybeChangeTarget if the entity needs to change its target, this argument must be defined
+    * @param maybeMove if the entity must move, this argument must be defined
+    * @return
+    */
+  protected def useAbility(
+      maybeActions: List[Option[EntityStartsCasting]],
+      maybeChangeTarget: Option[ChangeTarget],
+      maybeMove: Option[MovingBodyMoves]
+  ): List[GameAction] = {
+    val maybeAction = maybeActions.collectFirst { case Some(action) => action }
+    maybeAction.fold(
+      List(maybeChangeTarget, maybeMove).flatten
+    )(
+      _ =>
+        List(
+          maybeChangeTarget,
+          maybeMove.map(_.copy(moving = false)),
+          maybeAction
+        ).flatten
+    )
   }
 
 }

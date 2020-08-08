@@ -1,17 +1,18 @@
 package gamelogic.entities.boss.dawnoftime
 
-import gamelogic.abilities.Ability
+import gamelogic.abilities.{Ability, AutoAttack}
 import gamelogic.abilities.Ability.AbilityId
+import gamelogic.abilities.WithTargetAbility.Distance
+import gamelogic.abilities.boss.boss103.CleansingNova
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
-import gamelogic.entities.boss.dawnoftime.Boss102.{fullSpeed, healAndDamageAwareActions}
+import gamelogic.entities.boss.dawnoftime.Boss102.fullSpeed
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.entities.boss.{Boss101, BossEntity, BossFactory}
 import gamelogic.entities.classes.Constants
-import gamelogic.entities.staticstuff.Obstacle
-import gamelogic.gamestate.GameAction
+import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.gameactions.CreateObstacle
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Circle, Shape}
@@ -36,9 +37,12 @@ final case class Boss103(
 
   def name: String = Boss103.name
 
-  def shape: Circle = Boss101.shape
+  def shape: Circle = Boss103.shape
 
-  def abilityNames: Map[AbilityId, String] = Map() // todo
+  def abilityNames: Map[AbilityId, String] = Map(
+    Ability.autoAttackId -> "Auto attack",
+    Ability.boss103CleansingNovaId -> "Cleansing Nova"
+  ) // todo
 
   def changeTarget(newTargetId: Id): Boss103 = copy(targetId = newTargetId)
 
@@ -50,7 +54,10 @@ final case class Boss103(
 
   protected def patchLifeTotal(newLife: Double): Boss103 = copy(life = newLife)
 
-  def abilities: Set[AbilityId] = Set() // todo
+  def abilities: Set[AbilityId] = Set(
+    Ability.autoAttackId,
+    Ability.boss103CleansingNovaId
+  ) // todo
 
   def useAbility(ability: Ability): Boss103 = copy(
     relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability)
@@ -65,18 +72,45 @@ final case class Boss103(
     copy(time = time, pos = position, direction = direction, rotation = rotation, speed = speed, moving = moving)
 
   def teamId: Entity.TeamId = Entity.teams.mobTeam
+
+  def maybeAutoAttack(time: Long, gameState: GameState): Option[AutoAttack] =
+    Some(
+      AutoAttack(
+        0L,
+        time,
+        id,
+        targetId,
+        Boss103.autoAttackDamage,
+        Boss103.autoAttackTickRate,
+        NoResource,
+        Boss103.meleeRange
+      )
+    ).filter(_.canBeCast(gameState, time)).filter(canUseAbility(_, time))
+
 }
 
 object Boss103 extends BossFactory[Boss103] {
 
+  final val shape: Circle = Boss101.shape
+
+  final val meleeRange: Distance = shape.radius + 20.0
+  final val rangeRange: Distance = 2000.0 // basically infinite distance
+
+  final val autoAttackDamage: Double = 5.0
+  final val autoAttackTickRate: Long = 1000L
+
   final val maxLife: Double = 40000
   def initialBoss(entityId: Id, time: Id): Boss103 = Pointed[Boss103].unit.copy(
-    id                    = entityId,
-    time                  = time,
-    maxLife               = maxLife,
-    life                  = maxLife,
-    speed                 = fullSpeed,
-    relevantUsedAbilities = Map() // todo
+    id      = entityId,
+    time    = time,
+    maxLife = maxLife,
+    life    = maxLife,
+    speed   = fullSpeed,
+    relevantUsedAbilities = Map(
+      Ability.boss103CleansingNovaId -> Pointed[CleansingNova].unit.copy(
+        time = time - CleansingNova.cooldown + CleansingNova.timeToFirstAbility
+      )
+    ) // todo
   )
 
   def initialBossActions(entityId: Id, time: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
@@ -88,31 +122,7 @@ object Boss103 extends BossFactory[Boss103] {
   final val sizeNumber: Int              = 6
 
   def stagingBossActions(time: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = {
-    val pillarShape  = Shape.regularPolygon(3, pillarRadius)
-    val wallLength   = 2 * roomRadius * math.sin(math.Pi / sizeNumber) // it's Hexagon so it equals roomRadius
-    val wallVertices = Obstacle.segmentObstacleVertices(-wallLength / 2 * Complex.i, wallLength / 2 * Complex.i, 10)
-//    def pillarAndWall(index: Int): (CreateObstacle, CreateObstacle) = {
-//      val angle = 2 * math.Pi * index / sizeNumber
-//
-//      val pillarAction = CreateObstacle(
-//        idGeneratorContainer.gameActionIdGenerator(),
-//        time,
-//        idGeneratorContainer.entityIdGenerator(),
-//        pillarPositionRadius * Complex.rotation(angle + math.Pi / 6),
-//        pillarShape.vertices.map(_ * Complex.rotation(angle + math.Pi / 6 + math.Pi))
-//      )
-//      val wallAction = CreateObstacle(
-//        idGeneratorContainer.gameActionIdGenerator(),
-//        time,
-//        idGeneratorContainer.entityIdGenerator(),
-//        roomRadius * math.cos(math.Pi / sizeNumber) * Complex.rotation(angle),
-//        wallVertices.map(_ * Complex.rotation(angle))
-//      )
-//
-//      (pillarAction, wallAction)
-//    }
-//
-//    (0 to sizeNumber).toList.map(pillarAndWall).flatMap { case (_1, _2) => List(_1, _2) }
+    val pillarShape = Shape.regularPolygon(3, pillarRadius)
     def pillar(index: Int): CreateObstacle = {
       val angle = 2 * math.Pi * index / sizeNumber
 

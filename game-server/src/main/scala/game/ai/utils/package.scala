@@ -133,7 +133,7 @@ package object utils {
       )
       .fold(currentGameState.players.values.minByOption(player => (player.pos - me.pos).modulus))(Some(_))
 
-  def changeTarget(me: WithTarget, targetId: Entity.Id, time: Long): Option[GameAction] =
+  def changeTarget(me: WithTarget, targetId: Entity.Id, time: Long): Option[ChangeTarget] =
     Option.unless(targetId == me.targetId)(ChangeTarget(0L, time, me.id, targetId))
 
 }

@@ -17,6 +17,7 @@ object BFFPicklers {
     .addConcreteType[boss.boss102.PutDamageZones]
     .addConcreteType[boss.boss102.PutLivingDamageZoneOnTarget]
     .addConcreteType[boss.boss102.SpawnHound]
+    .addConcreteType[boss.boss103.CleansingNova]
     .addConcreteType[hexagon.FlashHeal]
     .addConcreteType[hexagon.HexagonHot]
     .addConcreteType[pentagon.CreatePentagonBullet]

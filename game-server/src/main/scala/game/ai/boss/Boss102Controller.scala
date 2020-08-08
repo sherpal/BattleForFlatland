@@ -31,7 +31,8 @@ object Boss102Controller extends AIController[Boss102, SpawnBoss] {
         /** changing target */
         val maybeChangeTarget = changeTarget(me, target.id, startTime)
 
-//        val maybeMove2 = aiMovementToTarget(
+        // Since the game area is convex for Boss102, this can be a potential other implementation.
+//        val maybeMove = aiMovementToTarget(
 //          me.id,
 //          startTime,
 //          currentPosition,
@@ -80,27 +81,17 @@ object Boss102Controller extends AIController[Boss102, SpawnBoss] {
             .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
         }
 
-        def useAbility(maybeAction: Option[EntityStartsCasting]): List[GameAction] =
-          maybeAction.fold(
-            List(maybeChangeTarget, maybeMove).flatten
-          )(
-            _ =>
-              List(
-                maybeChangeTarget,
-                maybeMove.map(_.copy(moving = false)),
-                maybeAction
-              ).flatten
-          )
-
-        val maybeUseAbility = maybePutDamageZones
-          .orElse(maybeSpawnHound)
-          .orElse(maybeLivingDZ)
-          .orElse(
+        useAbility(
+          List(
+            maybePutDamageZones,
+            maybeSpawnHound,
+            maybeLivingDZ,
             me.maybeAutoAttack(startTime, currentGameState)
               .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
-          )
-
-        useAbility(maybeUseAbility)
+          ),
+          maybeChangeTarget,
+          maybeMove
+        )
       }
       .getOrElse(Nil)
 
