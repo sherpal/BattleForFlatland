@@ -8,6 +8,9 @@ import scala.annotation.tailrec
 /**
   * A [[ManhattanGraph]] makes an A* algorithm by walking on a grid, allowing path to go to 8 possible positions
   * at all times.
+  *
+  * // todo[important]: this thing currently is not stellar, and even we can say that it does not work. To fix
+  *
   */
 final class ManhattanGraph(gridSize: Double, maxStep: Int, isLegalPosition: Complex => Boolean, maxDistance: Double)
     extends Graph {
@@ -36,65 +39,78 @@ final class ManhattanGraph(gridSize: Double, maxStep: Int, isLegalPosition: Comp
     * @param heuristicFunction guess of the distance between two points. Usually the L2-norm
     *  @return if the shortest path exists, returns it wrapped in Some. Otherwise returns None
     */
-  def a_*(start: Complex, end: Complex, heuristicFunction: (Complex, Complex) => Double): Option[List[Complex]] = {
+  def a_*(start: Complex, end: Complex, heuristicFunction: (Complex, Complex) => Double): Option[List[Complex]] =
+    if (!isLegalPosition(start)) {
+      Some(List(start, end))
+    } else {
 
-    val baseDirection = Complex.rotation((end - start).arg)
+      val baseDirection = Complex.rotation((end - start).arg)
 
-    def h(z: Complex): Double               = heuristicFunction(z, end)
-    def d(z1: Complex, z2: Complex): Double = euclideanDistance(z1, z2)
+      def h(z: Complex): Double               = heuristicFunction(z, end)
+      def d(z1: Complex, z2: Complex): Double = euclideanDistance(z1, z2)
 
-    @scala.annotation.tailrec
-    def exploration(
-        openSet: Map[Complex, Score],
-        closedSet: Set[Complex],
-        cameFromMap: Map[Complex, Complex],
-        stepCount: Int
-    ): Map[Complex, Complex] =
-      if (openSet.isEmpty || stepCount > maxStep) Map()
-      else {
-        val (currentVertex, currentVertexScore) = openSet.minBy(_._2.f)
-
-        if (currentVertex.distanceTo(end) <= maxDistance) cameFromMap
+      @scala.annotation.tailrec
+      def exploration(
+          openSet: Map[Complex, Score],
+          closedSet: Set[Complex],
+          cameFromMap: Map[Complex, Complex],
+          stepCount: Int
+      ): Map[Complex, Complex] =
+        if (openSet.isEmpty) Map()
         else {
-          val newOpenSet   = openSet - currentVertex
-          val newClosedSet = closedSet + currentVertex
+//        println(s"exploring (step $stepCount), ${openSet.size} <-> ${closedSet.size}")
 
-          val newElementsInOpenSet = nextPossible(currentVertex, baseDirection)
-            .filterNot(closedSet.contains)
-            .map(
-              neighbour =>
-                (
-                  neighbour,
-                  currentVertexScore.g + d(currentVertex, neighbour),
-                  openSet.getOrElse(neighbour, defaultScore)
-                )
+          val (currentVertex, currentVertexScore) = openSet.minBy(_._2.f)
+
+//        println(s"distance to end: ${h(currentVertex)}")
+//        println(openSet.keysIterator.mkString("\n"))
+
+          if (currentVertex.distanceTo(end) <= maxDistance || stepCount > maxStep) cameFromMap + (end -> currentVertex)
+          else {
+            val newOpenSet   = openSet - currentVertex
+            val newClosedSet = closedSet + currentVertex
+
+            val newElementsInOpenSet = nextPossible(currentVertex, baseDirection)
+              .filterNot(closedSet.contains)
+              .map(
+                neighbour =>
+                  (
+                    neighbour,
+                    currentVertexScore.g + d(currentVertex, neighbour),
+                    openSet.getOrElse(neighbour, defaultScore)
+                  )
+              )
+              .filter(triplet => triplet._2 < triplet._3.g)
+              .map {
+                case (neighbour, tentativeScoreG, _) =>
+                  neighbour -> Score(
+                    tentativeScoreG + h(neighbour),
+                    tentativeScoreG
+                  )
+              }
+              .toMap
+
+            exploration(
+              newOpenSet ++ newElementsInOpenSet,
+              newClosedSet,
+              cameFromMap ++ newElementsInOpenSet.keys
+                .map(_ -> currentVertex)
+                .toMap,
+              stepCount + 1
             )
-            .filter(triplet => triplet._2 < triplet._3.g)
-            .map({
-              case (neighbour, tentativeScoreG, _) =>
-                neighbour -> Score(
-                  tentativeScoreG + h(neighbour),
-                  tentativeScoreG
-                )
-            })
-            .toMap
-
-          exploration(
-            newOpenSet ++ newElementsInOpenSet,
-            newClosedSet,
-            cameFromMap ++ newElementsInOpenSet.keys
-              .map(_ -> currentVertex)
-              .toMap,
-            stepCount + 1
-          )
+          }
         }
+
+      val explorationResult =
+        exploration(Map(start -> Score(h(start), 0)), Set(), Map(), 1)
+
+//    println(s"Finished exploring, ${explorationResult.size}")
+
+      Option.when(explorationResult.nonEmpty) {
+//      println(s"path: ${reconstructPath(explorationResult, start, end)}")
+        reconstructPath(explorationResult, start, end)
       }
-
-    val explorationResult =
-      exploration(Map(start -> Score(h(start), 0)), Set(), Map(), 1)
-
-    Option.when(explorationResult.nonEmpty)(reconstructPath(explorationResult, start, end))
-  }
+    }
 
   /**
     * With the ManhattanGraph we explore until we go to the point, so at any time we can consider that the target

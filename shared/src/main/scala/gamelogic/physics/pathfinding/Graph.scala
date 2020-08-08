@@ -7,7 +7,11 @@ import gamelogic.physics.Complex
 trait Graph {
 
   /** Used in a_* algorithms */
-  protected def reconstructPath(cameFromMap: Map[Complex, Complex], start: Complex, end: Complex): List[Complex] = {
+  protected def reconstructPath(
+      cameFromMap: Map[Complex, Complex],
+      start: Complex,
+      end: Complex
+  ): List[Complex] = {
     @scala.annotation.tailrec
     def withAccumulator(currentPath: List[Complex]): List[Complex] =
       if (currentPath.head == start) currentPath

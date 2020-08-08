@@ -54,7 +54,7 @@ trait PathFinder {
 
     //lazy val graph: Graph = AIWanderGraph(shapeQT, entityRadius)._1
     lazy val graph: Graph =
-      new ManhattanGraph(10, 1000, pos => !shapeQT.collides(new Circle(entityRadius), pos, 0), entityRadius + 5)
+      new ManhattanGraph(10, 100, pos => !shapeQT.collides(new Circle(entityRadius), pos, 0), entityRadius + 5)
 
   }
 

@@ -392,15 +392,15 @@ final class GameStateManager(
     gameStateUpdates
   )
 
-  /** Testing */
-  val graphDrawer = new GraphDrawer(
-    $actionsWithStates //.filter(_._1.isInstanceOf[CreateObstacle])
-      .map(_._2)
-      .map(_.obstacles.valuesIterator)
-      .map(obstacles => AIWanderGraph(new ShapeQT(obstacles.toList), Constants.bossRadius)._1),
-    gameDrawer.camera
-  )
-  reactiveStage.apply(graphDrawer.graphics)
+//  /** Testing */
+//  val graphDrawer = new GraphDrawer(
+//    $actionsWithStates //.filter(_._1.isInstanceOf[CreateObstacle])
+//      .map(_._2)
+//      .map(_.obstacles.valuesIterator)
+//      .map(obstacles => AIWanderGraph(new ShapeQT(obstacles.toList), Constants.bossRadius)._1),
+//    gameDrawer.camera
+//  )
+//  reactiveStage.apply(graphDrawer.graphics)
 
   /** ******* */
   var lastTimeStamp = 0L
