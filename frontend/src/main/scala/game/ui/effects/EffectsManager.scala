@@ -6,6 +6,7 @@ import com.raquo.airstream.ownership.Owner
 import game.Camera
 import game.ui.Drawer
 import game.ui.effects.boss.boss102.{HoundLifeBarEffect, LivingDamageZoneEffect}
+import game.ui.effects.boss.boss103.CleansingNovaEffect
 import gamelogic.abilities.square.Cleave
 import gamelogic.buffs.boss.boss102.LivingDamageZone
 import gamelogic.entities.Entity
@@ -17,7 +18,9 @@ import typings.pixiJs.PIXI.{LoaderResource, RenderTexture}
 import typings.pixiJs.mod.{Application, Container, Graphics}
 import utils.misc.RGBColour
 import gamelogic.abilities
+import gamelogic.abilities.boss.boss103.CleansingNova
 import gamelogic.entities.classes.Constants
+import gamelogic.physics.shape.{ConvexPolygon, Shape}
 
 import scala.collection.mutable
 
@@ -29,6 +32,8 @@ final class EffectsManager(
     resources: PartialFunction[Asset, LoaderResource]
 )(implicit owner: Owner)
     extends Drawer {
+
+  import Complex.DoubleWithI
 
   val triangleHitTexture: RenderTexture = {
     val graphics = new Graphics()
@@ -126,6 +131,21 @@ final class EffectsManager(
                 camera
               )
             )
+          case UseAbility(_, time, casterId, _, _: CleansingNova) =>
+            Some(new CleansingNovaEffect(casterId, time, {
+              polygonTexture(
+                RGBColour.gray.intColour,
+                0.7,
+                new ConvexPolygon(
+                  Vector(
+                    0.0,
+                    -3.i,
+                    10 - 3.i,
+                    10
+                  )
+                )
+              )
+            }, camera))
           case _ =>
             Option.empty[SimpleTextEffect]
         }

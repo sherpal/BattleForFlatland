@@ -163,7 +163,7 @@ After filling the blanks, only a few members are still not implemented (`???`):
 
 #### Filling the `stagingBossActions` method
 
-The previous actions where made in "auto-pilot" mode, and could even be down automatically via an `sbt` command. Now is the time to begin implementing stuff for your boss specifically.
+The previous actions where made in "auto-pilot" mode, and could even be done automatically via an `sbt` command. Now is the time to begin implementing stuff for your boss specifically.
 
 The main goal of the `stagingBossActions` method is to setup the topology of the room. That is, create all the actions to put obstacles into the game. In the case of the Boss103, the room will have the shape of an Hexagon, with 6 triangle "pillars" placed in an inner hexagon, pointing towards the center.
 
@@ -209,7 +209,7 @@ Note that we are here using the pathfinding algorithm to make the boss move. You
 
 #### Adding the first ability
 
-Now that the boss moves towards its target, it is time to make it attack. As many other bosses in the game, Boss 103 will have a small "auto-attack". Usually the goal of the auto-attack is to keep healers busy in quite phases, and give the tank some rage. Of course, for your own bosses, you can opt in not to have an auto-attack, or to have a "default" attack that the boss does when its has nothing else to do, and which could be a range attack (like casting a ball in a random direction, whatever pleases you).
+Now that the boss moves towards its target, it is time to make it attack. As many other bosses in the game, Boss 103 will have a small "auto-attack". Usually the goal of the auto-attack is to keep healers busy in quiet phases, and give the tank some rage. Of course, for your own bosses, you can opt in not to have an auto-attack, or to have a "default" attack that the boss does when its has nothing else to do, and which could be a range attack (like casting a ball in a random direction, whatever pleases you).
 
 Adding the auto-attack to the boss is straightforward since it is already implemented. You simply need to that the `Ability.autoAttackId` to `abilities` member and `Ability.autoAttackId -> "Auto attack"` to the `abilityNames` member. Alternatively, you could implement the `abilities` method as the set of keys of the `abilityNames` Map. The `abilityNames` map is used by the frontend to display the names of the attacks in the UI.
 
@@ -342,9 +342,27 @@ We need to do that procedure once for each ability that the boss will have. Some
 
 #### Attack animation
 
-One thing that may be missing in the case of the cleansing nova is an animation to show that it actually happened. To do that, we could for example show a line for half a second between the boss and each target, where the colour would be gray if the player was hidden and red (or whatever) if the player got hit.
+One thing that may be missing in the case of the cleansing nova is an animation to show that it actually happened. To do that, we could for example show a line for half a second between the boss and each target.
 
-We will implement that in what follows. Not that it will most likely have changed by the time you read this, as (hopefully) I will improve graphics in the future (or ask help from people actually qualified to do it).
+We will implement that in what follows. Note that it will most likely have changed by the time you read this, as (hopefully) I will improve graphics in the future (or ask help from people actually qualified to do it).
+
+Currently the implementation "does the job", but that's about it. Also, it does not yet take into account that actions could be cancelled due to a change in the timeline. Currently this is not really an issue.
+
+The first thing to do is to add a new "match" clause in the `game.ui.effect.EffectsManager`. For the `CleansingNova` ability, the match clause will be
+
+```scala
+case UseAbility(_, time, casterId, _, _: CleansingNova) => ???
+```
+
+The `???` will need to be field with (some) an instance of `game.ui.effects.GameEffect`.
+
+To that end, we add a package `game.ui.effects.boss.boss103` and we create a class `CleansingNovaEffect` extending `GameEffect`. A `GameEffect` is a purely mutable object that is quite low level and very close to pixi.js, the drawing library used by BFF. Basically, it is asked from you to
+
+- inform the ui when and how to destroy the effect (usually after some amount of time)
+- how to update it
+- how to add it to the game scene.
+
+When you implemented all of this, your effect will be triggered and destroyed accordingly.
 
 #### What about static abilities?
 

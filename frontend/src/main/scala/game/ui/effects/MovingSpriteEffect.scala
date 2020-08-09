@@ -38,7 +38,7 @@ final class MovingSpriteEffect(
   def update(currentTime: Long, gameState: GameState): Unit = {
     sprite.rotation = -rotation(gameState, currentTime - startTime)
     val position = path(currentTime - startTime) + worldAnchorPosition(gameState, currentTime)
-    println(position)
+
     camera.viewportManager(
       sprite,
       position,
