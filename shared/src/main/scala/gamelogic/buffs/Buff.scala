@@ -73,5 +73,6 @@ object Buff {
   final val squareEnrage             = 11
   final val entitiesPentagonZoneBuff = 12
   final val boss102LivingDamageZone  = 13
+  final val boss103Punished          = 14
 
 }

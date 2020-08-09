@@ -354,7 +354,7 @@ The first thing to do is to add a new "match" clause in the `game.ui.effect.Effe
 case UseAbility(_, time, casterId, _, _: CleansingNova) => ???
 ```
 
-The `???` will need to be field with (some) an instance of `game.ui.effects.GameEffect`.
+The `???` will need to be filled with (some) an instance of `game.ui.effects.GameEffect`.
 
 To that end, we add a package `game.ui.effects.boss.boss103` and we create a class `CleansingNovaEffect` extending `GameEffect`. A `GameEffect` is a purely mutable object that is quite low level and very close to pixi.js, the drawing library used by BFF. Basically, it is asked from you to
 
@@ -363,6 +363,37 @@ To that end, we add a package `game.ui.effects.boss.boss103` and we create a cla
 - how to add it to the game scene.
 
 When you implemented all of this, your effect will be triggered and destroyed accordingly.
+
+#### Bonus: Let's implement the "Punishment"
+
+For the sake of having more example at our disposal in this "tutorial", let us implement the "Punishment" ability together. This ability will place a debuff (i.e., a malus for some time) on each player (regardless of where they are) that will prevent them from doing anything (stunned, technical term) for 20s. However, if they take damage, the debuff is removed. This ability will be paired with the "Sacred ground" ability (you can go check the boss description to see why).
+
+This ability will be a good opportunity to learn how to create and add buffs into the game.
+
+##### Add the package and create the class
+
+We start by create a package `boss103` in `gamelogic.buffs.boss`, and a class called `Punished` inside it ("Punished" will be the name of the debuff). This buff will be a "passive" buff, hence we extend the `PassiveBuff` trait, and, as always, we need to implement the members that are left abstract.
+
+The way passive buffs works is that they modify actions happening while they are present. In this case, the passive buff will
+
+- replace each occurence of the player moving or starting casting by doing nothing
+- replace each occurence of the player taking damage by itself plus the action of removing the buff
+
+##### Implement abstract members.
+
+In a passive buff, besides some metadata, we need to implement the `initialActions`, the `endingActions` and the `actionTransformer` methods. In the metadata, the `buffId`, `bearerId` and `apperanceTime` should be placed inside the constructor, because they depend on the state of the game when they are created.
+
+The `resourceIdentifier` is similar to the `AbilityId`. It's a unique identifier of the buff as a buff, and it is used by the game UI to know what icon to display when an entity bears this buff. Finally, the `duration` is the time (in millisecond) that the buff will stay on the bearer. The special value `-1` means that the buff will stay forever.
+
+##### Create actions and abilities
+
+We need to create a `gamelogic.gamestate.GameAction` which will add the punished buff to an entity. This action will be placed in the `gamelogic.gamestate.gameactions.boss103` package, called `PutPunishedDebuff`. Then, we need to register it in the `communication.BFFPicklers` by adding a concrete type for it.
+
+And finally, we create the corresponding ability, as above. We simply need not to forget to make the `Boss103Controller` to use the ability. In this case, we are going to it a little bit differently: instead of casting the ability as soon as it's ready, we will toss a coin each time with a rather small chance of success (remember that the AI actor runs at 30 FPS). This will require more reactivity from players since they can't know exactly when it occurs. (Remark: when you toss a coin until success, the underlying random variable is a Geometric distribution, which is the desired behaviour, and will be easily tuned to get what we want!)
+
+##### Adding the asset for the buff
+
+The "Punished" buff will be display in player life bars. This means that the buff needs to have an image. See the "adding an asset" section below in order to do that.
 
 #### What about static abilities?
 

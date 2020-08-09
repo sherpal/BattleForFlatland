@@ -3,7 +3,7 @@ package gamelogic.entities.boss.dawnoftime
 import gamelogic.abilities.{Ability, AutoAttack}
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
-import gamelogic.abilities.boss.boss103.CleansingNova
+import gamelogic.abilities.boss.boss103.{CleansingNova, Punishment}
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
@@ -41,7 +41,8 @@ final case class Boss103(
 
   def abilityNames: Map[AbilityId, String] = Map(
     Ability.autoAttackId -> "Auto attack",
-    Ability.boss103CleansingNovaId -> "Cleansing Nova"
+    Ability.boss103CleansingNovaId -> "Cleansing Nova",
+    Ability.boss103PunishmentId -> "Punishment"
   ) // todo
 
   def changeTarget(newTargetId: Id): Boss103 = copy(targetId = newTargetId)
@@ -56,7 +57,8 @@ final case class Boss103(
 
   def abilities: Set[AbilityId] = Set(
     Ability.autoAttackId,
-    Ability.boss103CleansingNovaId
+    Ability.boss103CleansingNovaId,
+    Ability.boss103PunishmentId
   ) // todo
 
   def useAbility(ability: Ability): Boss103 = copy(
@@ -109,6 +111,9 @@ object Boss103 extends BossFactory[Boss103] {
     relevantUsedAbilities = Map(
       Ability.boss103CleansingNovaId -> Pointed[CleansingNova].unit.copy(
         time = time - CleansingNova.cooldown + CleansingNova.timeToFirstAbility
+      ),
+      Ability.boss103PunishmentId -> Pointed[Punishment].unit.copy(
+        time = time - Punishment.cooldown + Punishment.timeToFirstAbility
       )
     ) // todo
   )

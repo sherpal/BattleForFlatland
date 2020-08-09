@@ -36,6 +36,6 @@ object CleansingNova {
 
   val name: String = "CleansingNova"
 
-  val timeToFirstAbility: Long = 2000L //30000L
+  val timeToFirstAbility: Long = 30000L
 
 }
