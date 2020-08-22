@@ -79,6 +79,11 @@ object Asset {
               JSImport.Default
             )
             object punished extends Asset
+            @js.native @JSImport(
+              "resources/assets/in-game/gui/boss/dawn-of-time/boss103/boss103-purified.png",
+              JSImport.Default
+            )
+            object purified extends Asset
           }
         }
       }
@@ -132,6 +137,7 @@ object Asset {
   ingame.gui.bars.xeonBar
   ingame.gui.boss.dawnOfTime.boss102.livingDamageZone
   ingame.gui.boss.dawnOfTime.boss103.punished
+  ingame.gui.boss.dawnOfTime.boss103.purified
   ingame.gui.abilities.boss101BigDot
   ingame.gui.`default-abilities`.squareShield
   ingame.gui.`default-abilities`.rageFiller
@@ -161,7 +167,8 @@ object Asset {
     Buff.triangleUpgradeDirectHit -> ingame.gui.abilities.triangleUpgradeDirectHit,
     Buff.squareEnrage -> ingame.gui.abilities.squareEnrage,
     Buff.boss102LivingDamageZone -> ingame.gui.boss.dawnOfTime.boss102.livingDamageZone,
-    Buff.boss103Punished -> ingame.gui.boss.dawnOfTime.boss103.punished
+    Buff.boss103Punished -> ingame.gui.boss.dawnOfTime.boss103.punished,
+    Buff.boss103Purified -> ingame.gui.boss.dawnOfTime.boss103.purified
   )
 
 }

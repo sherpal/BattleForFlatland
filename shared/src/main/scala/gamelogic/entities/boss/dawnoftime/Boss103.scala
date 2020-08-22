@@ -42,7 +42,8 @@ final case class Boss103(
   def abilityNames: Map[AbilityId, String] = Map(
     Ability.autoAttackId -> "Auto attack",
     Ability.boss103CleansingNovaId -> "Cleansing Nova",
-    Ability.boss103PunishmentId -> "Punishment"
+    Ability.boss103PunishmentId -> "Punishment",
+    Ability.boss103SacredGroundId -> "Sacred Ground"
   ) // todo
 
   def changeTarget(newTargetId: Id): Boss103 = copy(targetId = newTargetId)
@@ -58,7 +59,8 @@ final case class Boss103(
   def abilities: Set[AbilityId] = Set(
     Ability.autoAttackId,
     Ability.boss103CleansingNovaId,
-    Ability.boss103PunishmentId
+    Ability.boss103PunishmentId,
+    Ability.boss103SacredGroundId
   ) // todo
 
   def useAbility(ability: Ability): Boss103 = copy(

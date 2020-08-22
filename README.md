@@ -376,8 +376,8 @@ We start by create a package `boss103` in `gamelogic.buffs.boss`, and a class ca
 
 The way passive buffs works is that they modify actions happening while they are present. In this case, the passive buff will
 
-- replace each occurence of the player moving or starting casting by doing nothing
-- replace each occurence of the player taking damage by itself plus the action of removing the buff
+- replace each occurrence of the player moving or starting casting by doing nothing
+- replace each occurrence of the player taking damage by itself plus the action of removing the buff
 
 ##### Implement abstract members.
 

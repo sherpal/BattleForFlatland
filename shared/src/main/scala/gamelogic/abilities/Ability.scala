@@ -90,6 +90,7 @@ object Ability {
   final val putLivingDamageZoneId: AbilityId    = 18
   final val boss103CleansingNovaId: AbilityId   = 19
   final val boss103PunishmentId: AbilityId      = 20
+  final val boss103SacredGroundId: AbilityId    = 21
   @inline final def gcd                         = 200L
 
   /** Encoding. Replace this by more performant stuff in the future. */

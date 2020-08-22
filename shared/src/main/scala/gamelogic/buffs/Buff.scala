@@ -74,5 +74,6 @@ object Buff {
   final val entitiesPentagonZoneBuff = 12
   final val boss102LivingDamageZone  = 13
   final val boss103Punished          = 14
+  final val boss103Purified          = 15
 
 }

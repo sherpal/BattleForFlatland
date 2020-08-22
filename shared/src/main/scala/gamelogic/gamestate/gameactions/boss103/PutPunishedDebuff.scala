@@ -8,6 +8,7 @@ import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
 import gamelogic.physics.Complex
 
+/** Puts an instance of [[Punished]] debuff on the target. */
 final case class PutPunishedDebuff(
     id: GameAction.Id,
     time: Long,
