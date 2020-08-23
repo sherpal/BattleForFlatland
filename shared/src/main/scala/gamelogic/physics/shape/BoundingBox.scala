@@ -42,3 +42,9 @@ final case class BoundingBox(left: Double, bottom: Double, right: Double, top: D
   )
 
 }
+
+object BoundingBox {
+
+  def fromRadius(radius: Double): BoundingBox = BoundingBox(-radius, -radius, radius, radius)
+
+}

@@ -54,7 +54,7 @@ object Boss103Controller extends AIController[Boss103, SpawnBoss] {
             .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
 
         val maybeUseSacredGround =
-          Some(SacredGround(0L, startTime, me.id))
+          Some(SacredGround(0L, startTime, me.id, me.currentPosition(startTime), SacredGround.range))
             .filter(me.canUseAbility(_, startTime))
             .map(
               ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability)

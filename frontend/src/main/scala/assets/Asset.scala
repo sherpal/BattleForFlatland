@@ -84,6 +84,11 @@ object Asset {
               JSImport.Default
             )
             object purified extends Asset
+            @js.native @JSImport(
+              "resources/assets/in-game/gui/boss/dawn-of-time/boss103/sacred-ground.png",
+              JSImport.Default
+            )
+            object sacredGroundArea extends Asset
           }
         }
       }
@@ -138,6 +143,7 @@ object Asset {
   ingame.gui.boss.dawnOfTime.boss102.livingDamageZone
   ingame.gui.boss.dawnOfTime.boss103.punished
   ingame.gui.boss.dawnOfTime.boss103.purified
+  ingame.gui.boss.dawnOfTime.boss103.sacredGroundArea
   ingame.gui.abilities.boss101BigDot
   ingame.gui.`default-abilities`.squareShield
   ingame.gui.`default-abilities`.rageFiller

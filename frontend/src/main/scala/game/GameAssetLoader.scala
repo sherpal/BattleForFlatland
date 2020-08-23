@@ -47,7 +47,8 @@ final class GameAssetLoader(application: Application) {
     manaFiller,
     livingDamageZone,
     punished,
-    purified
+    purified,
+    sacredGroundArea
   )
 
   final val $progressData     = progressBus.events

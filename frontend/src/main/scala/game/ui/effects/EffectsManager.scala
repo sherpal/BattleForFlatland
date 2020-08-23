@@ -1,12 +1,13 @@
 package game.ui.effects
 
 import assets.Asset
+import assets.Asset.ingame.gui.boss.dawnOfTime.boss103.sacredGroundArea
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.ownership.Owner
 import game.Camera
 import game.ui.Drawer
 import game.ui.effects.boss.boss102.{HoundLifeBarEffect, LivingDamageZoneEffect}
-import game.ui.effects.boss.boss103.CleansingNovaEffect
+import game.ui.effects.boss.boss103.{CleansingNovaEffect, SacredGroundEffect}
 import gamelogic.abilities.square.Cleave
 import gamelogic.buffs.boss.boss102.LivingDamageZone
 import gamelogic.entities.Entity
@@ -18,7 +19,7 @@ import typings.pixiJs.PIXI.{LoaderResource, RenderTexture}
 import typings.pixiJs.mod.{Application, Container, Graphics}
 import utils.misc.RGBColour
 import gamelogic.abilities
-import gamelogic.abilities.boss.boss103.CleansingNova
+import gamelogic.abilities.boss.boss103.{CleansingNova, SacredGround}
 import gamelogic.entities.classes.Constants
 import gamelogic.physics.shape.{ConvexPolygon, Shape}
 
@@ -146,6 +147,16 @@ final class EffectsManager(
                 )
               )
             }, camera))
+          case UseAbility(_, time, _, _, sacredGround: SacredGround) =>
+            Some(
+              new SacredGroundEffect(
+                sacredGround.position,
+                sacredGround.radius,
+                time,
+                resources(sacredGroundArea).texture,
+                camera
+              )
+            )
           case _ =>
             Option.empty[SimpleTextEffect]
         }
