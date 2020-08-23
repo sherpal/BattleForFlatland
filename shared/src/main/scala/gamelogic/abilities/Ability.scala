@@ -91,7 +91,10 @@ object Ability {
   final val boss103CleansingNovaId: AbilityId   = 19
   final val boss103PunishmentId: AbilityId      = 20
   final val boss103SacredGroundId: AbilityId    = 21
-  @inline final def gcd                         = 200L
+  final val pentagonDispelId: AbilityId         = 22
+
+  /** Global cooldown. Not sure if this should be there... */
+  @inline final def gcd = 200L
 
   /** Encoding. Replace this by more performant stuff in the future. */
   import cats.syntax.functor._

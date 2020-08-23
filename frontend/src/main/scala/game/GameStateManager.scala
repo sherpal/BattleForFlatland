@@ -13,7 +13,7 @@ import game.ui.gui.ReactiveGUIDrawer
 import game.ui.reactivepixi.ReactiveStage
 import gamelogic.abilities.Ability
 import gamelogic.abilities.hexagon.{FlashHeal, HexagonHot}
-import gamelogic.abilities.pentagon.{CreatePentagonBullet, CreatePentagonZone}
+import gamelogic.abilities.pentagon.{CreatePentagonBullet, CreatePentagonZone, PentaDispel}
 import gamelogic.abilities.square.{Cleave, Enrage, HammerHit, Taunt}
 import gamelogic.abilities.triangle.{DirectHit, UpgradeDirectHit}
 import gamelogic.entities.WithPosition.Angle
@@ -336,6 +336,19 @@ final class GameStateManager(
                     }
                   case None =>
                     dom.console.warn("You are dead")
+                }
+              case Ability.pentagonDispelId =>
+                maybeTarget match {
+                  case None => dom.console.warn("You need to have a target to cast Dispel.")
+                  case Some(target) =>
+                    val ability = PentaDispel(0L, now, playerId, target.id)
+                    val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
+                    if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action
+                          .isLegalDelay($strictGameStates.now, deltaTimeWithServer + 100)) {
+                      socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                    } else if (scala.scalajs.LinkingInfo.developmentMode) {
+                      dom.console.warn("Can't cast Dispel.")
+                    }
                 }
 
               case Ability.createPentagonZoneId =>

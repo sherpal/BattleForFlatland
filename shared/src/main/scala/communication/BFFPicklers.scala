@@ -24,6 +24,7 @@ object BFFPicklers {
     .addConcreteType[hexagon.HexagonHot]
     .addConcreteType[pentagon.CreatePentagonBullet]
     .addConcreteType[pentagon.CreatePentagonZone]
+    .addConcreteType[pentagon.PentaDispel]
     .addConcreteType[square.Cleave]
     .addConcreteType[square.Enrage]
     .addConcreteType[square.HammerHit]

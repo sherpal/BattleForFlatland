@@ -43,6 +43,13 @@ trait Buff {
       implicit idGeneratorContainer: IdGeneratorContainer
   ): List[GameAction]
 
+  /**
+    * Specifies whether this buff can be dispelled by player dispel abilities.
+    *
+    * By default this is false, but it can be overridden in concrete classes.
+    */
+  def canBeDispelled: Boolean = false
+
 }
 
 object Buff {

@@ -47,6 +47,8 @@ object Asset {
         object pentagonBullet extends Asset
         @js.native @JSImport("resources/assets/in-game/gui/abilities/create-pentagon-zone.png", JSImport.Default)
         object pentagonZone extends Asset
+        @js.native @JSImport("resources/assets/in-game/gui/abilities/pentagon-dispel.png", JSImport.Default)
+        object pentagonDispel extends Asset
 
         @js.native @JSImport("resources/assets/in-game/gui/abilities/boss101-big-dot.png", JSImport.Default)
         object boss101BigDot extends Asset
@@ -137,6 +139,7 @@ object Asset {
   ingame.gui.abilities.triangleUpgradeDirectHit
   ingame.gui.abilities.pentagonBullet
   ingame.gui.abilities.pentagonZone
+  ingame.gui.abilities.pentagonDispel
   ingame.gui.bars.liteStepBar
   ingame.gui.bars.minimalistBar
   ingame.gui.bars.xeonBar
@@ -160,7 +163,8 @@ object Asset {
     Ability.triangleDirectHit -> ingame.gui.abilities.triangleDirectHit,
     Ability.triangleUpgradeDirectHit -> ingame.gui.abilities.triangleUpgradeDirectHit,
     Ability.pentagonPentagonBullet -> ingame.gui.abilities.pentagonBullet,
-    Ability.createPentagonZoneId -> ingame.gui.abilities.pentagonZone
+    Ability.createPentagonZoneId -> ingame.gui.abilities.pentagonZone,
+    Ability.pentagonDispelId -> ingame.gui.abilities.pentagonDispel
   )
 
   final val buffAssetMap: Map[Buff.ResourceIdentifier, Asset] = Map(
