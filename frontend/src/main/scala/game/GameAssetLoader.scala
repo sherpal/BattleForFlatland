@@ -49,6 +49,7 @@ final class GameAssetLoader(application: Application) {
     livingDamageZone,
     punished,
     purified,
+    inflamed,
     sacredGroundArea
   )
 

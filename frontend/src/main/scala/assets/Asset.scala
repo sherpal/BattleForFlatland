@@ -87,6 +87,11 @@ object Asset {
             )
             object purified extends Asset
             @js.native @JSImport(
+              "resources/assets/in-game/gui/boss/dawn-of-time/boss103/boss103-inflamed.png",
+              JSImport.Default
+            )
+            object inflamed extends Asset
+            @js.native @JSImport(
               "resources/assets/in-game/gui/boss/dawn-of-time/boss103/sacred-ground.png",
               JSImport.Default
             )
@@ -146,6 +151,7 @@ object Asset {
   ingame.gui.boss.dawnOfTime.boss102.livingDamageZone
   ingame.gui.boss.dawnOfTime.boss103.punished
   ingame.gui.boss.dawnOfTime.boss103.purified
+  ingame.gui.boss.dawnOfTime.boss103.purified
   ingame.gui.boss.dawnOfTime.boss103.sacredGroundArea
   ingame.gui.abilities.boss101BigDot
   ingame.gui.`default-abilities`.squareShield
@@ -178,7 +184,8 @@ object Asset {
     Buff.squareEnrage -> ingame.gui.abilities.squareEnrage,
     Buff.boss102LivingDamageZone -> ingame.gui.boss.dawnOfTime.boss102.livingDamageZone,
     Buff.boss103Punished -> ingame.gui.boss.dawnOfTime.boss103.punished,
-    Buff.boss103Purified -> ingame.gui.boss.dawnOfTime.boss103.purified
+    Buff.boss103Purified -> ingame.gui.boss.dawnOfTime.boss103.purified,
+    Buff.boss103Inflamed -> ingame.gui.boss.dawnOfTime.boss103.inflamed
   )
 
 }

@@ -8,6 +8,9 @@ import gamelogic.gamestate.gameactions.boss103.PutPunishedDebuff
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
+/**
+  * Curse all players with the [[gamelogic.buffs.boss.boss103.Punished]] keeping them from doing anything for some time.
+  */
 final case class Punishment(useId: Ability.UseId, time: Long, casterId: Entity.Id) extends Ability {
   def abilityId: AbilityId = Ability.boss103PunishmentId
 

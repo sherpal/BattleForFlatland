@@ -2,7 +2,7 @@ package game.ai.boss
 
 import game.ai.utils._
 import gamelogic.abilities.boss.boss102.{PutDamageZones, PutLivingDamageZoneOnTarget, SpawnHound}
-import gamelogic.abilities.boss.boss103.{CleansingNova, Punishment, SacredGround}
+import gamelogic.abilities.boss.boss103.{CleansingNova, HolyFlame, Punishment, SacredGround}
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.boss.dawnoftime.{Boss102, Boss103}
 import gamelogic.entities.classes.PlayerClass
@@ -60,6 +60,20 @@ object Boss103Controller extends AIController[Boss103, SpawnBoss] {
               ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability)
             )
 
+        val maybeUseHolyFlame =
+          Random
+            .shuffle(
+              currentGameState.players.valuesIterator
+                .filter(player => currentGameState.areTheyInSight(player.id, me.id, startTime).getOrElse(false))
+                .toList
+            )
+            .headOption
+            .map { target =>
+              HolyFlame(0L, startTime, me.id, target.id)
+            }
+            .filter(me.canUseAbility(_, startTime))
+            .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
+
         val maybeUsePunishment =
           Some(Punishment(0L, startTime, me.id))
             .filter(me.canUseAbility(_, startTime))
@@ -70,6 +84,7 @@ object Boss103Controller extends AIController[Boss103, SpawnBoss] {
           List(
             maybeUseCleansingNova,
             maybeUsePunishment,
+            maybeUseHolyFlame,
             maybeUseSacredGround,
             me.maybeAutoAttack(startTime, currentGameState)
               .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
