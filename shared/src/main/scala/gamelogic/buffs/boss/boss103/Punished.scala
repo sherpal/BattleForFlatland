@@ -37,25 +37,6 @@ final case class Punished(buffId: Buff.Id, bearerId: Entity.Id, startingPos: Com
 
   def resourceIdentifier: ResourceIdentifier = Buff.boss103Punished
 
-  def initialActions(gameState: GameState, time: Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] =
-    gameState
-      .movingBodyEntityById(bearerId)
-      .map { movingBody =>
-        MovingBodyMoves(
-          idGeneratorContainer.gameActionIdGenerator(),
-          time,
-          bearerId,
-          movingBody.currentPosition(time),
-          movingBody.direction,
-          movingBody.rotation,
-          movingBody.speed,
-          moving = false
-        )
-      }
-      .toList
-
   def endingAction(gameState: GameState, time: Long)(
       implicit idGeneratorContainer: IdGeneratorContainer
   ): List[GameAction] = Nil

@@ -7,9 +7,6 @@ import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
 final case class BasicShield(buffId: Buff.Id, bearerId: Entity.Id, appearanceTime: Long) extends PassiveBuff {
-  def initialActions(gameState: GameState, time: Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] = Nil
 
   def endingAction(gameState: GameState, time: Long)(
       implicit idGeneratorContainer: IdGeneratorContainer

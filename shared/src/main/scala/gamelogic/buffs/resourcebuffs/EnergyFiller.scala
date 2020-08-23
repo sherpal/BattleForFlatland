@@ -27,10 +27,6 @@ final case class EnergyFiller(buffId: Buff.Id, bearerId: Entity.Id, appearanceTi
 
   def resourceIdentifier: ResourceIdentifier = Buff.energyFiller
 
-  def initialActions(gameState: GameState, time: Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] = Nil
-
   def endingAction(gameState: GameState, time: Long)(
       implicit idGeneratorContainer: IdGeneratorContainer
   ): List[GameAction] = Nil

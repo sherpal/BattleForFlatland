@@ -12,9 +12,6 @@ import gamelogic.utils.IdGeneratorContainer
   * allies.
   */
 final case class HealingThreatAware(buffId: Buff.Id, bearerId: Entity.Id, appearanceTime: Long) extends PassiveBuff {
-  def initialActions(gameState: GameState, time: Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] = Nil
 
   def endingAction(gameState: GameState, time: Long)(
       implicit idGeneratorContainer: IdGeneratorContainer

@@ -30,10 +30,6 @@ final case class ManaFiller(buffId: Buff.Id, bearerId: Entity.Id, appearanceTime
 
   def resourceIdentifier: ResourceIdentifier = Buff.manaFiller
 
-  def initialActions(gameState: GameState, time: Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] = Nil
-
   def endingAction(gameState: GameState, time: Long)(
       implicit idGeneratorContainer: IdGeneratorContainer
   ): List[GameAction] = Nil

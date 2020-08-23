@@ -32,11 +32,6 @@ final case class PentagonZoneTick(
 
   def resourceIdentifier: ResourceIdentifier = Buff.entitiesPentagonZoneBuff
 
-  def initialActions(gameState: GameState, time: Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] =
-    Nil
-
   def endingAction(gameState: GameState, time: Long)(
       implicit idGeneratorContainer: IdGeneratorContainer
   ): List[GameAction] =

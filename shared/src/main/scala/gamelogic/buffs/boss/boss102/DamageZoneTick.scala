@@ -34,10 +34,6 @@ final case class DamageZoneTick(buffId: Buff.Id, bearerId: Entity.Id, appearance
 
   def resourceIdentifier: ResourceIdentifier = Buff.boss102DamageZoneBuff
 
-  def initialActions(gameState: GameState, time: Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] = Nil
-
   def endingAction(gameState: GameState, time: Long)(
       implicit idGeneratorContainer: IdGeneratorContainer
   ): List[GameAction] =

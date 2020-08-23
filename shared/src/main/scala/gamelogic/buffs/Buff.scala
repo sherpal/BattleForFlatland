@@ -35,15 +35,6 @@ trait Buff {
   def resourceIdentifier: Buff.ResourceIdentifier
 
   /**
-    * Actions that occur when the buff arises.
-    *
-    * Example: increase the speed of the unit by a certain percentage.
-    */
-  def initialActions(gameState: GameState, time: Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction]
-
-  /**
     * Actions that occur when the buff is removed.
     *
     * Example: adds a final heal at the end.

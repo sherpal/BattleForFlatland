@@ -37,10 +37,6 @@ final case class LivingDamageZone(
 
   def resourceIdentifier: ResourceIdentifier = Buff.boss102LivingDamageZone
 
-  def initialActions(gameState: GameState, time: Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] = Nil
-
   def endingAction(gameState: GameState, time: Long)(
       implicit idGeneratorContainer: IdGeneratorContainer
   ): List[GameAction] = Nil

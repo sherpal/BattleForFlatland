@@ -32,20 +32,6 @@ final case class Purified(
 
   def resourceIdentifier: ResourceIdentifier = Buff.boss103Purified
 
-  def initialActions(gameState: GameState, time: Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] =
-    gameState.passiveBuffs
-      .get(bearerId)
-      .fold(List[GameAction]())(
-        _.valuesIterator
-          .collect { case buff: Purified if buff.buffId != buffId => buff }
-          .map(
-            buff => RemoveBuff(idGeneratorContainer.gameActionIdGenerator(), appearanceTime, bearerId, buff.buffId)
-          )
-          .toList
-      )
-
   def endingAction(gameState: GameState, time: Long)(
       implicit idGeneratorContainer: IdGeneratorContainer
   ): List[GameAction] = Nil

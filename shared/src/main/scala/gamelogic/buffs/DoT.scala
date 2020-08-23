@@ -72,10 +72,6 @@ object DoT {
       _resourceIdentifier
     )
 
-    def initialActions(gameState: GameState, time: Id)(
-        implicit idGeneratorContainer: IdGeneratorContainer
-    ): List[GameAction] = Nil
-
     def endingAction(gameState: GameState, time: Id)(
         implicit idGeneratorContainer: IdGeneratorContainer
     ): List[GameAction] = Nil
