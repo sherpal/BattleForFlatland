@@ -105,7 +105,7 @@ object Boss103 extends BossFactory[Boss103] {
   final val autoAttackDamage: Double = 5.0
   final val autoAttackTickRate: Long = 1000L
 
-  final val maxLife: Double = 40000
+  final val maxLife: Double = 30000
   def initialBoss(entityId: Id, time: Id): Boss103 = Pointed[Boss103].unit.copy(
     id      = entityId,
     time    = time,

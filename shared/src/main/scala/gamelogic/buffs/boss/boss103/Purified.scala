@@ -23,7 +23,7 @@ final case class Purified(
     appearanceTime: Long
 ) extends PassiveBuff {
   def actionTransformer(gameAction: GameAction): List[GameAction] = gameAction match {
-    case EntityStartsCasting(_, _, _, ability) if ability.resource == Resource.Mana =>
+    case EntityStartsCasting(_, _, _, ability) if ability.resource == Resource.Mana && ability.casterId == bearerId =>
       Nil // prevent abilities using mana from being used
     case action => List(action)
   }

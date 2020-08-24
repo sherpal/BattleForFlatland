@@ -381,7 +381,7 @@ The way passive buffs works is that they modify actions happening while they are
 
 ##### Implement abstract members.
 
-In a passive buff, besides some metadata, we need to implement the `initialActions`, the `endingActions` and the `actionTransformer` methods. In the metadata, the `buffId`, `bearerId` and `apperanceTime` should be placed inside the constructor, because they depend on the state of the game when they are created.
+In a passive buff, besides some metadata, we need to implement the `endingActions` and the `actionTransformer` methods. In the metadata, the `buffId`, `bearerId` and `apperanceTime` should be placed inside the constructor, because they depend on the state of the game when they are created.
 
 The `resourceIdentifier` is similar to the `AbilityId`. It's a unique identifier of the buff as a buff, and it is used by the game UI to know what icon to display when an entity bears this buff. Finally, the `duration` is the time (in millisecond) that the buff will stay on the bearer. The special value `-1` means that the buff will stay forever.
 
