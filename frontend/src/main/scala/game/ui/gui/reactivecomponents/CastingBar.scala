@@ -4,6 +4,7 @@ import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.Signal
 import game.ui.reactivepixi.AttributeModifierBuilder._
 import game.ui.reactivepixi.ReactivePixiElement.{pixiContainer, pixiGraphics, pixiSprite, ReactiveContainer}
+import gamelogic.abilities.Ability
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
@@ -18,7 +19,8 @@ final class CastingBar(
     dimensions: Signal[(Double, Double)],
     frameTexture: Texture,
     innerTexture: Texture,
-    updateStream: EventStream[(GameState, Long)]
+    updateStream: EventStream[(GameState, Long)],
+    abilityIdColourMap: Map[Ability.AbilityId, RGBColour]
 ) extends GUIComponent {
 
   private val maybeCastingInfoStream = updateStream.map {
@@ -44,7 +46,7 @@ final class CastingBar(
 
   val innerSprite = pixiSprite(
     innerTexture,
-    tint := RGBColour.red,
+    tint <-- maybeCastingInfoStream.collect { case Some((info, _)) => abilityIdColourMap(info.ability.abilityId) },
     dims <-- dimensions,
     mask := maskG
   )

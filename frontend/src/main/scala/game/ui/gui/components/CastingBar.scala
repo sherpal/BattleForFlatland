@@ -8,6 +8,7 @@ import typings.pixiJs.PIXI.Texture
 import typings.pixiJs.mod.{Container, Graphics, Sprite}
 import game.ui.reactivepixi.ReactivePixiElement._
 import game.ui.reactivepixi.AttributeModifierBuilder._
+import gamelogic.abilities.Ability
 import utils.misc.RGBColour
 
 final class CastingBar(
@@ -15,7 +16,8 @@ final class CastingBar(
     uiContainer: Container,
     frameTexture: Texture,
     innerTexture: Texture,
-    updateStream: EventStream[(GameState, Long)]
+    updateStream: EventStream[(GameState, Long)],
+    abilityIdColourMap: Map[Ability.AbilityId, RGBColour]
 ) extends GUIComponent {
 
   val barWidth  = 200.0
@@ -44,7 +46,7 @@ final class CastingBar(
 
   val innerSprite = pixiSprite(
     innerTexture,
-    tint := RGBColour.red,
+    tint <-- maybeCastingInfoStream.collect { case Some((info, _)) => abilityIdColourMap(info.ability.abilityId) },
     width := barWidth,
     height := barHeight,
     mask := maskG

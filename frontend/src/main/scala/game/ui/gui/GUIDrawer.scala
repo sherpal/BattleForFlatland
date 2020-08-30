@@ -28,6 +28,10 @@ final class GUIDrawer(
 ) {
   val guiContainer = new Container
 
+  val abilityColourMap: Map[Int, RGBColour] = (1 to Ability.abilityIdCount).map { abilityId =>
+    abilityId -> RGBColour.someColours(abilityId % RGBColour.someColours.length)
+  }.toMap
+
   application.stage.addChild(guiContainer)
 
   /** This stream is fed up on the update game loop. */
@@ -38,7 +42,7 @@ final class GUIDrawer(
     val graphics = new Graphics
     graphics.lineStyle(2, 0xccc).beginFill(0, 0).drawRect(0, 0, 200, 15).endFill()
     application.renderer.generateTexture(graphics, 1, 1)
-  }, resources(liteStepBar).texture, updateBus.events)
+  }, resources(liteStepBar).texture, updateBus.events, abilityColourMap)
   castingBar.container.x = (application.view.width - castingBar.container.width) / 2
   castingBar.container.y = application.view.height - castingBar.container.height
 
@@ -196,7 +200,7 @@ final class GUIDrawer(
           val graphics = new Graphics
           graphics.lineStyle(2, 0).beginFill(0, 1).drawRect(0, 0, 200, 15).endFill()
           application.renderer.generateTexture(graphics, 1, 1)
-        }, resources(minimalistBar).texture, resources(minimalistBar).texture, targetFromGUIWriter, updateBus.events, Val((200.0, 15.0)))
+        }, resources(minimalistBar).texture, resources(minimalistBar).texture, targetFromGUIWriter, updateBus.events, Val((200.0, 15.0)), abilityColourMap)
         bossFrame.container.ref.x = (application.view.width - bossFrame.container.ref.width) / 2
         guiContainer.addChild(bossFrame.container.ref)
         bossFrame

@@ -3,7 +3,7 @@ package game.ui.gui.reactivecomponents
 import com.raquo.airstream.core.Observer
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.{Signal, Val}
-import gamelogic.entities.{Entity, LivingEntity, MovingBody, WithName}
+import gamelogic.entities.{Entity, EntityCastingInfo, LivingEntity, MovingBody, WithName}
 import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.Texture
 import utils.misc.RGBColour
@@ -12,6 +12,7 @@ import game.ui.reactivepixi.AttributeModifierBuilder._
 import typings.pixiJs.anon.Align
 import typings.pixiJs.mod.{Rectangle, TextStyle}
 import game.ui.reactivepixi.EventModifierBuilder._
+import gamelogic.abilities.Ability
 import org.scalajs.dom
 
 final class TargetFrame(
@@ -19,7 +20,8 @@ final class TargetFrame(
     barTexture: Texture,
     gameStateUpdates: EventStream[(GameState, Long)],
     dimensions: Signal[(Double, Double)],
-    targetFromGUIWriter: Observer[Entity.Id]
+    targetFromGUIWriter: Observer[Entity.Id],
+    abilityIdColourMap: Map[Ability.AbilityId, RGBColour]
 ) extends GUIComponent {
 
   val lifeBarProportion = 0.8
@@ -43,21 +45,32 @@ final class TargetFrame(
     dimensions.map { case (w, h) => (w, h * lifeBarProportion) }
   )
 
-  val maybeFillingRatio: EventStream[Option[Double]] = maybeTargetEvents
+  val maybeCastingEntityInfoEvents: EventStream[(Option[EntityCastingInfo], Long)] = maybeTargetEvents
     .combineWith(gameStateUpdates)
     .collect {
       case (Some(target), (gs, time)) => (target, gs, time)
     }
     .map {
       case (target, gameState, currentTime) =>
-        gameState.castingEntityInfo.get(target.id).map { info =>
-          (currentTime - info.startedTime) / info.castingTime.toDouble
-        }
+        (gameState.castingEntityInfo.get(target.id), currentTime)
     }
+
+  val maybeFillingRatio: EventStream[Option[Double]] = maybeCastingEntityInfoEvents
+    .map {
+      case (maybeInfo, currentTime) =>
+        maybeInfo.map(info => (currentTime - info.startedTime) / info.castingTime.toDouble)
+    }
+
+  val castingBarColour: Signal[RGBColour] = maybeCastingEntityInfoEvents
+    .map(_._1)
+    .collect {
+      case Some(info) => abilityIdColourMap(info.ability.abilityId)
+    }
+    .toSignal(RGBColour.red)
 
   val castingBar: ReactiveContainer = new StatusBar(
     maybeFillingRatio.map(_.getOrElse(0.0)).startWith(0.0),
-    Val(RGBColour.red),
+    castingBarColour,
     maybeFillingRatio.map(_.isDefined).toSignal(false),
     barTexture,
     dimensions.map { case (w, h) => (w, h * (1 - lifeBarProportion)) }

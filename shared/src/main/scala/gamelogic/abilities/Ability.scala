@@ -70,29 +70,34 @@ object Ability {
 
   type AbilityId = Int
 
-  final val simpleBulletId: AbilityId           = 1
-  final val hexagonFlashHealId: AbilityId       = 2
-  final val hexagonHexagonHotId: AbilityId      = 3
-  final val squareTauntId: AbilityId            = 4
-  final val squareHammerHit: AbilityId          = 5
-  final val boss101BigHitId: AbilityId          = 6
-  final val boss101BigDotId: AbilityId          = 7
-  final val triangleDirectHit: AbilityId        = 8
-  final val triangleUpgradeDirectHit: AbilityId = 9
-  final val pentagonPentagonBullet: AbilityId   = 10
-  final val boss101SmallHitId: AbilityId        = 11
-  final val squareEnrageId: AbilityId           = 12
-  final val boss102PutDamageZones: AbilityId    = 13
-  final val boss102SpawnBossHound: AbilityId    = 14
-  final val autoAttackId: AbilityId             = 15
-  final val squareCleaveId: AbilityId           = 16
-  final val createPentagonZoneId: AbilityId     = 17
-  final val putLivingDamageZoneId: AbilityId    = 18
-  final val boss103CleansingNovaId: AbilityId   = 19
-  final val boss103PunishmentId: AbilityId      = 20
-  final val boss103SacredGroundId: AbilityId    = 21
-  final val boss103HolyFlameId: AbilityId       = 22
-  final val pentagonDispelId: AbilityId         = 23
+  private var lastAbilityId: AbilityId   = 0
+  private def nextAbilityId(): AbilityId = { lastAbilityId += 1; lastAbilityId }
+
+  def abilityIdCount: AbilityId = lastAbilityId
+
+  final val simpleBulletId: AbilityId           = nextAbilityId()
+  final val hexagonFlashHealId: AbilityId       = nextAbilityId()
+  final val hexagonHexagonHotId: AbilityId      = nextAbilityId()
+  final val squareTauntId: AbilityId            = nextAbilityId()
+  final val squareHammerHit: AbilityId          = nextAbilityId()
+  final val boss101BigHitId: AbilityId          = nextAbilityId()
+  final val boss101BigDotId: AbilityId          = nextAbilityId()
+  final val triangleDirectHit: AbilityId        = nextAbilityId()
+  final val triangleUpgradeDirectHit: AbilityId = nextAbilityId()
+  final val pentagonPentagonBullet: AbilityId   = nextAbilityId()
+  final val boss101SmallHitId: AbilityId        = nextAbilityId()
+  final val squareEnrageId: AbilityId           = nextAbilityId()
+  final val boss102PutDamageZones: AbilityId    = nextAbilityId()
+  final val boss102SpawnBossHound: AbilityId    = nextAbilityId()
+  final val autoAttackId: AbilityId             = nextAbilityId()
+  final val squareCleaveId: AbilityId           = nextAbilityId()
+  final val createPentagonZoneId: AbilityId     = nextAbilityId()
+  final val putLivingDamageZoneId: AbilityId    = nextAbilityId()
+  final val boss103CleansingNovaId: AbilityId   = nextAbilityId()
+  final val boss103PunishmentId: AbilityId      = nextAbilityId()
+  final val boss103SacredGroundId: AbilityId    = nextAbilityId()
+  final val boss103HolyFlameId: AbilityId       = nextAbilityId()
+  final val pentagonDispelId: AbilityId         = nextAbilityId()
 
   /** Global cooldown. Not sure if this should be there... */
   @inline final def gcd = 200L

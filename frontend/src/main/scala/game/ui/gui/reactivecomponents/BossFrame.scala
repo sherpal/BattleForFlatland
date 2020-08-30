@@ -9,6 +9,7 @@ import typings.pixiJs.PIXI.Texture
 import game.ui.reactivepixi.ReactivePixiElement._
 import game.ui.reactivepixi.AttributeModifierBuilder._
 import game.ui.reactivepixi.EventModifierBuilder._
+import gamelogic.abilities.Ability.AbilityId
 import gamelogic.entities.boss.BossEntity
 import typings.pixiJs.anon.Align
 import typings.pixiJs.mod.TextStyle
@@ -21,7 +22,8 @@ final class BossFrame(
     castingBarTexture: Texture,
     targetFromGUIWriter: Observer[Entity.Id],
     gameStateUpdates: EventStream[(GameState, Long)],
-    dimensions: Signal[(Double, Double)]
+    dimensions: Signal[(Double, Double)],
+    abilityColourMap: Map[AbilityId, RGBColour]
 ) extends GUIComponent {
 
   val maybeBossEvents: EventStream[Option[BossEntity]] = gameStateUpdates.map(_._1).map(_.bosses.get(entityId))
@@ -30,11 +32,11 @@ final class BossFrame(
   val maybeCastingInfoEvents: EventStream[Option[(EntityCastingInfo, Long)]] =
     gameStateUpdates.map { case (gameState, time) => gameState.castingEntityInfo.get(entityId).map((_, time)) }
 
-  val widthSignal  = dimensions.map(_._1)
-  val heightSignal = dimensions.map(_._2)
+  val widthSignal: Signal[Double]  = dimensions.map(_._1)
+  val heightSignal: Signal[Double] = dimensions.map(_._2)
 
-  val lifeSpriteHeight = heightSignal.map(_ * 2 / 3)
-  val castingBarHeight = heightSignal.map(_ * 1 / 3)
+  val lifeSpriteHeight: Signal[Double] = heightSignal.map(_ * 2 / 3)
+  val castingBarHeight: Signal[Double] = heightSignal.map(_ * 1 / 3)
 
   val lifeMask: ReactiveGraphics = pixiGraphics(
     moveGraphics <-- bossEvents.withCurrentValueOf(widthSignal).withCurrentValueOf(lifeSpriteHeight).map {
@@ -80,7 +82,11 @@ final class BossFrame(
       width <-- widthSignal,
       y <-- lifeSpriteHeight,
       height <-- castingBarHeight,
-      tint := RGBColour.red,
+      tint <-- maybeCastingInfoEvents
+        .collect {
+          case Some((castingInfo, _)) => abilityColourMap(castingInfo.ability.abilityId)
+        }
+        .toSignal(RGBColour.red),
       mask := castingBarMask
     ),
     castingBarMask,

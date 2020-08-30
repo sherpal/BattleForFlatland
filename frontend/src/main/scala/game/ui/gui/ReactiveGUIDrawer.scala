@@ -36,6 +36,10 @@ final class ReactiveGUIDrawer(
     gameStateUpdates: EventStream[(GameState, Long)]
 ) {
 
+  val abilityColourMap: Map[Int, RGBColour] = (1 to Ability.abilityIdCount).map { abilityId =>
+    abilityId -> RGBColour.someColours(abilityId % RGBColour.someColours.length)
+  }.toMap
+
   private val blackTexture = {
     val graphics = new Graphics
 
@@ -132,7 +136,8 @@ final class ReactiveGUIDrawer(
       stage.application.renderer.generateTexture(graphics, 1, 1)
     },
     resources(liteStepBar).texture,
-    gameStateUpdates
+    gameStateUpdates,
+    abilityColourMap
   )
   guiContainer.amend(castingBar)
 
@@ -141,7 +146,8 @@ final class ReactiveGUIDrawer(
     resources(minimalistBar).texture,
     gameStateUpdates,
     Val((150, 40)),
-    targetFromGUIWriter
+    targetFromGUIWriter,
+    abilityColourMap
   ).amend(
     position <-- stage.resizeEvents.map {
       case (viewWidth, viewHeight) =>
@@ -157,15 +163,22 @@ final class ReactiveGUIDrawer(
       .toSignal(Nil)
       .split(identity) {
         case (id, _, _) =>
-          new reactivecomponents.BossFrame(id, {
-            val graphics = new Graphics
-            graphics.lineStyle(2, 0).beginFill(0, 1).drawRect(0, 0, 200, 15).endFill()
-            stage.application.renderer.generateTexture(graphics, 1, 1)
-          }, resources(minimalistBar).texture, resources(minimalistBar).texture, targetFromGUIWriter, gameStateUpdates, bossFrameDimensions)
-            .amend(x <-- stage.resizeEvents.map(_._1).combineWith(bossFrameDimensions.map(_._1)).map {
-              case (viewWidth, frameWidth) =>
-                (viewWidth - frameWidth) / 2
-            })
+          new reactivecomponents.BossFrame(
+            id, {
+              val graphics = new Graphics
+              graphics.lineStyle(2, 0).beginFill(0xc0c0c0, 1).drawRect(0, 0, 200, 15).endFill()
+              stage.application.renderer.generateTexture(graphics, 1, 1)
+            },
+            resources(minimalistBar).texture,
+            resources(minimalistBar).texture,
+            targetFromGUIWriter,
+            gameStateUpdates,
+            bossFrameDimensions,
+            abilityColourMap
+          ).amend(x <-- stage.resizeEvents.map(_._1).combineWith(bossFrameDimensions.map(_._1)).map {
+            case (viewWidth, frameWidth) =>
+              (viewWidth - frameWidth) / 2
+          })
       }
   )
 
@@ -233,7 +246,7 @@ final class ReactiveGUIDrawer(
                 bossId,
                 abilityId,
                 name,
-                RGBColour.someColours(idx % RGBColour.someColours.length),
+                abilityColourMap(abilityId),
                 resources(minimalistBar).texture,
                 gameStateUpdates,
                 bossCDBarsSize
