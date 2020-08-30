@@ -2,7 +2,6 @@
 
 - implement obstacles and path finding for AIs
 - allow to customize keys
-- allow to go fullscreen
 - mini health bar at entities positions (done for boss 102 hounds, should be easily generalisable)
 - integrating sounds
 - allow players to put markers on the ground to mark positions

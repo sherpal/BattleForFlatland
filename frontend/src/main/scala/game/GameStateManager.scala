@@ -176,16 +176,17 @@ final class GameStateManager(
   val useAbilityBus = new EventBus[Ability.AbilityId]
   EventStream
     .merge(
-      keyboard.$downKeyEvents.filter(event => abilityCodes.contains(event.code))
+      keyboard.downUserInputEvents
+        .collect { case abilityInput: UserInput.AbilityInput => abilityInput }
         .withCurrentValueOf($gameStates)
         .filter(_._2.players.isDefinedAt(playerId))
         .withCurrentValueOf($maybeTarget)
         .withCurrentValueOf($gameMousePosition)
         .map {
-          case (((event, gameState), maybeTarget), worldMousePos) =>
+          case (((abilityInput, gameState), maybeTarget), worldMousePos) =>
             val me = gameState.players(playerId) // this is ok because of above filter
 
-            (gameState, abilityCodes.zip(me.abilities).find(_._1 == event.code), maybeTarget, worldMousePos)
+            (gameState, abilityInput.abilityId(me), maybeTarget, worldMousePos)
         },
       useAbilityBus.events
         .withCurrentValueOf($gameStates)
@@ -198,191 +199,190 @@ final class GameStateManager(
     )
     .foreach {
       case (gameState, maybeAbilityId, maybeTarget, worldMousePos) =>
-        maybeAbilityId.foreach {
-          case (_, abilityId) =>
-            val now = serverTime
-            abilityId match {
-              case Ability.hexagonFlashHealId =>
-                maybeTarget match {
-                  case None => dom.console.warn("You need to have a target to cast Flash heal.")
-                  case Some(target) =>
-                    val ability = FlashHeal(0L, now, playerId, target.id)
-                    val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
-                    if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action
-                          .isLegalDelay($strictGameStates.now, deltaTimeWithServer + 100)) {
-                      socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
-                    } else if (scala.scalajs.LinkingInfo.developmentMode) {
-                      dom.console.warn("Can't cast FlashHeal.")
-                    }
-                }
-              case Ability.hexagonHexagonHotId =>
-                maybeTarget match {
-                  case None => dom.console.warn("You need a target to cast Hexagon Hot.")
-                  case Some(target) =>
-                    val ability = HexagonHot(0L, now, playerId, target.id)
-                    val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
-                    if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action
-                          .isLegalDelay($strictGameStates.now, deltaTimeWithServer + 100)) {
-                      socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
-                    } else if (scala.scalajs.LinkingInfo.developmentMode) {
-                      dom.console.warn("Can't cast Hexagon Hot.")
-                    }
-                }
-              case Ability.squareTauntId =>
-                maybeTarget match {
-                  case None => dom.console.warn("You need a target to cast Square Taunt")
-                  case Some(target) =>
-                    val ability = Taunt(0L, now, playerId, target.id)
-                    val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
+        maybeAbilityId.foreach { abilityId =>
+          val now = serverTime
+          abilityId match {
+            case Ability.hexagonFlashHealId =>
+              maybeTarget match {
+                case None => dom.console.warn("You need to have a target to cast Flash heal.")
+                case Some(target) =>
+                  val ability = FlashHeal(0L, now, playerId, target.id)
+                  val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
+                  if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action
+                        .isLegalDelay($strictGameStates.now, deltaTimeWithServer + 100)) {
+                    socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                  } else if (scala.scalajs.LinkingInfo.developmentMode) {
+                    dom.console.warn("Can't cast FlashHeal.")
+                  }
+              }
+            case Ability.hexagonHexagonHotId =>
+              maybeTarget match {
+                case None => dom.console.warn("You need a target to cast Hexagon Hot.")
+                case Some(target) =>
+                  val ability = HexagonHot(0L, now, playerId, target.id)
+                  val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
+                  if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action
+                        .isLegalDelay($strictGameStates.now, deltaTimeWithServer + 100)) {
+                    socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                  } else if (scala.scalajs.LinkingInfo.developmentMode) {
+                    dom.console.warn("Can't cast Hexagon Hot.")
+                  }
+              }
+            case Ability.squareTauntId =>
+              maybeTarget match {
+                case None => dom.console.warn("You need a target to cast Square Taunt")
+                case Some(target) =>
+                  val ability = Taunt(0L, now, playerId, target.id)
+                  val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
 
-                    if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action.isLegalDelay(
-                          $strictGameStates.now,
-                          deltaTimeWithServer + 100
-                        )) {
-                      socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
-                    } else {
-                      dom.console.warn("Can't cast Taunt")
-                    }
-                }
-              case Ability.squareHammerHit =>
-                maybeTarget match {
-                  case None => dom.console.warn("You need a target to cast Square Hammer Hit")
-                  case Some(target) =>
-                    val ability = HammerHit(0L, now, playerId, target.id)
-                    val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
-                    if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action.isLegalDelay(
-                          $strictGameStates.now,
-                          deltaTimeWithServer + 100
-                        )) {
-                      socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
-                    } else {
-                      dom.console.warn("Can't cast Taunt")
-                    }
-                }
-              case Ability.squareCleaveId =>
-                gameState.players.get(playerId) match {
-                  case Some(me) =>
-                    val myPosition  = me.currentPosition(now)
-                    val direction   = worldMousePos - myPosition
-                    val startingPos = myPosition + me.shape.radius * direction.normalized
-                    val ability = Cleave(
-                      0L,
-                      now,
-                      playerId,
-                      startingPos,
-                      direction.arg
-                    )
-                    val action = EntityStartsCasting(0L, now, ability.castingTime, ability)
-                    if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
-                          $strictGameStates.now,
-                          deltaTimeWithServer + 100
-                        )) {
-                      socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
-                    } else {
-                      dom.console.warn("Can't use Cleave")
-                    }
-                  case None =>
-                    dom.console.warn("You are dead")
-                }
-              case Ability.triangleDirectHit =>
-                maybeTarget match {
-                  case None => dom.console.warn("You need a target to cast Triangle Direct Hit")
-                  case Some(target) =>
-                    val ability = DirectHit(0L, now, playerId, target.id, DirectHit.directHitDamage)
-                    val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
-                    if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
-                          $strictGameStates.now,
-                          deltaTimeWithServer + 100
-                        )) {
-                      socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
-                    } else {
-                      dom.console.warn("Can't use DirectHit")
-                    }
-                }
-              case Ability.triangleUpgradeDirectHit =>
-                val ability = UpgradeDirectHit(0L, now, playerId)
-                val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
-                if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
-                      $strictGameStates.now,
-                      deltaTimeWithServer + 100
-                    )) {
-                  socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
-                } else {
-                  dom.console.warn("Can't use UpgradeDirectHit")
-                }
-              case Ability.pentagonPentagonBullet =>
-                gameState.players.get(playerId) match {
-                  case Some(me) =>
-                    val myPosition  = me.pos // should not be moving anyway
-                    val direction   = worldMousePos - myPosition
-                    val startingPos = myPosition + me.shape.radius * direction.normalized
-                    val ability = CreatePentagonBullet(
-                      0L,
-                      now,
-                      playerId,
-                      startingPos,
-                      CreatePentagonBullet.damage,
-                      direction.arg,
-                      me.colour
-                    )
-                    val action = EntityStartsCasting(0L, now, ability.castingTime, ability)
-                    if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
-                          $strictGameStates.now,
-                          deltaTimeWithServer + 100
-                        )) {
-                      socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
-                    } else {
-                      dom.console.warn("Can't use CreatePentagonBullet")
-                    }
-                  case None =>
-                    dom.console.warn("You are dead")
-                }
-              case Ability.pentagonDispelId =>
-                maybeTarget match {
-                  case None => dom.console.warn("You need to have a target to cast Dispel.")
-                  case Some(target) =>
-                    val ability = PentaDispel(0L, now, playerId, target.id)
-                    val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
-                    if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action
-                          .isLegalDelay($strictGameStates.now, deltaTimeWithServer + 100)) {
-                      socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
-                    } else if (scala.scalajs.LinkingInfo.developmentMode) {
-                      dom.console.warn("Can't cast Dispel.")
-                    }
-                }
-
-              case Ability.createPentagonZoneId =>
-                gameState.players
-                  .get(playerId)
-                  .foreach(
-                    _ =>
-                      choosingAbilityEffectPositionBus.writer.onNext(
-                        Some(
-                          Ability.createPentagonZoneId
-                        )
-                      )
+                  if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action.isLegalDelay(
+                        $strictGameStates.now,
+                        deltaTimeWithServer + 100
+                      )) {
+                    socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                  } else {
+                    dom.console.warn("Can't cast Taunt")
+                  }
+              }
+            case Ability.squareHammerHit =>
+              maybeTarget match {
+                case None => dom.console.warn("You need a target to cast Square Hammer Hit")
+                case Some(target) =>
+                  val ability = HammerHit(0L, now, playerId, target.id)
+                  val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
+                  if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action.isLegalDelay(
+                        $strictGameStates.now,
+                        deltaTimeWithServer + 100
+                      )) {
+                    socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                  } else {
+                    dom.console.warn("Can't cast Taunt")
+                  }
+              }
+            case Ability.squareCleaveId =>
+              gameState.players.get(playerId) match {
+                case Some(me) =>
+                  val myPosition  = me.currentPosition(now)
+                  val direction   = worldMousePos - myPosition
+                  val startingPos = myPosition + me.shape.radius * direction.normalized
+                  val ability = Cleave(
+                    0L,
+                    now,
+                    playerId,
+                    startingPos,
+                    direction.arg
                   )
+                  val action = EntityStartsCasting(0L, now, ability.castingTime, ability)
+                  if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
+                        $strictGameStates.now,
+                        deltaTimeWithServer + 100
+                      )) {
+                    socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                  } else {
+                    dom.console.warn("Can't use Cleave")
+                  }
+                case None =>
+                  dom.console.warn("You are dead")
+              }
+            case Ability.triangleDirectHit =>
+              maybeTarget match {
+                case None => dom.console.warn("You need a target to cast Triangle Direct Hit")
+                case Some(target) =>
+                  val ability = DirectHit(0L, now, playerId, target.id, DirectHit.directHitDamage)
+                  val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
+                  if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
+                        $strictGameStates.now,
+                        deltaTimeWithServer + 100
+                      )) {
+                    socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                  } else {
+                    dom.console.warn("Can't use DirectHit")
+                  }
+              }
+            case Ability.triangleUpgradeDirectHit =>
+              val ability = UpgradeDirectHit(0L, now, playerId)
+              val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
+              if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
+                    $strictGameStates.now,
+                    deltaTimeWithServer + 100
+                  )) {
+                socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+              } else {
+                dom.console.warn("Can't use UpgradeDirectHit")
+              }
+            case Ability.pentagonPentagonBullet =>
+              gameState.players.get(playerId) match {
+                case Some(me) =>
+                  val myPosition  = me.pos // should not be moving anyway
+                  val direction   = worldMousePos - myPosition
+                  val startingPos = myPosition + me.shape.radius * direction.normalized
+                  val ability = CreatePentagonBullet(
+                    0L,
+                    now,
+                    playerId,
+                    startingPos,
+                    CreatePentagonBullet.damage,
+                    direction.arg,
+                    me.colour
+                  )
+                  val action = EntityStartsCasting(0L, now, ability.castingTime, ability)
+                  if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
+                        $strictGameStates.now,
+                        deltaTimeWithServer + 100
+                      )) {
+                    socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                  } else {
+                    dom.console.warn("Can't use CreatePentagonBullet")
+                  }
+                case None =>
+                  dom.console.warn("You are dead")
+              }
+            case Ability.pentagonDispelId =>
+              maybeTarget match {
+                case None => dom.console.warn("You need to have a target to cast Dispel.")
+                case Some(target) =>
+                  val ability = PentaDispel(0L, now, playerId, target.id)
+                  val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
+                  if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action
+                        .isLegalDelay($strictGameStates.now, deltaTimeWithServer + 100)) {
+                    socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                  } else if (scala.scalajs.LinkingInfo.developmentMode) {
+                    dom.console.warn("Can't cast Dispel.")
+                  }
+              }
 
-              case Ability.squareEnrageId =>
-                gameState.players.get(playerId) match {
-                  case Some(_) =>
-                    val ability = Enrage(0L, now, playerId)
-                    val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
-                    if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
-                          $strictGameStates.now,
-                          deltaTimeWithServer + 100
-                        )) {
-                      socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
-                    } else {
-                      dom.console.warn("Can't use Enrage")
-                    }
-                  case None => dom.console.warn("You are dead")
-                }
+            case Ability.createPentagonZoneId =>
+              gameState.players
+                .get(playerId)
+                .foreach(
+                  _ =>
+                    choosingAbilityEffectPositionBus.writer.onNext(
+                      Some(
+                        Ability.createPentagonZoneId
+                      )
+                    )
+                )
 
-              case _ =>
-                // todo
-                dom.console.warn(s"TODO: implement ability $abilityId")
-            }
+            case Ability.squareEnrageId =>
+              gameState.players.get(playerId) match {
+                case Some(_) =>
+                  val ability = Enrage(0L, now, playerId)
+                  val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
+                  if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
+                        $strictGameStates.now,
+                        deltaTimeWithServer + 100
+                      )) {
+                    socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                  } else {
+                    dom.console.warn("Can't use Enrage")
+                  }
+                case None => dom.console.warn("You are dead")
+              }
+
+            case _ =>
+              // todo
+              dom.console.warn(s"TODO: implement ability $abilityId")
+          }
         }
 
     }

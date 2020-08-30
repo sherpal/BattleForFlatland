@@ -7,7 +7,8 @@ final case class KeyboardControls(
     upKey: KeyCode,
     downKey: KeyCode,
     leftKey: KeyCode,
-    rightKey: KeyCode
+    rightKey: KeyCode,
+    abilityKeys: List[KeyCode]
 ) {
 
   lazy val controlMap: Map[KeyCode, UserInput] = Map(
@@ -15,7 +16,10 @@ final case class KeyboardControls(
     downKey -> UserInput.Down,
     leftKey -> UserInput.Left,
     rightKey -> UserInput.Right
-  )
+  ) ++ abilityKeys.zipWithIndex.map { case (code, idx) => code -> UserInput.AbilityInput(idx) }.toMap
+
+  /** Retrieve the [[UserInput]] for this keyCode, or the [[UserInput.Unknown]] if it is not defined. */
+  def getOrUnknown(keyCode: KeyCode): UserInput = controlMap.getOrElse(keyCode, UserInput.Unknown(keyCode))
 
 }
 
@@ -28,7 +32,8 @@ object KeyboardControls {
       "KeyW",
       "KeyS",
       "KeyA",
-      "KeyD"
+      "KeyD",
+      (1 to 10).map(_ % 10).map("Digit" + _).toList
     )
   )
 

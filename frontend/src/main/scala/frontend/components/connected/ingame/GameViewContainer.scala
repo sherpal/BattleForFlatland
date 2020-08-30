@@ -44,6 +44,7 @@ final class GameViewContainer private (
 
   private val gameSceneSizeRatio = 1200 / 800.0
 
+  // We need to create the application with the correct size as it is the size used for the Camera at the beginning.
   val application: Application = new Application(
     ApplicationOptions(
       backgroundColor = 0x1099bb,

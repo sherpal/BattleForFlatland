@@ -29,20 +29,23 @@ final class Keyboard(controls: KeyboardControls) {
   val $keyboardEvents: EventStream[KeyboardEvent] = EventStream.merge($downKeyEvents, $upKeyEvents)
 
   /** Signal of all currently pressed key codes. */
-  val $pressedKeys: Signal[Set[String]] = $keyboardEvents.fold(Set[String]()) {
+  val $pressedKeys: Signal[Set[String]] = $keyboardEvents.fold(Set.empty[String]) {
     case (accumulatedSet, event) if event.`type` == "keyup"    => accumulatedSet - event.code
     case (accumulatedSet, event) if event.`type` == "keypress" => accumulatedSet + event.code
     case (s, _)                                                => s // should never happen as we don't register it
   }
 
   /** Signal of all currently pressed [[models.bff.ingame.UserInput]] instances. */
-  val $pressedUserInput: Signal[Set[UserInput]] = $keyboardEvents.fold(Set[UserInput]()) {
+  val $pressedUserInput: Signal[Set[UserInput]] = $keyboardEvents.fold(Set.empty[UserInput]) {
     case (accumulatedSet, event) =>
-      val userInput = controls.controlMap.getOrElse(event.code, UserInput.Unknown(event.code))
+      val userInput = controls.getOrUnknown(event.code)
       if (event.`type` == "keyup") accumulatedSet - userInput
       else if (event.`type` == "keydown") accumulatedSet + userInput
       else accumulatedSet // should never happen as we don't register it
   }
+
+  /** Stream of [[UserInput]]s pressed by the player. */
+  val downUserInputEvents: EventStream[UserInput] = $downKeyEvents.map(_.code).map(controls.getOrUnknown)
 
   private val keyDownHandler: js.Function1[dom.KeyboardEvent, _] = (event: dom.KeyboardEvent) => {
     event.stopPropagation()
