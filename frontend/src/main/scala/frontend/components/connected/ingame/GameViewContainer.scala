@@ -3,7 +3,7 @@ package frontend.components.connected.ingame
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
-import game.ui.reactivepixi.ReactivePixiElement
+import game.ui.reactivepixi.{ReactivePixiElement, ReactiveStage}
 import game.{GameAssetLoader, GameStateManager, Keyboard, Mouse}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
@@ -12,11 +12,14 @@ import models.bff.ingame.InGameWSProtocol.ReadyToStart
 import models.bff.ingame.{InGameWSProtocol, KeyboardControls}
 import models.syntax.Pointed
 import models.users.User
+import org.scalajs.dom
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Progress
 import typings.pixiJs.anon.{Antialias => ApplicationOptions}
 import typings.pixiJs.mod.Application
-import zio.ZIO
+import zio.{Exit, UIO, ZIO}
+
+import zio.duration._
 
 /**
   * The GameViewContainer is responsible for creating the instance of the [[game.GameStateManager]].
@@ -38,6 +41,8 @@ final class GameViewContainer private (
   private def containerViewChild: html.Div = element.ref.firstChild.asInstanceOf[html.Div]
 
   private val maybeTargetBus: EventBus[Option[Entity]] = new EventBus
+
+  private val gameSceneSizeRatio = 1200 / 800.0
 
   val application: Application = new Application(
     ApplicationOptions(
@@ -68,12 +73,44 @@ final class GameViewContainer private (
     div(child <-- assetLoading.map(_ < 100).map(if (_) loadingProgressBar else emptyNode))
   )
 
+  def addWindowResizeEventListener(stage: ReactiveStage): ZIO[Any, Nothing, Unit] =
+    (for {
+      window <- UIO(dom.window)
+      resizeQueue <- zio.Queue.unbounded[Unit]
+      _ <- ZIO.effectTotal {
+        window.addEventListener(
+          "resize",
+          (_: dom.Event) => zio.Runtime.default.unsafeRunToFuture(resizeQueue.offer(()))
+        )
+      }
+      canvas <- UIO(stage.application.view)
+      _ <- ZIO.effectTotal(zio.Runtime.default.unsafeRunToFuture((for {
+        _ <- ZIO.sleep(500.millis)
+        _ <- resizeQueue.take
+        _ <- resizeQueue.takeAll // empty queue so that there is no buffering
+        _ <- ZIO.effectTotal {
+          val (canvasWidth, canvasHeight) = stage.computeApplicationViewDimension(
+            window.innerWidth * 0.9,
+            window.innerHeight * 0.9,
+            gameSceneSizeRatio
+          )
+          canvas.width  = canvasWidth.toInt
+          canvas.height = canvasHeight.toInt
+          stage.resize()
+        }
+
+      } yield ()).forever.provideLayer(zio.clock.Clock.live)))
+      _ <- resizeQueue.offer(()) // fixing the size at the beginning
+    } yield ())
+
   private def mountEffect(gameContainer: html.Div, owner: Owner) =
     for {
       resources <- loader.loadAssets
       // todo!: remove hardcoded stuff
+      stage <- UIO(ReactivePixiElement.stage(application))
+      _ <- addWindowResizeEventListener(stage)
       _ = new GameStateManager(
-        ReactivePixiElement.stage(application),
+        stage,
         GameState.empty,
         $actionsFromServer,
         socketOutWriter,
@@ -95,8 +132,8 @@ final class GameViewContainer private (
 
   def componentDidMount(owner: Owner): Unit =
     zio.Runtime.default.unsafeRunAsync(
-      mountEffect(containerViewChild, owner)
-    )(println(_))
+      mountEffect(containerViewChild, owner).unit
+    )((_: Exit[Nothing, Unit]) => ())
 
 }
 

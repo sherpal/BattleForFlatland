@@ -51,7 +51,7 @@ final class Camera(canvas: html.Canvas) {
   /**
     * World coordinates
     */
-  var worldCenter: Complex = Complex(0, 0)
+  var worldCenter: Complex = Complex.zero
   var worldWidth: Double   = canvas.width
   var worldHeight: Double  = canvas.height
 

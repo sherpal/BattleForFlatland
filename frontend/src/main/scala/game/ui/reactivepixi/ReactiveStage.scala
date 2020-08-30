@@ -99,4 +99,23 @@ final class ReactiveStage(val application: Application) extends ReactivePixiElem
     resizeEventBus.writer.onNext((application.view.width, application.view.height))
   }
 
+  /**
+    * Computes the width and height to give to the game canvas so that it takes a maximum place in the given
+    * windowWidth x windowHeight rectangle, while keeping the ratio width / height to desiredRatio.
+    * @param windowWidth current width of the window
+    * @param windowHeight current height of the window
+    * @param desiredRatio width over height ratio for the game
+    * @return width and height to give to the canvas in order to satisfy the above conditions.
+    */
+  def computeApplicationViewDimension(
+      windowWidth: Double,
+      windowHeight: Double,
+      desiredRatio: Double
+  ): (Double, Double) = {
+    val width  = windowWidth min (windowHeight * desiredRatio)
+    val height = width / desiredRatio
+
+    (width, height)
+  }
+
 }

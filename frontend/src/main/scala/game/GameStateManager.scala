@@ -101,7 +101,7 @@ final class GameStateManager(
         reactiveStage.clickEventsWorldPositions.withCurrentValueOf($gameStates).map {
           case (mousePosition, state) =>
             state.allTargetableEntities.toList
-              .sortBy(_.shape.radius)
+              .sortBy(_.shape.radius) // sorting by radius so that smaller entities are clicked in higher priority
               .find(entity => entity.shape.contains(mousePosition, entity.pos, entity.rotation))
         }
       )
