@@ -26,7 +26,7 @@ final class ManageTickerBuffs extends ServerAction {
         ticker =>
           TickerBuffTicks(
             idGeneratorContainer.gameActionIdGenerator(),
-            ticker.lastTickTime + ticker.tickRate,
+            startTime, //ticker.lastTickTime + ticker.tickRate, // latter is more precise but causes bug at launch
             ticker.buffId,
             ticker.bearerId
           ) +: ticker

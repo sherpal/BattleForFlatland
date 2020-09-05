@@ -3,7 +3,7 @@ package game
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import gamelogic.entities.boss.BossFactory
-import gamelogic.gamestate.gameactions.{AddPlayerByClass, GameStart, SpawnBoss, UpdateTimestamp}
+import gamelogic.gamestate.gameactions.{AddPlayerByClass, GameStart, MovingBodyMoves, SpawnBoss, UpdateTimestamp}
 import gamelogic.gamestate.serveractions._
 import gamelogic.gamestate.{GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
@@ -153,6 +153,7 @@ object GameMaster {
 
           } catch {
             case e: Throwable =>
+              println(e.getStackTrace.toList.mkString("\n"))
               e.printStackTrace()
               throw e
           }
@@ -241,8 +242,10 @@ object GameMaster {
             .fold(List.empty[GameAction])(_.initialBossActions(bossId, timeNow - 1, idGeneratorContainer))
         }
 
+        val newPendingActions = pendingActions ++ bossCreationActions :+ GameStart(0L, now)
+
         inGameBehaviour(
-          pendingActions ++ bossCreationActions :+ GameStart(0L, now),
+          newPendingActions,
           actionUpdateCollector,
           actionCollector
         )
@@ -317,6 +320,8 @@ object GameMaster {
                         .fold(List.empty[GameAction])(_.stagingBossActions(timeNow, idGeneratorContainer))
                     }
 
+                    println(s"Boss creation action at $timeNow")
+
                     newPlayerActions.foreach {
                       case (ref, playerId, _) =>
                         ref ! InGameWSProtocol.YourEntityIdIs(playerId)
@@ -342,6 +347,8 @@ object GameMaster {
               val newReadyPlayers = readyPlayers + userId
 
               if (maybeGameInfo.map(_.players.length).contains(newReadyPlayers.size)) {
+
+                println(s"Everyone is ready at $now")
 
                 context.self ! MultipleActionsWrapper(maybePreGameActions.get)
                 context.self ! GameLoop

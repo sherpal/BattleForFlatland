@@ -24,15 +24,15 @@ object ImmutableActionCollector {
   * from newest to oldest.
   *
   * It means that if
-  * ```
+  * {{{
   * gs1 = actionsAndStates(n)._1
   * gs2 = actionsAndStates(n-1)._1
   * actions = actionsAndStates(n)._2
-  * ```
+  * }}}
   * then we have
-  * ```
+  * {{{
   * gs2 = gs1(actions)
-  * ```
+  * }}}
   *
   * This property is maintained in the addAction method.
   *
