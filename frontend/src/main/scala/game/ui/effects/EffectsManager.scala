@@ -58,7 +58,7 @@ final class EffectsManager(
           case EntityTakesDamage(_, time, entityId, amount, sourceId) if entityId == playerId && sourceId != playerId =>
             Some(
               new SimpleTextEffect(
-                amount.toString,
+                amount.toInt.toString,
                 RGBColour.red,
                 time,
                 Path.goDown(2000, 40).jitter(math.Pi / 16) + gameState.players.get(playerId).fold(Complex.zero)(_.pos),
@@ -68,7 +68,7 @@ final class EffectsManager(
           case EntityTakesDamage(_, time, entityId, amount, sourceId) if sourceId == playerId =>
             Some(
               new SimpleTextEffect(
-                amount.toString,
+                amount.toInt.toString,
                 RGBColour.white,
                 time,
                 Path.goUp(2000, 40).jitter(math.Pi / 16) + gameState
@@ -80,7 +80,7 @@ final class EffectsManager(
           case EntityGetsHealed(_, time, entityId, amount, sourceId) if sourceId == playerId =>
             Some(
               new SimpleTextEffect(
-                amount.toString,
+                amount.toInt.toString,
                 RGBColour.green,
                 time,
                 Path
