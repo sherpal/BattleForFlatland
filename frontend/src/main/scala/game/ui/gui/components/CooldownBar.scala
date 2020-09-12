@@ -19,7 +19,7 @@ final class CooldownBar(
   private val bar = new StatusBar(
     { (gameState, currentTime) =>
       (for {
-        entity <- gameState.withAbilityEntitiesById(entityId)
+        entity  <- gameState.withAbilityEntitiesById(entityId)
         lastUse <- entity.relevantUsedAbilities.get(abilityId)
         elapsedTime = currentTime - lastUse.time
         cooldown    = lastUse.cooldown
@@ -29,7 +29,7 @@ final class CooldownBar(
     (_, _) => colour, { (gameState, currentTime) =>
       (
         for {
-          entity <- gameState.withAbilityEntitiesById(entityId)
+          entity  <- gameState.withAbilityEntitiesById(entityId)
           lastUse <- entity.relevantUsedAbilities.get(abilityId)
         } yield lastUse.cooldown > currentTime - lastUse.time
       ).getOrElse(false)

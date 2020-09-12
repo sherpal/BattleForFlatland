@@ -25,7 +25,7 @@ object MenuGameDAO { //} extends Results {
       : ZIO[Logging with GameTable with Clock with Configuration with Has[HasRequest[Request, AnyContent]], ErrorADT, List[
         MenuGame
       ]] = (for {
-    _ <- authenticated[AnyContent]
+    _        <- authenticated[AnyContent]
     allGames <- gameTables
     (errors, actualGames) = allGames.partitionMap(identity)
     gamesWithoutPasswords = actualGames.map(_.forgetPassword) // frontend doesn't need to know the password, even hashed
@@ -38,9 +38,9 @@ object MenuGameDAO { //} extends Results {
     sessionRequest <- authenticated[MenuGame]
     user = sessionRequest.user
     game = sessionRequest.body
-    _ <- fieldsValidateOrFail(Validated[MenuGame, ErrorADT].fieldsValidator)(game)
-    newGameId <- newGame(game.gameName, user.userId, user.userName, game.maybeHashedPassword)
-    _ <- log.info(s"New game ${game.gameName} ($newGameId) created by ${user.userName}.")
+    _                  <- fieldsValidateOrFail(Validated[MenuGame, ErrorADT].fieldsValidator)(game)
+    newGameId          <- newGame(game.gameName, user.userId, user.userName, game.maybeHashedPassword)
+    _                  <- log.info(s"New game ${game.gameName} ($newGameId) created by ${user.userName}.")
     menuGameBookKeeper <- gameMenuRoomBookKeeperRef
     _ <- ZIO
       .effect(menuGameBookKeeper ! GameMenuRoomBookKeeperTyped.GameListUpdate)
@@ -68,7 +68,7 @@ object MenuGameDAO { //} extends Results {
       ]] =
     (for {
       sessionRequest <- authenticated[AnyContent]
-      maybeGameId <- userAlreadyPlaying(sessionRequest.user.userId)
+      maybeGameId    <- userAlreadyPlaying(sessionRequest.user.userId)
     } yield maybeGameId).refineOrDie(ErrorADT.onlyErrorADT)
 
   def gameInfo(

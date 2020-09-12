@@ -64,9 +64,9 @@ final class HomeController @Inject()(
 
   def isAdmin = Action.zio(
     for {
-      req <- zioRequest[Request, AnyContent]
+      req            <- zioRequest[Request, AnyContent]
       sessionRequest <- sessionTransformer[AnyContent, Request[AnyContent]](req)
-      stuff <- adminFilter(sessionRequest)
+      stuff          <- adminFilter(sessionRequest)
     } yield Ok(stuff)
   )
 

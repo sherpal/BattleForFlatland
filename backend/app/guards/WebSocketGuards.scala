@@ -16,14 +16,14 @@ object WebSocketGuards {
   def authenticated: ZIO[Clock with Configuration with Has[RequestHeader], ErrorADT, User] =
     for {
       header <- zioRequestHeader
-      user <- Guards.userFromRequestHeader(header)
+      user   <- Guards.userFromRequestHeader(header)
     } yield user
 
   def partOfGame(gameId: String): ZIO[GameTable with Clock with Configuration with Has[RequestHeader], ErrorADT, User] =
     for {
-      user <- authenticated
+      user     <- authenticated
       isInGame <- isPlayerInGame(user, gameId).refineOrDie(ErrorADT.onlyErrorADT)
-      _ <- failIfWith(!isInGame, YouAreNotInGame(gameId))
+      _        <- failIfWith(!isInGame, YouAreNotInGame(gameId))
     } yield user
 
 }

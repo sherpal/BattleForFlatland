@@ -27,8 +27,8 @@ final class GameTablesLive(
   def gameTables: Task[List[Either[InconsistentMenuGameInDB, MenuGame]]] =
     for {
       gamesFlat <- runAsTask(gamesHelper.gamesWithUserFlat(gameTableQuery).result)
-      _ <- UIO(gamesFlat.map((eqsdf: (DBMenuGame, (DBUser, Option[(String, Option[String])]))) => eqsdf))
-      games <- gamesHelper.unflattenGames(gamesFlat)
+      _         <- UIO(gamesFlat.map((eqsdf: (DBMenuGame, (DBUser, Option[(String, Option[String])]))) => eqsdf))
+      games     <- gamesHelper.unflattenGames(gamesFlat)
     } yield games
 
   protected def newDBGame(dbMenuGame: DBMenuGame): Task[Int] = runAsTask(gameTableQuery += dbMenuGame)

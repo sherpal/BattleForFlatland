@@ -51,13 +51,13 @@ object GameAntiChamberDAO {
     HasRequest[Request, AnyContent]
   ], Throwable, Unit] =
     for {
-      request <- Guards.headOfGame[AnyContent](gameId) // guarding
-      _ <- deleteGame(request.gameInfo.game.gameName)
+      request                   <- Guards.headOfGame[AnyContent](gameId) // guarding
+      _                         <- deleteGame(request.gameInfo.game.gameName)
       gameAntiChamberManagerRef <- askGameAntiChamberManager(gameId)
-      _ <- ZIO.effectTotal(gameAntiChamberManagerRef ! GameAntiChamberTyped.CancelGame)
-      bookKeeper <- gameMenuRoomBookKeeperRef
-      _ <- ZIO.effectTotal(bookKeeper ! GameMenuRoomBookKeeperTyped.GameListUpdate)
-      _ <- log.info(s"Game $gameId has been cancelled.")
+      _                         <- ZIO.effectTotal(gameAntiChamberManagerRef ! GameAntiChamberTyped.CancelGame)
+      bookKeeper                <- gameMenuRoomBookKeeperRef
+      _                         <- ZIO.effectTotal(bookKeeper ! GameMenuRoomBookKeeperTyped.GameListUpdate)
+      _                         <- log.info(s"Game $gameId has been cancelled.")
     } yield ()
 
   /**
@@ -81,11 +81,11 @@ object GameAntiChamberDAO {
     Unit
   ] =
     for {
-      _ <- Guards.headOfGame[AnyContent](gameId) // guarding
-      gameInfo <- gameWithPlayersById(gameId)
-      _ <- removeAllGameCredentials(gameId)
+      _               <- Guards.headOfGame[AnyContent](gameId) // guarding
+      gameInfo        <- gameWithPlayersById(gameId)
+      _               <- removeAllGameCredentials(gameId)
       gameCredentials <- createAndAddGameCredentials(gameInfo)
-      _ <- launchGame(gameCredentials.gameCredentials)
+      _               <- launchGame(gameCredentials.gameCredentials)
     } yield ()
 
   def iAmStillThere(
@@ -97,7 +97,7 @@ object GameAntiChamberDAO {
       request <- Guards.partOfGame[AnyContent](gameId) // guarding
       user = request.user
       gameAntiChamberManagerRef <- askGameAntiChamberManager(gameId)
-      _ <- ZIO.effectTotal(gameAntiChamberManagerRef ! GameAntiChamberTyped.SeenAlive(user.userId))
+      _                         <- ZIO.effectTotal(gameAntiChamberManagerRef ! GameAntiChamberTyped.SeenAlive(user.userId))
     } yield ()
 
   def leaveGame(
@@ -109,8 +109,8 @@ object GameAntiChamberDAO {
       request <- Guards.partOfGame[AnyContent](gameId)
       user = request.user
       gameAntiChamberManagerRef <- askGameAntiChamberManager(gameId)
-      _ <- ZIO.effectTotal(gameAntiChamberManagerRef ! GameAntiChamberTyped.PlayerLeavesGame(user.userId))
-      _ <- removePlayerFromGame(user.userId, gameId)
+      _                         <- ZIO.effectTotal(gameAntiChamberManagerRef ! GameAntiChamberTyped.PlayerLeavesGame(user.userId))
+      _                         <- removePlayerFromGame(user.userId, gameId)
     } yield ()
 
   def kickInactivePlayers(
@@ -118,8 +118,8 @@ object GameAntiChamberDAO {
       lastSeenAlive: Map[String, LocalDateTime]
   ): ZIO[GameTable with Logging with Clock with Configuration, Throwable, (Boolean, Boolean)] =
     for {
-      idleTime <- timeBeforePlayersGetKickedInSeconds
-      gameInfo <- gameWithPlayersById(gameId)
+      idleTime   <- timeBeforePlayersGetKickedInSeconds
+      gameInfo   <- gameWithPlayersById(gameId)
       nowSeconds <- currentTime(TimeUnit.SECONDS)
       now = LocalDateTime.ofEpochSecond(nowSeconds, 0, ZoneOffset.UTC)
       playersToKick = gameInfo.players.filter { user =>

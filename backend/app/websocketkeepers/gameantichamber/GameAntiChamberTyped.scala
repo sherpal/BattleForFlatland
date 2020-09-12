@@ -86,10 +86,10 @@ object GameAntiChamberTyped {
 
     def updateGameConfiguration(gameConfigChanger: GameConfiguration => GameConfiguration) =
       (for {
-        _ <- services.database.gametables.updateGameConfiguration(menuGame.gameId, gameConfigChanger)
+        _             <- services.database.gametables.updateGameConfiguration(menuGame.gameId, gameConfigChanger)
         maybeGameInfo <- services.database.gametables.selectGameById(menuGame.gameId)
-        gameInfo <- getOrFail(maybeGameInfo, new Exception("weird"))
-        _ <- ZIO.effectTotal(clients.foreach(_ ! protocol(GameStatusUpdated)))
+        gameInfo      <- getOrFail(maybeGameInfo, new Exception("weird"))
+        _             <- ZIO.effectTotal(clients.foreach(_ ! protocol(GameStatusUpdated)))
       } yield behavior(
         gameInfo,
         players,
@@ -165,7 +165,7 @@ object GameAntiChamberTyped {
 
         case GameCredentialsWrapper(credentials) =>
           for {
-            userCreds <- credentials.allGameUserCredentials
+            userCreds                           <- credentials.allGameUserCredentials
             (clientRef, ClientInfo(_, user, _)) <- players
             if userCreds.userId == user.userId
           } clientRef ! AntiChamberClientTyped.WebSocketProtocolWrapper(
@@ -243,7 +243,7 @@ object GameAntiChamberTyped {
   private def fetchGameInfo(gameId: String, triesLeft: Int = 5): ZIO[GameTable, Throwable, MessageWaitingGameInfo] =
     (for {
       maybeGame <- selectGameById(gameId)
-      game <- getOrFail(maybeGame, GameDoesNotExist(gameId))
+      game      <- getOrFail(maybeGame, GameDoesNotExist(gameId))
     } yield MenuGameWrapper(game)).catchSome {
       case _ if triesLeft > 0 => fetchGameInfo(gameId, triesLeft - 1)
     }

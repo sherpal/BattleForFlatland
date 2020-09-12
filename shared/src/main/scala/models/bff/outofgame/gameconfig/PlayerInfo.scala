@@ -15,7 +15,7 @@ final case class PlayerInfo(
   def isValid: Boolean = asValid.isDefined
   def asValid: Option[ValidPlayerInfo] =
     for {
-      playerClass <- maybePlayerClass
+      playerClass  <- maybePlayerClass
       playerColour <- maybePlayerColour
       if isReady
     } yield ValidPlayerInfo(playerName, playerClass, playerColour)

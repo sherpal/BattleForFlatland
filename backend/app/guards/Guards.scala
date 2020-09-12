@@ -39,12 +39,12 @@ object Guards {
 
   def userFromRequestHeader(req: RequestHeader): ZIO[Clock with Configuration, ErrorADT, User] =
     for {
-      maybeUserJson <- UIO(req.session.get(userSessionKey))
+      maybeUserJson    <- UIO(req.session.get(userSessionKey))
       lastTimeStampStr <- UIO(req.session.get(lastTimestampKey))
-      lastTimestamp <- ZIO.effect(lastTimeStampStr.get.toLong).refineOrDie(_ => YouAreUnauthorized)
-      maxAge <- sessionMaxAge
-      now <- currentTime(TimeUnit.SECONDS)
-      _ <- if (now - lastTimestamp > maxAge) ZIO.fail(YouAreUnauthorized) else UIO(())
+      lastTimestamp    <- ZIO.effect(lastTimeStampStr.get.toLong).refineOrDie(_ => YouAreUnauthorized)
+      maxAge           <- sessionMaxAge
+      now              <- currentTime(TimeUnit.SECONDS)
+      _                <- if (now - lastTimestamp > maxAge) ZIO.fail(YouAreUnauthorized) else UIO(())
       userJson <- maybeUserJson match {
         case Some(json) => UIO(json)
         case None       => ZIO.fail(ForbiddenForYou)
@@ -68,7 +68,7 @@ object Guards {
       implicit tagged: zio.Tag[A]
   ): ZIO[Clock with Configuration with Has[HasRequest[Request, A]], ErrorADT, SessionRequest[A]] =
     for {
-      request <- simpleZIORequest[A]
+      request        <- simpleZIORequest[A]
       sessionRequest <- authenticated[A](request)
     } yield sessionRequest
 
@@ -113,7 +113,7 @@ object Guards {
   ): ZIO[GameTable with Clock with Configuration with Has[HasRequest[Request, A]], Throwable, JoinedGameRequest[A]] =
     for {
       joinedGameRequest <- partOfGame[A](gameId)
-      _ <- failIfWith(!joinedGameRequest.isGameHead, ErrorADT.YouAreUnauthorized)
+      _                 <- failIfWith(!joinedGameRequest.isGameHead, ErrorADT.YouAreUnauthorized)
     } yield joinedGameRequest
 
   def amIGameServer: ZIO[GameCredentialsDB with Has[RequestHeader], Throwable, AllGameCredentials] =

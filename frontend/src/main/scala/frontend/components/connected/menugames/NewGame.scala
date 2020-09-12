@@ -118,9 +118,9 @@ final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
 
   def submitProgram(formData: MenuGame): UIO[ErrorOr[Int]] =
     (for {
-      gameId <- createNewGame(formData)
+      gameId     <- createNewGame(formData)
       gameJoined <- joinGameProgram(formData.copy(gameId = gameId), PasswordWrapper(formData.maybeHashedPassword))
-      _ <- UIO(closeWriter.onNext(()))
+      _          <- UIO(closeWriter.onNext(()))
     } yield gameJoined)
       .refineOrDie(ErrorADT.onlyErrorADT)
       .either

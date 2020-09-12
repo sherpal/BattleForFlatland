@@ -33,9 +33,9 @@ object GameServerDAO {
     for {
       credentials <- Guards.amIGameServer // guarding and retrieving credentials
       gameId = credentials.gameCredentials.gameId
-      gameInfo <- gameWithPlayersById(gameId)
+      gameInfo                  <- gameWithPlayersById(gameId)
       gameAntiChamberManagerRef <- askGameAntiChamberManager(gameId)
-      _ <- ZIO.effectTotal(gameAntiChamberManagerRef ! GameCredentialsWrapper(credentials))
+      _                         <- ZIO.effectTotal(gameAntiChamberManagerRef ! GameCredentialsWrapper(credentials))
     } yield GameCredentialsWithGameInfo(credentials, gameInfo)
 
   def clientFetchGameServerToken(
@@ -43,7 +43,7 @@ object GameServerDAO {
   ): ZIO[Clock with Configuration with Has[HasRequest[Request, GameUserCredentials]], Throwable, String] =
     for {
       sessionRequest <- Guards.authenticated[GameUserCredentials]
-      credentials <- UIO(sessionRequest.body)
+      credentials    <- UIO(sessionRequest.body)
       token <- ZIO.fromFuture { _ =>
         implicit val ec: ExecutionContext = actorSystem.dispatcher
         Http()
@@ -65,7 +65,7 @@ object GameServerDAO {
   ): ZIO[Clock with Configuration with Has[HasRequest[Request, GameUserCredentials]], ErrorADT, Boolean] =
     for {
       sessionRequest <- Guards.authenticated[GameUserCredentials]
-      credentials <- UIO(sessionRequest.body)
+      credentials    <- UIO(sessionRequest.body)
       isSuccess <- ZIO
         .fromFuture { _ =>
           implicit val ec: ExecutionContext = actorSystem.dispatcher

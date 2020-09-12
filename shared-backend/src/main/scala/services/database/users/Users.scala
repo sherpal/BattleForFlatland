@@ -48,9 +48,9 @@ object Users {
         mailAddress: String
     ): ZIO[Crypto with Clock, Throwable, Int] =
       for {
-        time <- currentDateTime
+        time   <- currentDateTime
         hashed <- hashPassword(rawPassword)
-        id <- uuid
+        id     <- uuid
         user = DBUser(id, userName, hashed.pw, mailAddress, time.toLocalDateTime)
         added <- addRawDBUser(user)
       } yield added
@@ -79,7 +79,7 @@ object Users {
     ): ZIO[Crypto with Clock, Throwable, String] =
       for {
         time <- currentDateTime
-        id <- uuid
+        id   <- uuid
         registrationKey = id.filterNot(_ == '-')
         hashed <- hashPassword(rawPassword)
         pendingRegistration = PendingRegistration(
@@ -90,7 +90,7 @@ object Users {
           time.toLocalDateTime
         )
         added <- addRawPendingRegistration(pendingRegistration)
-        _ <- failIfWith(added == 0, PendingRegistrationNotAdded(userName))
+        _     <- failIfWith(added == 0, PendingRegistrationNotAdded(userName))
       } yield registrationKey
 
     final def confirmPendingRegistration(registrationKey: String): ZIO[Clock with Crypto, Throwable, (Int, Int)] =
@@ -101,10 +101,10 @@ object Users {
           case None    => ZIO.fail(PendingRegistrationDoesNotExist(registrationKey))
         }
         PendingRegistration(_, userName, hashed, email, _) = pendingRegistration
-        id <- uuid
+        id  <- uuid
         now <- currentDateTime
         dbUser = DBUser(id, userName, hashed, email, now.toLocalDateTime)
-        added <- addRawDBUser(dbUser)
+        added   <- addRawDBUser(dbUser)
         removed <- removePendingRegistration(registrationKey)
       } yield (added, removed)
 
@@ -132,7 +132,7 @@ object Users {
       */
     def userExists(userName: String): zio.Task[Boolean] =
       for {
-        user <- selectDBUser(userName)
+        user    <- selectDBUser(userName)
         pending <- selectPendingRegistrationByUserName(userName)
       } yield user.isDefined || pending.isDefined
 
@@ -141,7 +141,7 @@ object Users {
       */
     def mailExists(email: String): Task[Boolean] =
       for {
-        user <- selectDBUserByEmail(email)
+        user    <- selectDBUserByEmail(email)
         pending <- selectPendingRegistrationByEmail(email)
       } yield user.isDefined || pending.isDefined
 
@@ -155,11 +155,11 @@ object Users {
     ): ZIO[Crypto with Clock, Throwable, Boolean] =
       for {
         mailExistsFiber <- mailExists(mailAddress).fork
-        exists <- userExists(userName)
-        _ <- failIfWith(exists, UserExists(userName))
-        doesMailExists <- mailExistsFiber.join
-        _ <- failIfWith(doesMailExists, UserExists(userName))
-        added <- addUser(userName, password, mailAddress).map(_ > 0)
+        exists          <- userExists(userName)
+        _               <- failIfWith(exists, UserExists(userName))
+        doesMailExists  <- mailExistsFiber.join
+        _               <- failIfWith(doesMailExists, UserExists(userName))
+        added           <- addUser(userName, password, mailAddress).map(_ > 0)
       } yield added
 
     /** Returns the user if the password was correct, None otherwise. */
@@ -177,8 +177,8 @@ object Users {
     /** Deletes the given user if it is not the super user. */
     final def deleteNonSuperUser(userName: String): ZIO[Configuration, Throwable, Int] =
       for {
-        admin <- superUserName
-        _ <- failIfWith(userName == admin, CantDeleteTheBoss)
+        admin   <- superUserName
+        _       <- failIfWith(userName == admin, CantDeleteTheBoss)
         deleted <- deleteUser(userName)
       } yield deleted
 

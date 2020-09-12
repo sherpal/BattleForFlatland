@@ -20,13 +20,13 @@ package object ingame {
   def synchronizeClock(pingPong: Ping => UIO[Pong], tries: Int = 10): ZIO[Clock, Nothing, Double] = {
     def accumulator(remaining: Int, deltas: List[Long]): ZIO[zio.clock.Clock, Nothing, Double] =
       for {
-        now <- zio.clock.currentTime(TimeUnit.MILLISECONDS)
-        ping <- UIO(Ping(now))
-        fiber <- pingPong(ping).fork
-        pong <- fiber.join
-        nowAgain <- zio.clock.currentTime(TimeUnit.MILLISECONDS)
-        latency <- UIO((nowAgain - pong.originalSendingTime) / 2)
-        linkTime <- UIO(latency + pong.midwayDistantTime)
+        now       <- zio.clock.currentTime(TimeUnit.MILLISECONDS)
+        ping      <- UIO(Ping(now))
+        fiber     <- pingPong(ping).fork
+        pong      <- fiber.join
+        nowAgain  <- zio.clock.currentTime(TimeUnit.MILLISECONDS)
+        latency   <- UIO((nowAgain - pong.originalSendingTime) / 2)
+        linkTime  <- UIO(latency + pong.midwayDistantTime)
         newDeltas <- UIO((linkTime - nowAgain) +: deltas)
         delta <- if (remaining == 0) UIO(newDeltas.sum.toDouble / newDeltas.length)
         else accumulator(remaining - 1, newDeltas)
@@ -38,8 +38,8 @@ package object ingame {
   def cancelGame(user: User, gameId: String, token: String): ZIO[HttpClient, ErrorADT, Unit] =
     (for {
       gameCredentials <- UIO(GameUserCredentials(user.userId, gameId, token))
-      code <- postIgnore(Routes.inGameCancel, gameCredentials)
-      _ <- unsuccessfulStatusCode(code)
+      code            <- postIgnore(Routes.inGameCancel, gameCredentials)
+      _               <- unsuccessfulStatusCode(code)
     } yield ()).refineOrDie(ErrorADT.onlyErrorADT)
 
 }

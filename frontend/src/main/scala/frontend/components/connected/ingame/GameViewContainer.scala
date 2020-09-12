@@ -76,7 +76,7 @@ final class GameViewContainer private (
 
   def addWindowResizeEventListener(stage: ReactiveStage): ZIO[Any, Nothing, Unit] =
     (for {
-      window <- UIO(dom.window)
+      window      <- UIO(dom.window)
       resizeQueue <- zio.Queue.unbounded[Unit]
       _ <- ZIO.effectTotal {
         window.addEventListener(
@@ -109,7 +109,7 @@ final class GameViewContainer private (
       resources <- loader.loadAssets
       // todo!: remove hardcoded stuff
       stage <- UIO(ReactivePixiElement.stage(application))
-      _ <- addWindowResizeEventListener(stage)
+      _     <- addWindowResizeEventListener(stage)
       _ = new GameStateManager(
         stage,
         GameState.empty,

@@ -64,7 +64,7 @@ final class RegisterForm extends Component[html.Form] with SimpleForm[NewUser, E
   )
 
   val program: ZIO[NewUser, Nothing, Either[ErrorADT, Int]] = (for {
-    newUser <- ZIO.environment[NewUser]
+    newUser    <- ZIO.environment[NewUser]
     statusCode <- register(newUser, validator).provideLayer(FHttpClient.live)
     // this should never fail as it should fail before
     _ <- unsuccessfulStatusCode(statusCode)

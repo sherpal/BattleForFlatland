@@ -49,9 +49,9 @@ object GameCredentialsDB {
       */
     def createAndAddGameCredentials(gameInfo: MenuGameWithPlayers): ZIO[Crypto, Throwable, AllGameCredentials] =
       for {
-        gameId <- UIO(gameInfo.game.gameId)
+        gameId     <- UIO(gameInfo.game.gameId)
         gameSecret <- uuid
-        gameCreds <- UIO(GameCredentials(gameId, gameSecret))
+        gameCreds  <- UIO(GameCredentials(gameId, gameSecret))
         allUsersCreds <- ZIO.foreach(gameInfo.players) { user =>
           uuid.map(secret => GameUserCredentials(user.userId, gameId, secret))
         }
@@ -72,9 +72,9 @@ object GameCredentialsDB {
     def retrieveUsersCredentials(gameCredentials: GameCredentials): Task[AllGameCredentials] =
       for {
         maybeGameCreds <- fetchGameCredentials(gameCredentials.gameId)
-        dbGameCreds <- getOrFail(maybeGameCreds, GameDoesNotExist(gameCredentials.gameId))
-        _ <- failIfWith(dbGameCreds.gameSecret != gameCredentials.gameSecret, WrongGameCredentials)
-        usersCreds <- fetchUserCredentials(gameCredentials.gameId)
+        dbGameCreds    <- getOrFail(maybeGameCreds, GameDoesNotExist(gameCredentials.gameId))
+        _              <- failIfWith(dbGameCreds.gameSecret != gameCredentials.gameSecret, WrongGameCredentials)
+        usersCreds     <- fetchUserCredentials(gameCredentials.gameId)
       } yield AllGameCredentials(gameCredentials, usersCreds)
 
   }

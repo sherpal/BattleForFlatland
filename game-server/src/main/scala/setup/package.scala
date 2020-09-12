@@ -19,7 +19,7 @@ package object setup {
   def fetchGameInfo(gameId: String): ZIO[Console with GameTable, Throwable, Unit] =
     for {
       game <- gameWithPlayersById(gameId)
-      _ <- putStrLn(game.toString)
+      _    <- putStrLn(game.toString)
     } yield ()
 
   def fetchGameInfo(

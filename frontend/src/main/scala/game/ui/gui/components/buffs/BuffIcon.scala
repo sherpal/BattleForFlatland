@@ -21,7 +21,7 @@ final class BuffIcon(val entityId: Entity.Id, val buffId: Buff.Id, texture: Text
     { (gameState, currentTime) =>
       (for {
         buff <- gameState.buffById(entityId, buffId)
-        _ <- Option.when(buff.isFinite)(())
+        _    <- Option.when(buff.isFinite)(())
         startTime = buff.appearanceTime
         elapsed   = currentTime - startTime
         duration  = buff.duration

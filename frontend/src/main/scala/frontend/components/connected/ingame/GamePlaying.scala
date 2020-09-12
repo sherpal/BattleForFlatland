@@ -59,7 +59,7 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
           callback => gameSocket.$in.collect { case pong: Pong => pong }.map(UIO(_)).foreach(callback)
         )
         .fork
-      _ <- ZIO.effectTotal(gameSocket.outWriter.onNext(ping))
+      _    <- ZIO.effectTotal(gameSocket.outWriter.onNext(ping))
       pong <- pongFiber.join
     } yield pong
 

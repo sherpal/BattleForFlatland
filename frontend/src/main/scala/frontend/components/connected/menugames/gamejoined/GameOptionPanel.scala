@@ -21,7 +21,7 @@ final class GameOptionPanel private (initialGameInfo: MenuGameWithPlayers, socke
 
   def selectFirstBoss(maybeInitialBoss: Option[String], selectElement: html.Select): Task[String] =
     (for {
-      _ <- failIfWith(maybeInitialBoss.isDefined, maybeInitialBoss.get)
+      _                       <- failIfWith(maybeInitialBoss.isDefined, maybeInitialBoss.get)
       maybePreviouslySelected <- retrieveFrom[String](bossNameStorageKey)
       nextSelected = maybePreviouslySelected.getOrElse(BossEntity.allBossesNames.head)
       _ <- storeAt(bossNameStorageKey, nextSelected)

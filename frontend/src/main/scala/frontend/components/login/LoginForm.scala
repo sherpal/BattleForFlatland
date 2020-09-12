@@ -27,7 +27,7 @@ final class LoginForm private () extends Component[html.Form] with SimpleForm[Lo
   val passwordChanger: Observer[String] = makeDataChanger((pw: String) => _.copy(password   = pw))
 
   val program: URIO[LoginUser, Either[ErrorADT, Int]] = (for {
-    loginUser <- ZIO.environment[LoginUser]
+    loginUser  <- ZIO.environment[LoginUser]
     statusCode <- login(loginUser).provideLayer(FHttpClient.live)
     // should never fail as it should fail before.
     _ <- unsuccessfulStatusCode(statusCode)

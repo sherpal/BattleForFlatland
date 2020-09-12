@@ -15,16 +15,16 @@ object TasksPrograms {
 
   val addingRolesAndSuperUser: ZIO[Logging with Users with Crypto with Clock with Configuration, Throwable, Unit] =
     for {
-      _ <- log.info("Adding roles and super user in 10 seconds")
-      _ <- sleep(zio.duration.Duration.fromScala(10.seconds))
-      _ <- log.info("Going to insert role and super user now.")
+      _             <- log.info("Adding roles and super user in 10 seconds")
+      _             <- sleep(zio.duration.Duration.fromScala(10.seconds))
+      _             <- log.info("Going to insert role and super user now.")
       existingRoles <- allRoles
       rolesToAdd = Role.roles.filterNot(existingRoles.contains)
-      _ <- insertRoles(rolesToAdd)
-      _ <- log.info("Roles have been added.")
-      userName <- superUserName
-      password <- superUserPassword
-      mail <- superUserMail
+      _              <- insertRoles(rolesToAdd)
+      _              <- log.info("Roles have been added.")
+      userName       <- superUserName
+      password       <- superUserPassword
+      mail           <- superUserMail
       maybeSuperUser <- selectUser(userName)
       _ <- maybeSuperUser match {
         case Some(_) => ZIO.succeed(())

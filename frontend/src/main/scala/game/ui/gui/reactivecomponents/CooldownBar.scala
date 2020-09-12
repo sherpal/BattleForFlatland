@@ -27,7 +27,7 @@ final class CooldownBar(
       .map {
         case (gameState, currentTime) =>
           (for {
-            entity <- gameState.withAbilityEntitiesById(entityId)
+            entity  <- gameState.withAbilityEntitiesById(entityId)
             lastUse <- entity.relevantUsedAbilities.get(abilityId)
             elapsedTime = currentTime - lastUse.time
             cooldown    = lastUse.cooldown
@@ -41,7 +41,7 @@ final class CooldownBar(
         case (gameState, currentTime) =>
           (
             for {
-              entity <- gameState.withAbilityEntitiesById(entityId)
+              entity  <- gameState.withAbilityEntitiesById(entityId)
               lastUse <- entity.relevantUsedAbilities.get(abilityId)
             } yield lastUse.cooldown > currentTime - lastUse.time
           ).getOrElse(false)

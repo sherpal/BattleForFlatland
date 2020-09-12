@@ -90,7 +90,7 @@ object FHttpClient {
     private def preparedQuery[A](headers: Header*)(implicit decoder: Decoder[A]): ZIO[Uri, ErrorADT, A] =
       for {
         start <- boilerplate.map(_.headers(headers: _*))
-        uri <- ZIO.environment[Uri]
+        uri   <- ZIO.environment[Uri]
         response <- Task
           .fromFuture(
             implicit ec => start.response(responseAs[ErrorADT, A]).get(uri).send()
@@ -110,7 +110,7 @@ object FHttpClient {
     )(implicit decoder: Decoder[R], encoder: Encoder[B]) =
       for {
         start <- boilerplate.map(_.headers(headers: _*))
-        uri <- ZIO.environment[Uri]
+        uri   <- ZIO.environment[Uri]
         response <- Task
           .fromFuture(
             implicit ec => {
@@ -131,7 +131,7 @@ object FHttpClient {
     private def preparedPostQueryIgnore[B](body: Option[B])(implicit encoder: Encoder[B]) =
       for {
         start <- boilerplate
-        uri <- ZIO.environment[Uri]
+        uri   <- ZIO.environment[Uri]
         response <- Task
           .fromFuture(
             implicit ec => {
@@ -162,7 +162,7 @@ object FHttpClient {
     def getStatus(path: Path[Unit]): Task[Int] =
       for {
         start <- boilerplate
-        uri <- simplePath(path)(())
+        uri   <- simplePath(path)(())
         response <- ZIO.fromFuture { implicit ec =>
           start.response(ignore).get(uri).send()
         }

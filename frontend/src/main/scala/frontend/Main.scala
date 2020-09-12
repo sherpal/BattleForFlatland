@@ -34,11 +34,11 @@ object Main {
   }
 
   final val makeCSS = for {
-    head <- ZIO.effectTotal(dom.document.getElementsByTagName("head")(0))
-    css <- UIO(CSS) *> UIO(GlobalStyleSheet.textStyleSheet) // touching CSS object
+    head  <- ZIO.effectTotal(dom.document.getElementsByTagName("head")(0))
+    css   <- UIO(CSS) *> UIO(GlobalStyleSheet.textStyleSheet) // touching CSS object
     style <- ZIO.effectTotal(dom.document.createElement("style"))
-    _ <- ZIO.effectTotal(style.innerText = css)
-    _ <- ZIO.effectTotal(head.appendChild(style))
+    _     <- ZIO.effectTotal(style.innerText = css)
+    _     <- ZIO.effectTotal(head.appendChild(style))
   } yield ()
 
   final val createElement = ZIO
@@ -59,9 +59,9 @@ object Main {
   }
 
   final val renderAppInContainer = for {
-    container <- ZIO.environment[dom.Element]
+    container       <- ZIO.environment[dom.Element]
     reactiveElement <- ZIO.effect(render(container, frontend.components.App()))
-    _ <- ZIO.effect(render(container, frontend.components.utils.bootstrap.ModalWindow.modalContainer))
+    _               <- ZIO.effect(render(container, frontend.components.utils.bootstrap.ModalWindow.modalContainer))
     unmountFunction <- UIO {
       val unmount: js.Function0[js.Any] = () => {
         println("Unmounting previous element...")
@@ -74,10 +74,10 @@ object Main {
   } yield reactiveElement
 
   final val program = for {
-    _ <- addPageTitle
+    _         <- addPageTitle
     container <- createElement
-    _ <- emptyContainer
-    _ <- renderAppInContainer.provide(container)
+    _         <- emptyContainer
+    _         <- renderAppInContainer.provide(container)
     _ <- ZIO.effectTotal {
       val link = dom.document.createElement("link").asInstanceOf[dom.html.Link]
       link.`type` = "image/x-icon"

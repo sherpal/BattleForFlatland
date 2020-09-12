@@ -94,18 +94,18 @@ object GameTable {
         implicit gameConfigurationPointed: Pointed[GameConfiguration]
     ): ZIO[Crypto with Clock, Throwable, String] =
       for {
-        userPlayingFiber <- userAlreadyPlaying(creatorId).fork
+        userPlayingFiber   <- userAlreadyPlaying(creatorId).fork
         alreadyExistsFiber <- gameExists(gameName).fork
         hashed <- (for {
-          password <- ZIO.fromOption(rawPassword)
+          password       <- ZIO.fromOption(rawPassword)
           hashedPassword <- hashPassword(password)
         } yield hashedPassword.pw).option
-        now <- currentDateTime.map(_.toLocalDateTime)
-        id <- uuid
+        now           <- currentDateTime.map(_.toLocalDateTime)
+        id            <- uuid
         alreadyExists <- alreadyExistsFiber.join
-        _ <- failIfWith(alreadyExists, GameExists(gameName))
-        userPlaying <- userPlayingFiber.join
-        _ <- failIfWith(userPlaying.isDefined, UserAlreadyPlaying(creatorName))
+        _             <- failIfWith(alreadyExists, GameExists(gameName))
+        userPlaying   <- userPlayingFiber.join
+        _             <- failIfWith(userPlaying.isDefined, UserAlreadyPlaying(creatorName))
         dbGame = DBMenuGame(id, gameName, hashed, creatorId, now, gameConfigurationPointed.unit.json)
         _ <- newDBGame(dbGame)
       } yield id
@@ -121,25 +121,25 @@ object GameTable {
         maybePassword: Option[String]
     ): ZIO[Clock with Crypto, Throwable, Int] =
       for {
-        maybeGameFiber <- selectGameById(gameId).fork
+        maybeGameFiber   <- selectGameById(gameId).fork
         userAlreadyThere <- userAlreadyPlaying(user.userId)
-        _ <- failIfWith(userAlreadyThere.isDefined, UserAlreadyPlaying(user.userName))
-        maybeGame <- maybeGameFiber.join
-        game <- getOrFail(maybeGame, GameDoesNotExist(gameId))
-        passwordIsValid <- checkPasswordIfRequired(maybePassword, game.maybeHashedPassword.map(HashedPassword))
-        _ <- failIfWith(!passwordIsValid, IncorrectGamePassword)
-        now <- currentDateTime.map(_.toLocalDateTime)
-        userInGameTable <- UIO(UserInGameTable(gameId, user.userId, now))
-        added <- addUsersInGameTables(userInGameTable)
-        _ <- modifyGameConfiguration(gameId, game.gameConfiguration.addPlayer(user.userName))
+        _                <- failIfWith(userAlreadyThere.isDefined, UserAlreadyPlaying(user.userName))
+        maybeGame        <- maybeGameFiber.join
+        game             <- getOrFail(maybeGame, GameDoesNotExist(gameId))
+        passwordIsValid  <- checkPasswordIfRequired(maybePassword, game.maybeHashedPassword.map(HashedPassword))
+        _                <- failIfWith(!passwordIsValid, IncorrectGamePassword)
+        now              <- currentDateTime.map(_.toLocalDateTime)
+        userInGameTable  <- UIO(UserInGameTable(gameId, user.userId, now))
+        added            <- addUsersInGameTables(userInGameTable)
+        _                <- modifyGameConfiguration(gameId, game.gameConfiguration.addPlayer(user.userName))
       } yield added
 
     final def modifyPlayerInfo(gameId: String, user: User, playerInfo: PlayerInfo): ZIO[Any, Throwable, Unit] =
       for {
-        game <- gameWithPlayersById(gameId)
+        game         <- gameWithPlayersById(gameId)
         playerInGame <- UIO(game.players.exists(_.userId == user.userId))
-        _ <- failIfWith(!playerInGame, YouAreNotInGame(gameId))
-        _ <- modifyGameConfiguration(gameId, game.game.gameConfiguration.modifyPlayer(playerInfo))
+        _            <- failIfWith(!playerInGame, YouAreNotInGame(gameId))
+        _            <- modifyGameConfiguration(gameId, game.game.gameConfiguration.modifyPlayer(playerInfo))
       } yield ()
 
     final def updateGameConfiguration(
@@ -148,7 +148,7 @@ object GameTable {
     ): ZIO[Any, Throwable, Unit] =
       for {
         game <- gameWithPlayersById(gameId)
-        _ <- modifyGameConfiguration(gameId, configChanger(game.game.gameConfiguration))
+        _    <- modifyGameConfiguration(gameId, configChanger(game.game.gameConfiguration))
       } yield ()
 
     /**
@@ -157,10 +157,10 @@ object GameTable {
     final def gameWithPlayersById(gameId: String): Task[MenuGameWithPlayers] =
       for {
         maybeGameFiber <- selectGameById(gameId).fork
-        playersFiber <- playersInGameWithId(gameId).fork
-        maybeGame <- maybeGameFiber.join
-        game <- getOrFail(maybeGame, GameDoesNotExist(gameId))
-        players <- playersFiber.join
+        playersFiber   <- playersInGameWithId(gameId).fork
+        maybeGame      <- maybeGameFiber.join
+        game           <- getOrFail(maybeGame, GameDoesNotExist(gameId))
+        players        <- playersFiber.join
 
       } yield MenuGameWithPlayers(game, players)
 
@@ -172,7 +172,7 @@ object GameTable {
     final def removePlayerFromGame(userId: String, gameId: String): Task[Boolean] =
       for {
         maybeGame <- selectGameById(gameId)
-        game <- ZIO.fromOption(maybeGame).flatMapError(_ => UIO(GameDoesNotExist(gameId)))
+        game      <- ZIO.fromOption(maybeGame).flatMapError(_ => UIO(GameDoesNotExist(gameId)))
         _ <- if (game.gameCreator.userId == userId) deleteGame(game.gameName)
         else
           for {

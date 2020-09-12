@@ -41,7 +41,7 @@ final class WebSocketController @Inject()(
   def gameMenuRoom: WebSocket = WebSocket.zio[String, String] {
     (for {
       user <- WebSocketGuards.authenticated
-      id <- uuid
+      id   <- uuid
     } yield Flow[String]
       .map(_ => GameMenuClientTyped.Dummy)
       .via(

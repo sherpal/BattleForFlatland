@@ -36,8 +36,8 @@ object AIControllerMessage {
   private def sendMeLoop(to: ActorRef[Loop.type], in: zio.duration.Duration) =
     for {
       fiber <- zio.clock.sleep(in).fork
-      _ <- fiber.join
-      _ <- ZIO.effectTotal(to ! Loop)
+      _     <- fiber.join
+      _     <- ZIO.effectTotal(to ! Loop)
     } yield ()
 
   def unsafeRunSendMeLoop(to: ActorRef[Loop.type], in: zio.duration.Duration): Unit =

@@ -73,7 +73,7 @@ final class GameAssetLoader(application: Application) {
       }
       .fork
     resources <- fiber.join
-    _ <- ZIO.effectTotal { endedBus.writer.onNext(()) }
+    _         <- ZIO.effectTotal { endedBus.writer.onNext(()) }
     fn <- UIO({
       case asset: Asset if resources.isDefinedAt(asset) => resources(asset)
     }: PartialFunction[Asset, LoaderResource])

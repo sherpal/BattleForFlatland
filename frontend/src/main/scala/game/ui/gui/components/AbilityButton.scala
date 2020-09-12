@@ -29,7 +29,7 @@ final class AbilityButton(
   private val cdOverlay = new StatusBar(
     { (gameState, currentTime) =>
       (for {
-        player <- gameState.players.get(playerId)
+        player  <- gameState.players.get(playerId)
         lastUse <- player.relevantUsedAbilities.get(abilityId)
         elapsedTime = currentTime - lastUse.time
         value       = 1.0 - elapsedTime / lastUse.cooldown.toDouble

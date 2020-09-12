@@ -19,7 +19,7 @@ import zio.UIO
   * It is called like that because it is perfectly suited to model simple forms components.
   *
   * The changing data is exposed as a [[com.raquo.airstream.signal.Signal]] (which means that it emits only when there
-  * are actual changes. The [[SimpleForm#makeDataChanger]] method is a helper for creating
+  * are actual changes). The [[SimpleForm#makeDataChanger]] method is a helper for creating
   * [[com.raquo.airstream.core.Observer]] changing the value of the FormData contained.
   *
   * The `submit` value is an element modifier that feeds, on submit, a stream `$submitEvents` which
@@ -78,7 +78,7 @@ trait SimpleForm[FormData, SubmitReturn] { self: Component[_] =>
     * This is typically used for each field in the form, explaining how the form will update the current data.
     *
     * @example
-    *          ```
+    *    {{{
     *          case class User(name: String, age: Int)
     *
     *          val nameChanger: Observer[String] = makeDataChanger(newName => _.copy(name = newName))
@@ -90,7 +90,7 @@ trait SimpleForm[FormData, SubmitReturn] { self: Component[_] =>
     *              elem => onChange.mapTo(Try(elem.ref.value.toInt)).collect { case Success(v) => v} --> ageChanger
     *            )
     *           )
-    *          ```
+    *    }}}
     * @param dataChanger describes how the form data should be changed given an instance of T
     * @return [[com.raquo.airstream.core.Observer]] to feed from form inputs.
     */

@@ -15,8 +15,8 @@ package object login {
 
   final def confirmRegistrationCall(registrationKey: String): URIO[HttpClient, Either[ErrorADT, Int]] =
     (for {
-      path <- UIO.succeed(models.users.Routes.confirmRegistration)
-      query <- UIO.succeed(param[String]("registrationKey"))
+      path       <- UIO.succeed(models.users.Routes.confirmRegistration)
+      query      <- UIO.succeed(param[String]("registrationKey"))
       statusCode <- postIgnore(path, query)(registrationKey)
     } yield statusCode)
       .refineOrDie(ErrorADT.onlyErrorADT)
@@ -24,7 +24,7 @@ package object login {
 
   final def login(loginUser: LoginUser): ZIO[HttpClient, ErrorADT, Int] =
     (for {
-      path <- UIO.succeed(models.users.Routes.login)
+      path       <- UIO.succeed(models.users.Routes.login)
       statusCode <- postIgnore(path, loginUser)
     } yield statusCode)
       .refineOrDie(ErrorADT.onlyErrorADT)
@@ -35,8 +35,8 @@ package object login {
       fieldsValidator: FieldsValidator[NewUser, ErrorADT]
   ): ZIO[HttpClient, ErrorADT, Int] =
     (for {
-      _ <- fieldsValidateOrFail(fieldsValidator)(newUser)
-      path <- UIO.succeed(models.users.Routes.register)
+      _          <- fieldsValidateOrFail(fieldsValidator)(newUser)
+      path       <- UIO.succeed(models.users.Routes.register)
       statusCode <- postIgnore(path, newUser)
     } yield statusCode)
       .refineOrDie(ErrorADT.onlyErrorADT)

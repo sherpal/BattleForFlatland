@@ -62,8 +62,8 @@ object GameMaster {
   private def gameLoopTo(to: ActorRef[GameLoop.type], delay: FiniteDuration) =
     for {
       fiber <- zio.clock.sleep(fromScala(delay)).fork
-      _ <- fiber.join
-      _ <- ZIO.effectTotal(to ! GameLoop)
+      _     <- fiber.join
+      _     <- ZIO.effectTotal(to ! GameLoop)
     } yield ()
 
   // todo: add other server actions.

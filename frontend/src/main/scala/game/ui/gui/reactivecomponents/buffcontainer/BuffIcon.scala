@@ -29,7 +29,7 @@ final class BuffIcon(
     case (maybeBuff, currentTime) =>
       (for {
         buff <- maybeBuff
-        _ <- Option.when(buff.isFinite)(())
+        _    <- Option.when(buff.isFinite)(())
         startTime = buff.appearanceTime
         elapsed   = currentTime - startTime
         duration  = buff.duration

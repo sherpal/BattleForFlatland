@@ -54,7 +54,7 @@ final class PlayerFrame(
       .map(_._1)
       .map { gameState =>
         (for {
-          my <- gameState.players.get(playingPlayerId)
+          my    <- gameState.players.get(playingPlayerId)
           their <- gameState.players.get(entityId)
           distance = my.pos distanceTo their.pos
         } yield distance < WithTargetAbility.healRange) match {

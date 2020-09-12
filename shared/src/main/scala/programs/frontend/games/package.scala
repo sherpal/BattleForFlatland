@@ -35,8 +35,8 @@ package object games {
   def joinGameProgram(game: MenuGame, maybePassword: PasswordWrapper): ZIO[Routing with HttpClient, Throwable, Int] =
     for {
       statusCode <- postIgnore(joinGame, joinGameParam, maybePassword)(game.gameId)
-      _ <- unsuccessfulStatusCode(statusCode)
-      _ <- moveTo(gameJoined ? gameIdParam)(game.gameId)
+      _          <- unsuccessfulStatusCode(statusCode)
+      _          <- moveTo(gameJoined ? gameIdParam)(game.gameId)
     } yield statusCode
 
   val amIAmPlayingSomewhere: ZIO[Routing with HttpClient, Throwable, Unit] = for {

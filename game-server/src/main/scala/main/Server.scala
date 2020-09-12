@@ -61,10 +61,10 @@ object Server extends zio.App {
           server.launchServer(config.host, config.port)
 
         (for {
-          _ <- putStrLn(s"Game server running for game ${config.gameId}")
+          _           <- putStrLn(s"Game server running for game ${config.gameId}")
           credentials <- UIO(GameCredentials(config.gameId, config.gameSecret))
           actorSystem <- ZIO.service[ActorSystem[ServerBehavior.ServerMessage]]
-          _ <- putStrLn("""Execute curl -X POST "http://localhost:22222/stop" to close the server.""")
+          _           <- putStrLn("""Execute curl -X POST "http://localhost:22222/stop" to close the server.""")
           allGameInfo <- setup.fetchGameInfo(credentials, actorSystem)
           _ <- if (allGameInfo.gameInfo.game.gameConfiguration.isValid) ZIO.unit
           else ZIO.fail(InvalidGameConfiguration)

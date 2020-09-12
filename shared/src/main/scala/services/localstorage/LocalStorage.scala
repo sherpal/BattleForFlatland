@@ -31,7 +31,7 @@ object LocalStorage {
     protected implicit def storedItemDecoder[A](implicit decoder: Decoder[A]): Decoder[StoredItem[A]] =
       Decoder.instance { cursor =>
         for {
-          a <- decoder.tryDecode(cursor.downField("element"))
+          a         <- decoder.tryDecode(cursor.downField("element"))
           timestamp <- Decoder[LocalDateTime].tryDecode(cursor.downField("timestamp"))
         } yield StoredItem(a, timestamp)
       }
@@ -86,7 +86,7 @@ object LocalStorage {
     ): ZIO[Any, Throwable, Option[A]] =
       for {
         maybeStoredElement <- retrieveStoredItemFrom[A](key)
-        now <- zio.clock.currentTime(TimeUnit.SECONDS).provideLayer(clock)
+        now                <- zio.clock.currentTime(TimeUnit.SECONDS).provideLayer(clock)
         maybeIsExpired = maybeStoredElement
           .map(_.expireAt)
           .map(_ isBefore nowLocalDateTimeFromSeconds(now))
