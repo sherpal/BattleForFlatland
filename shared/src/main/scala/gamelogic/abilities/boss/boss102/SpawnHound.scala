@@ -2,6 +2,7 @@ package gamelogic.abilities.boss.boss102
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.{AbilityId, UseId}
+import gamelogic.docs.AbilityMetadata
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.boss102.AddBossHound
 import gamelogic.gamestate.{GameAction, GameState}
@@ -32,11 +33,12 @@ final case class SpawnHound(useId: Ability.UseId, time: Long, casterId: Entity.I
   def canBeCast(gameState: GameState, time: Long): Boolean = true
 }
 
-object SpawnHound {
+object SpawnHound extends AbilityMetadata {
 
   @inline final def castingTime: Long = 2000L
   @inline final def cooldown: Long    = 10000L
 
-  @inline final def timeToFirstSpawnHound: Long = 13000L
+  @inline final def timeToFirstAbility: Long = 13000L
 
+  def name: String = "Spawn Hound"
 }

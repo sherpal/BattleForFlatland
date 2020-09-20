@@ -2,6 +2,7 @@ package gamelogic.abilities.boss.boss103
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.{AbilityId, UseId}
+import gamelogic.docs.AbilityMetadata
 import gamelogic.entities.boss.dawnoftime.Boss103
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.EntityTakesDamage
@@ -64,11 +65,14 @@ final case class SacredGround(useId: Ability.UseId, time: Long, casterId: Entity
   def canBeCast(gameState: GameState, time: Long): Boolean = true
 }
 
-object SacredGround {
+object SacredGround extends AbilityMetadata {
 
   val cooldown: Long    = 2000L
   val castingTime: Long = 0L
   val range: Double     = Boss103.pillarPositionRadius
   val damage: Double    = 30.0
 
+  def name: String = "Sacred Ground"
+
+  def timeToFirstAbility: Long = 0L
 }

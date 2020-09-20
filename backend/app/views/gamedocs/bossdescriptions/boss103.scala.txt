@@ -1,0 +1,56 @@
+@import gamelogic.entities.boss.dawnoftime.Boss103
+@import gamelogic.abilities.boss.boss103._
+@import gamelogic.buffs.boss.boss103._
+
+@import gamelogic.abilities.pentagon.PentaDispel
+
+@import gamelogic.docs._
+
+@()
+
+# @Boss103.name
+
+The *@{Boss103.name}* has an auto-attack and 4 special abilities that stay the same from beginning to end.
+
+The boss starts with @Boss103.maxLife life.
+
+It is normally affected by damage threats.
+
+The boss is intended for @Boss103.intendedFor players.
+
+## Abilities:
+
+### @CleansingNova.name
+
+Deals @CleansingNova.damage to every player in sight of the boss. This is intended to kill any player that was not hidden at the time of the ability.
+
+Note: the boss doesn't cast the ability right when it's available. Instead, it will cast it at a random point in the future.
+
+@abilitysummary(CleansingNova)
+
+### @HolyFlame.name
+
+Puts a debuff on a random target which deals an increasing amount of damage every @formatSeconds(Inflamed.tickRate).
+
+This debuff can (and should!) be removed by Pentagon by using their @PentaDispel.name .
+
+@abilitysummary(HolyFlame)
+
+### @Punishment.name
+
+Stun all players for @formatSeconds(Punished.duration), keeping them from doing anything. This debuff is removed when the player takes damage.
+
+@abilitysummary(Punishment)
+
+### @SacredGround.name
+
+Deals some damage to every player within a @SacredGround.range radius around the boss, silencing all Pentagons and Hexagons for @formatSeconds(Purified.duration).
+
+The attack deals @SacredGround.damage divided by `n` to every affected player, where `n` is
+
+- 1 if only one player is affected
+- 4 if two players are affected
+- 5 if (strictly) more than two players are affected.
+
+@abilitysummary(SacredGround)
+

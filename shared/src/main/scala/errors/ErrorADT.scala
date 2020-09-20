@@ -38,6 +38,10 @@ object ErrorADT {
     def httpErrorType: HTTPResultType = Internal
   }
 
+  case class RawNotFound() extends ErrorADT {
+    def httpErrorType: HTTPResultType = NotFound
+  }
+
   sealed abstract class ThrowableWrapper(throwable: Throwable) extends Throwable {
     override def getMessage: String                      = throwable.getMessage
     override def getLocalizedMessage: String             = throwable.getLocalizedMessage

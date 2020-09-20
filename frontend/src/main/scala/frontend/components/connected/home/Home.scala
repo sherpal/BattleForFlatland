@@ -39,9 +39,11 @@ final class Home private () extends Component[html.Div] {
       )
   )
 
-  val $redirect: EventStream[Unit] = $me.filter(_.isLeft).flatMap(
-    _ => moveTo(RouteDefinitions.loginRoute).provideLayer(layer)
-  )
+  val $redirect: EventStream[Unit] = $me.collect { case Left(error) => error }
+    .filter(_.httpErrorType == errors.HTTPResultType.Unauthorized)
+    .flatMap(
+      _ => moveTo(RouteDefinitions.loginRoute).provideLayer(layer)
+    )
 
   val element: ReactiveHtmlElement[html.Div] = div(
     child <-- $redirect.map(_ => "Not logged, redirecting to Login."), // kicking off stream

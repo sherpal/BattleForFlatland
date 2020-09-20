@@ -81,6 +81,8 @@ GET   /game-server/game-info        controllers.GameServerController.fetchGameIn
 POST  /api/fetch-game-server-token  controllers.GameServerController.clientFetchToken
 POST  /api/in-game/cancel-game      controllers.GameServerController.clientCancelGameDuringGame
 
+GET   /api/docs/game-docs/boss-description  controllers.GameDocsController.bossDocs(bossName: String)
+
 ### NoDocs ###
 GET   /docs/swagger-ui/*file        controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
 ### NoDocs ###

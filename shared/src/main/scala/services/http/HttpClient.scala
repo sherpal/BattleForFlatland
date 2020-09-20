@@ -36,7 +36,7 @@ object HttpClient {
 
     /**
       * Makes a GET http call to the given [[Path]] with the given [[Query]] parameters.
-      * Interpret the reponse as an element of type `R`.
+      * Interpret the response as an element of type `R`.
       */
     def get[Q, R](path: Path[Unit], query: Query[Q])(q: Q)(implicit decoder: Decoder[R]): Task[R]
 

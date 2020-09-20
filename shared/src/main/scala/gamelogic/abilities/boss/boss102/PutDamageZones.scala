@@ -2,6 +2,7 @@ package gamelogic.abilities.boss.boss102
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.{AbilityId, UseId}
+import gamelogic.docs.AbilityMetadata
 import gamelogic.entities.boss.boss102.DamageZone
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.boss102.PutDamageZone
@@ -40,7 +41,9 @@ final case class PutDamageZones(useId: Ability.UseId, time: Long, casterId: Enti
   def canBeCast(gameState: GameState, time: Long): Boolean = true
 }
 
-object PutDamageZones {
+object PutDamageZones extends AbilityMetadata {
+
+  def name = "Damage Zone"
 
   @inline final def cooldown: Long    = 30000L
   @inline final def castingTime: Long = 3000L

@@ -18,7 +18,7 @@ object TypedActorFlow {
 
   /**
     * Creates a flow from String to String that decodes incoming messages and send them to an actor.
-    * Every Out message sent to the actor will be send downstream after being encoded by the Circe.
+    * Every Out message sent to the actor will be sent downstream after being encoded by the Circe.
     * @param behavior describes the [[akka.actor.typed.Behavior]] receiving messages from upstream. It receives as
     *                 argument the actor to send messages to go downstream.
     * @param actorName unique for the internal actor in the flow
@@ -106,6 +106,25 @@ object TypedActorFlow {
 
   }
 
+  /**
+   * Creates a [[Flow]] where incoming elements (of type `In`) are sent to the given behaviour, and messages (of type
+   * `Out`) sent to created actor go downstream.
+   *
+   * The `behavior` will receive an actor of type `Out`, and all message sent to it will go downstream.
+   *
+   * This is particularly useful for using in Play Websockets, where incoming messages from the client are handled by
+   * the given behavior, and outgoing messages come from the actor.
+   *
+   * @param behavior Actor responsible to receive (and handle) elements of type In coming from upstream. This behavior
+   *                 will receive as input the actor to which sent elements go downstream.
+   * @param actorName name of the actor to spawn
+   * @param bufferSize size of the upstream elements buffer
+   * @param overflowStrategy strategy describing how to handle buffer overflow
+   * @param actorSystem surrounding actor system
+   * @tparam In type of elements/messages coming from upstream
+   * @tparam Out type of elements/messages going downstream
+   * @return a [[Flow]] from In to Out.
+   */
   def actorRef[In, Out](
       behavior: ActorRef[Out] => Behavior[In],
       actorName: String,

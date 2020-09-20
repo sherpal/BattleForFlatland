@@ -8,6 +8,7 @@ import org.scalajs.dom
 import services.http.HttpClient.{csrfTokenName, Path, Query, Service}
 import sttp.client._
 import sttp.model.{Header, MediaType, QueryParams, Uri}
+import urldsl.url.UrlStringGenerator
 import zio._
 
 import scala.concurrent.Future
@@ -33,13 +34,17 @@ object FHttpClient {
         .map(_.drop(csrfTokenName.length + 1))
     )
 
+    private val dummyUrlStringGenerator = new UrlStringGenerator {
+      def encode(str: String, encoding: String): String = str
+    }
+
     private def pathWithParams[T, Q](path: Path[T], query: Query[Q], origin: UIO[Uri] = defaultOrigin)(
         t: T,
         q: Q
     ): UIO[Uri] =
       origin
         .map(_.path(HttpClient.apiPrefix +: path.createSegments(t).map(_.content)))
-        .map(_.params(new QueryParams(query.createParamsMap(q).toList)))
+        .map(_.params(new QueryParams(query.createParamsMap(q, dummyUrlStringGenerator).toList)))
 
     private def simplePath[T](p: Path[T], origin: UIO[Uri] = defaultOrigin)(t: T): UIO[Uri] =
       origin.map(_.path(HttpClient.apiPrefix +: p.createSegments(t).map(_.content)))

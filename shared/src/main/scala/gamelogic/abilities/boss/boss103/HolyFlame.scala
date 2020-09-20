@@ -3,6 +3,7 @@ package gamelogic.abilities.boss.boss103
 import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.{Ability, WithTargetAbility}
+import gamelogic.docs.AbilityMetadata
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.boss103.PutInflamedDebuff
@@ -18,7 +19,7 @@ final case class HolyFlame(useId: Ability.UseId, time: Long, casterId: Entity.Id
 
   def cooldown: Long = HolyFlame.cooldown
 
-  def castingTime: Long = 0L
+  def castingTime: Long = HolyFlame.castingTime
 
   def cost: Resource.ResourceAmount = ResourceAmount(0, NoResource)
 
@@ -38,9 +39,12 @@ final case class HolyFlame(useId: Ability.UseId, time: Long, casterId: Entity.Id
   def canBeCast(gameState: GameState, time: Long): Boolean = true
 }
 
-object HolyFlame {
+object HolyFlame extends AbilityMetadata {
 
   val cooldown: Long           = 4000L
   val timeToFirstAbility: Long = 8000L
 
+  def name: String = "Holy Flame"
+
+  def castingTime: Long = 0L
 }

@@ -1,0 +1,6 @@
+@import gamelogic.docs._
+
+@(ability: AbilityMetadata)
+
+- Cooldown: @formatSeconds(ability.cooldown), first use after @formatSeconds(ability.timeToFirstAbility)
+- Casting time: @{if (ability.castingTime > 0) formatSeconds(ability.castingTime) else "Instant"}

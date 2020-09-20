@@ -3,7 +3,6 @@ package frontend.components.connected.menugames.gamejoined
 import com.raquo.airstream.signal.Signal
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import docs.DocsLoader
 import frontend.components.Component
 import frontend.components.utils.tailwind._
 import laika.api.Transformer
@@ -11,8 +10,14 @@ import laika.ast._
 import laika.format.{HTML, Markdown}
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Div
+import services.http.FHttpClient
+import utils.laminarzio.Implicits.zioFlattenStrategy
+
+import scala.tools.nsc.doc.base.comment.UnorderedList
 
 final class BossDescription private (bossNames: Signal[Option[String]]) extends Component[html.Div] {
+
+  val layer = FHttpClient.live
 
   val transformer = Transformer
     .from(Markdown)
@@ -24,31 +29,31 @@ final class BossDescription private (bossNames: Signal[Option[String]]) extends 
         fmt.element("h2", opt.id.fold[Options](NoOpt)(Id(_)) + Styles("text-2xl", primaryColourDarkClass), content)
       case (fmt, Header(3, content, opt)) =>
         fmt.element("h3", opt.id.fold[Options](NoOpt)(Id(_)) + Styles("text-xl", primaryColourDarkClass), content)
+      case (fmt, Paragraph(content, options)) =>
+        fmt.element("p", options.id.fold[Options](NoOpt)(Id(_)) + Styles("pt-3"), content)
+      case (fmt, BulletList(content, _, options)) =>
+        fmt.element("ul", options.id.fold[Options](NoOpt)(Id(_)) + Styles("list-disc", "pl-5", "pt-3"), content)
       //      case truc =>
       //        println(truc)
       //        "dummy"
     }
     .build
 
-  def bossDescription(maybeBossName: Option[String]): String =
-    maybeBossName
-      .fold("No boss selected") { bossName =>
-        DocsLoader.bossDescription(bossName).getOrElse(s"Description for boss $bossName not found.")
-      }
+  val descriptionSignal: EventStream[String] = bossNames
+    .flatMap(programs.frontend.gamedocs.bossDescription(_).orDie.provideLayer(layer))
+    .map(transformer.transform)
+    .map {
+      case Left(error) =>
+        error.printStackTrace()
+        s"<pre>${error.getMessage}</pre>"
+      case Right(value) => value
+    }
 
   val element: ReactiveHtmlElement[Div] = div(
     details(
       summary("Boss description"),
       div(onMountCallback { context =>
-        bossNames
-          .map(bossDescription)
-          .map(transformer.transform)
-          .map {
-            case Left(error) =>
-              error.printStackTrace()
-              s"<pre>${error.getMessage}</pre>"
-            case Right(value) => value
-          }
+        descriptionSignal
           .foreach(context.thisNode.ref.innerHTML = _)(context.owner)
       })
     )

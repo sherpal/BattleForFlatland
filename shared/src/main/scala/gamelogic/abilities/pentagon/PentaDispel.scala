@@ -48,7 +48,9 @@ final case class PentaDispel(useId: Ability.UseId, time: Long, casterId: Entity.
 
 object PentaDispel {
 
-  val cooldown: Long                = 8000L
+  val name: String = "Penta Dispel"
+
+  val cooldown: Long                = 7000L
   val cost: Resource.ResourceAmount = Resource.ResourceAmount(5.0, Resource.Mana)
 
 }

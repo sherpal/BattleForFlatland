@@ -96,6 +96,8 @@ object Boss102 extends BossFactory[Boss102] {
 
   final val maxLife: Double = 40000
 
+  val intendedFor = 5 // players
+
   final val meleeRange: Distance = shape.radius + 20.0
   final val rangeRange: Distance = 2000.0 // basically infinite distance
 
@@ -115,10 +117,10 @@ object Boss102 extends BossFactory[Boss102] {
             time = time - PutDamageZones.cooldown + PutDamageZones.timeToFirstAbility
           ),
           Ability.boss102SpawnBossHound -> Pointed[SpawnHound].unit.copy(
-            time = time - SpawnHound.cooldown + SpawnHound.timeToFirstSpawnHound
+            time = time - SpawnHound.cooldown + SpawnHound.timeToFirstAbility
           ),
           Ability.putLivingDamageZoneId -> Pointed[PutLivingDamageZoneOnTarget].unit.copy(
-            time = time - PutLivingDamageZoneOnTarget.cooldown + PutLivingDamageZoneOnTarget.timeToFirstLivingDZ
+            time = time - PutLivingDamageZoneOnTarget.cooldown + PutLivingDamageZoneOnTarget.timeToFirstAbility
           )
         ),
         maxLife = maxLife,
@@ -155,7 +157,7 @@ object Boss102 extends BossFactory[Boss102] {
 
   def playersStartingPosition: Complex = -100 * i
 
-  def name: String = "Boss 102"
+  val name: String = "Boss 102"
 
   final val abilities: Set[Ability.AbilityId] =
     Set(

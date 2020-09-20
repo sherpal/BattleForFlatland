@@ -4,6 +4,7 @@ import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.buffs.boss.boss102.LivingDamageZone
+import gamelogic.docs.AbilityMetadata
 import gamelogic.entities.boss.dawnoftime.Boss102
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.boss102.PutLivingDamageZone
@@ -39,12 +40,14 @@ final case class PutLivingDamageZoneOnTarget(useId: Ability.UseId, time: Long, c
   def range: Distance = Boss102.rangeRange
 }
 
-object PutLivingDamageZoneOnTarget {
+object PutLivingDamageZoneOnTarget extends AbilityMetadata {
+
+  def name = "Living Damage Zone"
 
   @inline final def cooldown: Long                = LivingDamageZone.duration / 2
   @inline final def castingTime: Long             = 0L
   @inline final def cost: Resource.ResourceAmount = Resource.ResourceAmount(0.0, Resource.NoResource)
   @inline final def damage: Double                = 30.0
-  @inline final def timeToFirstLivingDZ: Long     = 15000L
+  @inline final def timeToFirstAbility: Long      = 15000L
 
 }

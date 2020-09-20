@@ -1,0 +1,53 @@
+@import gamelogic.entities.boss.dawnoftime.Boss102
+@import gamelogic.abilities.boss.boss102._
+@import gamelogic.entities.boss.boss102._
+@import gamelogic.buffs.boss.boss102._
+
+@import gamelogic.docs._
+
+@()
+
+# @Boss102.name
+
+The *@{Boss102.name}* has an auto-attack and 3 special abilities that stay the same from beginning to end.
+
+The boss starts with @Boss102.maxLife life.
+
+It is normally affected by damage threats.
+
+The boss is intended for @Boss102.intendedFor players.
+
+## Abilities:
+
+### Auto attack
+
+Deals @Boss102.autoAttackDamage damage every @formatSeconds(Boss102.autoAttackTickRate) to the current target.
+
+### @PutDamageZones.name
+
+Puts a damage zone at every player's position. These zones have a radius equal to 6 times the radius of players. It deals @DamageZoneTick.damageOnTick damage @formatSeconds(DamageZoneTick.tickRate) to every player standing in it.
+
+The zones stay on the game until its end.
+
+@abilitysummary(PutDamageZones)
+
+### @PutLivingDamageZoneOnTarget.name
+
+Puts a debuff on a random (non-current) target. This debuff deals @PutLivingDamageZoneOnTarget.damage points of damage every second to each bearer's ally within 6 times the players radius. The debuff stays for @formatSeconds(LivingDamageZone.duration).
+
+@abilitysummary(PutLivingDamageZoneOnTarget)
+
+### @SpawnHound.name
+
+Spawn an add (a triangle). These triangles are subject to damage threats. They deal @BossHound.damageOnTick damage every second to their target, and they have @BossHound.houndMaxLife life points.
+
+@abilitysummary(SpawnHound)
+
+## Suggested configuration
+
+The game is beatable with the following configuration:
+
+- one square
+- two pentagons
+- one triangle
+- one hexagon

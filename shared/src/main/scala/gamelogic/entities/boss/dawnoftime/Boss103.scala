@@ -4,6 +4,7 @@ import gamelogic.abilities.{Ability, AutoAttack}
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.boss.boss103.{CleansingNova, HolyFlame, Punishment}
+import gamelogic.docs.BossMetadata
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
@@ -95,7 +96,7 @@ final case class Boss103(
 
 }
 
-object Boss103 extends BossFactory[Boss103] {
+object Boss103 extends BossFactory[Boss103] with BossMetadata {
 
   final val shape: Circle = Boss101.shape
 
@@ -166,5 +167,7 @@ object Boss103 extends BossFactory[Boss103] {
 
   def playersStartingPosition: Complex = 0
 
-  def name: String = "Boss 103"
+  val name: String = "Boss 103"
+
+  def intendedFor: AbilityId = 5
 }

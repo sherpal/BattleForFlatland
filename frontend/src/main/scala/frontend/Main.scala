@@ -2,7 +2,6 @@ package frontend
 
 import assets.Asset
 import com.raquo.laminar.api.L._
-import docs.DocsLoader
 import org.scalajs.dom
 import zio.{UIO, ZIO}
 
@@ -26,7 +25,6 @@ object Main {
   IndexCSS
   Tailwind
   Asset
-  DocsLoader
   Icon
 
   final val addPageTitle = ZIO.effectTotal {

@@ -1,8 +1,9 @@
 package services
 
+import errors.ErrorADT
 import io.circe.{Decoder, Encoder}
 import services.http.HttpClient.{Path, Query}
-import zio.{Has, ZIO}
+import zio.{Has, Task, UIO, ZIO}
 
 package object http {
 
@@ -17,6 +18,14 @@ package object http {
 
   def get[Q, R](path: Path[Unit], query: Query[Q])(q: Q)(implicit decoder: Decoder[R]): ZIO[HttpClient, Throwable, R] =
     ZIO.accessM(_.get[HttpClient.Service].get[Q, R](path, query)(q))
+
+  /**
+    * Similar to [[get]], but returns `default` when the status code is not 2xx.
+    */
+  def getOrElse[Q, R](path: Path[Unit], query: Query[Q])(q: Q, default: R)(
+      implicit decoder: Decoder[R]
+  ): ZIO[HttpClient, Throwable, R] =
+    get[Q, R](path, query)(q).catchSome { case _: ErrorADT => UIO(default) }
 
   def getStatus(path: Path[Unit]): ZIO[HttpClient, Throwable, Int] =
     ZIO.accessM(_.get[HttpClient.Service].getStatus(path))

@@ -83,7 +83,7 @@ object Boss103Controller extends AIController[Boss103, SpawnBoss] {
         useAbility(
           List(
             maybeUseCleansingNova,
-            maybeUsePunishment,
+            //maybeUsePunishment,
             maybeUseHolyFlame,
             maybeUseSacredGround,
             me.maybeAutoAttack(startTime, currentGameState)
