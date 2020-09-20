@@ -2,15 +2,15 @@ package game.ui.gui.reactivecomponents
 
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.{Signal, Val}
+import game.ui.reactivepixi.AttributeModifierBuilder._
+import game.ui.reactivepixi.ReactivePixiElement._
 import gamelogic.abilities.Ability
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.Texture
-import utils.misc.RGBColour
-import game.ui.reactivepixi.ReactivePixiElement._
-import game.ui.reactivepixi.AttributeModifierBuilder._
 import typings.pixiJs.anon.Align
 import typings.pixiJs.mod.TextStyle
+import utils.misc.RGBColour
 
 final class CooldownBar(
     entityId: Entity.Id,

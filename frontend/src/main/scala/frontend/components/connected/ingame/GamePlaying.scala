@@ -14,7 +14,6 @@ import models.bff.ingame.InGameWSProtocol.{Ping, Pong, Ready, YourEntityIdIs}
 import models.users.User
 import org.scalajs.dom
 import org.scalajs.dom.html
-import services.http.FHttpClient
 import utils.laminarzio.Implicits._
 import utils.websocket.BoopickleWebSocket
 import zio.{UIO, ZIO}

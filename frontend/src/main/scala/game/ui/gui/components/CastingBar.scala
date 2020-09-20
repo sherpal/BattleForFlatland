@@ -1,14 +1,13 @@
 package game.ui.gui.components
 
-import com.raquo.airstream.eventbus.EventBus
 import com.raquo.airstream.eventstream.EventStream
+import game.ui.reactivepixi.AttributeModifierBuilder._
+import game.ui.reactivepixi.ReactivePixiElement._
+import gamelogic.abilities.Ability
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.Texture
-import typings.pixiJs.mod.{Container, Graphics, Sprite}
-import game.ui.reactivepixi.ReactivePixiElement._
-import game.ui.reactivepixi.AttributeModifierBuilder._
-import gamelogic.abilities.Ability
+import typings.pixiJs.mod.Container
 import utils.misc.RGBColour
 
 final class CastingBar(

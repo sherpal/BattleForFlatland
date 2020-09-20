@@ -2,7 +2,7 @@ package gamelogic.physics.quadtree
 
 import gamelogic.entities.{Entity, PolygonBody}
 import gamelogic.physics.Complex
-import gamelogic.physics.shape.{Polygon, Shape}
+import gamelogic.physics.shape.Shape
 
 /**
   * A [[ShapeQT]] is supposed to be an abstraction on top of a list of [[gamelogic.entities.PolygonBody]].

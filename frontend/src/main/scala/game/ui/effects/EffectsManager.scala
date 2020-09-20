@@ -8,20 +8,20 @@ import game.Camera
 import game.ui.Drawer
 import game.ui.effects.boss.boss102.{HoundLifeBarEffect, LivingDamageZoneEffect}
 import game.ui.effects.boss.boss103.{CleansingNovaEffect, SacredGroundEffect}
+import gamelogic.abilities
+import gamelogic.abilities.boss.boss103.{CleansingNova, SacredGround}
 import gamelogic.abilities.square.Cleave
 import gamelogic.buffs.boss.boss102.LivingDamageZone
 import gamelogic.entities.Entity
+import gamelogic.entities.classes.Constants
 import gamelogic.gamestate.gameactions.boss102.{AddBossHound, PutLivingDamageZone}
 import gamelogic.gamestate.gameactions.{EntityGetsHealed, EntityTakesDamage, UseAbility}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
+import gamelogic.physics.shape.ConvexPolygon
 import typings.pixiJs.PIXI.{LoaderResource, RenderTexture}
 import typings.pixiJs.mod.{Application, Container, Graphics}
 import utils.misc.RGBColour
-import gamelogic.abilities
-import gamelogic.abilities.boss.boss103.{CleansingNova, SacredGround}
-import gamelogic.entities.classes.Constants
-import gamelogic.physics.shape.{ConvexPolygon, Shape}
 
 import scala.collection.mutable
 

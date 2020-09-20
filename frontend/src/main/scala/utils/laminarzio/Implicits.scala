@@ -5,9 +5,7 @@ import com.raquo.airstream.eventbus.EventBus
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.features.FlattenStrategy
 import zio.stream._
-import zio.{CancelableFuture, UIO, URIO, ZIO}
-
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import zio.{CancelableFuture, URIO, ZIO}
 
 object Implicits {
 

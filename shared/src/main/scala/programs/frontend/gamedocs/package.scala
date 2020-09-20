@@ -1,11 +1,11 @@
 package programs.frontend
 
+import services.http._
 import urldsl.errors.DummyError
 import urldsl.language.PathSegment
 import urldsl.language.PathSegment.dummyErrorImpl._
 import urldsl.language.QueryParameters.dummyErrorImpl._
 import zio.UIO
-import services.http._
 
 package object gamedocs {
 

@@ -12,7 +12,7 @@ import frontend.components.Component
 import models.validators.FieldsValidator
 import org.scalajs.dom.html.Form
 import utils.laminarzio.Implicits._
-import zio.{UIO, URIO}
+import zio.URIO
 
 /**
   * A [[SimpleForm]] is a wrapper around functionalities of a stream of data changing through time.

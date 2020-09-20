@@ -6,6 +6,9 @@ import com.raquo.airstream.eventbus.EventBus
 import com.raquo.airstream.eventstream.EventStream
 import game.Camera
 import game.ui.bossspecificdrawers.Boss102Drawer
+import game.ui.reactivepixi.AttributeModifierBuilder._
+import game.ui.reactivepixi.ChildrenReceiver.children
+import game.ui.reactivepixi.ReactivePixiElement._
 import game.ui.reactivepixi.ReactiveStage
 import gamelogic.entities.boss.dawnoftime.Boss102
 import gamelogic.entities.boss.{Boss101, BossEntity}
@@ -16,12 +19,8 @@ import gamelogic.entities.staticstuff.Obstacle
 import gamelogic.entities.{DummyMob, Entity, SimpleBulletBody}
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
-import org.scalajs.dom.html
 import typings.pixiJs.PIXI.LoaderResource
 import typings.pixiJs.mod._
-import game.ui.reactivepixi.ReactivePixiElement._
-import game.ui.reactivepixi.AttributeModifierBuilder._
-import game.ui.reactivepixi.ChildrenReceiver.children
 
 import scala.collection.mutable
 

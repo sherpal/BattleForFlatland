@@ -17,9 +17,8 @@ import org.scalajs.dom.html
 import org.scalajs.dom.html.Progress
 import typings.pixiJs.anon.{Antialias => ApplicationOptions}
 import typings.pixiJs.mod.Application
-import zio.{Exit, UIO, ZIO}
-
 import zio.duration._
+import zio.{Exit, UIO, ZIO}
 
 /**
   * The GameViewContainer is responsible for creating the instance of the [[game.GameStateManager]].

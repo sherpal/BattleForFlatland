@@ -7,7 +7,6 @@ import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.ownership.Owner
 import com.raquo.airstream.signal.{Signal, SignalViewer}
 import game.ui.GameDrawer
-import game.ui.effects.test.GraphDrawer
 import game.ui.effects.{ChoosingAbilityPositionEffect, EffectsManager}
 import game.ui.gui.ReactiveGUIDrawer
 import game.ui.reactivepixi.ReactiveStage
@@ -17,23 +16,18 @@ import gamelogic.abilities.pentagon.{CreatePentagonBullet, CreatePentagonZone, P
 import gamelogic.abilities.square.{Cleave, Enrage, HammerHit, Taunt}
 import gamelogic.abilities.triangle.{DirectHit, UpgradeDirectHit}
 import gamelogic.entities.WithPosition.Angle
-import gamelogic.entities.classes.Constants
 import gamelogic.entities.classes.pentagon.PentagonZone
 import gamelogic.entities.{Entity, LivingEntity, MovingBody}
-import gamelogic.gamestate.gameactions.{CreateObstacle, EntityStartsCasting, MovingBodyMoves}
+import gamelogic.gamestate.gameactions.{EntityStartsCasting, MovingBodyMoves}
 import gamelogic.gamestate.{AddAndRemoveActions, GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
-import gamelogic.physics.pathfinding.AIWanderGraph
-import gamelogic.physics.quadtree.ShapeQT
 import models.bff.ingame.{InGameWSProtocol, UserInput}
 import org.scalajs.dom
 import typings.pixiJs.PIXI.LoaderResource
 import typings.pixiJs.mod.{Application, Container}
 import utils.misc.RGBColour
 import utils.pixi.monkeypatching.PIXIPatching._
-import utils.laminarzio.Implicits._
 
-import scala.concurrent.duration._
 import scala.Ordering.Double.TotalOrdering
 import scala.scalajs.js.timers.setTimeout
 

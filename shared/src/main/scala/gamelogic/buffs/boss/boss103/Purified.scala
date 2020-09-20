@@ -1,12 +1,10 @@
 package gamelogic.buffs.boss.boss103
 
-import gamelogic.buffs.Buff.{Id, ResourceIdentifier}
+import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.buffs.{Buff, PassiveBuff}
 import gamelogic.entities.{Entity, Resource}
-import gamelogic.entities.Entity.Id
-import gamelogic.gamestate.gameactions.{EntityStartsCasting, EntityTakesDamage, RemoveBuff}
+import gamelogic.gamestate.gameactions.EntityStartsCasting
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
 
 /**

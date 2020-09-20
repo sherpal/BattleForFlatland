@@ -2,7 +2,7 @@ package gamelogic.entities.staticstuff
 
 import gamelogic.entities.Entity.TeamId
 import gamelogic.entities.WithPosition.Angle
-import gamelogic.entities.{Body, Entity, PolygonBody}
+import gamelogic.entities.{Entity, PolygonBody}
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{ConvexPolygon, Polygon}
 import utils.misc.RGBColour

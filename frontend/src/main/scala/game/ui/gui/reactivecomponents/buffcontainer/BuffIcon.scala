@@ -3,15 +3,13 @@ package game.ui.gui.reactivecomponents.buffcontainer
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.{Signal, Val}
 import game.ui.gui.reactivecomponents.{GUIComponent, StatusBar}
+import game.ui.reactivepixi.AttributeModifierBuilder._
+import game.ui.reactivepixi.ReactivePixiElement._
 import gamelogic.buffs.Buff
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.Texture
-import game.ui.reactivepixi.ReactivePixiElement._
-import game.ui.reactivepixi.AttributeModifierBuilder._
 import utils.misc.RGBColour
-
-import scala.util.Random
 
 final class BuffIcon(
     val entityId: Entity.Id,

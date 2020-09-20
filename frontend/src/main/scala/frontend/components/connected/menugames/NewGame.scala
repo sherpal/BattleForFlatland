@@ -16,9 +16,7 @@ import models.syntax.{Pointed, Validated}
 import models.validators.FieldsValidator
 import org.scalajs.dom.html
 import programs.frontend.games._
-import services.http.FHttpClient
 import services.{http, routing}
-import services.routing.FRouting
 import zio.{UIO, URIO}
 
 final class NewGame private (closeWriter: ModalWindow.CloseWriter)(

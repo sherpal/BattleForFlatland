@@ -1,12 +1,12 @@
 package game.ui.gui.reactivecomponents
 
 import com.raquo.airstream.eventstream.EventStream
-
-import scala.collection.immutable.Queue
-import game.ui.reactivepixi.ReactivePixiElement._
 import game.ui.reactivepixi.AttributeModifierBuilder._
+import game.ui.reactivepixi.ReactivePixiElement._
 import typings.pixiJs.anon.Align
 import typings.pixiJs.mod.TextStyle
+
+import scala.collection.immutable.Queue
 
 /**
   * Small pixi component for displaying the frame rate, computed over 100 ticks.

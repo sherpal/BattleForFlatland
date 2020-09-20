@@ -1,20 +1,17 @@
 package frontend.components.test
 
-import assets.Asset.ingame.gui.bars._
 import assets.ScalaLogo
 import com.raquo.laminar.api.L.{div, EventBus}
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import game.GameAssetLoader
-import game.ui.reactivepixi.AttributeModifierBuilder
+import game.ui.reactivepixi.AttributeModifierBuilder._
+import game.ui.reactivepixi.ReactivePixiElement._
+import gamelogic.physics.Complex
 import org.scalajs.dom
 import org.scalajs.dom.html
-import typings.pixiJs.mod.{Application, Container, Graphics, Sprite}
+import typings.pixiJs.mod.Application
 import zio.ZIO
-import game.ui.reactivepixi.ReactivePixiElement._
-import game.ui.reactivepixi.AttributeModifierBuilder._
-import gamelogic.physics.Complex
 
-import scala.concurrent.duration._
 import scala.scalajs.js.timers._
 
 object Test {

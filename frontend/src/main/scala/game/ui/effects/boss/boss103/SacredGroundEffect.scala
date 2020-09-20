@@ -2,7 +2,6 @@ package game.ui.effects.boss.boss103
 
 import game.Camera
 import game.ui.effects.GameEffect
-import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.BoundingBox

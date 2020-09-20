@@ -1,12 +1,10 @@
 package game.ui.effects.test
 
 import com.raquo.airstream.eventstream.EventStream
-import com.raquo.airstream.signal.Signal
 import game.Camera
-import gamelogic.physics.pathfinding.FiniteGraph
-import game.ui.reactivepixi.ReactivePixiElement.{pixiGraphics, ReactiveGraphics}
 import game.ui.reactivepixi.AttributeModifierBuilder.moveGraphics
-import gamelogic.physics.Complex
+import game.ui.reactivepixi.ReactivePixiElement.{pixiGraphics, ReactiveGraphics}
+import gamelogic.physics.pathfinding.FiniteGraph
 import typings.pixiJs.PIXI.Graphics
 
 final class GraphDrawer(graphSignal: EventStream[FiniteGraph], camera: Camera) {

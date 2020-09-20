@@ -1,11 +1,11 @@
 package game
 
-import assets.{Asset, ScalaLogo}
 import assets.Asset.ingame.gui.`default-abilities`._
 import assets.Asset.ingame.gui.abilities._
 import assets.Asset.ingame.gui.bars._
 import assets.Asset.ingame.gui.boss.dawnOfTime.boss102._
 import assets.Asset.ingame.gui.boss.dawnOfTime.boss103._
+import assets.{Asset, ScalaLogo}
 import com.raquo.airstream.eventbus.EventBus
 import game.GameAssetLoader.ProgressData
 import org.scalablytyped.runtime.StringDictionary

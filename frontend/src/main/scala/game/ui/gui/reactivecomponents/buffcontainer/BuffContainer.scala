@@ -5,12 +5,12 @@ import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.Signal
 import game.ui.gui.reactivecomponents.GUIComponent
 import game.ui.gui.reactivecomponents.gridcontainer.GridContainer
+import game.ui.reactivepixi.AttributeModifierBuilder._
+import game.ui.reactivepixi.ReactivePixiElement.ReactiveContainer
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
-import game.ui.reactivepixi.ReactivePixiElement.ReactiveContainer
 import gamelogic.physics.Complex
 import typings.pixiJs.PIXI.LoaderResource
-import game.ui.reactivepixi.AttributeModifierBuilder._
 
 final class BuffContainer(
     entityId: Entity.Id,

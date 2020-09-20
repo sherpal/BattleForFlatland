@@ -3,8 +3,10 @@ package game.ui.gui.reactivecomponents.gridcontainer
 import com.raquo.airstream.signal.Signal
 import game.ui.gui.reactivecomponents.GUIComponent
 import game.ui.gui.reactivecomponents.gridcontainer.GridContainer.GridDirection
-import game.ui.reactivepixi.ReactivePixiElement
 import game.ui.reactivepixi.ChildrenReceiver.children
+import game.ui.reactivepixi.ReactivePixiElement
+
+import scala.Ordering.Double.TotalOrdering
 
 final class GridContainer[T <: ReactivePixiElement.ReactiveContainer](
     direction: GridDirection,

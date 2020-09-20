@@ -3,9 +3,9 @@ package gamelogic.gamestate.gameactions.boss103
 import gamelogic.buffs.Buff
 import gamelogic.buffs.boss.boss103.Punished
 import gamelogic.entities.Entity
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
+import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 
 /** Puts an instance of [[Punished]] debuff on the target. */

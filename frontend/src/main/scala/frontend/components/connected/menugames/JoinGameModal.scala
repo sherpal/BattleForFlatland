@@ -15,9 +15,9 @@ import models.syntax.Pointed
 import models.validators.FieldsValidator
 import org.scalajs.dom.html
 import programs.frontend.games._
-import services.http.{FHttpClient, HttpClient}
-import services.routing.{FRouting, Routing}
-import zio.{UIO, URIO}
+import services.http.HttpClient
+import services.routing.Routing
+import zio.URIO
 
 final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.CloseWriter)(
     val initialData: PasswordWrapper

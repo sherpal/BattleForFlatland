@@ -10,9 +10,7 @@ import laika.ast._
 import laika.format.{HTML, Markdown}
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Div
-import services.http.{FHttpClient, HttpClient}
 import utils.laminarzio.Implicits.zioFlattenStrategy
-import zio.ZLayer
 
 final class BossDescription private (bossNames: Signal[Option[String]]) extends Component[html.Div] {
 

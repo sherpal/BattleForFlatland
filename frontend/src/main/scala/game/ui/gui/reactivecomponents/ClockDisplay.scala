@@ -2,10 +2,10 @@ package game.ui.gui.reactivecomponents
 
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.Signal
-import gamelogic.gamestate.GameState
-import gamelogic.physics.Complex
 import game.ui.reactivepixi.AttributeModifierBuilder._
 import game.ui.reactivepixi.ReactivePixiElement.pixiText
+import gamelogic.gamestate.GameState
+import gamelogic.physics.Complex
 import typings.pixiJs.anon.Align
 import typings.pixiJs.mod.TextStyle
 

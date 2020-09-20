@@ -3,17 +3,16 @@ package game.ui.gui.reactivecomponents
 import com.raquo.airstream.core.Observer
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.{Signal, Val}
-import gamelogic.entities.{Entity, EntityCastingInfo, LivingEntity, MovingBody, WithName}
+import game.ui.reactivepixi.AttributeModifierBuilder._
+import game.ui.reactivepixi.EventModifierBuilder._
+import game.ui.reactivepixi.ReactivePixiElement._
+import gamelogic.abilities.Ability
+import gamelogic.entities._
 import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.Texture
-import utils.misc.RGBColour
-import game.ui.reactivepixi.ReactivePixiElement._
-import game.ui.reactivepixi.AttributeModifierBuilder._
 import typings.pixiJs.anon.Align
 import typings.pixiJs.mod.{Rectangle, TextStyle}
-import game.ui.reactivepixi.EventModifierBuilder._
-import gamelogic.abilities.Ability
-import org.scalajs.dom
+import utils.misc.RGBColour
 
 final class TargetFrame(
     maybeTargetIdEvents: Signal[Option[Entity.Id]],

@@ -3,13 +3,12 @@ package game.ui.gui.reactivecomponents
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.Signal
 import game.ui.reactivepixi.AttributeModifierBuilder._
-import game.ui.reactivepixi.ReactivePixiElement.{pixiContainer, pixiGraphics, pixiSprite, ReactiveContainer}
+import game.ui.reactivepixi.ReactivePixiElement.{pixiGraphics, pixiSprite, ReactiveContainer}
 import gamelogic.abilities.Ability
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import typings.pixiJs.PIXI.Texture
-import typings.pixiJs.mod.Container
 import utils.misc.RGBColour
 
 final class CastingBar(

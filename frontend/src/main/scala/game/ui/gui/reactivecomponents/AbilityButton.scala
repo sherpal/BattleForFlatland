@@ -3,13 +3,13 @@ package game.ui.gui.reactivecomponents
 import com.raquo.airstream.core.Observer
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.{Signal, Val}
-import gamelogic.abilities.Ability
-import gamelogic.entities.Entity
-import typings.pixiJs.PIXI.Texture
-import game.ui.reactivepixi.ReactivePixiElement._
 import game.ui.reactivepixi.AttributeModifierBuilder._
 import game.ui.reactivepixi.EventModifierBuilder._
+import game.ui.reactivepixi.ReactivePixiElement._
+import gamelogic.abilities.Ability
+import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
+import typings.pixiJs.PIXI.Texture
 import utils.misc.RGBAColour
 
 final class AbilityButton(

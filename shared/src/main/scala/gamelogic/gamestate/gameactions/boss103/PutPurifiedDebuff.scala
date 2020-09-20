@@ -4,9 +4,8 @@ import cats.kernel.Monoid
 import gamelogic.buffs.Buff
 import gamelogic.buffs.boss.boss103.Purified
 import gamelogic.entities.Entity
-import gamelogic.gamestate.gameactions.RemoveBuff
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, RemoveBuffTransformer, WithBuff}
+import gamelogic.gamestate.{GameAction, GameState}
 
 /** Puts an instance of [[Purified]] buff on the target. */
 final case class PutPurifiedDebuff(

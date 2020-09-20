@@ -5,22 +5,19 @@ import com.raquo.airstream.core.Observer
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.{Signal, Val}
 import game.ui.gui.reactivecomponents.buffcontainer.BuffContainer
-import gamelogic.entities.Entity
-import gamelogic.gamestate.GameState
-import typings.pixiJs.PIXI.{Graphics, LoaderResource, Texture}
-import game.ui.reactivepixi.ReactivePixiElement._
 import game.ui.reactivepixi.AttributeModifierBuilder._
 import game.ui.reactivepixi.EventModifierBuilder._
 import game.ui.reactivepixi.PixiModifier
+import game.ui.reactivepixi.ReactivePixiElement._
 import gamelogic.abilities.WithTargetAbility
+import gamelogic.entities.Entity
 import gamelogic.entities.classes.PlayerClass
+import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
+import typings.pixiJs.PIXI.{Graphics, LoaderResource, Texture}
 import typings.pixiJs.anon.Align
 import typings.pixiJs.mod.{Rectangle, TextStyle}
 import utils.misc.RGBColour
-import utils.laminarzio.Implicits._
-
-import scala.concurrent.duration._
 
 final class PlayerFrame(
     maybeMyId: Option[Entity.Id], // possibility to give the id of the playing player to check in range distance

@@ -1,9 +1,7 @@
 package gamelogic.physics.pathfinding
-import gamelogic.entities.PolygonBody
 import gamelogic.physics.Complex
-import scala.Ordering.Double.TotalOrdering
 
-import scala.annotation.tailrec
+import scala.Ordering.Double.TotalOrdering
 
 /**
   * A [[ManhattanGraph]] makes an A* algorithm by walking on a grid, allowing path to go to 8 possible positions

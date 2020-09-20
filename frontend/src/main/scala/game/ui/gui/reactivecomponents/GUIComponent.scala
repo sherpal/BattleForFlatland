@@ -1,7 +1,7 @@
 package game.ui.gui.reactivecomponents
 
-import game.ui.reactivepixi.{PixiModifier, ReactivePixiElement}
 import game.ui.reactivepixi.ReactivePixiElement._
+import game.ui.reactivepixi.{PixiModifier, ReactivePixiElement}
 
 import scala.language.implicitConversions
 

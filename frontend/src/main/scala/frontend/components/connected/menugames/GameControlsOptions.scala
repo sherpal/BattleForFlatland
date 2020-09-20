@@ -2,13 +2,12 @@ package frontend.components.connected.menugames
 
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
+import io.circe.generic.auto._
 import models.bff.ingame.KeyboardControls
 import models.syntax.Pointed
 import org.scalajs.dom.html
 import services.localstorage._
-import io.circe.generic.auto._
-import zio.clock.Clock
-import zio.{UIO, ZIO}
+import zio.ZIO
 
 final class GameControlsOptions private () extends Component[html.Element] {
 

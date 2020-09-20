@@ -2,13 +2,9 @@ package frontend.components.connected.menugames
 
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import errors.ErrorADT
 import frontend.components.{Component, ModalWindow}
-import models.bff.outofgame.MenuGame
 import org.scalajs.dom.html
 import programs.frontend.games
-import services.http.FHttpClient
-import services.routing.FRouting
 import urldsl.language.PathSegment.dummyErrorImpl._
 import utils.laminarzio.Implicits._
 import utils.websocket.JsonWebSocket

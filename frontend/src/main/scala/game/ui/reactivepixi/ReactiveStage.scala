@@ -7,8 +7,8 @@ import game.Camera
 import game.ui.reactivepixi.ReactivePixiElement.ReactiveContainer
 import gamelogic.physics.Complex
 import org.scalajs.dom
-import typings.pixiJs.PIXI.{Container, IHitArea}
 import typings.pixiJs.PIXI.interaction.{InteractionEvent, InteractionEventTypes}
+import typings.pixiJs.PIXI.{Container, IHitArea}
 import typings.pixiJs.mod.{Application, Rectangle}
 import typings.std.MouseEvent
 

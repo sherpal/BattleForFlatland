@@ -2,15 +2,15 @@ package game.ui.gui.reactivecomponents.threatmeter
 
 import com.raquo.airstream.signal.{Signal, Val}
 import game.ui.gui.reactivecomponents.{GUIComponent, StatusBar}
-import gamelogic.entities.WithThreat.ThreatAmount
-import typings.pixiJs.PIXI.Texture
-import utils.misc.{Colour, RGBColour}
 import game.ui.reactivepixi.AttributeModifierBuilder._
 import game.ui.reactivepixi.Binder
 import game.ui.reactivepixi.ReactivePixiElement.{pixiText, ReactiveText}
+import gamelogic.entities.WithThreat.ThreatAmount
 import gamelogic.physics.Complex
+import typings.pixiJs.PIXI.Texture
 import typings.pixiJs.anon.Align
 import typings.pixiJs.mod.TextStyle
+import utils.misc.{Colour, RGBColour}
 
 final class ThreatBar(
     playerName: Signal[String],

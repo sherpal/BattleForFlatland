@@ -3,14 +3,14 @@ package game.ui.gui.reactivecomponents
 import com.raquo.airstream.core.Observer
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.Signal
+import game.ui.reactivepixi.AttributeModifierBuilder._
+import game.ui.reactivepixi.EventModifierBuilder._
+import game.ui.reactivepixi.ReactivePixiElement._
+import gamelogic.abilities.Ability.AbilityId
+import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.{Entity, EntityCastingInfo}
 import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.Texture
-import game.ui.reactivepixi.ReactivePixiElement._
-import game.ui.reactivepixi.AttributeModifierBuilder._
-import game.ui.reactivepixi.EventModifierBuilder._
-import gamelogic.abilities.Ability.AbilityId
-import gamelogic.entities.boss.BossEntity
 import typings.pixiJs.anon.Align
 import typings.pixiJs.mod.TextStyle
 import utils.misc.RGBColour

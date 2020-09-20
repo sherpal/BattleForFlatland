@@ -6,8 +6,8 @@ import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.BoundingBox
-import typings.pixiJs.mod.{Container, Sprite}
 import typings.pixiJs.PIXI.Texture
+import typings.pixiJs.mod.{Container, Sprite}
 
 import scala.collection.mutable
 

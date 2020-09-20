@@ -1,30 +1,25 @@
 package game.ui.gui
 
 import assets.Asset
-import assets.Asset.ingame.gui.bars.liteStepBar
-import com.raquo.airstream.core.{Observable, Observer, Transaction}
+import assets.Asset.ingame.gui.abilities._
+import assets.Asset.ingame.gui.bars.{liteStepBar, _}
+import com.raquo.airstream.core.Observer
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.{Signal, Val}
+import game.ui.gui.reactivecomponents._
+import game.ui.gui.reactivecomponents.gridcontainer.GridContainer
+import game.ui.gui.reactivecomponents.threatmeter.BossThreatMeter
+import game.ui.reactivepixi.AttributeModifierBuilder._
+import game.ui.reactivepixi.ChildrenReceiver._
+import game.ui.reactivepixi.ReactivePixiElement._
 import game.ui.reactivepixi.ReactiveStage
 import gamelogic.abilities.Ability
 import gamelogic.entities.{Entity, LivingEntity, MovingBody}
 import gamelogic.gamestate.GameState
-import typings.pixiJs.PIXI.{LoaderResource, RenderTexture}
-import game.ui.reactivepixi.ReactivePixiElement._
-import game.ui.reactivepixi.AttributeModifierBuilder._
-import game.ui.reactivepixi.ChildrenReceiver._
 import gamelogic.physics.Complex
-import reactivecomponents._
+import typings.pixiJs.PIXI.{LoaderResource, RenderTexture}
 import typings.pixiJs.mod.Graphics
-import assets.Asset.ingame.gui.abilities._
-import assets.Asset.ingame.gui.bars._
-import com.raquo.airstream.features.SingleParentObservable
-import game.ui.gui.reactivecomponents.gridcontainer.GridContainer
-import game.ui.gui.reactivecomponents.threatmeter.BossThreatMeter
 import utils.misc.RGBColour
-import utils.laminarzio.Implicits._
-
-import scala.concurrent.duration._
 
 final class ReactiveGUIDrawer(
     playerId: Entity.Id,

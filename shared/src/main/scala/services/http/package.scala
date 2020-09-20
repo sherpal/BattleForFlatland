@@ -3,7 +3,7 @@ package services
 import errors.ErrorADT
 import io.circe.{Decoder, Encoder}
 import services.http.HttpClient.{Path, Query}
-import zio.{Has, Task, UIO, ZIO}
+import zio.{Has, UIO, ZIO}
 
 package object http {
 

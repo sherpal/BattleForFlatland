@@ -15,13 +15,10 @@ import models.bff.outofgame.gameconfig.PlayerInfo
 import models.users.{RouteDefinitions, User}
 import org.scalajs.dom.html
 import programs.frontend.games._
-import services.http.{FHttpClient, HttpClient}
-import services.logging.{FLogging, Logging}
-import services.routing.{FRouting, _}
+import services.routing._
 import utils.laminarzio.Implicits.{zioFlattenStrategy, _}
 import utils.websocket.JsonWebSocket
-import zio.clock.Clock
-import zio.{ZIO, ZLayer}
+import zio.ZIO
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._

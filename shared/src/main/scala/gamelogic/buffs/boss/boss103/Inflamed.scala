@@ -5,7 +5,6 @@ import gamelogic.buffs.{Buff, TickerBuff}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
 
 /** Deals an increasing amount of damage over time. */

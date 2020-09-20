@@ -7,9 +7,6 @@ import frontend.components.Component
 import models.users.User
 import org.scalajs.dom.html
 import programs.frontend.login.me
-import services.http.FHttpClient
-import services.logging.FLogging
-import services.routing.FRouting
 import utils.laminarzio.Implicits._
 
 final class GamePlayingContainer private (gameId: String, token: String) extends Component[html.Element] {
