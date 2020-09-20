@@ -15,16 +15,12 @@ import utils.websocket.JsonWebSocket
 
 final class Games private () extends Component[html.Div] {
 
-  final val layer = FHttpClient.live ++ zio.clock.Clock.live ++ FRouting.live
-
   final val socket = JsonWebSocket[String, String](root / "game-menu-room")
 
   //final val $games = gamesOrErrors$.collect { case Right(gameList) => gameList }
 
   final val $games = socket.$in.filter(_.nonEmpty)
-    .flatMap(
-      _ => EventStream.fromZIOEffect[Either[ErrorADT, List[MenuGame]]](games.downloadGames.either.provideLayer(layer))
-    )
+    .flatMap(_ => games.downloadGames.either)
     .collect { case Right(gameList) => gameList }
 
   val showNewGameBus: EventBus[Boolean] = new EventBus
@@ -41,7 +37,7 @@ final class Games private () extends Component[html.Div] {
     DisplayGames($games, showWriter),
     onMountCallback { ctx =>
       socket.open()(ctx.owner)
-      zio.Runtime.default.unsafeRunToFuture(games.amIAmPlayingSomewhere.provideLayer(layer))
+      utils.runtime.unsafeRunToFuture(games.amIAmPlayingSomewhere)
     },
     onUnmountCallback(_ => socket.close())
   )

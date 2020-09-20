@@ -21,8 +21,6 @@ import zio.{UIO, ZIO}
 
 final class GamePlaying private (gameId: String, user: User, token: String) extends Component[html.Div] {
 
-  private val layer = zio.clock.Clock.live ++ FHttpClient.live
-
   final val gameSocket = BoopickleWebSocket[InGameWSProtocol, InGameWSProtocol, (String, String)](
     joinGameServer,
     userIdAndTokenParams,
@@ -78,8 +76,7 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
             secondaryButton,
             "Stop game",
             onClick --> { _ =>
-              zio.Runtime.default
-                .unsafeRunToFuture(programs.frontend.ingame.cancelGame(user, gameId, token).provideLayer(layer))
+              utils.runtime.unsafeRunToFuture(programs.frontend.ingame.cancelGame(user, gameId, token))
             }
           )
         else emptyNode
@@ -112,7 +109,6 @@ final class GamePlaying private (gameId: String, user: User, token: String) exte
         programs.frontend.ingame
           .synchronizeClock(sendPing(_)(owner))
           .zipLeft(ZIO.effectTotal(gameSocket.outWriter.onNext(Ready(user.userId))))
-          .provideLayer(layer)
     ).foreach(delta => {
       deltaWithServerBus.writer.onNext(delta.toLong)
     })(owner)

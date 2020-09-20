@@ -15,7 +15,7 @@ import scala.concurrent.Future
 
 object FHttpClient {
 
-  val live: ZLayer[Any, Nothing, HttpClient] = ZLayer.succeed(new Service {
+  val serviceLive: HttpClient.Service = new Service {
     implicit def bodySerializer[A](implicit aEncoder: Encoder[A]): A => BasicRequestBody =
       (a: A) =>
         StringBody(
@@ -222,6 +222,8 @@ object FHttpClient {
             .send()
         }
       } yield response.code.code
-  })
+  }
+
+  val live: ZLayer[Any, Nothing, HttpClient] = ZLayer.succeed(serviceLive)
 
 }

@@ -12,7 +12,7 @@ import frontend.components.Component
 import models.validators.FieldsValidator
 import org.scalajs.dom.html.Form
 import utils.laminarzio.Implicits._
-import zio.UIO
+import zio.{UIO, URIO}
 
 /**
   * A [[SimpleForm]] is a wrapper around functionalities of a stream of data changing through time.
@@ -103,7 +103,7 @@ trait SimpleForm[FormData, SubmitReturn] { self: Component[_] =>
   val submit: EventPropBinder[TypedTargetEvent[Form]] = onSubmit.preventDefault.mapTo(()) --> submitBus.writer
 
   /** ZIO program to be ran on submit events. */
-  def submitProgram(formData: FormData): UIO[SubmitReturn]
+  def submitProgram(formData: FormData): URIO[utils.GlobalEnv, SubmitReturn]
 
   /**
     * Runs the submitProgram and return its value on each submit event.

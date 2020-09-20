@@ -12,18 +12,16 @@ import zio.{UIO, ZIO}
 
 final class GameControlsOptions private () extends Component[html.Element] {
 
-  private val layer = zio.clock.Clock.live >>> services.localstorage.FLocalStorage.live
-
   val storageKey = "controls"
 
-  val retrieveKeyboardControls: UIO[KeyboardControls] = (for {
+  val retrieveKeyboardControls = for {
     maybeFromLocalStorage <- retrieveFrom[KeyboardControls](storageKey)
       .catchAll(_ => ZIO.some(Pointed[KeyboardControls].unit))
     keyboardControls = maybeFromLocalStorage.getOrElse(Pointed[KeyboardControls].unit)
-  } yield keyboardControls).provideLayer(layer)
+  } yield keyboardControls
 
   def storeKeyboardControls(keyboardControls: KeyboardControls) =
-    storeAt(storageKey, keyboardControls).provideLayer(layer)
+    storeAt(storageKey, keyboardControls)
 
   val element: ReactiveHtmlElement[html.Element] = ???
 }

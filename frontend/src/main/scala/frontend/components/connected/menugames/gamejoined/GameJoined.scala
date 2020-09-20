@@ -30,13 +30,9 @@ import scala.util.{Failure, Success}
 
 final class GameJoined private (gameId: String, me: User) extends Component[html.Element] {
 
-  private val layer: ZLayer[Any, Nothing, HttpClient with Routing with Logging with Clock] =
-    (FHttpClient.live ++ FRouting.live ++ FLogging.live ++ Clock.live)
-      .asInstanceOf[ZLayer[Any, Nothing, HttpClient with Routing with Logging with Clock]]
-
   private val socket = JsonWebSocket[WebSocketProtocol, WebSocketProtocol, String](gameJoinedWS, gameIdParam, gameId)
 
-  private val fetchingGameInfo = fetchGameInfo(gameId).provideLayer(layer)
+  private val fetchingGameInfo = fetchGameInfo(gameId)
 
   /** Contains the interval handle to poke the presence to the server. */
   private val pokingHandleVar: Var[Option[SetIntervalHandle]] = Var(None)
@@ -66,7 +62,7 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
       socket.$closed,
       socket.$error.mapTo(())
     )
-    .flatMap(_ => moveTo(RouteDefinitions.homeRoute).provideLayer(layer))
+    .flatMap(_ => moveTo(RouteDefinitions.homeRoute))
 
   val $updateCreds: EventStream[Unit] = socket.$in.collect {
     case WebSocketProtocol.GameUserCredentialsWrapper(gameUserCredentials) =>
@@ -82,34 +78,28 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
   val $tokenForWebSocket: EventStream[String] = socket.$in.collect {
     case WebSocketProtocol.GameUserCredentialsWrapper(gameUserCredentials) =>
       gameUserCredentials
-  }.flatMap(creds => EventStream.fromZIOEffect(fetchGameToken(creds).provideLayer(layer)))
+  }.flatMap(creds => EventStream.fromZIOEffect(fetchGameToken(creds)))
 
   val $moveToGame: EventStream[Unit] = $tokenForWebSocket.flatMap { token =>
-    EventStream.fromZIOEffect(moveTo(inGame, gameIdParam & tokenParam)((gameId, token)).provideLayer(layer))
+    moveTo(inGame, gameIdParam & tokenParam)((gameId, token))
   }
 
   val cancelGameBus = new EventBus[Unit]
   val $cancelGame: EventStream[Int] =
-    cancelGameBus.events.flatMap(_ => EventStream.fromZIOEffect(sendCancelGame(gameId).provideLayer(layer)))
+    cancelGameBus.events.flatMap(_ => EventStream.fromZIOEffect(sendCancelGame(gameId)))
 
   val startGameBus = new EventBus[Unit]
   val $startGame: EventStream[Either[ErrorADT, Int]] =
     startGameBus.events.flatMap(
       _ =>
         sendLaunchGame(gameId)
-          .provideLayer(layer)
-          .tap(
-            _ =>
-              ZIO.effectTotal {
-                socket.outWriter.onNext(WebSocketProtocol.GameLaunched)
-              }
-          )
+          .tap(_ => ZIO.effectTotal(socket.outWriter.onNext(WebSocketProtocol.GameLaunched)))
           .either
     )
 
   val leaveGameBus = new EventBus[Unit]
   val $leaveGame: EventStream[Int] =
-    leaveGameBus.events.flatMap(_ => EventStream.fromZIOEffect(iAmLeaving(gameId).provideLayer(layer)))
+    leaveGameBus.events.flatMap(_ => EventStream.fromZIOEffect(iAmLeaving(gameId)))
 
   val element: ReactiveHtmlElement[html.Element] = section(
     mainContentContainer,
@@ -124,7 +114,7 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
         className := s"text-$primaryColour-$primaryColourDark",
         child.text <-- $gameInfo.map(_.game.gameName).map("Game " + _)
       ),
-      child <-- socket.$open.flatMap(_ => EventStream.fromZIOEffect[Option[MenuGameWithPlayers]](fetchingGameInfo))
+      child <-- socket.$open.flatMap(_ => fetchingGameInfo)
         .collect { case Some(info) => info }
         .map(
           info =>
@@ -191,7 +181,7 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
       pokingHandleVar.set(
         Some(
           setInterval(10.seconds) {
-            zio.Runtime.default.unsafeRunToFuture(pokingPresence(gameId).provideLayer(layer)) onComplete {
+            utils.runtime.unsafeRunToFuture(pokingPresence(gameId)) onComplete {
               case Success(_) =>
               case Failure(_) => pokingHandleVar.now.foreach(clearInterval)
             }

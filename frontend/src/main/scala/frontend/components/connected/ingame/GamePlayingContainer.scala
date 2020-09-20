@@ -14,9 +14,7 @@ import utils.laminarzio.Implicits._
 
 final class GamePlayingContainer private (gameId: String, token: String) extends Component[html.Element] {
 
-  private val layer = FHttpClient.live ++ FLogging.live ++ FRouting.live
-
-  val $me: EventStream[Either[ErrorADT, User]] = EventStream.fromZIOEffect(me.either.provideLayer(layer))
+  val $me: EventStream[Either[ErrorADT, User]] = EventStream.fromZIOEffect(me.either)
 
   val element: ReactiveHtmlElement[html.Element] = div(
     className := "GamePlayingContainer",

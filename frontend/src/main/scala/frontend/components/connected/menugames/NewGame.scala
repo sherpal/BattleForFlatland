@@ -17,8 +17,9 @@ import models.validators.FieldsValidator
 import org.scalajs.dom.html
 import programs.frontend.games._
 import services.http.FHttpClient
+import services.{http, routing}
 import services.routing.FRouting
-import zio.UIO
+import zio.{UIO, URIO}
 
 final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
     implicit
@@ -29,8 +30,6 @@ final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
 
   val initialData: MenuGame                          = menuGamePointed.unit
   val validator: FieldsValidator[MenuGame, ErrorADT] = validated.fieldsValidator
-
-  private val layer = FHttpClient.live ++ FRouting.live
 
   val gameNameChanger: Observer[String] = makeDataChanger[String](gameName => _.copy(gameName = gameName))
   val passwordChanger: Observer[Option[String]] = makeDataChanger(
@@ -116,7 +115,7 @@ final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
     onMountCallback(_ => createdBus.writer.onNext(()))
   )
 
-  def submitProgram(formData: MenuGame): UIO[ErrorOr[Int]] =
+  def submitProgram(formData: MenuGame): URIO[routing.Routing with http.HttpClient, Either[ErrorADT, Int]] =
     (for {
       gameId     <- createNewGame(formData)
       gameJoined <- joinGameProgram(formData.copy(gameId = gameId), PasswordWrapper(formData.maybeHashedPassword))
@@ -124,7 +123,6 @@ final class NewGame private (closeWriter: ModalWindow.CloseWriter)(
     } yield gameJoined)
       .refineOrDie(ErrorADT.onlyErrorADT)
       .either
-      .provideLayer(layer)
 
 }
 

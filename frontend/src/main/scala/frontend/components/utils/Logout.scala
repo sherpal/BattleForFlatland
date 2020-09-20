@@ -12,8 +12,7 @@ import zio.IO
 
 object Logout {
 
-  private val layer                       = FRouting.live ++ FHttpClient.live
-  private val program: IO[ErrorADT, Unit] = logout.provideLayer(layer)
+  private val program = logout
 
   def apply(): ReactiveHtmlElement[html.Span] = span(
     onClick --> (_ => EventStream.fromZIOEffect(program)),

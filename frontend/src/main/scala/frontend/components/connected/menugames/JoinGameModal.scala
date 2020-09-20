@@ -15,17 +15,15 @@ import models.syntax.Pointed
 import models.validators.FieldsValidator
 import org.scalajs.dom.html
 import programs.frontend.games._
-import services.http.FHttpClient
-import services.routing.FRouting
-import zio.UIO
+import services.http.{FHttpClient, HttpClient}
+import services.routing.{FRouting, Routing}
+import zio.{UIO, URIO}
 
 final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.CloseWriter)(
     val initialData: PasswordWrapper
 ) extends Component[html.Element]
     with SimpleForm[PasswordWrapper, ErrorOr[Int]] {
   val validator: FieldsValidator[PasswordWrapper, ErrorADT] = FieldsValidator.allowAllValidator
-
-  private val layer = FHttpClient.live ++ FRouting.live
 
   val passwordChanger: Observer[String] = makeDataChanger(password => _.copy(submittedPassword = Some(password)))
 
@@ -106,8 +104,8 @@ final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.Clos
     )
   )
 
-  def submitProgram(formData: PasswordWrapper): UIO[ErrorOr[Int]] =
-    joinGameProgram(game, formData).refineOrDie(ErrorADT.onlyErrorADT).either.provideLayer(layer)
+  def submitProgram(formData: PasswordWrapper): URIO[Routing with HttpClient, Either[ErrorADT, Int]] =
+    joinGameProgram(game, formData).refineOrDie(ErrorADT.onlyErrorADT).either
 
 }
 

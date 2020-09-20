@@ -10,16 +10,13 @@ import laika.ast._
 import laika.format.{HTML, Markdown}
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Div
-import services.http.FHttpClient
+import services.http.{FHttpClient, HttpClient}
 import utils.laminarzio.Implicits.zioFlattenStrategy
-
-import scala.tools.nsc.doc.base.comment.UnorderedList
+import zio.ZLayer
 
 final class BossDescription private (bossNames: Signal[Option[String]]) extends Component[html.Div] {
 
-  val layer = FHttpClient.live
-
-  val transformer = Transformer
+  val transformer: Transformer = Transformer
     .from(Markdown)
     .to(HTML)
     .rendering {
@@ -40,7 +37,7 @@ final class BossDescription private (bossNames: Signal[Option[String]]) extends 
     .build
 
   val descriptionSignal: EventStream[String] = bossNames
-    .flatMap(programs.frontend.gamedocs.bossDescription(_).orDie.provideLayer(layer))
+    .flatMap(programs.frontend.gamedocs.bossDescription(_).orDie)
     .map(transformer.transform)
     .map {
       case Left(error) =>

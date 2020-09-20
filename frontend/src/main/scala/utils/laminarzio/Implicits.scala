@@ -5,19 +5,21 @@ import com.raquo.airstream.eventbus.EventBus
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.features.FlattenStrategy
 import zio.stream._
-import zio.{CancelableFuture, UIO, ZIO}
+import zio.{CancelableFuture, UIO, URIO, ZIO}
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
 object Implicits {
 
-  implicit val zioFlattenStrategy: FlattenStrategy[Observable, UIO, EventStream] =
-    new FlattenStrategy[Observable, UIO, EventStream] {
-      def flatten[A](parent: Observable[UIO[A]]): EventStream[A] =
+  type InnerForGlobalEnv[A] = URIO[utils.GlobalEnv, A]
+
+  implicit val zioFlattenStrategy: FlattenStrategy[Observable, InnerForGlobalEnv, EventStream] =
+    new FlattenStrategy[Observable, InnerForGlobalEnv, EventStream] {
+      def flatten[A](parent: Observable[InnerForGlobalEnv[A]]): EventStream[A] =
         parent.flatMap(
           task =>
             EventStream.fromFuture(
-              zio.Runtime.default.unsafeRunToFuture(task)
+              utils.runtime.unsafeRunToFuture(task)
             )
         )
     }
@@ -27,8 +29,8 @@ object Implicits {
     /**
       * Retrieve the result of the zio effect and send it through the laminar stream
       */
-    def fromZIOEffect[A](effect: ZIO[Any, Throwable, A]): EventStream[A] =
-      EventStream.fromFuture(zio.Runtime.default.unsafeRunToFuture(effect))
+    def fromZIOEffect[A](effect: ZIO[utils.GlobalEnv, Throwable, A]): EventStream[A] =
+      EventStream.fromFuture(utils.runtime.unsafeRunToFuture(effect))
 
     /**
       * Passes the outputs of the incoming [[zio.stream.ZStream]] into a laminar stream.
@@ -45,29 +47,6 @@ object Implicits {
 
   }
 
-  implicit class EventStreamEnhanced[A](es: EventStream[A]) {
-
-//    /**
-//      * Prevent this stream to emit more than once every duration time.
-//      *
-//      * To be precise: each time a element passes by, no element is allowed to pass for the specified
-//      * `duration`.
-//      */
-//    def spacedBy(duration: FiniteDuration): EventStream[A] = {
-//
-//      val durationAsLong   = duration.toMillis
-//      var lastEmittingTime = 0L
-//
-//      es.filter { _ =>
-//        val now = System.currentTimeMillis()
-//        if (now - lastEmittingTime > durationAsLong) {
-//          lastEmittingTime = now
-//          true
-//        } else false
-//      }
-//
-//    }
-
-  }
+  implicit class EventStreamEnhanced[A](es: EventStream[A]) {}
 
 }
