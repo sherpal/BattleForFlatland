@@ -187,7 +187,7 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
       $playerInfo --> playerInfoWriter,
       onMountCallback(ctx => maybeViewChild = Some(ctx.thisNode.ref)),
       onMountCallback { _ =>
-        zio.Runtime.default.unsafeRunToFuture(fillInitialInfoWithStorage(initialPlayerInfo))
+        utils.runtime.unsafeRunToFuture(fillInitialInfoWithStorage(initialPlayerInfo))
       }
     )
 }

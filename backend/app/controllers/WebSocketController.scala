@@ -36,8 +36,6 @@ final class WebSocketController @Inject()(
     _ => Flow[String].wireTap(println(_))
   )
 
-  //ActorFlow.actorRef()
-
   def gameMenuRoom: WebSocket = WebSocket.zio[String, String] {
     (for {
       user <- WebSocketGuards.authenticated

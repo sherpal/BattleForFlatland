@@ -35,6 +35,8 @@ final class PlayerFrame(
   val maybeEntityEvents: EventStream[Option[PlayerClass]] = gameStateUpdates.map(_._1).map(_.players.get(entityId))
   val entityEvents: EventStream[PlayerClass]              = maybeEntityEvents.collect { case Some(entity) => entity }
 
+  val entityExistsEvents: EventStream[Boolean] = maybeEntityEvents.map(_.isDefined)
+
   val heightSignal: Signal[Double]    = dimensions.map(_._2)
   val barsWidthSignal: Signal[Double] = dimensions.map { case (w, h) => w - h }
 
@@ -157,7 +159,8 @@ final class PlayerFrame(
       y <-- dimensions.map(_._2)
     ),
     hitArea <-- dimensions.map { case (width, height) => new Rectangle(0, 0, width, height) },
-    onClick.stopPropagation.mapTo(entityId) --> targetFromGUIWriter
+    onClick.stopPropagation.mapTo(entityId) --> targetFromGUIWriter,
+    visible <-- entityExistsEvents
   )
 
 }

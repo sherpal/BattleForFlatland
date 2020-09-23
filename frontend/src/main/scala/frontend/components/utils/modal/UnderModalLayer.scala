@@ -11,7 +11,7 @@ import org.scalajs.dom.html
   * Usage:
   * - the `UnderModalLayer.element` is automatically added to the Laminar dom tree in the [[frontend.components.App]]
   *   component
-  * - when you want to show the [[UnderModalLayer]] element, you can simply insert [[scala.Unit]] insde the
+  * - when you want to show the [[UnderModalLayer]] element, you can simply insert [[scala.Unit]] inside the
   *   `UnderModalLayer.showWriter` observer
   * - when the [[UnderModalLayer]] element is clicked on, it is automatically closed, and the
   *   `UnderModalLayer.closeModalEvents` stream is fed with [[scala.Unit]]. You can therefore do stuff with it if you
@@ -50,7 +50,7 @@ final class UnderModalLayer private (
     top := "0",
     width := "100%",
     height := "100%",
-    zIndex := "5",
+    zIndex := 5,
     display <-- visible.map(if (_) "block" else "none"),
     onClick.mapTo(false) --> visibleBus,
     onClick.mapTo(()) --> closedObserver

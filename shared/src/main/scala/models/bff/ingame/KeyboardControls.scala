@@ -37,4 +37,6 @@ object KeyboardControls {
     )
   )
 
+  val storageKey = "controls"
+
 }
