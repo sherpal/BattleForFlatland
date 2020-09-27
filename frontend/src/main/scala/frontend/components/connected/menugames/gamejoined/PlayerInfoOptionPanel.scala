@@ -5,9 +5,10 @@ import com.raquo.airstream.eventbus.EventBus
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
+import frontend.components.connected.menugames.GameControlsOptions
 import frontend.components.utils.laminarutils.reactChildInDiv
 import frontend.components.utils.modal.UnderModalLayer
-import frontend.components.utils.tailwind.{primaryColour, primaryColourDark}
+import frontend.components.utils.tailwind.{btn, primaryColour, primaryColourDark, secondaryButton}
 import frontend.components.utils.{ColorPickerWrapper, ToggleButton}
 import io.circe.{Decoder, Encoder}
 import models.bff.outofgame.PlayerClasses
@@ -15,10 +16,9 @@ import models.bff.outofgame.gameconfig.{PlayerInfo, PlayerStatus}
 import models.syntax.Pointed
 import org.scalajs.dom.html
 import org.scalajs.dom.html.{Element, Select}
-import services.localstorage.{FLocalStorage, _}
+import services.localstorage._
 import utils.misc.{RGBAColour, RGBColour}
-import zio.clock.Clock
-import zio.{CancelableFuture, UIO, ZIO, ZLayer}
+import zio.{CancelableFuture, UIO, ZIO}
 
 /**
   * This component is displayed in the GameJoined component, and allows the player to select the game configuration
@@ -35,15 +35,14 @@ import zio.{CancelableFuture, UIO, ZIO, ZLayer}
   * @param playerInfoWriter each time the player makes a change to their character, the new information is sent to the
   *                         server through this [[com.raquo.airstream.core.Observer]], which ends up in the web socket.
   */
+//noinspection TypeAnnotation
 final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, playerInfoWriter: Observer[PlayerInfo])
     extends Component[html.Element] {
 
-  val localStorage: ZLayer[Clock, Nothing, LocalStorage] = FLocalStorage.live
-
   def storeElement[A](key: String, element: A)(implicit encoder: Encoder[A]): CancelableFuture[Unit] =
-    zio.Runtime.default.unsafeRunToFuture(storeAt(key, element).provideLayer(localStorage))
-  def retrieveElement[A](key: String)(implicit decoder: Decoder[A]): ZIO[Clock, Nothing, Option[A]] =
-    retrieveFrom[A](key).catchAll(_ => UIO.none).provideLayer(localStorage)
+    utils.runtime.unsafeRunToFuture(storeAt(key, element))
+  def retrieveElement[A](key: String)(implicit decoder: Decoder[A]): ZIO[LocalStorage, Nothing, Option[A]] =
+    retrieveFrom[A](key).catchAll(_ => UIO.none)
 
   /** Used to access the client bounded rect of the element. */
   private var maybeViewChild: Option[html.Element] = Option.empty
@@ -155,7 +154,28 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
     }
   )
 
-  def fillInitialInfoWithStorage(initialPlayerInfo: PlayerInfo): ZIO[Clock, Nothing, Unit] =
+  val showGameControlOptionsBus: EventBus[Boolean] = new EventBus
+  val closeGameControl                             = showGameControlOptionsBus.writer.contramap[Any](_ => false)
+  val showGameControlEvents = EventStream
+    .merge(
+      showGameControlOptionsBus.events,
+      UnderModalLayer.closeModalEvents.mapTo(false)
+    )
+    .startWith(false)
+  val openControlOptions = div(
+    button(
+      btn,
+      secondaryButton,
+      "Game Controls",
+      onClick.mapTo(()) --> UnderModalLayer.showModalWriter,
+      onClick.mapTo(true) --> showGameControlOptionsBus.writer
+    ),
+    children <-- showGameControlEvents
+      .map(Option.when(_)(GameControlsOptions(closeGameControl): ReactiveHtmlElement[html.Element]))
+      .map(_.toList)
+  )
+
+  def fillInitialInfoWithStorage(initialPlayerInfo: PlayerInfo): ZIO[LocalStorage, Nothing, Unit] =
     for {
       colour <- ZIO
         .fromOption(initialPlayerInfo.maybePlayerColour)
@@ -184,6 +204,7 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
         classSelector
       ),
       colourSelector,
+      openControlOptions,
       $playerInfo --> playerInfoWriter,
       onMountCallback(ctx => maybeViewChild = Some(ctx.thisNode.ref)),
       onMountCallback { _ =>

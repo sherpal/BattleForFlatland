@@ -20,12 +20,14 @@ import org.scalajs.dom.html
   * - if you need to close the modal yourself, you can emit in the `UnderModalLayer.closeModalWriter`
   *
   * @example
-  *          div(
-  *            button("click", onClick.mapTo(()) --> UnderModalLayer.showWriter, onClick --> [show your own stuff]),
-  *            onMountCallback(
-  *             ctx => UnderModalLayer.closeModalEvents.foreach(_ => println("Modal has been closed!"))(ctx.owner)
-  *            )
-  *          )
+  * {{{
+  *   div(
+  *     button("click", onClick.mapTo(()) --> UnderModalLayer.showModalWriter, onClick --> [show your own stuff]),
+  *     onMountCallback(
+  *       ctx => UnderModalLayer.closeModalEvents.foreach(_ => println("Modal has been closed!"))(ctx.owner)
+  *     )
+  *   )
+  * }}}
   *
   * Clicking on this button will show the modal, together with your own stuff (which should have `zIndex > 5`) and when
   * it is closed it will print
@@ -53,7 +55,8 @@ final class UnderModalLayer private (
     zIndex := 5,
     display <-- visible.map(if (_) "block" else "none"),
     onClick.mapTo(false) --> visibleBus,
-    onClick.mapTo(()) --> closedObserver
+    onClick.mapTo(()) --> closedObserver,
+    className := "under-modal-layer"
   )
 }
 
