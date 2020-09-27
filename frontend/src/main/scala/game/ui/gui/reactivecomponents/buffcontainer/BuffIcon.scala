@@ -38,7 +38,7 @@ final class BuffIcon(
   container.amend(
     pixiSprite(
       texture,
-      width <-- iconSizes,
+      width  <-- iconSizes,
       height <-- iconSizes
     ),
     new StatusBar(

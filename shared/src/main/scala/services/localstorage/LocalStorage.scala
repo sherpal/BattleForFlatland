@@ -23,7 +23,7 @@ object LocalStorage {
     protected implicit def storedItemEncoder[A](implicit encoder: Encoder[A]): Encoder[StoredItem[A]] =
       Encoder.instance { storedItem =>
         Json.obj(
-          "element"   -> encoder(storedItem.a),
+          "element" -> encoder(storedItem.a),
           "timestamp" -> Encoder[LocalDateTime].apply(storedItem.expireAt)
         )
       }

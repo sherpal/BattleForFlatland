@@ -59,7 +59,7 @@ final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.Clos
                 inContext(elem => onChange.mapTo(elem.ref.value) --> passwordChanger),
                 onFocus.mapTo(()) --> passwordTouchedBus,
                 className <-- $maybePasswordErrors.map(_.isDefined).map(if (_) "border-red-500" else ""),
-                focus <-- $submitEvents.mapTo(false),
+                focus     <-- $submitEvents.mapTo(false),
                 onMountFocus
               )
             )

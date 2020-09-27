@@ -77,14 +77,14 @@ final class PlayerFrame(
   )
   val shapeSprite: ReactiveSprite = pixiSprite(
     entityShapeTexture,
-    dims <-- heightSignal.map(h => (h, h)),
+    dims    <-- heightSignal.map(h => (h, h)),
     tintInt <-- entityEvents.map(_.colour).toSignal(0)
   )
   val backgroundLifeSprite: ReactiveSprite = pixiSprite(
     lifeTexture,
     tint := RGBColour.gray,
-    x <-- heightSignal,
-    width <-- barsWidthSignal,
+    x      <-- heightSignal,
+    width  <-- barsWidthSignal,
     height <-- lifeSpriteHeight,
     maybeOutOfRangeAlphaModifier
   )
@@ -92,8 +92,8 @@ final class PlayerFrame(
     lifeTexture,
     mask := lifeMask,
     tint := RGBColour.green,
-    x <-- heightSignal,
-    width <-- barsWidthSignal,
+    x      <-- heightSignal,
+    width  <-- barsWidthSignal,
     height <-- lifeSpriteHeight,
     maybeOutOfRangeAlphaModifier
   )
@@ -108,10 +108,10 @@ final class PlayerFrame(
   val resourceSprite: ReactiveSprite = pixiSprite(
     resourceTexture,
     mask := resourceMask,
-    tint <-- entityEvents.map(_.resourceType.colour).toSignal(RGBColour.white),
-    x <-- heightSignal,
-    y <-- lifeSpriteHeight,
-    width <-- barsWidthSignal,
+    tint   <-- entityEvents.map(_.resourceType.colour).toSignal(RGBColour.white),
+    x      <-- heightSignal,
+    y      <-- lifeSpriteHeight,
+    width  <-- barsWidthSignal,
     height <-- resourceSpriteHeight
   )
 
@@ -131,7 +131,7 @@ final class PlayerFrame(
   val lifeText: ReactiveText = pixiText(
     "",
     text <-- entityEvents.map(_.life.toInt.toString).toSignal(""),
-    x <-- dimensions.map(_._1 - 30),
+    x    <-- dimensions.map(_._1 - 30),
     textStyle := new TextStyle(Align(fontSize = 15.0))
   )
 

@@ -170,8 +170,8 @@ final class GameDrawer(
       pixiSprite(
         diskTexture(initialBullet.colour, 1, initialBullet.shape.radius),
         anchor := 0.5,
-        visible <-- viewportInfoStream.map(_._1).toSignal(true), // signal so that we don't change when not needed
-        scaleXY <-- viewportInfoStream.map(_._2).collect { case Some(s) => s }.toSignal((1.0, 1.0)),
+        visible  <-- viewportInfoStream.map(_._1).toSignal(true), // signal so that we don't change when not needed
+        scaleXY  <-- viewportInfoStream.map(_._2).collect { case Some(s) => s }.toSignal((1.0, 1.0)),
         position <-- viewportInfoStream.map(_._3).collect { case Some(pos) => pos }
       )
   }

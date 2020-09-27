@@ -56,11 +56,11 @@ final class StatusBar(
   container.amend(
     pixiSprite(
       texture,
-      width <-- dimensions.map(_._1),
-      height <-- dimensions.map(_._2),
+      width   <-- dimensions.map(_._1),
+      height  <-- dimensions.map(_._2),
       visible <-- visibleSignal,
-      tint <-- colourSignal,
-      alpha <-- colourSignal.map(_.alpha),
+      tint    <-- colourSignal,
+      alpha   <-- colourSignal.map(_.alpha),
       mask := graphicsMask
     ),
     graphicsMask

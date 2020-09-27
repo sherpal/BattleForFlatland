@@ -27,7 +27,7 @@ final class AbilityButton(
       texture,
       interactive := true,
       onClick.stopPropagation.mapTo(abilityId) --> clickWriter,
-      width <-- dimensions.map(_._1),
+      width  <-- dimensions.map(_._1),
       height <-- dimensions.map(_._2)
     ),
     new StatusBar(

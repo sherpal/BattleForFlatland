@@ -70,7 +70,7 @@ final class BossFrame(
     ),
     pixiSprite( // lifeSprite
       lifeTexture,
-      width <-- widthSignal,
+      width  <-- widthSignal,
       height <-- lifeSpriteHeight,
       tint := RGBColour.green,
       mask := lifeMask
@@ -79,9 +79,9 @@ final class BossFrame(
     pixiSprite( // castingBar
       castingBarTexture,
       visible <-- maybeCastingInfoEvents.map(_.isDefined).toSignal(false),
-      width <-- widthSignal,
-      y <-- lifeSpriteHeight,
-      height <-- castingBarHeight,
+      width   <-- widthSignal,
+      y       <-- lifeSpriteHeight,
+      height  <-- castingBarHeight,
       tint <-- maybeCastingInfoEvents
         .collect {
           case Some((castingInfo, _)) => abilityColourMap(castingInfo.ability.abilityId)

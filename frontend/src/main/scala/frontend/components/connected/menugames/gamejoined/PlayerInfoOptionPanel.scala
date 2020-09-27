@@ -124,7 +124,7 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
     div(
       height := "30px",
       width := "50px",
-      cursor <-- $playerInfo.map(_.isReady).map(if (_) "not-allowed" else "pointer"),
+      cursor          <-- $playerInfo.map(_.isReady).map(if (_) "not-allowed" else "pointer"),
       backgroundColor <-- $playerInfo.map(_.maybePlayerColour.getOrElse(RGBColour.white).rgb),
       feedingPickerPosition
     ),
