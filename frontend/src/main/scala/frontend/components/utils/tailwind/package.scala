@@ -2,6 +2,7 @@ package frontend.components.utils
 
 import com.raquo.laminar.api.L._
 
+//noinspection TypeAnnotation
 package object tailwind {
 
   final val mainContentContainer = className := "grid grid-rows-1 grid-cols-5"
@@ -35,5 +36,8 @@ package object tailwind {
   final val secondaryButton       = className := s"text-$primaryColour-$primaryColourLight hover:text-$primaryColour-$primaryColourDark px-4"
 
   final val headerStyle = className := s"flex items-center justify-between flex-wrap bg-$primaryColour-$primaryColourDark text-white"
+
+  val h1_primary = className := s"text-xl text-$primaryColour-$primaryColourDark"
+  val h2_primary = className := s"text-l text-$primaryColour-$primaryColourDark"
 
 }

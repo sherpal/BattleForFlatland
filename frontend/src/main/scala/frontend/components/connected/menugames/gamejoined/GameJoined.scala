@@ -100,10 +100,10 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
 
   val element: ReactiveHtmlElement[html.Element] = section(
     mainContentContainer,
-    className <-- $shouldMoveBackToHome.mapTo(""), // kicking off stream
-    className <-- $cancelGame.mapTo(""), // kicking off stream
-    className <-- $leaveGame.mapTo(""), // kicking off stream
-    className <-- $moveToGame.mapTo(""), // kicking off stream
+    $shouldMoveBackToHome --> Observer.empty, // kicking off stream
+    $cancelGame --> Observer.empty, // kicking off stream
+    $leaveGame --> Observer.empty, // kicking off stream
+    $moveToGame --> Observer.empty, // kicking off stream
     div(
       mainContent,
       h1(

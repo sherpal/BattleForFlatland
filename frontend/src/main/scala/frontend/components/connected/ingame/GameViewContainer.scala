@@ -19,6 +19,7 @@ import typings.pixiJs.anon.{Antialias => ApplicationOptions}
 import typings.pixiJs.mod.Application
 import zio.duration._
 import zio.{Exit, UIO, ZIO}
+import programs.frontend.menus.controls.retrieveKeyboardControls
 
 /**
   * The GameViewContainer is responsible for creating the instance of the [[game.GameStateManager]].
@@ -107,14 +108,15 @@ final class GameViewContainer private (
     for {
       resources <- loader.loadAssets
       // todo!: remove hardcoded stuff
-      stage <- UIO(ReactivePixiElement.stage(application))
-      _     <- addWindowResizeEventListener(stage)
+      stage            <- UIO(ReactivePixiElement.stage(application))
+      _                <- addWindowResizeEventListener(stage)
+      keyboardControls <- retrieveKeyboardControls
       _ = new GameStateManager(
         stage,
         GameState.empty,
         $actionsFromServer,
         socketOutWriter,
-        new Keyboard(implicitly[Pointed[KeyboardControls]].unit),
+        new Keyboard(keyboardControls),
         new Mouse(application.view.asInstanceOf[html.Canvas]),
         playerId,
         bossStartingPosition,
@@ -131,7 +133,7 @@ final class GameViewContainer private (
     } yield ()
 
   def componentDidMount(owner: Owner): Unit =
-    zio.Runtime.default.unsafeRunAsync(
+    utils.runtime.unsafeRunAsync(
       mountEffect(containerViewChild, owner).unit
     )((_: Exit[Nothing, Unit]) => ())
 

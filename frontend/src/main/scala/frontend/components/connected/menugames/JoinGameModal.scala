@@ -41,7 +41,7 @@ final class JoinGameModal private (game: MenuGame, closeWriter: ModalWindow.Clos
   val element: ReactiveHtmlElement[html.Element] = aside(
     modalContainer,
     h1(
-      className := s"text-xl text-$primaryColour-$primaryColourDark",
+      h1_primary,
       s"Join game ${game.gameName}"
     ),
     form(
