@@ -97,6 +97,8 @@ object LocalStorage {
         } yield storedElement.a
       } yield maybeElement
 
+    def clearKey(key: Key): ZIO[Any, Throwable, Unit]
+
   }
 
 }

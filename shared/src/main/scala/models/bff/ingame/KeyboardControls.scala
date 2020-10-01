@@ -18,6 +18,13 @@ final case class KeyboardControls(
     rightKey -> UserInput.Right
   ) ++ abilityKeys.zipWithIndex.map { case (code, idx) => code -> UserInput.AbilityInput(idx) }.toMap
 
+  /** Maybe returns a control key which is assigned twice. */
+  def maybeMultipleKey: Option[KeyCode] =
+    (List(upKey, downKey, rightKey, leftKey) ++ abilityKeys)
+      .groupBy(identity)
+      .find(_._2.length > 1)
+      .map(_._1)
+
   /** Retrieve the [[UserInput]] for this keyCode, or the [[UserInput.Unknown]] if it is not defined. */
   def getOrUnknown(keyCode: KeyCode): UserInput = controlMap.getOrElse(keyCode, UserInput.Unknown(keyCode))
 

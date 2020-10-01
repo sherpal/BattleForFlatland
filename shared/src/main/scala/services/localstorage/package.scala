@@ -30,4 +30,6 @@ package object localstorage {
       implicit decoder: Decoder[A]
   ): ZIO[LocalStorage, Throwable, Option[A]] = ZIO.accessM(_.get.retrieveFrom(key))
 
+  def clearKey(key: Key): ZIO[LocalStorage, Throwable, Unit] = ZIO.accessM(_.get.clearKey(key))
+
 }

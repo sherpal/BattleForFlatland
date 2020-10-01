@@ -2,7 +2,7 @@ package programs.frontend.menus
 
 import models.bff.ingame.KeyboardControls
 import models.syntax.Pointed
-import services.localstorage.{retrieveFrom, storeAt, LocalStorage}
+import services.localstorage._
 import zio.{UIO, ZIO}
 import io.circe.generic.auto._
 
@@ -19,4 +19,5 @@ package object controls {
   def storeKeyboardControls(keyboardControls: KeyboardControls): ZIO[LocalStorage, Throwable, KeyboardControls] =
     storeAt(KeyboardControls.storageKey, keyboardControls) *> UIO(keyboardControls)
 
+  val resetKeyboardControls = clearKey(KeyboardControls.storageKey)
 }

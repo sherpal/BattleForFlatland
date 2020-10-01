@@ -23,6 +23,9 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
 
   val keyboardControlsBus: EventBus[KeyboardControls] = new EventBus
 
+  val feedCurrentControl =
+    retrieveKeyboardControls.flatMap(controls => ZIO.effectTotal(keyboardControlsBus.writer.onNext(controls)))
+
   case class AssigningInfo(
       name: String,
       currentCode: KeyCode,
@@ -39,7 +42,7 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
     case Some(assignInfo) =>
       val assignCallback: js.Function1[KeyboardEvent, Unit] = (event: KeyboardEvent) => {
         val effect = storeKeyboardControls(assignInfo.assign(assignInfo.currentControls, event.code)) *>
-          retrieveKeyboardControls.flatMap(controls => ZIO.effectTotal(keyboardControlsBus.writer.onNext(controls)))
+          feedCurrentControl
 
         utils.runtime.unsafeRunToFuture(effect)
         event.preventDefault()
@@ -98,12 +101,12 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
     className := "flex flex-col items-center justify-center",
     div(
       modalContainer,
-      height := "600px",
-      overflowY := "scroll",
       h1(h1_primary, "Game Controls"),
       h2(h2_primary, "Click on a code to reassign it"),
       onClick.stopPropagation.mapTo(()) --> Observer.empty,
       div(
+        overflowY := "scroll",
+        height := "500px",
         className := "p-5 grid grid-cols-3",
         div(
           className := "col-start-1 col-end-1",
@@ -130,13 +133,15 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
           }
         )
       ),
-      "todo: restore defaults"
+      button(btn, secondaryButton, "Restore defaults", onClick.mapTo(()) --> ((_: Unit) => {
+        utils.runtime.unsafeRunToFuture(
+          resetKeyboardControls *> feedCurrentControl
+        )
+      }))
     ),
     onClick.mapTo(()) --> UnderModalLayer.closeModalWriter,
     onClick.mapTo(()) --> closeWriter,
-    onMountZIO(
-      retrieveKeyboardControls.flatMap(controls => ZIO.effectTotal(keyboardControlsBus.writer.onNext(controls)))
-    ),
+    onMountZIO(feedCurrentControl),
     waitForAssignWindow
   )
 }

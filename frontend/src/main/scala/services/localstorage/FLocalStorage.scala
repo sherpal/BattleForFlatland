@@ -34,6 +34,9 @@ object FLocalStorage {
       } yield Some(element)).catchSome {
         case _: ElementAbsentException => ZIO.none
       }
+
+    def clearKey(key: Key): ZIO[Any, Throwable, Unit] =
+      ZIO.effectTotal(dom.window.localStorage.removeItem(key))
   }
 
   val live: ZLayer[Clock, Nothing, LocalStorage] = ZLayer.fromService(serviceLive)
