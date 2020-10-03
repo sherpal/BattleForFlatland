@@ -54,8 +54,6 @@ final class GameStateManager(
 
   def serverTime: Long = System.currentTimeMillis() + deltaTimeWithServer
 
-  val abilityCodes: List[String] = (1 to 9).map("Digit" + _).toList
-
   private var actionCollector = ImmutableActionCollector(initialGameState)
   private val gameDrawer = new GameDrawer(
     reactiveStage,
@@ -100,6 +98,15 @@ final class GameStateManager(
         }
       )
       .startWith(Option.empty[MovingBody with LivingEntity])
+
+  /** There is a side effect in the constructor here. */
+  new NextTargetHandler(
+    playerId,
+    userControls.downInputs.collect { case UserInput.NextTarget => UserInput.NextTarget },
+    $gameStates,
+    targetFromGUIBus.writer,
+    () => serverTime
+  )
 
   $maybeTarget.foreach(maybeTargetWriter.onNext)
 
@@ -399,17 +406,6 @@ final class GameStateManager(
     gameStateUpdates
   )
 
-//  /** Testing */
-//  val graphDrawer = new GraphDrawer(
-//    $actionsWithStates //.filter(_._1.isInstanceOf[CreateObstacle])
-//      .map(_._2)
-//      .map(_.obstacles.valuesIterator)
-//      .map(obstacles => AIWanderGraph(new ShapeQT(obstacles.toList), Constants.bossRadius)._1),
-//    gameDrawer.camera
-//  )
-//  reactiveStage.apply(graphDrawer.graphics)
-
-  /** ******* */
   var lastTimeStamp = 0L
 
   private val ticker = (_: Double) => {
