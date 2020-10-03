@@ -35,7 +35,7 @@ final class NextTargetHandler(
     def tooOld(currentTime: Long): Boolean = currentTime - time > timeBeforeLoopingBack
   }
 
-  /** Side effectfull! */
+  /** Side effect-full! */
   nextTargetEvents
     .sample(gameStates)
     .map(gs => gs.players.get(myId) -> gs.allTargetableEntities.filter(_.teamId == Entity.teams.mobTeam).toSet)
