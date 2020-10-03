@@ -12,6 +12,7 @@ final case class Controls(
     downKey: InputCode,
     leftKey: InputCode,
     rightKey: InputCode,
+    nextTargetKey: InputCode,
     abilityKeys: List[InputCode]
 ) {
 
@@ -19,7 +20,8 @@ final case class Controls(
     upKey -> UserInput.Up,
     downKey -> UserInput.Down,
     leftKey -> UserInput.Left,
-    rightKey -> UserInput.Right
+    rightKey -> UserInput.Right,
+    nextTargetKey -> UserInput.NextTarget
   ) ++ abilityKeys.zipWithIndex.map { case (code, idx) => code -> UserInput.AbilityInput(idx) }.toMap
 
   /** Maybe returns a control key which is assigned twice. */
@@ -66,6 +68,7 @@ object Controls {
       KeyCode("KeyS"),
       KeyCode("KeyA"),
       KeyCode("KeyD"),
+      KeyCode("Tab"),
       (1 to 10).map(_ % 10).map("Digit" + _).map(KeyCode).toList
     )
   )

@@ -3,7 +3,7 @@ package frontend.components.connected.menugames
 import com.raquo.airstream.eventbus.EventBus
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
-import models.bff.ingame.{Controls, KeyboardControls}
+import models.bff.ingame.Controls
 import org.scalajs.dom.html
 import programs.frontend.menus.controls._
 import zio.ZIO
@@ -14,7 +14,6 @@ import frontend.components.utils.tailwind.forms._
 import utils.laminarzio.onMountZIO
 import frontend.components.utils.tailwind._
 import models.bff.ingame.Controls.InputCode
-import models.bff.ingame.KeyboardControls.KeyCode
 import org.scalajs.dom
 import typings.std.{KeyboardEvent, MouseEvent}
 
@@ -75,18 +74,18 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
         height := "100%",
         className := "flex flex-col items-center justify-center",
         className := "bg-opacity-25 bg-indigo-900",
-        onClick.preventDefault.mapTo(Option.empty[AssigningInfo]) --> assigningKeyBus.writer,
+        onClick.preventDefault.stopPropagation.mapTo(Option.empty[AssigningInfo]) --> assigningKeyBus.writer,
         div(
           modalContainer,
-          s"Press any key to assign ${assignInfo.name}",
-          onClick.preventDefault --> Observer.empty
+          s"Press any key or any (non-left) mouse button to assign ${assignInfo.name}",
+          onClick.preventDefault.stopPropagation --> Observer.empty
         ),
         onMountCallback { _ =>
-          dom.window.addEventListener("keypress", assignKeyboardCallback)
+          dom.window.addEventListener("keydown", assignKeyboardCallback)
           dom.window.addEventListener("mousedown", assignMouseCallback)
         },
         onUnmountCallback { _ =>
-          dom.window.removeEventListener("keypress", assignKeyboardCallback)
+          dom.window.removeEventListener("keydown", assignKeyboardCallback)
           dom.window.removeEventListener("mousedown", assignMouseCallback)
         }
       )
@@ -130,10 +129,11 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
           className := "col-start-1 col-end-1",
           children <-- controlsBus.events.map { implicit controls =>
             List(
-              controlSetting("Up", controls.upKey, (cs, c) => cs.copy(upKey          = c)),
-              controlSetting("Down", controls.downKey, (cs, c) => cs.copy(downKey    = c)),
-              controlSetting("Left", controls.leftKey, (cs, c) => cs.copy(leftKey    = c)),
-              controlSetting("Right", controls.rightKey, (cs, c) => cs.copy(rightKey = c))
+              controlSetting("Up", controls.upKey, (cs, c) => cs.copy(upKey                          = c)),
+              controlSetting("Down", controls.downKey, (cs, c) => cs.copy(downKey                    = c)),
+              controlSetting("Left", controls.leftKey, (cs, c) => cs.copy(leftKey                    = c)),
+              controlSetting("Right", controls.rightKey, (cs, c) => cs.copy(rightKey                 = c)),
+              controlSetting("Next target", controls.nextTargetKey, (cs, c) => cs.copy(nextTargetKey = c))
             )
           }
         ),

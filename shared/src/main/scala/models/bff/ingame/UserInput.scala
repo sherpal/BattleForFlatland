@@ -5,6 +5,12 @@ import gamelogic.entities.classes.PlayerClass
 import gamelogic.physics.Complex
 import models.bff.ingame.Controls.InputCode
 
+/**
+  * A [[UserInput]] corresponds to the input a user made, translated to something meaningful from the point of view
+  * of the game.
+  *
+  * For example, the input of a direction, or using an ability.
+  */
 sealed trait UserInput {
   def isKnown: Boolean = true
 }
@@ -26,6 +32,8 @@ object UserInput {
   case object Left extends DirectionInput {
     def direction: Complex = -1
   }
+
+  case object NextTarget extends UserInput
 
   /** Represent */
   case class AbilityInput(abilityIndex: Int) extends UserInput {

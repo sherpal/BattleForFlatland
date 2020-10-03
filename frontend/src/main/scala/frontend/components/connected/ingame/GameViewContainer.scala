@@ -4,22 +4,21 @@ import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
 import game.ui.reactivepixi.{ReactivePixiElement, ReactiveStage}
-import game.{GameAssetLoader, GameStateManager, Keyboard, Mouse, UserControls}
+import game._
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
+import models.bff.ingame.InGameWSProtocol
 import models.bff.ingame.InGameWSProtocol.ReadyToStart
-import models.bff.ingame.{InGameWSProtocol, KeyboardControls}
-import models.syntax.Pointed
 import models.users.User
 import org.scalajs.dom
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Progress
+import programs.frontend.menus.controls.retrieveControls
 import typings.pixiJs.anon.{Antialias => ApplicationOptions}
 import typings.pixiJs.mod.Application
 import zio.duration._
 import zio.{Exit, UIO, ZIO}
-import programs.frontend.menus.controls.retrieveControls
 
 /**
   * The GameViewContainer is responsible for creating the instance of the [[game.GameStateManager]].
@@ -75,7 +74,7 @@ final class GameViewContainer private (
   )
 
   def addWindowResizeEventListener(stage: ReactiveStage): ZIO[Any, Nothing, Unit] =
-    (for {
+    for {
       window      <- UIO(dom.window)
       resizeQueue <- zio.Queue.unbounded[Unit]
       _ <- ZIO.effectTotal {
@@ -102,7 +101,7 @@ final class GameViewContainer private (
 
       } yield ()).forever.provideLayer(zio.clock.Clock.live)))
       _ <- resizeQueue.offer(()) // fixing the size at the beginning
-    } yield ())
+    } yield ()
 
   private def mountEffect(gameContainer: html.Div, owner: Owner) =
     for {
