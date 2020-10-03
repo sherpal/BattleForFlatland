@@ -3,6 +3,7 @@ package models.bff.ingame
 import gamelogic.abilities.Ability
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.physics.Complex
+import models.bff.ingame.Controls.InputCode
 
 sealed trait UserInput {
   def isKnown: Boolean = true
@@ -35,7 +36,7 @@ object UserInput {
   final val directions: List[DirectionInput] = List(Up, Down, Right, Left)
 
   /** If the key code from the event is not above, you can keep track with this unknown instance. */
-  case class Unknown(code: String) extends UserInput {
+  case class Unknown(code: InputCode) extends UserInput {
     override def isKnown: Boolean = false
   }
 

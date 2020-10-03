@@ -1,23 +1,28 @@
 package programs.frontend.menus
 
-import models.bff.ingame.KeyboardControls
+import models.bff.ingame.{Controls, KeyboardControls}
 import models.syntax.Pointed
 import services.localstorage._
 import zio.{UIO, ZIO}
 import io.circe.generic.auto._
+import services.logging.Logging
 
 package object controls {
 
-  /** Retrieve the [[KeyboardControls]] from the local storage if it exists, or the default one otherwise. */
-  val retrieveKeyboardControls: ZIO[LocalStorage, Nothing, KeyboardControls] = for {
-    maybeFromLocalStorage <- retrieveFrom[KeyboardControls](KeyboardControls.storageKey)
-      .catchAll(_ => ZIO.some(Pointed[KeyboardControls].unit))
-    keyboardControls = maybeFromLocalStorage.getOrElse(Pointed[KeyboardControls].unit)
+  /** Retrieve the [[Controls]] from the local storage if it exists, or the default one otherwise. */
+  val retrieveControls: ZIO[Logging with LocalStorage, Nothing, Controls] = for {
+    maybeFromLocalStorage <- retrieveFrom[Controls](KeyboardControls.storageKey)
+      .catchAll(
+        t =>
+          services.logging.log.error(s"Failed to retrieve controls: ${t.getMessage}") *> ZIO
+            .some(Pointed[Controls].unit)
+      )
+    keyboardControls = maybeFromLocalStorage.getOrElse(Pointed[Controls].unit)
   } yield keyboardControls
 
-  /** Stores the given [[KeyboardControls]] and returns it. */
-  def storeKeyboardControls(keyboardControls: KeyboardControls): ZIO[LocalStorage, Throwable, KeyboardControls] =
-    storeAt(KeyboardControls.storageKey, keyboardControls) *> UIO(keyboardControls)
+  /** Stores the given [[Controls]] and returns it. */
+  def storeControls(controls: Controls): ZIO[LocalStorage, Throwable, Controls] =
+    storeAt(KeyboardControls.storageKey, controls) *> UIO(controls)
 
-  val resetKeyboardControls = clearKey(KeyboardControls.storageKey)
+  val resetControls = clearKey(Controls.storageKey)
 }

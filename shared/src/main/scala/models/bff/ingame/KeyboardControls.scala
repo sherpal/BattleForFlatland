@@ -26,7 +26,8 @@ final case class KeyboardControls(
       .map(_._1)
 
   /** Retrieve the [[UserInput]] for this keyCode, or the [[UserInput.Unknown]] if it is not defined. */
-  def getOrUnknown(keyCode: KeyCode): UserInput = controlMap.getOrElse(keyCode, UserInput.Unknown(keyCode))
+  def getOrUnknown(keyCode: KeyCode): UserInput =
+    controlMap.getOrElse(keyCode, UserInput.Unknown(Controls.KeyCode(keyCode)))
 
 }
 

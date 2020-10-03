@@ -1,18 +1,18 @@
 package services.logging
 
-import zio.Task
+import zio.{Task, UIO}
 
 object Logging {
 
   trait Service {
 
-    def info(line: => String): Task[Unit]
+    def info(line: => String): UIO[Unit]
 
-    def debug(line: => String): Task[Unit]
+    def debug(line: => String): UIO[Unit]
 
-    def warn(line: => String): Task[Unit]
+    def warn(line: => String): UIO[Unit]
 
-    def error(line: => String): Task[Unit]
+    def error(line: => String): UIO[Unit]
 
   }
 }

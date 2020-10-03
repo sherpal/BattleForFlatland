@@ -3,7 +3,7 @@ package frontend.components.connected.menugames
 import com.raquo.airstream.eventbus.EventBus
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import frontend.components.Component
-import models.bff.ingame.KeyboardControls
+import models.bff.ingame.{Controls, KeyboardControls}
 import org.scalajs.dom.html
 import programs.frontend.menus.controls._
 import zio.ZIO
@@ -13,24 +13,25 @@ import frontend.components.utils.tailwind.modal.modalContainer
 import frontend.components.utils.tailwind.forms._
 import utils.laminarzio.onMountZIO
 import frontend.components.utils.tailwind._
+import models.bff.ingame.Controls.InputCode
 import models.bff.ingame.KeyboardControls.KeyCode
 import org.scalajs.dom
-import typings.std.KeyboardEvent
+import typings.std.{KeyboardEvent, MouseEvent}
 
 import scala.scalajs.js
 
 final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Component[html.Element] {
 
-  val keyboardControlsBus: EventBus[KeyboardControls] = new EventBus
+  val controlsBus: EventBus[Controls] = new EventBus
 
   val feedCurrentControl =
-    retrieveKeyboardControls.flatMap(controls => ZIO.effectTotal(keyboardControlsBus.writer.onNext(controls)))
+    retrieveControls.flatMap(controls => ZIO.effectTotal(controlsBus.writer.onNext(controls)))
 
   case class AssigningInfo(
       name: String,
-      currentCode: KeyCode,
-      assign: (KeyboardControls, KeyCode) => KeyboardControls,
-      currentControls: KeyboardControls
+      currentCode: InputCode,
+      assign: (Controls, InputCode) => Controls,
+      currentControls: Controls
   )
 
   /** Feed here Some an instance of [[AssigningInfo]] to modify a key, and None when the key has been modified. */
@@ -40,14 +41,29 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
   val waitForAssignWindow = child <-- assigningKeyBus.events.map {
     case None => emptyNode
     case Some(assignInfo) =>
-      val assignCallback: js.Function1[KeyboardEvent, Unit] = (event: KeyboardEvent) => {
-        val effect = storeKeyboardControls(assignInfo.assign(assignInfo.currentControls, event.code)) *>
+      val assignKeyboardCallback: js.Function1[KeyboardEvent, Unit] = (event: KeyboardEvent) => {
+        val effect = storeControls(assignInfo.assign(assignInfo.currentControls, Controls.KeyCode(event.code))) *>
           feedCurrentControl
 
         utils.runtime.unsafeRunToFuture(effect)
         event.preventDefault()
         event.stopPropagation()
         assigningKeyBus.writer.onNext(None)
+      }
+
+      val assignMouseCallback: js.Function1[MouseEvent, Unit] = { (event: MouseEvent) =>
+        if (event.button != 0) {
+
+          val effect = storeControls(
+            assignInfo.assign(assignInfo.currentControls, Controls.MouseCode(event.button.toInt))
+          ) *>
+            feedCurrentControl
+
+          utils.runtime.unsafeRunToFuture(effect)
+          event.preventDefault()
+          event.stopPropagation()
+          assigningKeyBus.writer.onNext(None)
+        }
       }
 
       div(
@@ -66,16 +82,18 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
           onClick.preventDefault --> Observer.empty
         ),
         onMountCallback { _ =>
-          dom.window.addEventListener("keypress", assignCallback)
+          dom.window.addEventListener("keypress", assignKeyboardCallback)
+          dom.window.addEventListener("mousedown", assignMouseCallback)
         },
         onUnmountCallback { _ =>
-          dom.window.removeEventListener("keypress", assignCallback)
+          dom.window.removeEventListener("keypress", assignKeyboardCallback)
+          dom.window.removeEventListener("mousedown", assignMouseCallback)
         }
       )
   }
 
-  private def controlSetting(name: String, code: KeyCode, assign: (KeyboardControls, KeyCode) => KeyboardControls)(
-      implicit controls: KeyboardControls
+  private def controlSetting(name: String, code: InputCode, assign: (Controls, InputCode) => Controls)(
+      implicit controls: Controls
   ) =
     div(
       formGroup,
@@ -85,7 +103,7 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
         className := "md:w-1/3",
         label(
           className := "bg-gray-400 border-indigo-800 p-2 rounded cursor-pointer",
-          code,
+          code.label,
           onClick.mapTo(Some(AssigningInfo(name, code, assign, controls))) --> assigningKeyBus.writer
         )
       )
@@ -110,7 +128,7 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
         className := "p-5 grid grid-cols-3",
         div(
           className := "col-start-1 col-end-1",
-          children <-- keyboardControlsBus.events.map { implicit controls =>
+          children <-- controlsBus.events.map { implicit controls =>
             List(
               controlSetting("Up", controls.upKey, (cs, c) => cs.copy(upKey          = c)),
               controlSetting("Down", controls.downKey, (cs, c) => cs.copy(downKey    = c)),
@@ -121,7 +139,7 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
         ),
         div(
           className := "col-start-3 col-end-3",
-          children <-- keyboardControlsBus.events.map { implicit controls =>
+          children <-- controlsBus.events.map { implicit controls =>
             controls.abilityKeys.zipWithIndex.map {
               case (code, idx) =>
                 controlSetting(
@@ -135,7 +153,7 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
       ),
       button(btn, secondaryButton, "Restore defaults", onClick.mapTo(()) --> ((_: Unit) => {
         utils.runtime.unsafeRunToFuture(
-          resetKeyboardControls *> feedCurrentControl
+          resetControls *> feedCurrentControl
         )
       }))
     ),

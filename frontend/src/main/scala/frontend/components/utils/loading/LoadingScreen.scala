@@ -10,7 +10,7 @@ final class LoadingScreen private () extends Component[html.Div] {
 
   val element: ReactiveHtmlElement[Div] =
     div(
-      className := "absolute top-0 left-0 w-full h-full flex items-center justify-center",
+      className := "fixed top-0 left-0 w-full h-full flex items-center justify-center",
       backgroundColor := "rgba(128,128,128,0.5)",
       div(
         className := "loader"

@@ -36,8 +36,7 @@ final class GameStateManager(
     initialGameState: GameState,
     $actionsFromServer: EventStream[AddAndRemoveActions],
     socketOutWriter: Observer[InGameWSProtocol.Outgoing],
-    keyboard: Keyboard,
-    mouse: Mouse,
+    userControls: UserControls,
     playerId: Entity.Id,
     bossStartingPosition: Complex,
     deltaTimeWithServer: Long,
@@ -70,9 +69,10 @@ final class GameStateManager(
   val $gameStates: Signal[GameState] = gameStateBus.events.startWith(initialGameState)
   private val $strictGameStates      = $gameStates.observe
 
-  val $gameMousePosition: SignalViewer[Complex] = mouse.$effectiveMousePosition.map(gameDrawer.camera.mousePosToWorld)
-    .startWith(Complex.zero)
-    .observe
+  val $gameMousePosition: SignalViewer[Complex] =
+    userControls.$effectiveMousePosition.map(gameDrawer.camera.mousePosToWorld)
+      .startWith(Complex.zero)
+      .observe
   val $mouseAngleWithPosition: SignalViewer[Angle] = $gameMousePosition.map { mousePosition =>
     val myPositionNow = $strictGameStates.now.players.get(playerId).fold(Complex.zero)(_.pos)
     (mousePosition - myPositionNow).arg
@@ -127,20 +127,20 @@ final class GameStateManager(
 
   val effectsManager = new EffectsManager(playerId, $actionsWithStates, gameDrawer.camera, application, resources)
 
-  val pressedUserInputSignal: SignalViewer[Set[UserInput]] = keyboard.$pressedUserInput.observe
+  val pressedUserInputSignal: SignalViewer[Set[UserInput]] = userControls.$pressedUserInput.observe
 
   val choosingAbilityEffectPositionBus = new EventBus[Option[Ability.AbilityId]]
   val isChoosingAbilityEffectPosition: Signal[Option[Ability.AbilityId]] =
     choosingAbilityEffectPositionBus.events.startWith(None)
 
-  mouse.$mouseClicks.withCurrentValueOf(isChoosingAbilityEffectPosition)
+  userControls.$mouseClicks.withCurrentValueOf(isChoosingAbilityEffectPosition)
     .collect { case (event, Some(id)) => (event, id) }
     .withCurrentValueOf($gameStates)
     .foreach {
       case ((event, abilityId), gameState) =>
         val now = serverTime
         choosingAbilityEffectPositionBus.writer.onNext(None)
-        val gamePosition = gameDrawer.camera.mousePosToWorld(mouse.effectiveMousePos(event))
+        val gamePosition = gameDrawer.camera.mousePosToWorld(userControls.effectiveMousePos(event))
         (abilityId, gameState.players.get(playerId)) match {
           case (_, None) =>
             dom.console.warn("You are dead")
@@ -170,7 +170,7 @@ final class GameStateManager(
   val useAbilityBus = new EventBus[Ability.AbilityId]
   EventStream
     .merge(
-      keyboard.downUserInputEvents
+      userControls.downInputs
         .collect { case abilityInput: UserInput.AbilityInput => abilityInput }
         .withCurrentValueOf($gameStates)
         .filter(_._2.players.isDefinedAt(playerId))

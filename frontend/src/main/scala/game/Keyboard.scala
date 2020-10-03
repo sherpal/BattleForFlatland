@@ -3,7 +3,7 @@ package game
 import com.raquo.airstream.eventbus.EventBus
 import com.raquo.airstream.eventstream.EventStream
 import com.raquo.airstream.signal.Signal
-import models.bff.ingame.{KeyboardControls, UserInput}
+import models.bff.ingame.{Controls, KeyboardControls, UserInput}
 import org.scalajs.dom
 import typings.std.KeyboardEvent
 
@@ -14,7 +14,7 @@ import scala.scalajs.js
   *
   * Note: each instance of this class will add an event listener to the document.
   */
-final class Keyboard(controls: KeyboardControls) {
+final class Keyboard(controls: Controls) {
 
   private val downKeyEventBus: EventBus[KeyboardEvent] = new EventBus[KeyboardEvent]
   private val upKeyEventBus: EventBus[KeyboardEvent]   = new EventBus[KeyboardEvent]
@@ -35,17 +35,14 @@ final class Keyboard(controls: KeyboardControls) {
     case (s, _)                                                => s // should never happen as we don't register it
   }
 
-  /** Signal of all currently pressed [[models.bff.ingame.UserInput]] instances. */
-  val $pressedUserInput: Signal[Set[UserInput]] = $keyboardEvents.fold(Set.empty[UserInput]) {
-    case (accumulatedSet, event) =>
-      val userInput = controls.getOrUnknown(event.code)
-      if (event.`type` == "keyup") accumulatedSet - userInput
-      else if (event.`type` == "keydown") accumulatedSet + userInput
-      else accumulatedSet // should never happen as we don't register it
-  }
-
-  /** Stream of [[UserInput]]s pressed by the player. */
-  val downUserInputEvents: EventStream[UserInput] = $downKeyEvents.map(_.code).map(controls.getOrUnknown)
+  val downUserInputEvents = $keyboardEvents.filter(_.`type` == "keydown")
+    .map(_.code)
+    .map(Controls.KeyCode)
+    .map(controls.getOrUnknown)
+  val upUserInputEvents = $keyboardEvents.filter(_.`type` == "keyup")
+    .map(_.code)
+    .map(Controls.KeyCode)
+    .map(controls.getOrUnknown)
 
   private val keyDownHandler: js.Function1[dom.KeyboardEvent, _] = (event: dom.KeyboardEvent) => {
     event.stopPropagation()
