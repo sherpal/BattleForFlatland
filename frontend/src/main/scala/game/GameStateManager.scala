@@ -11,21 +11,14 @@ import game.ui.effects.{ChoosingAbilityPositionEffect, EffectsManager}
 import game.ui.gui.ReactiveGUIDrawer
 import game.ui.reactivepixi.ReactiveStage
 import gamelogic.abilities.Ability
-import gamelogic.abilities.hexagon.{FlashHeal, HexagonHot}
-import gamelogic.abilities.pentagon.{CreatePentagonBullet, CreatePentagonZone, PentaDispel}
-import gamelogic.abilities.square.{Cleave, Enrage, HammerHit, Taunt}
-import gamelogic.abilities.triangle.{DirectHit, UpgradeDirectHit}
 import gamelogic.entities.WithPosition.Angle
-import gamelogic.entities.classes.pentagon.PentagonZone
 import gamelogic.entities.{Entity, LivingEntity, MovingBody}
-import gamelogic.gamestate.gameactions.{EntityStartsCasting, MovingBodyMoves}
+import gamelogic.gamestate.gameactions.MovingBodyMoves
 import gamelogic.gamestate.{AddAndRemoveActions, GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
 import models.bff.ingame.{InGameWSProtocol, UserInput}
-import org.scalajs.dom
 import typings.pixiJs.PIXI.LoaderResource
 import typings.pixiJs.mod.{Application, Container}
-import utils.misc.RGBColour
 import utils.pixi.monkeypatching.PIXIPatching._
 
 import scala.Ordering.Double.TotalOrdering
@@ -159,7 +152,8 @@ final class GameStateManager(
     () => serverTime
   )
 
-  private val choosingAbilityEffect = new ChoosingAbilityPositionEffect(
+  /** Side effect-full constructor */
+  new ChoosingAbilityPositionEffect(
     application,
     new Container,
     gameDrawer.camera,

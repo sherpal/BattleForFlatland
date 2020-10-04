@@ -5,6 +5,8 @@ import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import models.bff.ingame.UserInput
 
+import scala.Ordering.Double.TotalOrdering
+
 /**
   * This class handles what happens when a player uses the "next target" input (tab by default).
   *
@@ -31,8 +33,24 @@ final class NextTargetHandler(
   /** An entity that was selected by "next target" will not be again within 5 seconds. */
   val timeBeforeLoopingBack: Long = 5000L
 
-  case class WasTargetedInfo(time: Long, id: Entity.Id) {
+  /**
+    * Remember the time at which a particular entity was last selected.
+    * Equality on this class is done solely on the entity id basis.
+    *
+    * @param time time at which that entity was last selected
+    * @param id entity of the id that was targeted
+    */
+  class WasTargetedInfo(val time: Long, val id: Entity.Id) {
     def tooOld(currentTime: Long): Boolean = currentTime - time > timeBeforeLoopingBack
+
+    override def toString: String = s"WasTargetedInfo($time, $id)"
+
+    override def equals(obj: Any): Boolean = obj match {
+      case that: WasTargetedInfo => that.id == id
+      case _                     => false
+    }
+
+    override def hashCode(): Int = id.hashCode()
   }
 
   /** Side effect-full! */
@@ -40,23 +58,23 @@ final class NextTargetHandler(
     .sample(gameStates)
     .map(gs => gs.players.get(myId) -> gs.allTargetableEntities.filter(_.teamId == Entity.teams.mobTeam).toSet)
     .collect { case (Some(me), possibleNextTargets) => (me, possibleNextTargets) }
-    .fold((Set.empty[WasTargetedInfo], Option.empty[Entity.Id])) {
+    .fold((Map.empty[Entity.Id, WasTargetedInfo], Option.empty[Entity.Id])) {
       case ((previouslyTargeted, _), (me, possibleNextTargets)) =>
         val possibleNextTargetsIds = possibleNextTargets.map(_.id)
         val now                    = currentTime()
         val tooRecentlyTargeted = previouslyTargeted
-          .filterNot(_.tooOld(now))
+          .filterNot(_._2.tooOld(now))
           /* The following filter removes "dead" entities that were targeted recently. */
-          .filter(wasTargeted => possibleNextTargetsIds.contains(wasTargeted.id))
-        val tooRecentlyTargetedIds = tooRecentlyTargeted.map(_.id)
+          .filter(wasTargeted => possibleNextTargetsIds.contains(wasTargeted._1))
+        val tooRecentlyTargetedIds = tooRecentlyTargeted.keys.toSet
         val maybeNextTarget = possibleNextTargets
           .filter(entity => !tooRecentlyTargetedIds.contains(entity.id))
           .minByOption(_.pos distanceTo me.pos)
           .map(_.id)
-          .orElse(tooRecentlyTargeted.minByOption(_.time).map(_.id))
+          .orElse(tooRecentlyTargeted.valuesIterator.minByOption(_.time).map(_.id))
 
         (
-          maybeNextTarget.fold(tooRecentlyTargeted)(id => tooRecentlyTargeted + WasTargetedInfo(now, id)),
+          maybeNextTarget.fold(tooRecentlyTargeted)(id => tooRecentlyTargeted + (id -> new WasTargetedInfo(now, id))),
           maybeNextTarget
         )
     }
