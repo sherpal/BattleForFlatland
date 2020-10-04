@@ -28,7 +28,8 @@ object FrontendSettings {
       "@types/react" -> "16.9.35",
       "react" -> "16.13.1",
       "@types/react-dom" -> "16.9.8",
-      "react-dom" -> "16.13.1"
+      "react-dom" -> "16.13.1",
+      "react-toastify" -> "6.0.8"
     ),
     npmDevDependencies in Compile ++= Seq(
       "file-loader" -> "3.0.1",

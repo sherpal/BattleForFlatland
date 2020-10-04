@@ -2,6 +2,8 @@ package frontend
 
 import assets.Asset
 import com.raquo.laminar.api.L._
+import frontend.components.utils.laminarutils.reactChildInDiv
+import frontend.components.utils.toasts.ToasterWrapper
 import org.scalajs.dom
 import zio.{UIO, ZIO}
 
@@ -20,7 +22,14 @@ object Icon extends js.Object
 @js.native
 object Tailwind extends js.Object
 
+@JSImport("react-toastify/dist/ReactToastify.css", JSImport.Default)
+@js.native
+object Toastify extends js.Object
+
 object Main {
+
+  /** This is the CSS require for the react-toastify library to work properly. */
+  Toastify
 
   IndexCSS
   Tailwind
@@ -59,11 +68,19 @@ object Main {
   final val renderAppInContainer = for {
     container       <- ZIO.environment[dom.Element]
     reactiveElement <- ZIO.effect(render(container, frontend.components.App()))
-    _               <- ZIO.effect(render(container, frontend.components.utils.bootstrap.ModalWindow.modalContainer))
+    toaster <- ZIO.effectTotal(
+      render(
+        container,
+        div(
+          reactChildInDiv(ToasterWrapper())
+        )
+      )
+    )
     unmountFunction <- UIO {
       val unmount: js.Function0[js.Any] = () => {
         println("Unmounting previous element...")
         reactiveElement.unmount()
+        toaster.unmount()
       }
 
       unmount

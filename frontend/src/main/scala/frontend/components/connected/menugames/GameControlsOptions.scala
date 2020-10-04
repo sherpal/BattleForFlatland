@@ -13,6 +13,7 @@ import frontend.components.utils.tailwind.modal.modalContainer
 import frontend.components.utils.tailwind.forms._
 import utils.laminarzio.onMountZIO
 import frontend.components.utils.tailwind._
+import frontend.components.utils.toasts.{toastWriter, ToastInfo, ToastLevel}
 import models.bff.ingame.Controls.InputCode
 import org.scalajs.dom
 import typings.std.{KeyboardEvent, MouseEvent}
@@ -116,6 +117,13 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
     width := "100%",
     height := "100%",
     className := "flex flex-col items-center justify-center",
+    controlsBus.events
+      .map(_.allKeysInMultiple)
+      .filter(_.nonEmpty)
+      .map(_.map(_.code))
+      .map(
+        inputCodes => ToastInfo(s"The following inputs are set twice: ${inputCodes.mkString(", ")}", ToastLevel.Warning)
+      ) --> toastWriter,
     div(
       modalContainer,
       h1(h1_primary, "Game Controls"),
