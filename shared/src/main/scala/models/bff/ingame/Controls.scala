@@ -26,7 +26,7 @@ final case class Controls(
 
   /** Maybe returns a control key which is assigned twice. */
   def maybeMultipleKey: Option[InputCode] =
-    (List(upKey, downKey, rightKey, leftKey) ++ abilityKeys)
+    (List(upKey, downKey, rightKey, leftKey, nextTargetKey) ++ abilityKeys)
       .groupBy(identity)
       .find(_._2.length > 1)
       .map(_._1)

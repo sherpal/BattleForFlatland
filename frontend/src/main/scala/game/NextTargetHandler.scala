@@ -60,6 +60,7 @@ final class NextTargetHandler(
     .collect { case (Some(me), possibleNextTargets) => (me, possibleNextTargets) }
     .fold((Map.empty[Entity.Id, WasTargetedInfo], Option.empty[Entity.Id])) {
       case ((previouslyTargeted, _), (me, possibleNextTargets)) =>
+        // todo[enhance]: not really satisfied by the implementation.
         val possibleNextTargetsIds = possibleNextTargets.map(_.id)
         val now                    = currentTime()
         val tooRecentlyTargeted = previouslyTargeted

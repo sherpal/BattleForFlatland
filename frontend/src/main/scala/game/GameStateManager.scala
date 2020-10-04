@@ -12,6 +12,7 @@ import game.ui.gui.ReactiveGUIDrawer
 import game.ui.reactivepixi.ReactiveStage
 import gamelogic.abilities.Ability
 import gamelogic.entities.WithPosition.Angle
+import gamelogic.entities.boss.Boss101
 import gamelogic.entities.{Entity, LivingEntity, MovingBody}
 import gamelogic.gamestate.gameactions.MovingBodyMoves
 import gamelogic.gamestate.{AddAndRemoveActions, GameAction, GameState, ImmutableActionCollector}
@@ -219,7 +220,16 @@ final class GameStateManager(
       gameStateToDraw.players
         .get(playerId)
         .map(_.pos)
-        .orElse(gameStateToDraw.bosses.headOption.map(_._2.pos))
+        .orElse {
+          gameStateToDraw.bosses.headOption.map(_._2.currentPosition(now)).map { targetCameraPosition =>
+            val currentCameraPosition = gameDrawer.camera.worldCenter
+            val distance              = targetCameraPosition distanceTo currentCameraPosition
+            val cameraMovementSize    = Boss101.fullSpeed * 0.5 * deltaTime / 1000
+            if (distance < cameraMovementSize) targetCameraPosition
+            else
+              currentCameraPosition + (targetCameraPosition - currentCameraPosition).safeNormalized * cameraMovementSize
+          }
+        }
         .getOrElse(Complex.zero),
       now
     )
