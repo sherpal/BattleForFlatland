@@ -3,9 +3,17 @@ package utils
 import errors.ErrorADT
 import errors.ErrorADT.{MultipleErrors, MultipleErrorsMap, WrongStatusCode}
 import models.validators.{FieldsValidator, Validator}
+import services.http.HttpClient
+import services.localstorage.LocalStorage
+import services.logging.Logging
+import services.routing.Routing
+import services.toaster.Toaster
+import zio.clock.Clock
 import zio.{IO, UIO, ZIO}
 
 package object ziohelpers {
+
+  type FrontendGlobalEnv = Clock with HttpClient with LocalStorage with Logging with Routing with Toaster
 
   /**
     * Returns [[Unit]] if `mustFail` is false, and fail with `e` otherwise.

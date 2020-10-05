@@ -73,18 +73,18 @@ final class GameViewContainer private (
     div(child <-- assetLoading.map(_ < 100).map(if (_) loadingProgressBar else emptyNode))
   )
 
-  def addWindowResizeEventListener(stage: ReactiveStage): ZIO[Any, Nothing, Unit] =
+  def addWindowResizeEventListener(stage: ReactiveStage) =
     for {
       window      <- UIO(dom.window)
       resizeQueue <- zio.Queue.unbounded[Unit]
       _ <- ZIO.effectTotal {
         window.addEventListener(
           "resize",
-          (_: dom.Event) => zio.Runtime.default.unsafeRunToFuture(resizeQueue.offer(()))
+          (_: dom.Event) => utils.runtime.unsafeRunToFuture(resizeQueue.offer(()))
         )
       }
       canvas <- UIO(stage.application.view)
-      _ <- ZIO.effectTotal(zio.Runtime.default.unsafeRunToFuture((for {
+      _ <- ZIO.effectTotal(utils.runtime.unsafeRunToFuture((for {
         _ <- ZIO.sleep(500.millis)
         _ <- resizeQueue.take
         _ <- resizeQueue.takeAll // empty queue so that there is no buffering
@@ -99,7 +99,7 @@ final class GameViewContainer private (
           stage.resize()
         }
 
-      } yield ()).forever.provideLayer(zio.clock.Clock.live)))
+      } yield ()).forever))
       _ <- resizeQueue.offer(()) // fixing the size at the beginning
     } yield ()
 

@@ -13,10 +13,11 @@ import frontend.components.utils.tailwind.modal.modalContainer
 import frontend.components.utils.tailwind.forms._
 import utils.laminarzio.onMountZIO
 import frontend.components.utils.tailwind._
-import frontend.components.utils.toasts.{toastWriter, ToastInfo, ToastLevel}
 import models.bff.ingame.Controls.InputCode
 import org.scalajs.dom
 import typings.std.{KeyboardEvent, MouseEvent}
+import utils.laminarzio.Implicits._
+import services.toaster.toast
 
 import scala.scalajs.js
 
@@ -121,9 +122,9 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
       .map(_.allKeysInMultiple)
       .filter(_.nonEmpty)
       .map(_.map(_.code))
-      .map(
-        inputCodes => ToastInfo(s"The following inputs are set twice: ${inputCodes.mkString(", ")}", ToastLevel.Warning)
-      ) --> toastWriter,
+      .flatMap(
+        inputCodes => toast.warn(s"The following inputs are set twice: ${inputCodes.mkString(", ")}")
+      ) --> Observer.empty,
     div(
       modalContainer,
       h1(h1_primary, "Game Controls"),

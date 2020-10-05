@@ -13,10 +13,15 @@ import models.validators.FieldsValidator
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Form
 import programs.frontend.login.login
-import services.http.FHttpClient
+import services.http.HttpClient
 import services.routing._
+import services.toaster.{toast, ToastOptions, Toaster}
+import utils.laminarzio.Implicits._
 import utils.ziohelpers._
-import zio.{UIO, URIO, ZIO}
+import zio.{URIO, ZIO}
+import services.logging.log
+
+import scala.concurrent.duration.DurationInt
 
 final class LoginForm private () extends Component[html.Form] with SimpleForm[LoginUser, ErrorOr[Int]] {
 
@@ -25,14 +30,6 @@ final class LoginForm private () extends Component[html.Form] with SimpleForm[Lo
 
   val nameChanger: Observer[String]     = makeDataChanger((name: String) => _.copy(userName = name))
   val passwordChanger: Observer[String] = makeDataChanger((pw: String) => _.copy(password   = pw))
-
-  val program: URIO[LoginUser, Either[ErrorADT, Int]] = (for {
-    loginUser  <- ZIO.environment[LoginUser]
-    statusCode <- login(loginUser).provideLayer(FHttpClient.live)
-    // should never fail as it should fail before.
-    _ <- unsuccessfulStatusCode(statusCode)
-    _ <- moveTo(RouteDefinitions.homeRoute).provideLayer(FRouting.live)
-  } yield statusCode).either
 
   val $submitErrors: EventStream[Boolean] = $submitEvents.map(_.isLeft)
 
@@ -52,7 +49,19 @@ final class LoginForm private () extends Component[html.Form] with SimpleForm[Lo
       )
       .map(if (_) "is-invalid" else "")
 
-  def submitProgram(loginUser: LoginUser): UIO[ErrorOr[Int]] = program.provide(loginUser)
+  val loggedInToaster: ZIO[Toaster, Nothing, Unit] = toast.success(
+    "Logged in!",
+    ToastOptions(autoClose = Some(2.seconds))
+  )
+
+  def submitProgram(loginUser: LoginUser): URIO[Toaster with Routing with HttpClient, Either[ErrorADT, Int]] =
+    (for {
+      statusCode <- login(loginUser)
+      // should never fail as it should fail before.
+      _ <- unsuccessfulStatusCode(statusCode)
+      _ <- moveTo(RouteDefinitions.homeRoute)
+      _ <- loggedInToaster
+    } yield statusCode).either
 
   val element: ReactiveHtmlElement[Form] = form(
     submit,
@@ -79,11 +88,8 @@ final class LoginForm private () extends Component[html.Form] with SimpleForm[Lo
           touch
         )
       ),
-      p(
-        className := "text-danger",
-        "Invalid username and/or password.",
-        display <-- $invalidPassword.startWith(false).map(if (_) "" else "none")
-      )
+      $invalidPassword.filter(identity)
+        .flatMap(_ => toast.error("Invalid username and/or password")) --> Observer.empty
     ),
     div(
       formGroup,

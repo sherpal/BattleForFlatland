@@ -26,11 +26,11 @@ import scala.scalajs.js
       Some(
         toastEvents.foreach { content =>
           content.toastLevel match {
-            case ToastLevel.Info    => toast.info(content.toastContent)
-            case ToastLevel.Warning => toast.warn(content.toastContent)
-            case ToastLevel.Error   => toast.error(content.toastContent)
-            case ToastLevel.Success => toast.success(content.toastContent)
-            case ToastLevel.Dark    => toast.dark(content.toastContent)
+            case ToastLevel.Info    => toast.info(content.toastContent, content.reactToastOptions)
+            case ToastLevel.Warning => toast.warn(content.toastContent, content.reactToastOptions)
+            case ToastLevel.Error   => toast.error(content.toastContent, content.reactToastOptions)
+            case ToastLevel.Success => toast.success(content.toastContent, content.reactToastOptions)
+            case ToastLevel.Dark    => toast.dark(content.toastContent, content.reactToastOptions)
           }
         }
       )
