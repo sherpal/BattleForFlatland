@@ -18,7 +18,9 @@ import programs.frontend.games._
 import services.routing._
 import utils.laminarzio.Implicits.{zioFlattenStrategy, _}
 import utils.websocket.JsonWebSocket
-import zio.ZIO
+import zio.{ZIO, ZLayer}
+import services.toaster.{toast, ToastOptions}
+import services.toaster.ToasterModifierBuilder._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -164,6 +166,8 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
             )
         ),
       position := "relative",
+      socket.$in.filter(_ == WebSocketProtocol.GameLaunched)
+        .flatMap(_ => toast.info("Game is launching...", hideProgressBar := true)) --> Observer.empty,
       child <-- socket.$in.filter(_ == WebSocketProtocol.GameLaunched).mapTo(LoadingScreen()),
       child <-- $startGame.collect { // todo: improve error management
         case Left(error) =>

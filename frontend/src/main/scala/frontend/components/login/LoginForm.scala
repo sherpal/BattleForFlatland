@@ -15,11 +15,11 @@ import org.scalajs.dom.html.Form
 import programs.frontend.login.login
 import services.http.HttpClient
 import services.routing._
-import services.toaster.{toast, ToastOptions, Toaster}
+import services.toaster.{toast, Toaster}
 import utils.laminarzio.Implicits._
 import utils.ziohelpers._
 import zio.{URIO, ZIO}
-import services.logging.log
+import services.toaster.ToasterModifierBuilder._
 
 import scala.concurrent.duration.DurationInt
 
@@ -49,18 +49,13 @@ final class LoginForm private () extends Component[html.Form] with SimpleForm[Lo
       )
       .map(if (_) "is-invalid" else "")
 
-  val loggedInToaster: ZIO[Toaster, Nothing, Unit] = toast.success(
-    "Logged in!",
-    ToastOptions(autoClose = Some(2.seconds))
-  )
-
   def submitProgram(loginUser: LoginUser): URIO[Toaster with Routing with HttpClient, Either[ErrorADT, Int]] =
     (for {
       statusCode <- login(loginUser)
       // should never fail as it should fail before.
       _ <- unsuccessfulStatusCode(statusCode)
       _ <- moveTo(RouteDefinitions.homeRoute)
-      _ <- loggedInToaster
+      _ <- toast.success("Logged in!", autoCloseDuration := 2.seconds)
     } yield statusCode).either
 
   val element: ReactiveHtmlElement[Form] = form(

@@ -1,16 +1,55 @@
 package services.toaster
 
-import zio.{UIO, URIO, ZIO}
+import zio.{URIO, ZIO}
 
 final class Toast {
 
-  def info(content: String, options: => ToastOptions = ToastOptions.empty): URIO[Toaster, Unit] =
-    ZIO.accessM(_.get[Toaster.Service].info(content, options))
-  def success(content: String, options: => ToastOptions = ToastOptions.empty): URIO[Toaster, Unit] =
-    ZIO.accessM(_.get[Toaster.Service].success(content, options))
-  def warn(content: String, options: => ToastOptions = ToastOptions.empty): URIO[Toaster, Unit] =
-    ZIO.accessM(_.get[Toaster.Service].warn(content, options))
-  def error(content: String, options: => ToastOptions = ToastOptions.empty): URIO[Toaster, Unit] =
-    ZIO.accessM(_.get[Toaster.Service].error(content, options))
+  /**
+    * Toast an info with the given modifiers.
+    *
+    * @example
+    * {{{
+    *   import services.toaster.ToasterModifierBuilder._
+    *   toast.info("Logged in!", autoCloseDuration := 2.seconds)
+    * }}}
+    */
+  def info(content: String, modifiers: ToasterModifier*): URIO[Toaster, Unit] =
+    ZIO.accessM(_.get[Toaster.Service].info(content, ToasterModifier.seqBuild(modifiers)))
+
+  /**
+    * Toast an success with the given modifiers.
+    *
+    * @example
+    * {{{
+    *   import services.toaster.ToasterModifierBuilder._
+    *   toast.success("Logged in!", autoCloseDuration := 2.seconds)
+    * }}}
+    */
+  def success(content: String, modifiers: ToasterModifier*): URIO[Toaster, Unit] =
+    ZIO.accessM(_.get[Toaster.Service].success(content, ToasterModifier.seqBuild(modifiers)))
+
+  /**
+    * Toast an warning with the given modifiers.
+    *
+    * @example
+    * {{{
+    *   import services.toaster.ToasterModifierBuilder._
+    *   toast.warn("Not that nice!", autoCloseDuration := 2.seconds)
+    * }}}
+    */
+  def warn(content: String, modifiers: ToasterModifier*): URIO[Toaster, Unit] =
+    ZIO.accessM(_.get[Toaster.Service].warn(content, ToasterModifier.seqBuild(modifiers)))
+
+  /**
+    * Toast an error with the given modifiers.
+    *
+    * @example
+    * {{{
+    *   import services.toaster.ToasterModifierBuilder._
+    *   toast.error("Uh Oh!", noAutoClose)
+    * }}}
+    */
+  def error(content: String, modifiers: ToasterModifier*): URIO[Toaster, Unit] =
+    ZIO.accessM(_.get[Toaster.Service].error(content, ToasterModifier.seqBuild(modifiers)))
 
 }
