@@ -17,7 +17,7 @@ object PopperElement {
 
   def createPopper[ToAttachEl <: html.Element, El <: Element](
       toAttach: ReactiveHtmlElement[ToAttachEl],
-      placementOption: PlacementOption
+      placementOption: typings.popperjsCore.enumsMod.Placement
   ): Modifier[El] = {
 
     val clickBus                              = new EventBus[Unit]
@@ -33,9 +33,7 @@ object PopperElement {
             Popper.createPopper(
               element,
               toAttach.ref,
-              PartialOptions(
-                placement = placementOption
-              )
+            ???//PartialOptions().setPlacement(???)
             )
           )
         )

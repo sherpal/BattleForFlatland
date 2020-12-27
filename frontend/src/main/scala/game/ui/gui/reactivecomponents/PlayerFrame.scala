@@ -119,9 +119,7 @@ final class PlayerFrame(
     "",
     text <-- entityEvents.map(_.name).toSignal(""),
     textStyle := new TextStyle(
-      Align(
-        fontSize = 10.0
-      )
+      Align().setFontSize(10.0)
     ),
     x <-- heightSignal.map(_ + 4),
     y := 2,
@@ -132,7 +130,7 @@ final class PlayerFrame(
     "",
     text <-- entityEvents.map(_.life.toInt.toString).toSignal(""),
     x    <-- dimensions.map(_._1 - 30),
-    textStyle := new TextStyle(Align(fontSize = 15.0))
+    textStyle := new TextStyle(Align().setFontSize(15.0))
   )
 
   val buffContainer = new BuffContainer(

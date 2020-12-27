@@ -16,6 +16,7 @@ import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.LoaderResource
 import typings.pixiJs.mod.{Application, Container, Graphics}
 import utils.misc.RGBColour
+import typings.pixiJs.PIXI.SCALE_MODES
 
 final class GUIDrawer(
     playerId: Entity.Id,
@@ -27,6 +28,8 @@ final class GUIDrawer(
     camera: Camera
 ) {
   val guiContainer = new Container
+
+  val linearScale = 1.asInstanceOf[typings.pixiJs.PIXI.SCALE_MODES.LINEAR]
 
   val abilityColourMap: Map[Int, RGBColour] = (1 to Ability.abilityIdCount).map { abilityId =>
     abilityId -> RGBColour.someColours(abilityId % RGBColour.someColours.length)
@@ -41,7 +44,7 @@ final class GUIDrawer(
   val castingBar = new CastingBar(playerId, guiContainer, {
     val graphics = new Graphics
     graphics.lineStyle(2, 0xccc).beginFill(0, 0).drawRect(0, 0, 200, 15).endFill()
-    application.renderer.generateTexture(graphics, 1, 1)
+    application.renderer.generateTexture(graphics, linearScale, 1)
   }, resources(liteStepBar).texture, updateBus.events, abilityColourMap)
   castingBar.container.x = (application.view.width - castingBar.container.width) / 2
   castingBar.container.y = application.view.height - castingBar.container.height
@@ -73,7 +76,7 @@ final class GUIDrawer(
       .drawRect(0, 0, 15, 15)
       .endFill()
 
-    application.renderer.generateTexture(graphics, 1, 1)
+    application.renderer.generateTexture(graphics, linearScale, 1)
   }, resources(minimalistBar).texture, resources(minimalistBar).texture, 120, 30, resources, targetFromGUIWriter)
   guiContainer.addChild(playerFrame.container)
   playerFrame.container.x = application.view.width / 2 - 120
@@ -119,7 +122,7 @@ final class GUIDrawer(
                 .drawRect(0, 0, 15, 15)
                 .endFill()
 
-              application.renderer.generateTexture(graphics, 1, 1)
+              application.renderer.generateTexture(graphics, linearScale, 1)
             },
             resources(minimalistBar).texture,
             resources(minimalistBar).texture,
@@ -199,7 +202,7 @@ final class GUIDrawer(
         val bossFrame = new reactivecomponents.BossFrame(bossId, {
           val graphics = new Graphics
           graphics.lineStyle(2, 0).beginFill(0, 1).drawRect(0, 0, 200, 15).endFill()
-          application.renderer.generateTexture(graphics, 1, 1)
+          application.renderer.generateTexture(graphics, linearScale, 1)
         }, resources(minimalistBar).texture, resources(minimalistBar).texture, targetFromGUIWriter, updateBus.events, Val((200.0, 15.0)), abilityColourMap)
         bossFrame.container.ref.x = (application.view.width - bossFrame.container.ref.width) / 2
         guiContainer.addChild(bossFrame.container.ref)

@@ -5,7 +5,7 @@ import gamelogic.abilities.Ability
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.Texture
-import typings.pixiJs.PIXI.interaction.{InteractionEvent, InteractionEventTypes}
+import typings.pixiJs.PIXI.{InteractionEvent, InteractionEventTypes}
 import typings.pixiJs.mod.Sprite
 import utils.misc.RGBAColour
 

@@ -29,10 +29,7 @@ final class SimpleTextEffect(
   val pixiText = new Text(
     text,
     new TextStyle(
-      Align(
-        fontSize = fontSize,
-        fill     = colour.rgb
-      )
+      Align().setFontSize(fontSize).setFill(colour.rgb)
     )
   )
   pixiText.anchor.set(0.5, 0.5)

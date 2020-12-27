@@ -34,9 +34,7 @@ final class ClockDisplay(updates: EventStream[(GameState, Long)], positions: Sig
       "",
       text <-- updates.map((displayTime _).tupled),
       textStyle := new TextStyle(
-        Align(
-          fontSize = 15
-        )
+        Align().setFontSize(15)
       )
     )
   )

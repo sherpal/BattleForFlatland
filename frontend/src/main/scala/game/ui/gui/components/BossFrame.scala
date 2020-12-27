@@ -4,7 +4,7 @@ import com.raquo.airstream.core.Observer
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.Texture
-import typings.pixiJs.PIXI.interaction.{InteractionEvent, InteractionEventTypes}
+import typings.pixiJs.PIXI.{InteractionEvent, InteractionEventTypes}
 import typings.pixiJs.anon.Align
 import typings.pixiJs.mod.{Graphics, Sprite, Text, TextStyle}
 import utils.misc.RGBColour
@@ -55,9 +55,7 @@ final class BossFrame(
   private val bossNameText = new Text(
     "",
     new TextStyle(
-      Align(
-        fontSize = 10.0
-      )
+      Align().setFontSize(10)
     )
   )
   container.addChild(bossNameText)

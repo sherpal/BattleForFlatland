@@ -7,7 +7,7 @@ import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.BoundingBox
 import typings.pixiJs.PIXI.LoaderResource
-import typings.pixiJs.PIXI.interaction.{InteractionEvent, InteractionEventTypes}
+import typings.pixiJs.PIXI.{InteractionEvent, InteractionEventTypes}
 import typings.pixiJs.anon.Align
 import typings.pixiJs.mod.{Text, TextStyle}
 import utils.misc.RGBColour
@@ -21,10 +21,7 @@ final class BossStartButton(
   val element = new Text(
     "Start fight",
     new TextStyle(
-      Align(
-        fontSize = 20.0,
-        fill     = RGBColour.white.rgb
-      )
+      Align().setFontSize(20).setFill(RGBColour.white.rgb)
     )
   )
   element.anchor.set(0.5, 0.5)

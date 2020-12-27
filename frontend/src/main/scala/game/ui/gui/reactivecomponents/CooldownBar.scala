@@ -54,10 +54,7 @@ final class CooldownBar(
   val nameText: ReactiveText = pixiText(
     abilityName,
     textStyle := new TextStyle(
-      Align(
-        fontSize = 10.0,
-        fill     = colour.matchingTextColour.rgb
-      )
+      Align().setFontSize(10).setFill(colour.matchingTextColour.rgb)
     )
   )
 

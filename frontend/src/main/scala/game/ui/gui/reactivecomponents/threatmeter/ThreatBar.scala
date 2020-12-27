@@ -35,10 +35,7 @@ final class ThreatBar(
       .map(
         colour =>
           new TextStyle(
-            Align(
-              fontSize = 13.0,
-              fill     = colour.rgb
-            )
+            Align().setFontSize(13).setFill(colour.rgb)
           )
       )
 

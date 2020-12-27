@@ -22,6 +22,7 @@ import gamelogic.physics.shape.ConvexPolygon
 import typings.pixiJs.PIXI.{LoaderResource, RenderTexture}
 import typings.pixiJs.mod.{Application, Container, Graphics}
 import utils.misc.RGBColour
+import typings.pixiJs.PIXI.SCALE_MODES
 
 import scala.collection.mutable
 
@@ -42,7 +43,7 @@ final class EffectsManager(
       .drawRect(0, 0, 20, 2)
       .endFill()
 
-    application.renderer.generateTexture(graphics, 1, 1)
+    application.renderer.generateTexture(graphics, linearScale, 1)
   }
 
   private val container: Container = new Container

@@ -94,9 +94,7 @@ final class BossFrame(
       "",
       text <-- bossEvents.map(_.name).toSignal(""), // toSignal so that we don't change when not needed.
       textStyle := new TextStyle(
-        Align(
-          fontSize = 10.0
-        )
+        Align().setFontSize(10)
       )
     )
   )

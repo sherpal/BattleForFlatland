@@ -34,9 +34,7 @@ final class FPSDisplay(ticks: EventStream[Any]) extends GUIComponent {
       "",
       text <-- fps.map(_.toString).toSignal(""),
       textStyle := new TextStyle(
-        Align(
-          fontSize = 30.0
-        )
+        Align().setFontSize(30.0)
       ),
       x := 10,
       y := 10

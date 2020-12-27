@@ -84,9 +84,7 @@ final class BossThreatMeter(bossId: Entity.Id, barTexture: Texture) extends GUIC
     val text = new Text(
       "",
       new TextStyle(
-        Align(
-          fontSize = 13.0
-        )
+        Align().setFontSize(13)
       )
     )
 

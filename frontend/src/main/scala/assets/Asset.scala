@@ -8,9 +8,15 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 import scala.util.Try
 
-trait Asset extends js.Object
+trait Asset extends js.Object {
+  val name: String
+}
 
 object Asset {
+
+  def apply(str: String): Asset = new Asset {
+    val name: String = str
+  }
 
   final class AssetNotProperlyDefined(asset: Asset)
       extends Exception(
@@ -21,143 +27,169 @@ object Asset {
   object ingame {
     object gui {
       object abilities {
-        @js.native @JSImport("resources/assets/in-game/gui/abilities/ability-overlay.png", JSImport.Default)
-        object abilityOverlay extends Asset
+        // @js.native @JSImport("resources/assets/in-game/gui/abilities/ability-overlay.png", JSImport.Default)
+        // object abilityOverlay extends Asset
+        val abilityOverlay = Asset("resources/assets/in-game/gui/abilities/ability-overlay.png")
 
-        @js.native @JSImport("resources/assets/in-game/gui/abilities/hexagon-flash-heal.png", JSImport.Default)
-        object hexagonFlashHeal extends Asset
-        @js.native @JSImport("resources/assets/in-game/gui/abilities/hexagon-hot.png", JSImport.Default)
-        object hexagonHot extends Asset
+        // @js.native @JSImport("resources/assets/in-game/gui/abilities/hexagon-flash-heal.png", JSImport.Default)
+        // object hexagonFlashHeal extends Asset
+        val hexagonFlashHeal = Asset("resources/assets/in-game/gui/abilities/hexagon-flash-heal.png")
+        // @js.native @JSImport("resources/assets/in-game/gui/abilities/hexagon-hot.png", JSImport.Default)
+        // object hexagonHot extends Asset
+        val hexagonHot = Asset("resources/assets/in-game/gui/abilities/hexagon-hot.png")
 
-        @js.native @JSImport("resources/assets/in-game/gui/abilities/square-hammer-hit.png", JSImport.Default)
-        object squareHammerHit extends Asset
-        @js.native @JSImport("resources/assets/in-game/gui/abilities/square-taunt.png", JSImport.Default)
-        object squareTaunt extends Asset
-        @js.native @JSImport("resources/assets/in-game/gui/abilities/square-enrage.png", JSImport.Default)
-        object squareEnrage extends Asset
-        @js.native @JSImport("resources/assets/in-game/gui/abilities/square-cleave.png", JSImport.Default)
-        object squareCleave extends Asset
+        // @js.native @JSImport("resources/assets/in-game/gui/abilities/square-hammer-hit.png", JSImport.Default)
+        // object squareHammerHit extends Asset
+        val squareHammerHit = Asset("resources/assets/in-game/gui/abilities/square-hammer-hit.png")
+        // @js.native @JSImport("resources/assets/in-game/gui/abilities/square-taunt.png", JSImport.Default)
+        // object squareTaunt extends Asset
+        val squareTaunt = Asset("resources/assets/in-game/gui/abilities/square-taunt.png")
+        // @js.native @JSImport("resources/assets/in-game/gui/abilities/square-enrage.png", JSImport.Default)
+        // object squareEnrage extends Asset
+        val squareEnrage = Asset("resources/assets/in-game/gui/abilities/square-enrage.png")
+        // @js.native @JSImport("resources/assets/in-game/gui/abilities/square-cleave.png", JSImport.Default)
+        // object squareCleave extends Asset
+        val squareCleave = Asset("resources/assets/in-game/gui/abilities/square-cleave.png")
 
-        @js.native @JSImport("resources/assets/in-game/gui/abilities/triangle-direct-hit.png", JSImport.Default)
-        object triangleDirectHit extends Asset
-        @js.native @JSImport("resources/assets/in-game/gui/abilities/triangle-upgrade-direct-hit.png", JSImport.Default)
-        object triangleUpgradeDirectHit extends Asset
+        // @js.native @JSImport("resources/assets/in-game/gui/abilities/triangle-direct-hit.png", JSImport.Default)
+        // object triangleDirectHit extends Asset
+        val triangleDirectHit = Asset("resources/assets/in-game/gui/abilities/triangle-direct-hit.png")
+        // @js.native @JSImport("resources/assets/in-game/gui/abilities/triangle-upgrade-direct-hit.png", JSImport.Default)
+        // object triangleUpgradeDirectHit extends Asset
+        val triangleUpgradeDirectHit = Asset("resources/assets/in-game/gui/abilities/triangle-upgrade-direct-hit.png")
 
-        @js.native @JSImport("resources/assets/in-game/gui/abilities/pentagon-bullet.png", JSImport.Default)
-        object pentagonBullet extends Asset
-        @js.native @JSImport("resources/assets/in-game/gui/abilities/create-pentagon-zone.png", JSImport.Default)
-        object pentagonZone extends Asset
-        @js.native @JSImport("resources/assets/in-game/gui/abilities/pentagon-dispel.png", JSImport.Default)
-        object pentagonDispel extends Asset
+        // @js.native @JSImport("resources/assets/in-game/gui/abilities/pentagon-bullet.png", JSImport.Default)
+        // object pentagonBullet extends Asset
+        val pentagonBullet = Asset("resources/assets/in-game/gui/abilities/pentagon-bullet.png")
+        // @js.native @JSImport("resources/assets/in-game/gui/abilities/create-pentagon-zone.png", JSImport.Default)
+        // object pentagonZone extends Asset
+        val pentagonZone = Asset("resources/assets/in-game/gui/abilities/create-pentagon-zone.png")
+        // @js.native @JSImport("resources/assets/in-game/gui/abilities/pentagon-dispel.png", JSImport.Default)
+        // object pentagonDispel extends Asset
+        val pentagonDispel = Asset("resources/assets/in-game/gui/abilities/pentagon-dispel.png")
 
-        @js.native @JSImport("resources/assets/in-game/gui/abilities/boss101-big-dot.png", JSImport.Default)
-        object boss101BigDot extends Asset
+        // @js.native @JSImport("resources/assets/in-game/gui/abilities/boss101-big-dot.png", JSImport.Default)
+        // object boss101BigDot extends Asset
+        val boss101BigDot = Asset("resources/assets/in-game/gui/abilities/boss101-big-dot.png")
 
       }
 
       object bars {
-        @js.native @JSImport("resources/assets/in-game/gui/bars/LiteStep_wenakari.png", JSImport.Default)
-        object liteStepBar extends Asset
+        // @js.native @JSImport("resources/assets/in-game/gui/bars/LiteStep_wenakari.png", JSImport.Default)
+        // object liteStepBar extends Asset
+        val liteStepBar = Asset("resources/assets/in-game/gui/bars/LiteStep_wenakari.png")
 
-        @js.native @JSImport("resources/assets/in-game/gui/bars/Minimalist.png", JSImport.Default)
-        object minimalistBar extends Asset
+        // @js.native @JSImport("resources/assets/in-game/gui/bars/Minimalist.png", JSImport.Default)
+        // object minimalistBar extends Asset
+        val minimalistBar = Asset("resources/assets/in-game/gui/bars/Minimalist.png")
 
-        @js.native @JSImport("resources/assets/in-game/gui/bars/Xeon.png", JSImport.Default)
-        object xeonBar extends Asset
+        // @js.native @JSImport("resources/assets/in-game/gui/bars/Xeon.png", JSImport.Default)
+        // object xeonBar extends Asset
+        val xeonBar = Asset("resources/assets/in-game/gui/bars/Xeon.png")
       }
 
       object boss {
         object dawnOfTime {
           object boss102 {
-            @js.native @JSImport(
-              "resources/assets/in-game/gui/boss/dawn-of-time/boss102/living-damage-zone.png",
-              JSImport.Default
-            )
-            object livingDamageZone extends Asset
+            // @js.native @JSImport(
+            //   "resources/assets/in-game/gui/boss/dawn-of-time/boss102/living-damage-zone.png",
+            //   JSImport.Default
+            // )
+            // object livingDamageZone extends Asset
+            val livingDamageZone = Asset("resources/assets/in-game/gui/boss/dawn-of-time/boss102/living-damage-zone.png")
           }
           object boss103 {
-            @js.native @JSImport(
-              "resources/assets/in-game/gui/boss/dawn-of-time/boss103/boss103-punished.png",
-              JSImport.Default
-            )
-            object punished extends Asset
-            @js.native @JSImport(
-              "resources/assets/in-game/gui/boss/dawn-of-time/boss103/boss103-purified.png",
-              JSImport.Default
-            )
-            object purified extends Asset
-            @js.native @JSImport(
-              "resources/assets/in-game/gui/boss/dawn-of-time/boss103/boss103-inflamed.png",
-              JSImport.Default
-            )
-            object inflamed extends Asset
-            @js.native @JSImport(
-              "resources/assets/in-game/gui/boss/dawn-of-time/boss103/sacred-ground.png",
-              JSImport.Default
-            )
-            object sacredGroundArea extends Asset
+            // @js.native @JSImport(
+            //   "resources/assets/in-game/gui/boss/dawn-of-time/boss103/boss103-punished.png",
+            //   JSImport.Default
+            // )
+            // object punished extends Asset
+            val punished = Asset("resources/assets/in-game/gui/boss/dawn-of-time/boss103/boss103-punished.png")
+            // @js.native @JSImport(
+            //   "resources/assets/in-game/gui/boss/dawn-of-time/boss103/boss103-purified.png",
+            //   JSImport.Default
+            // )
+            // object purified extends Asset
+            val purified = Asset("resources/assets/in-game/gui/boss/dawn-of-time/boss103/boss103-purified.png")
+            // @js.native @JSImport(
+            //   "resources/assets/in-game/gui/boss/dawn-of-time/boss103/boss103-inflamed.png",
+            //   JSImport.Default
+            // )
+            // object inflamed extends Asset
+            val inflamed = Asset("resources/assets/in-game/gui/boss/dawn-of-time/boss103/boss103-inflamed.png")
+            // @js.native @JSImport(
+            //   "resources/assets/in-game/gui/boss/dawn-of-time/boss103/sacred-ground.png",
+            //   JSImport.Default
+            // )
+            // object sacredGroundArea extends Asset
+            val sacredGroundArea = Asset("resources/assets/in-game/gui/boss/dawn-of-time/boss103/sacred-ground.png")
           }
         }
       }
 
       object `default-abilities` {
-        @js.native @JSImport(
-          "resources/assets/in-game/gui/default-abilities/players/square-shield.png",
-          JSImport.Default
-        )
-        object squareShield extends Asset
+        // @js.native @JSImport(
+        //   "resources/assets/in-game/gui/default-abilities/players/square-shield.png",
+        //   JSImport.Default
+        // )
+        // object squareShield extends Asset
+        val squareShield = Asset("resources/assets/in-game/gui/default-abilities/players/square-shield.png")
 
-        @js.native @JSImport(
-          "resources/assets/in-game/gui/default-abilities/players/rage-filler.png",
-          JSImport.Default
-        )
-        object rageFiller extends Asset
+        // @js.native @JSImport(
+        //   "resources/assets/in-game/gui/default-abilities/players/rage-filler.png",
+        //   JSImport.Default
+        // )
+        // object rageFiller extends Asset
+        val rageFiller = Asset("resources/assets/in-game/gui/default-abilities/players/rage-filler.png")
 
-        @js.native @JSImport(
-          "resources/assets/in-game/gui/default-abilities/players/energy-filler.png",
-          JSImport.Default
-        )
-        object energyFiller extends Asset
+        // @js.native @JSImport(
+        //   "resources/assets/in-game/gui/default-abilities/players/energy-filler.png",
+        //   JSImport.Default
+        // )
+        // object energyFiller extends Asset
+        val energyFiller = Asset("resources/assets/in-game/gui/default-abilities/players/energy-filler.png")
 
-        @js.native @JSImport(
-          "resources/assets/in-game/gui/default-abilities/players/mana-filler.png",
-          JSImport.Default
-        )
-        object manaFiller extends Asset
+        // @js.native @JSImport(
+        //   "resources/assets/in-game/gui/default-abilities/players/mana-filler.png",
+        //   JSImport.Default
+        // )
+        // object manaFiller extends Asset
+        val manaFiller = Asset("resources/assets/in-game/gui/default-abilities/players/mana-filler.png")
       }
     }
   }
 
-  implicit def assetAsString(asset: Asset): String =
-    Try(asset.asInstanceOf[String]).fold(_ => throw new AssetNotProperlyDefined(asset), identity[String])
+  // implicit def assetAsString(asset: Asset): String =
+  //   Try(asset.asInstanceOf[String]).fold(_ => throw new AssetNotProperlyDefined(asset), identity[String])
+  implicit def assetAsString(asset: Asset): String = asset.name
 
   // Touching all assets so that there are loaded
-  ScalaLogo
-  ingame.gui.abilities.abilityOverlay
-  ingame.gui.abilities.hexagonFlashHeal
-  ingame.gui.abilities.hexagonHot
-  ingame.gui.abilities.squareHammerHit
-  ingame.gui.abilities.squareTaunt
-  ingame.gui.abilities.squareEnrage
-  ingame.gui.abilities.squareCleave
-  ingame.gui.abilities.triangleDirectHit
-  ingame.gui.abilities.triangleUpgradeDirectHit
-  ingame.gui.abilities.pentagonBullet
-  ingame.gui.abilities.pentagonZone
-  ingame.gui.abilities.pentagonDispel
-  ingame.gui.bars.liteStepBar
-  ingame.gui.bars.minimalistBar
-  ingame.gui.bars.xeonBar
-  ingame.gui.boss.dawnOfTime.boss102.livingDamageZone
-  ingame.gui.boss.dawnOfTime.boss103.punished
-  ingame.gui.boss.dawnOfTime.boss103.purified
-  ingame.gui.boss.dawnOfTime.boss103.purified
-  ingame.gui.boss.dawnOfTime.boss103.sacredGroundArea
-  ingame.gui.abilities.boss101BigDot
-  ingame.gui.`default-abilities`.squareShield
-  ingame.gui.`default-abilities`.rageFiller
-  ingame.gui.`default-abilities`.energyFiller
-  ingame.gui.`default-abilities`.manaFiller
+  // ScalaLogo
+  // ingame.gui.abilities.abilityOverlay
+  // ingame.gui.abilities.hexagonFlashHeal
+  // ingame.gui.abilities.hexagonHot
+  // ingame.gui.abilities.squareHammerHit
+  // ingame.gui.abilities.squareTaunt
+  // ingame.gui.abilities.squareEnrage
+  // ingame.gui.abilities.squareCleave
+  // ingame.gui.abilities.triangleDirectHit
+  // ingame.gui.abilities.triangleUpgradeDirectHit
+  // ingame.gui.abilities.pentagonBullet
+  // ingame.gui.abilities.pentagonZone
+  // ingame.gui.abilities.pentagonDispel
+  // ingame.gui.bars.liteStepBar
+  // ingame.gui.bars.minimalistBar
+  // ingame.gui.bars.xeonBar
+  // ingame.gui.boss.dawnOfTime.boss102.livingDamageZone
+  // ingame.gui.boss.dawnOfTime.boss103.punished
+  // ingame.gui.boss.dawnOfTime.boss103.purified
+  // ingame.gui.boss.dawnOfTime.boss103.purified
+  // ingame.gui.boss.dawnOfTime.boss103.sacredGroundArea
+  // ingame.gui.abilities.boss101BigDot
+  // ingame.gui.`default-abilities`.squareShield
+  // ingame.gui.`default-abilities`.rageFiller
+  // ingame.gui.`default-abilities`.energyFiller
+  // ingame.gui.`default-abilities`.manaFiller
 
   final val abilityAssetMap: Map[Ability.AbilityId, Asset] = Map(
     Ability.hexagonHexagonHotId -> ingame.gui.abilities.hexagonHot,

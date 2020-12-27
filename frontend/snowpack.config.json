@@ -1,0 +1,16 @@
+{
+  "mount": {
+    "public": "/",
+    "target/scala-2.13/frontend-fastopt": "/",
+    "src/main/resources": "/"
+  },
+  "proxy": {
+    "/": {
+      "target": "http://localhost:9000"
+    },
+    "/ws": {
+      "target": "ws://localhost:9000",
+      "ws": true
+    }
+  }
+}

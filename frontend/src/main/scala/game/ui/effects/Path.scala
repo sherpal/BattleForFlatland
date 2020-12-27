@@ -70,7 +70,7 @@ object Path {
     def apply(time: Long): Complex  = path(time)
   }
 
-  val positiveRealLine: Path = Path.infiniteFactory(Complex(_, 0))
+  val positiveRealLine: Path = Path.infiniteFactory(l => Complex(l.toDouble, 0))
 
   def positiveSegment(duration: Long): Path = positiveRealLine.stopAfter(duration)
 

@@ -184,7 +184,7 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
           setInterval(10.seconds) {
             utils.runtime.unsafeRunToFuture(pokingPresence(gameId)) onComplete {
               case Success(_) =>
-              case Failure(_) => pokingHandleVar.now.foreach(clearInterval)
+              case Failure(_) => pokingHandleVar.now().foreach(clearInterval)
             }
           }
         )
@@ -192,7 +192,7 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
     }),
     onUnmountCallback { _ =>
       socket.close()
-      pokingHandleVar.now.foreach(clearInterval)
+      pokingHandleVar.now().foreach(clearInterval)
     }
   )
 

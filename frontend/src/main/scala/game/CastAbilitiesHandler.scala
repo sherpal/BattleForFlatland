@@ -62,7 +62,7 @@ final class CastAbilitiesHandler(
             )
             val action = EntityStartsCasting(0L, now, ability.castingTime, ability)
             if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action
-                  .isLegalDelay($strictGameStates.now, deltaTimeWithServer + 100)) {
+                  .isLegalDelay($strictGameStates.now(), deltaTimeWithServer + 100)) {
               socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
             } else if (scala.scalajs.LinkingInfo.developmentMode) {
               dom.console.warn("Can't cast CreatePentagonZone.")
@@ -107,7 +107,7 @@ final class CastAbilitiesHandler(
                   val ability = FlashHeal(0L, now, playerId, target.id)
                   val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
                   if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action
-                        .isLegalDelay($strictGameStates.now, deltaTimeWithServer + 100)) {
+                        .isLegalDelay($strictGameStates.now(), deltaTimeWithServer + 100)) {
                     socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
                   } else if (scala.scalajs.LinkingInfo.developmentMode) {
                     dom.console.warn("Can't cast FlashHeal.")
@@ -120,7 +120,7 @@ final class CastAbilitiesHandler(
                   val ability = HexagonHot(0L, now, playerId, target.id)
                   val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
                   if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action
-                        .isLegalDelay($strictGameStates.now, deltaTimeWithServer + 100)) {
+                        .isLegalDelay($strictGameStates.now(), deltaTimeWithServer + 100)) {
                     socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
                   } else if (scala.scalajs.LinkingInfo.developmentMode) {
                     dom.console.warn("Can't cast Hexagon Hot.")
@@ -134,7 +134,7 @@ final class CastAbilitiesHandler(
                   val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
 
                   if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action.isLegalDelay(
-                        $strictGameStates.now,
+                        $strictGameStates.now(),
                         deltaTimeWithServer + 100
                       )) {
                     socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
@@ -149,7 +149,7 @@ final class CastAbilitiesHandler(
                   val ability = HammerHit(0L, now, playerId, target.id)
                   val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
                   if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action.isLegalDelay(
-                        $strictGameStates.now,
+                        $strictGameStates.now(),
                         deltaTimeWithServer + 100
                       )) {
                     socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
@@ -172,7 +172,7 @@ final class CastAbilitiesHandler(
                   )
                   val action = EntityStartsCasting(0L, now, ability.castingTime, ability)
                   if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
-                        $strictGameStates.now,
+                        $strictGameStates.now(),
                         deltaTimeWithServer + 100
                       )) {
                     socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
@@ -189,7 +189,7 @@ final class CastAbilitiesHandler(
                   val ability = DirectHit(0L, now, playerId, target.id, DirectHit.directHitDamage)
                   val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
                   if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
-                        $strictGameStates.now,
+                        $strictGameStates.now(),
                         deltaTimeWithServer + 100
                       )) {
                     socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
@@ -201,7 +201,7 @@ final class CastAbilitiesHandler(
               val ability = UpgradeDirectHit(0L, now, playerId)
               val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
               if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
-                    $strictGameStates.now,
+                    $strictGameStates.now(),
                     deltaTimeWithServer + 100
                   )) {
                 socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
@@ -225,7 +225,7 @@ final class CastAbilitiesHandler(
                   )
                   val action = EntityStartsCasting(0L, now, ability.castingTime, ability)
                   if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
-                        $strictGameStates.now,
+                        $strictGameStates.now(),
                         deltaTimeWithServer + 100
                       )) {
                     socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
@@ -242,7 +242,7 @@ final class CastAbilitiesHandler(
                   val ability = PentaDispel(0L, now, playerId, target.id)
                   val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
                   if (!gameState.castingEntityInfo.isDefinedAt(playerId) && action
-                        .isLegalDelay($strictGameStates.now, deltaTimeWithServer + 100)) {
+                        .isLegalDelay($strictGameStates.now(), deltaTimeWithServer + 100)) {
                     socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
                   } else if (scala.scalajs.LinkingInfo.developmentMode) {
                     dom.console.warn("Can't cast Dispel.")
@@ -267,7 +267,7 @@ final class CastAbilitiesHandler(
                   val ability = Enrage(0L, now, playerId)
                   val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
                   if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
-                        $strictGameStates.now,
+                        $strictGameStates.now(),
                         deltaTimeWithServer + 100
                       )) {
                     socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
