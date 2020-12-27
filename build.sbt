@@ -5,7 +5,7 @@ name := "Battle for Flatland"
 
 version := "0.2"
 
-scalaVersion in ThisBuild := "2.13.1"
+scalaVersion in ThisBuild := "2.13.4"
 
 val scalaCompilerOptions = List(
   "-deprecation",
@@ -25,7 +25,7 @@ lazy val `shared` = crossProject(JSPlatform, JVMPlatform)
   .disablePlugins(HerokuPlugin) // no need of Heroku for shared project
   .settings(
     SharedSettings(),
-    scalaVersion := "2.13.1",
+    scalaVersion := "2.13.4",
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )
   .jvmSettings(
@@ -39,7 +39,7 @@ lazy val `shared-backend` = project
   .in(file("./shared-backend"))
   .disablePlugins(HerokuPlugin)
   .settings(
-    scalaVersion := "2.13.1",
+    scalaVersion := "2.13.4",
     BackendSettings(),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )
@@ -50,7 +50,7 @@ lazy val `backend` = (project in file("./backend"))
   .enablePlugins(PlayScala)
   //.enablePlugins(SwaggerPlugin)
   .settings(
-    scalaVersion := "2.13.1",
+    scalaVersion := "2.13.4",
     BackendSettings.playSpecifics(),
     BackendSettings.testsDeps(),
     BackendSettings.herokuSettings(),
@@ -66,7 +66,7 @@ lazy val `frontend` = (project in file("./frontend"))
   //.enablePlugins(ScalaJSBundlerPlugin)
   .settings(
     FrontendSettings(),
-    scalaVersion := "2.13.1",
+    scalaVersion := "2.13.4",
     useYarn := true,
     stUseScalaJsDom := false
   )
@@ -75,7 +75,7 @@ lazy val `frontend` = (project in file("./frontend"))
 lazy val `game-server` = project
   .in(file("./game-server"))
   .settings(
-    scalaVersion := "2.13.1",
+    scalaVersion := "2.13.4",
     GameServerSettings()
   )
   .disablePlugins(HerokuPlugin)
