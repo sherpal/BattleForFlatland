@@ -6,13 +6,14 @@ import typings.expressServeStaticCore.mod._
 import typings.node.global.console
 import typings.expressServeStaticCore.mod.ParamsDictionary
 import typings.qs.mod.ParsedQs
+import typings.node.BufferEncoding
 
 import scala.scalajs.js
 
 object Main {
 
   val child: ChildProcessWithoutNullStreams = spawn("sbt")
-  child.stdin_ChildProcessWithoutNullStreams.setDefaultEncoding("utf-8")
+  child.stdin_ChildProcessWithoutNullStreams.setDefaultEncoding(BufferEncoding.`utf-8`)
   child.stdout_ChildProcessWithoutNullStreams.pipe(typings.node.global.process.stdout)
 
   private def runSBTCommand(command: String): Unit = child.stdin_ChildProcessWithoutNullStreams.write(

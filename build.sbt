@@ -116,16 +116,15 @@ val nodeProject: Project => Project =
 
 lazy val `game-server-launcher` = project
   .in(file("./game-server-launcher"))
-  .enablePlugins(ScalablyTypedConverterPlugin)
+  .enablePlugins(ScalablyTypedConverterExternalNpmPlugin)
   .configure(bundlerSettings, nodeProject)
   .settings(
-    //stExperimentalEnableImplicitOps := true,
-    // Compile / npmDependencies ++= Seq(
-    //   "@types/express" -> "4.17.2",
-    //   "express" -> "4.17.1"
-    // ),
-    useYarn := true,
-    scalaJSUseMainModuleInitializer := true
+    externalNpm := {
+      scala.sys.process.Process("npm", baseDirectory.value).!
+      baseDirectory.value
+    },
+    scalaJSUseMainModuleInitializer := true,
+    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
   .disablePlugins(HerokuPlugin)
 

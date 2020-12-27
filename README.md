@@ -85,16 +85,20 @@ The frontend part of the game relies on a certain amount of npm dependencies. Th
 
 While in development, we have a "game-server-launcher" to launch the game servers when a game is launched. This is a kind of a "mock up" for a more robust setup, involving, e.g., an Azure gaming service.
 
-The `game-server-launcher` sub-project is an express server written in Scala-js. You can first compile it using, in sbt,
+The `game-server-launcher` sub-project is an express server written in Scala-js.
+
+You first have to install `npm` dependencies. Go to `game-server-launcher` directory and run `npm install`.
+
+You can then compile the Scala project using, in sbt,
 
 ```
 game-server-launcher/fullOptJS
 ```
 
-and you can then launch it using (outside sbt!)
+and you can finally launch it using (outside sbt!)
 
 ```
-node game-server-launcher/target/scala-2.13/scalajs-bundler/main/game-server-launcher-opt.js
+node game-server-launcher/target/scala-2.13/game-server-launcher-opt
 ```
 
 Alternatively, you can simply run (in sbt)

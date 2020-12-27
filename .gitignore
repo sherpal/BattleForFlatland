@@ -8,6 +8,8 @@ data
 .idea
 
 frontend/node_modules
+game-server-launcher/node_modules
+game-server-launcher/build
 
 .bloop
 .metals
