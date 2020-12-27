@@ -12,12 +12,16 @@ import scala.concurrent.duration.FiniteDuration
   *
   * @param autoClose Right the duration the toast has to stay alive, or Left false for no autoClose.
   * @param onClose zio effect to run when the toast disappears
+  * @param onOpen zio effect to run when the toast appears
   * @param hideProgressBar whether to hide the progress bar of the tooltip
+  * @param pauseOnHover Keep the timer running or not on hover
   */
 final case class ToastOptions(
     autoClose: Option[Either[false, FiniteDuration]]                        = None,
+    onOpen: Option[ZIO[utils.ziohelpers.FrontendGlobalEnv, Nothing, Unit]]  = None,
     onClose: Option[ZIO[utils.ziohelpers.FrontendGlobalEnv, Nothing, Unit]] = None,
-    hideProgressBar: Option[Boolean]                                        = None
+    hideProgressBar: Option[Boolean]                                        = None,
+    pauseOnHover: Option[Boolean]                                           = None
 )
 
 object ToastOptions {

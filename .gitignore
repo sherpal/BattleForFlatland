@@ -1,6 +1,7 @@
 target
 dist
 data
+.vscode
 
 .DS_Store
 .idea
@@ -8,6 +9,7 @@ data
 .bloop
 .metals
 project/metals.sbt
+project/project
 
 project/target
 project/project/target

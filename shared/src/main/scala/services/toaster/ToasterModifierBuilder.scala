@@ -43,10 +43,16 @@ object ToasterModifierBuilder {
   /** Make the toast to never disappear. */
   val noAutoClose = factory[Unit](_ => _.copy(autoClose = Some(Left(false))))
 
+  /** ZIO effect to apply when the toast disappears. */
+  val onClose = factory[ZIO[FrontendGlobalEnv, Nothing, Unit]](maybeEffect => _.copy(onClose = maybeEffect))
+
+  /** ZIO effect to apply when the toast appears. */
+  val onOpen = factory[ZIO[FrontendGlobalEnv, Nothing, Unit]](maybeEffect => _.copy(onOpen = maybeEffect))
+
   /** Tells whether to hide the progress bar in the toast. */
   val hideProgressBar = factory[Boolean](maybeBool => _.copy(hideProgressBar = maybeBool))
 
-  /** ZIO effect to apply when the toast disappears. */
-  val onClose = factory[ZIO[FrontendGlobalEnv, Nothing, Unit]](maybeEffect => _.copy(onClose = maybeEffect))
+  /** Keep the timer running or not on hover */
+  val pauseOnHover = factory[Boolean](maybeBool => _.copy(pauseOnHover = maybeBool))
 
 }

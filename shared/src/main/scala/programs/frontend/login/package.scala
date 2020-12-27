@@ -55,7 +55,7 @@ package object login {
   implicit val longPrinter: Printer[Long] = (t: Long) => t.toString
 
   def users(from: Long, to: Long): ZIO[HttpClient, ErrorADT, List[User]] =
-    get[(Long, Long), List[User]](models.users.Routes.donwloadUsers, param[Long]("from") & param[Long]("to"))((0L, 10L))
+    get[List[User]](models.users.Routes.donwloadUsers, param[Long]("from") & param[Long]("to"))((from, to))
       .refineOrDie(ErrorADT.onlyErrorADT)
 
 }

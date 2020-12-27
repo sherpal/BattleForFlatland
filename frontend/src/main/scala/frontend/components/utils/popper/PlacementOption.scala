@@ -1,6 +1,8 @@
 package frontend.components.utils.popper
 import typings.popperjsCore.enumsMod.Placement
 
+import scala.language.implicitConversions
+
 sealed trait PlacementOption {
   def popperPlacement: typings.popperjsCore.enumsMod.Placement
 }

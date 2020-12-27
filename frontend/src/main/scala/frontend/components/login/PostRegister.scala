@@ -14,7 +14,7 @@ final class PostRegister private (userName: String) extends Component[html.Eleme
 
   val autoConfirmRegistration: ZIO[Routing with HttpClient, Throwable, Unit] = for {
     _ <- ZIO.effectTotal { println("Asking registration key") }
-    registrationKey <- post[String, String](
+    registrationKey <- post[String](
       RouteDefinitions.registrationKeyFromNameRoute,
       RouteDefinitions.userNameParam
     )(userName)

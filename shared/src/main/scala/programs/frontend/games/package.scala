@@ -30,7 +30,7 @@ package object games {
     .fromSchedule(Schedule.spaced(zio.duration.Duration.fromScala(5.seconds)))
     .flatMap(_ => ZStream.fromEffect(downloadGames.either))
 
-  def createNewGame(game: MenuGame): ZIO[HttpClient, Throwable, String] = post[MenuGame, String](newMenuGame, game)
+  def createNewGame(game: MenuGame): ZIO[HttpClient, Throwable, String] = post[String](newMenuGame, game)
 
   def joinGameProgram(game: MenuGame, maybePassword: PasswordWrapper): ZIO[Routing with HttpClient, Throwable, Int] =
     for {
@@ -56,7 +56,7 @@ package object games {
     * @return the game information wrapped into an Option if it succeed, None otherwise.
     */
   def fetchGameInfo(gameId: String): URIO[Routing with Logging with HttpClient, Option[MenuGameWithPlayers]] =
-    get[String, MenuGameWithPlayers](gameInfo, gameIdParam)(gameId)
+    get[MenuGameWithPlayers](gameInfo, gameIdParam)(gameId)
       .flatMapError(
         error =>
           for {
@@ -83,7 +83,7 @@ package object games {
   /** Asks the game server for the token. */
   // todo: change the host!!!
   def fetchGameToken(credentials: GameUserCredentials): ZIO[HttpClient, ErrorADT, String] =
-    post[GameUserCredentials, String](gameServerToken, credentials)
+    post[String](gameServerToken, credentials)
       .refineOrDie(ErrorADT.onlyErrorADT)
 
 }
