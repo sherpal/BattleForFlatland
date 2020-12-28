@@ -21,10 +21,7 @@ final class BossStartButton(
   val element = new Text(
     "Start fight",
     new TextStyle(
-      Align(
-        fontSize = 20.0,
-        fill     = RGBColour.white.rgb
-      )
+      Align().setFontSize(20).setFill(RGBColour.white.rgb)
     )
   )
   element.anchor.set(0.5, 0.5)

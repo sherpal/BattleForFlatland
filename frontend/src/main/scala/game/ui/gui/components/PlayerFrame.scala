@@ -47,15 +47,13 @@ final class PlayerFrame(
   private val playerNameText = new Text(
     "",
     new TextStyle(
-      Align(
-        fontSize = 10.0
-      )
+      Align().setFontSize(10)
     )
   )
 
   private val lifeText = new Text(
     "",
-    new TextStyle(Align(fontSize = 15.0))
+    new TextStyle(Align().setFontSize(15))
   )
 
   List(shapeSprite, backgroundLifeSprite, lifeSprite, lifeMask, resourceSprite, resourceMask, playerNameText, lifeText)

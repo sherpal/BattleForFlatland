@@ -107,7 +107,7 @@ object Complex {
 
   implicit def fromDouble(d: Double): Complex          = Complex(d, 0)
   implicit def fromInt(n: Int): Complex                = Complex(n, 0)
-  implicit def fromLong(n: Long): Complex              = Complex(n, 0)
+  implicit def fromLong(n: Long): Complex              = Complex(n.toDouble, 0)
   implicit def fromTuple(z: (Double, Double)): Complex = Complex(z._1, z._2)
 
   def exp(z: Complex): Complex = math.exp(z.re) * Complex(math.cos(z.im), math.sin(z.im))

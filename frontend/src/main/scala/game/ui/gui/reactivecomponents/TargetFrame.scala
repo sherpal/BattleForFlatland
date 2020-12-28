@@ -85,9 +85,7 @@ final class TargetFrame(
       }
       .toSignal(""),
     textStyle := new TextStyle(
-      Align(
-        fontSize = 10.0
-      )
+      Align().setFontSize(10)
     )
   )
 
@@ -95,9 +93,7 @@ final class TargetFrame(
     "",
     text <-- maybeTargetEvents.collect { case Some(entity) => entity.life.toInt.toString }.toSignal(""),
     textStyle := new TextStyle(
-      Align(
-        fontSize = 15.0
-      )
+      Align().setFontSize(15)
     ),
     x <-- dimensions.map(_._1 - 40)
   )

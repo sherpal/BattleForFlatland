@@ -20,6 +20,7 @@ import gamelogic.physics.Complex
 import typings.pixiJs.PIXI.{LoaderResource, RenderTexture}
 import typings.pixiJs.mod.Graphics
 import utils.misc.RGBColour
+import typings.pixiJs.PIXI.SCALE_MODES
 
 final class ReactiveGUIDrawer(
     playerId: Entity.Id,
@@ -30,6 +31,8 @@ final class ReactiveGUIDrawer(
     useAbilityWriter: Observer[Ability.AbilityId],
     gameStateUpdates: EventStream[(GameState, Long)]
 ) {
+
+  val linearMode = 1.0//.asInstanceOf[SCALE_MODES.LINEAR]
 
   val abilityColourMap: Map[Int, RGBColour] = (1 to Ability.abilityIdCount).map { abilityId =>
     abilityId -> RGBColour.someColours(abilityId % RGBColour.someColours.length)
@@ -44,7 +47,7 @@ final class ReactiveGUIDrawer(
       .drawRect(0, 0, 32, 32)
       .endFill()
 
-    stage.application.renderer.generateTexture(graphics, 1, 1)
+    stage.application.renderer.generateTexture(graphics, linearMode, 1)
   }
 
   val slowGameStateUpdates: EventStream[(GameState, Long)] = gameStateUpdates.throttle(500)
@@ -64,7 +67,7 @@ final class ReactiveGUIDrawer(
       .drawRect(0, 0, 15, 15)
       .endFill()
 
-    stage.application.renderer.generateTexture(graphics, 1, 1)
+    stage.application.renderer.generateTexture(graphics, linearMode, 1)
   }
 
   private val playerFrameDimensions = Val((120.0, 30.0))
@@ -82,7 +85,7 @@ final class ReactiveGUIDrawer(
   ).amend(
     position <-- stage.resizeEvents.map {
       case (viewWidth, viewHeight) =>
-        Complex(viewWidth / 2 - playerFrameDimensions.now._1, viewHeight - 70)
+        Complex(viewWidth / 2 - playerFrameDimensions.now()._1, viewHeight - 70)
     }
   )
   guiContainer.amend(playerFrame)
@@ -121,14 +124,14 @@ final class ReactiveGUIDrawer(
     stage.resizeEvents.map {
       case (width, height) =>
         Complex(
-          (width - castingBarDimensions.now._1) / 2,
-          height - castingBarDimensions.now._2
+          (width - castingBarDimensions.now()._1) / 2,
+          height - castingBarDimensions.now()._2
         )
     },
     castingBarDimensions, {
       val graphics = new Graphics
       graphics.lineStyle(2, 0xccc).beginFill(0, 0).drawRect(0, 0, 200, 15).endFill()
-      stage.application.renderer.generateTexture(graphics, 1, 1)
+      stage.application.renderer.generateTexture(graphics, linearMode, 1)
     },
     resources(liteStepBar).texture,
     gameStateUpdates,
@@ -162,7 +165,7 @@ final class ReactiveGUIDrawer(
             id, {
               val graphics = new Graphics
               graphics.lineStyle(2, 0).beginFill(0xc0c0c0, 1).drawRect(0, 0, 200, 15).endFill()
-              stage.application.renderer.generateTexture(graphics, 1, 1)
+              stage.application.renderer.generateTexture(graphics, linearMode, 1)
             },
             resources(minimalistBar).texture,
             resources(minimalistBar).texture,

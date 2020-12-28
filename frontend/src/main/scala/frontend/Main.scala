@@ -10,15 +10,17 @@ import zio.{UIO, ZIO}
 import scala.scalajs.js
 import scala.scalajs.js.annotation.{JSExportTopLevel, JSImport}
 
-@JSImport("resources/index.css", JSImport.Default)
+@JSImport("./index.css", JSImport.Default)
 @js.native
 object IndexCSS extends js.Object
 
-@JSImport("resources/icon.ico", JSImport.Default)
-@js.native
-object Icon extends js.Object
+// @JSImport("./icon.ico", JSImport.Default)
+// @js.native
+object Icon extends js.Object {
+  val name: String = "./icon.ico"
+}
 
-@JSImport("resources/tailwind-index.css", JSImport.Default)
+@JSImport("./tailwind-index.css", JSImport.Default)
 @js.native
 object Tailwind extends js.Object
 
@@ -34,7 +36,7 @@ object Main {
   IndexCSS
   Tailwind
   Asset
-  Icon
+  //Icon
 
   final val addPageTitle = ZIO.effectTotal {
     dom.document.title = globals.projectName
@@ -97,11 +99,14 @@ object Main {
       val link = dom.document.createElement("link").asInstanceOf[dom.html.Link]
       link.`type` = "image/x-icon"
       link.rel    = "shortcut icon"
-      link.href   = Icon.asInstanceOf[String]
+      link.href   = Icon.name
       dom.document.head.appendChild(link)
     }
   } yield ()
   @JSExportTopLevel("main")
-  def main(): Unit =
+  def theMain(): Unit =
     zio.Runtime.default.unsafeRun(program.orDie)
+
+
+  def main(args: Array[String]): Unit = theMain()
 }

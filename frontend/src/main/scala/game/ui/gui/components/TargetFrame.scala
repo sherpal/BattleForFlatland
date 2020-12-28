@@ -15,7 +15,7 @@ final class TargetFrame($maybeTarget: SignalViewer[Option[MovingBody with Living
 
   val width = 150.0
 
-  private def maybeTarget(gameState: GameState) = $maybeTarget.now.map(_.id).flatMap(gameState.livingEntityById)
+  private def maybeTarget(gameState: GameState) = $maybeTarget.now().map(_.id).flatMap(gameState.livingEntityById)
 
   private val bar = new StatusBar(
     (gameState: GameState, _: Long) => {
@@ -46,18 +46,14 @@ final class TargetFrame($maybeTarget: SignalViewer[Option[MovingBody with Living
   private val text = new Text(
     "",
     new TextStyle(
-      Align(
-        fontSize = 10.0
-      )
+      Align().setFontSize(10)
     )
   )
 
   private val lifeText = new Text(
     "",
     new TextStyle(
-      Align(
-        fontSize = 15.0
-      )
+      Align().setFontSize(15)
     )
   )
 

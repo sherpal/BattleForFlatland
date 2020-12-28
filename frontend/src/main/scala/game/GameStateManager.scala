@@ -66,7 +66,7 @@ final class GameStateManager(
       .startWith(Complex.zero)
       .observe
   val $mouseAngleWithPosition: SignalViewer[Angle] = $gameMousePosition.map { mousePosition =>
-    val myPositionNow = $strictGameStates.now.players.get(playerId).fold(Complex.zero)(_.pos)
+    val myPositionNow = $strictGameStates.now().players.get(playerId).fold(Complex.zero)(_.pos)
     (mousePosition - myPositionNow).arg
   }.observe
 
@@ -175,12 +175,12 @@ final class GameStateManager(
   var lastTimeStamp = 0L
 
   private val ticker = (_: Double) => {
-    val pressedUserInput = pressedUserInputSignal.now
+    val pressedUserInput = pressedUserInputSignal.now()
 
     val playerMovement = UserInput.movingDirection(pressedUserInput)
 
     val now       = serverTime
-    val gameState = $strictGameStates.now
+    val gameState = $strictGameStates.now()
     val deltaTime = now - lastTimeStamp
     lastTimeStamp = now
 
@@ -191,7 +191,7 @@ final class GameStateManager(
           gameState.obstaclesLike.toList
         )
         val moving   = playerMovement != Complex.zero
-        val rotation = $mouseAngleWithPosition.now
+        val rotation = $mouseAngleWithPosition.now()
 
         if (moving || entity.moving != moving || rotation != entity.rotation) {
           val newAction = MovingBodyMoves(
@@ -214,7 +214,7 @@ final class GameStateManager(
       // do nothing, player is dead
     }
 
-    val gameStateToDraw = $strictGameStates.now
+    val gameStateToDraw = $strictGameStates.now()
     gameDrawer.drawGameState(
       gameStateToDraw,
       gameStateToDraw.players

@@ -55,9 +55,7 @@ final class BossFrame(
   private val bossNameText = new Text(
     "",
     new TextStyle(
-      Align(
-        fontSize = 10.0
-      )
+      Align().setFontSize(10)
     )
   )
   container.addChild(bossNameText)

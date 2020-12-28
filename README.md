@@ -77,20 +77,28 @@ If you are not familiar with docker, here are a few explanations of what this do
 
 If you want to see the list of current docker containers, you should issue the command `docker ps`. Within the first column of what you see, you have the id of the container, which allows you to `docker kill <id>` (stop the docker from running), `docker rm <id>` (remove it entirely), `docker restart <id>`.
 
+### Install npm dependencies
+
+The frontend part of the game relies on a certain amount of npm dependencies. These must be installed via `npm install` in the `frontend` and `game-server-launcher` directories.
+
 ### Set up the game server launcher
 
 While in development, we have a "game-server-launcher" to launch the game servers when a game is launched. This is a kind of a "mock up" for a more robust setup, involving, e.g., an Azure gaming service.
 
-The `game-server-launcher` sub-project is an express server written in Scala-js. You can first compile it using, in sbt,
+The `game-server-launcher` sub-project is an express server written in Scala-js.
+
+You first have to install `npm` dependencies. Go to `game-server-launcher` directory and run `npm install`.
+
+You can then compile the Scala project using, in sbt,
 
 ```
 game-server-launcher/fullOptJS
 ```
 
-and you can then launch it using (outside sbt!)
+and you can finally launch it using (outside sbt!)
 
 ```
-node game-server-launcher/target/scala-2.13/scalajs-bundler/main/game-server-launcher-opt.js
+node game-server-launcher/target/scala-2.13/game-server-launcher-opt
 ```
 
 Alternatively, you can simply run (in sbt)
@@ -417,3 +425,8 @@ Steps to add a new service called `MyService`:
 - Add the `Asset` object in `frontend/src/main/scala/assets/Asset.scala`
 - "Touch" the asset in that same object below (and possibly add it to the map of corresponding assets)
 - Add the asset reference in the `game/GameAssetLoader` loading list
+
+### Adding a new npm dependencies.
+
+- Go to either `frontend` or `game-server-launcher`, depending on which you want to install things.
+- run `npm install --save the-deps` for dependency and `npm install --save-dev the-deps` for a development dependency, such as the typings of a library.

@@ -96,6 +96,8 @@ final class ReactiveStage(val application: Application) extends ReactivePixiElem
     */
   def resize(): Unit = {
     setHitArea()
+    dom.console.log(ref.x, ref.y, ref.width, ref.height)
+    dom.console.log(application.view.width, application.view.height)
     resizeEventBus.writer.onNext((application.view.width, application.view.height))
   }
 

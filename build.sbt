@@ -61,14 +61,28 @@ lazy val `backend` = (project in file("./backend"))
   .dependsOn(`shared-backend`)
 
 lazy val `frontend` = (project in file("./frontend"))
-  .enablePlugins(ScalablyTypedConverterPlugin)
+  .enablePlugins(ScalablyTypedConverterExternalNpmPlugin)
   .disablePlugins(HerokuPlugin)
   //.enablePlugins(ScalaJSBundlerPlugin)
   .settings(
     FrontendSettings(),
     scalaVersion := "2.13.4",
-    useYarn := true,
-    stUseScalaJsDom := false
+//    useYarn := true,
+    stUseScalaJsDom := false,
+    stIgnore := List(
+      "@pixi/constants", 
+      "@pixi/core", 
+      "@pixi/math", 
+      "@pixi/settings", 
+      "@pixi/utils", 
+      "tailwindcss"
+    ),
+    externalNpm := {
+      scala.sys.process.Process("npm", baseDirectory.value).!
+      baseDirectory.value
+    },
+    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
+    scalaJSUseMainModuleInitializer := true
   )
   .dependsOn(shared.js)
 
@@ -83,10 +97,10 @@ lazy val `game-server` = project
 
 lazy val bundlerSettings: Project => Project =
   _.settings(
-    Compile / fastOptJS / webpackExtraArgs += "--mode=development",
-    Compile / fullOptJS / webpackExtraArgs += "--mode=production",
-    Compile / fastOptJS / webpackDevServerExtraArgs += "--mode=development",
-    Compile / fullOptJS / webpackDevServerExtraArgs += "--mode=production"
+    // Compile / fastOptJS / webpackExtraArgs += "--mode=development",
+    // Compile / fullOptJS / webpackExtraArgs += "--mode=production",
+    // Compile / fastOptJS / webpackDevServerExtraArgs += "--mode=development",
+    // Compile / fullOptJS / webpackDevServerExtraArgs += "--mode=production"
   )
 
 val nodeProject: Project => Project =
@@ -95,23 +109,22 @@ val nodeProject: Project => Project =
     // es5 doesn't include DOM, which we don't have access to in node
     stStdlib := List("es5"),
     stUseScalaJsDom := false,
-    Compile / npmDependencies ++= Seq(
-      "@types/node" -> "13.5.0"
-    )
+    // Compile / npmDependencies ++= Seq(
+    //   "@types/node" -> "13.5.0"
+    // )
   )
 
 lazy val `game-server-launcher` = project
   .in(file("./game-server-launcher"))
-  .enablePlugins(ScalablyTypedConverterPlugin)
+  .enablePlugins(ScalablyTypedConverterExternalNpmPlugin)
   .configure(bundlerSettings, nodeProject)
   .settings(
-    //stExperimentalEnableImplicitOps := true,
-    Compile / npmDependencies ++= Seq(
-      "@types/express" -> "4.17.2",
-      "express" -> "4.17.1"
-    ),
-    useYarn := true,
-    scalaJSUseMainModuleInitializer := true
+    externalNpm := {
+      scala.sys.process.Process("npm", baseDirectory.value).!
+      baseDirectory.value
+    },
+    scalaJSUseMainModuleInitializer := true,
+    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
   .disablePlugins(HerokuPlugin)
 
@@ -125,8 +138,9 @@ addCommandAlias("build", "frontend/fullOptJS::webpack")
 addCommandAlias("compileShared", ";sharedJS/compile;sharedJVM/compile")
 
 stage := {
-  val webpackValue = (frontend / Compile / fullOptJS / webpack).value
-  println(s"Webpack value is $webpackValue")
+//  val webpackValue = (frontend / Compile / fullOptJS / webpack).value
+//  println(s"Webpack value is $webpackValue")
+
   (stage in backend).value
 }
 

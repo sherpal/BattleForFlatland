@@ -9,6 +9,8 @@ import scala.scalajs.js.|
 
 trait Drawer {
 
+  val linearScale = 1.0//.asInstanceOf[typings.pixiJs.PIXI.SCALE_MODES.LINEAR]
+
   def application: Application
 
   protected def diskTexture(
@@ -30,7 +32,7 @@ trait Drawer {
       graphics.endFill()
     }
 
-    application.renderer.generateTexture(graphics, 1, 1)
+    application.renderer.generateTexture(graphics, linearScale, 1)
   }
 
   protected def circleTexture(colour: Int, alpha: Double, radius: Double): PIXI.RenderTexture = {
@@ -40,7 +42,7 @@ trait Drawer {
     graphics.beginFill(0xFFFFFF, 0.0)
     graphics.drawCircle(0, 0, radius)
 
-    application.renderer.generateTexture(graphics, 1, 1)
+    application.renderer.generateTexture(graphics, linearScale, 1)
 
   }
 
@@ -63,7 +65,7 @@ trait Drawer {
           .asInstanceOf[scala.scalajs.js.Array[Double | typings.pixiJs.PIXI.Point]]
       )
 
-    application.renderer.generateTexture(graphics, 1, 1)
+    application.renderer.generateTexture(graphics, linearScale, 1)
   }
 
 }

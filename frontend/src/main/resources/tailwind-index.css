@@ -1,9 +1,10 @@
-@import "../../../target/scala-2.13/scalajs-bundler/main/node_modules/tailwindcss/base.css";
+/* @import "../../../target/scala-2.13/scalajs-bundler/main/node_modules/tailwindcss/base.css";
 @import "../../../target/scala-2.13/scalajs-bundler/main/node_modules/tailwindcss/components.css";
-@import "../../../target/scala-2.13/scalajs-bundler/main/node_modules/tailwindcss/utilities.css";
+@import "../../../target/scala-2.13/scalajs-bundler/main/node_modules/tailwindcss/utilities.css"; */
 
-/* @import "tailwindcss/base";
+/* /dist required by snowpack */
+@import "tailwindcss/dist/base.css";
 
-@import "tailwindcss/components";
+@import "tailwindcss/dist/components.css";
 
-@import "tailwindcss/utilities"; */
+@import "tailwindcss/dist/utilities.css";
