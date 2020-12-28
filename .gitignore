@@ -38,5 +38,7 @@ logs
 frontend/src/main/resources/.sass-cache
 #frontend/src/main/resources/index.css
 frontend/src/main/resources/index.css.map
-frontend/src/main/resources/assets/in-game/*
+frontend/src/main/resources/assets/in-game/bars/LiteStep.png
+frontend/src/main/resources/assets/in-game/bars/Minimalist.png
+frontend/src/main/resources/assets/in-game/bars/Xeon.png
 frontend/src/main/resources/assets.zip
