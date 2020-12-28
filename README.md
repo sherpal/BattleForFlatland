@@ -132,11 +132,11 @@ The game canvas will need game assets. You'll need to create images correspondin
 
 There are three programs that must be ran in dev mode:
 
-- `sbt dev`: runs the frontend with hot reload (port 8080) (If you want to play with other people, you should instead use the `build` alias command to build the frontend inside the backend's public directory.)
 - `sbt backend/run`: runs the backend (port 9000) (If you want to play with other people, you should use `sbt "backend/run -Dhttp.address=0.0.0.0"` instead)
-- `node game-server-launcher/target/scala-2.13/scalajs-bundler/main/game-server-launcher-opt.js`: runs the game-server-launcher (after you compiled it once with `sbt game-server-launcher/fullOptJS`)
+- `sbt ~frontend/fastLinkJS` and, in the `frontend` directory, `npx snowpack dev`: runs the frontend with hot reload (port 8080) (If you want to play with other people, you should instead use the `build` alias command to build the frontend inside the backend's public directory.)
+- `node game-server-launcher/target/scala-2.13/game-server-launcher-opt`: runs the game-server-launcher (after you compiled it once with `sbt game-server-launcher/fullOptJS`)
 
-Head over `http://localhost:8080` and after 10s you should be able to connect with the super user credentials.
+You should be redirected to `http://localhost:8080` and after 10s you should be able to connect with the super user credentials.
 
 ## Contribute (in construction)
 
