@@ -10,18 +10,18 @@ import zio.{UIO, ZIO}
 import scala.scalajs.js
 import scala.scalajs.js.annotation.{JSExportTopLevel, JSImport}
 
-// @JSImport("resources/index.css", JSImport.Default)
-// @js.native
-// object IndexCSS extends js.Object
+@JSImport("./index.css", JSImport.Default)
+@js.native
+object IndexCSS extends js.Object
 
-// @JSImport("resources/icon.ico", JSImport.Default)
+// @JSImport("./icon.ico", JSImport.Default)
 // @js.native
 object Icon extends js.Object {
-  val name: String = "resources/icon.ico"
+  val name: String = "./icon.ico"
 }
 
-// @JSImport("resources/tailwind-index.css", JSImport.Default)
-// @js.native
+@JSImport("./tailwind-index.css", JSImport.Default)
+@js.native
 object Tailwind extends js.Object
 
 @JSImport("react-toastify/dist/ReactToastify.css", JSImport.Default)
@@ -33,7 +33,7 @@ object Main {
   /** This is the CSS require for the react-toastify library to work properly. */
   Toastify
 
-  //IndexCSS
+  IndexCSS
   Tailwind
   Asset
   //Icon
@@ -92,13 +92,9 @@ object Main {
 
   final val program = for {
     _         <- addPageTitle
-    _ <- ZIO.effectTotal(println("page title added"))
     container <- createElement
-    _ <- ZIO.effectTotal(println("element created"))
     _         <- emptyContainer
-    _ <- ZIO.effectTotal(println("container emptied"))
     _         <- renderAppInContainer.provide(container)
-    _ <- ZIO.effectTotal(println("rendered in app"))
     _ <- ZIO.effectTotal {
       val link = dom.document.createElement("link").asInstanceOf[dom.html.Link]
       link.`type` = "image/x-icon"

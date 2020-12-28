@@ -15,6 +15,8 @@ import typings.pixiJs.mod.Application
 import typings.pixiJs.pixiJsStrings
 import zio.{UIO, ZIO}
 import typings.pixiJs.PIXI.Loader
+import org.scalajs.dom
+import scala.scalajs.js
 
 /**
   * The goal of the [[game.GameAssetLoader]] is simply to load all game assets, and warn the external world that it is
@@ -68,10 +70,10 @@ final class GameAssetLoader(application: Application) {
           .load { (_, resources) =>
             callback(UIO(resources.asInstanceOf[StringDictionary[LoaderResource]]))
           }
-          .onProgress
-          .once({ ((loader: Loader), (resource: LoaderResource)) =>
+          //.onProgress
+          .on("progress", ({ ((loader: Loader), (resource: LoaderResource)) =>
             progressBus.writer.onNext(ProgressData(loader.progress, resource.name))
-          }.asInstanceOf[scala.scalajs.js.Function1[scala.scalajs.js.Any, _]])
+          }))//: js.Function2[typings.pixiJs.PIXI.Loader,typings.pixiJs.PIXI.LoaderResource, Unit]).asInstanceOf[scala.scalajs.js.Function1[scala.scalajs.js.Any, _]])
       }
       .fork
     resources <- fiber.join

@@ -16,7 +16,6 @@ import gamelogic.gamestate.GameState
 import typings.pixiJs.PIXI.LoaderResource
 import typings.pixiJs.mod.{Application, Container, Graphics}
 import utils.misc.RGBColour
-import typings.pixiJs.PIXI.SCALE_MODES
 
 final class GUIDrawer(
     playerId: Entity.Id,
@@ -29,7 +28,7 @@ final class GUIDrawer(
 ) {
   val guiContainer = new Container
 
-  val linearScale = 1.asInstanceOf[typings.pixiJs.PIXI.SCALE_MODES.LINEAR]
+  val linearScale = 1.0//.asInstanceOf[typings.pixiJs.PIXI.SCALE_MODES.LINEAR]
 
   val abilityColourMap: Map[Int, RGBColour] = (1 to Ability.abilityIdCount).map { abilityId =>
     abilityId -> RGBColour.someColours(abilityId % RGBColour.someColours.length)

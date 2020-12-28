@@ -1,11 +1,20 @@
 {
+  "installOptions": {
+    "polyfillNode": true
+  },
+  "buildOptions": {
+    "out": "../backend/public"
+  },
   "mount": {
     "public": "/",
     "target/scala-2.13/frontend-fastopt": "/",
     "src/main/resources": "/"
   },
   "proxy": {
-    "/": {
+    "/game-server/game-info": {
+      "target": "http://localhost:9000"
+    },
+    "/api": {
       "target": "http://localhost:9000"
     },
     "/ws": {

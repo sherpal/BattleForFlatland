@@ -86,7 +86,7 @@ GET   /api/docs/game-docs/boss-description  controllers.GameDocsController.bossD
 ### NoDocs ###
 GET   /docs/swagger-ui/*file        controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
 ### NoDocs ###
-GET   /assets/*file                 controllers.Assets.versioned(path="/public", file: Asset)
+GET   /assets/*file                 controllers.Assets.versioned(path="/public/assets", file: Asset)
 
 # Serve static assets under public directory. KEEP THIS ROUTE AT THE END OF THIS FILE.
 ### NoDocs ###

@@ -7,7 +7,7 @@ import game.Camera
 import game.ui.reactivepixi.ReactivePixiElement.ReactiveContainer
 import gamelogic.physics.Complex
 import org.scalajs.dom
-import typings.pixiJs.PIXI.{InteractionEvent, InteractionEventTypes}
+import typings.pixiJs.PIXI.interaction.{InteractionEvent, InteractionEventTypes}
 import typings.pixiJs.PIXI.{Container, IHitArea}
 import typings.pixiJs.mod.{Application, Rectangle}
 import typings.std.MouseEvent
@@ -96,6 +96,8 @@ final class ReactiveStage(val application: Application) extends ReactivePixiElem
     */
   def resize(): Unit = {
     setHitArea()
+    dom.console.log(ref.x, ref.y, ref.width, ref.height)
+    dom.console.log(application.view.width, application.view.height)
     resizeEventBus.writer.onNext((application.view.width, application.view.height))
   }
 

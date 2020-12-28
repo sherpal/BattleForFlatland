@@ -4,7 +4,7 @@ import com.raquo.airstream.core.Observer
 import com.raquo.airstream.signal.Signal
 import game.ui.reactivepixi.EventModifierBuilder.ReactiveInteractionEvent
 import game.ui.reactivepixi.ReactivePixiElement.Base
-import typings.pixiJs.PIXI.{InteractionEvent, InteractionEventTypes}
+import typings.pixiJs.PIXI.interaction.{InteractionEvent, InteractionEventTypes}
 
 import scala.scalajs.js
 

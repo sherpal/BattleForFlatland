@@ -7,7 +7,7 @@ import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.BoundingBox
 import typings.pixiJs.PIXI.LoaderResource
-import typings.pixiJs.PIXI.{InteractionEvent, InteractionEventTypes}
+import typings.pixiJs.PIXI.interaction.{InteractionEvent, InteractionEventTypes}
 import typings.pixiJs.anon.Align
 import typings.pixiJs.mod.{Text, TextStyle}
 import utils.misc.RGBColour

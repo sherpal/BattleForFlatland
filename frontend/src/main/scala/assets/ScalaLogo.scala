@@ -5,5 +5,5 @@ import scala.scalajs.js.annotation.JSImport
 
 //@js.native @JSImport("resources/assets/scala.png", JSImport.Default)
 object ScalaLogo extends Asset {
-  val name: String = "resources/assets/scala.png"
+  val name: String = "assets/scala.png"
 }
