@@ -10,8 +10,10 @@ package object forms {
 
   final val formGroup = className := "md:flex md:items-center mb-6"
 
-  def formLabel(text: String): ReactiveHtmlElement[html.Div] = div(
-    className := "md:w-1/3",
+  def formLabel(text: String): ReactiveHtmlElement[html.Div] = formLabel(text, (1, 3))
+
+  def formLabel(text: String, widthRatio: (Int, Int)): ReactiveHtmlElement[html.Div] = div(
+    className := s"md:w-${widthRatio._1}/${widthRatio._2}",
     label(className := "block font-bold mb-1 md:mb-0 pr-4", formPrimaryTextColour, text)
   )
 

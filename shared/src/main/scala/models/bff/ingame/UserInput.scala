@@ -4,6 +4,7 @@ import gamelogic.abilities.Ability
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.physics.Complex
 import models.bff.ingame.Controls.InputCode
+import gamelogic.gameextras.GameMarker
 
 /**
   * A [[UserInput]] corresponds to the input a user made, translated to something meaningful from the point of view
@@ -40,6 +41,8 @@ object UserInput {
     def abilityId(player: PlayerClass): Option[Ability.AbilityId] =
       player.abilities.toList.drop(abilityIndex).headOption
   }
+
+  case class GameMarkerInput(gameMarker: GameMarker, onTarget: Boolean) extends UserInput
 
   final val directions: List[DirectionInput] = List(Up, Down, Right, Left)
 

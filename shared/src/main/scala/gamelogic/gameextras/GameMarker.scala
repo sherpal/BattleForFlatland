@@ -1,5 +1,7 @@
 package gamelogic.gameextras
 
+import io.circe.Encoder
+
 /**
   * A [[GameMarker]] is a token that players can put in the game in order to improve
   * communication via some "markers".
@@ -36,6 +38,9 @@ object GameMarker {
     def id: Int = 6
   }
 
-  
+  val allMarkers = List(Cross, Lozenge, Moon, Square, Star, Triangle)
+
+  implicit val jsonEncoder: Encoder[GameMarker] =
+    Encoder.encodeInt.contramap(_.id)
 
 }
