@@ -2,6 +2,7 @@ package assets
 
 import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff
+import gamelogic.gameextras.GameMarker
 
 import scala.language.implicitConversions
 import scala.scalajs.js
@@ -156,6 +157,15 @@ object Asset {
         // object manaFiller extends Asset
         val manaFiller = Asset("assets/in-game/gui/default-abilities/players/mana-filler.png")
       }
+
+      object markers {
+        val markerCross = Asset("assets/in-game/gui/markers/marker-cross.png")
+        val markerLozenge = Asset("assets/in-game/gui/markers/marker-lozenge.png")
+        val markerMoon = Asset("assets/in-game/gui/markers/marker-moon.png")
+        val markerSquare = Asset("assets/in-game/gui/markers/marker-square.png")
+        val markerStar = Asset("assets/in-game/gui/markers/marker-star.png")
+        val markerTriangle = Asset("assets/in-game/gui/markers/marker-triangle.png")
+      }
     }
   }
 
@@ -218,6 +228,15 @@ object Asset {
     Buff.boss103Punished -> ingame.gui.boss.dawnOfTime.boss103.punished,
     Buff.boss103Purified -> ingame.gui.boss.dawnOfTime.boss103.purified,
     Buff.boss103Inflamed -> ingame.gui.boss.dawnOfTime.boss103.inflamed
+  )
+
+  val markerAssetMap: Map[GameMarker, Asset] = Map(
+    GameMarker.Cross -> ingame.gui.markers.markerCross,
+    GameMarker.Lozenge -> ingame.gui.markers.markerLozenge,
+    GameMarker.Moon -> ingame.gui.markers.markerMoon,
+    GameMarker.Square -> ingame.gui.markers.markerSquare,
+    GameMarker.Star -> ingame.gui.markers.markerStar,
+    GameMarker.Triangle -> ingame.gui.markers.markerTriangle
   )
 
 }

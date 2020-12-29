@@ -17,9 +17,11 @@ import models.bff.ingame.Controls.InputCode
 import org.scalajs.dom
 import typings.std.{KeyboardEvent, MouseEvent}
 import utils.laminarzio.Implicits._
+import utils.domutils.Implicits._
 import services.toaster.toast
 
 import scala.scalajs.js
+import gamelogic.gameextras.GameMarker
 
 final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Component[html.Element] {
 
@@ -43,7 +45,7 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
     case None => emptyNode
     case Some(assignInfo) =>
       val assignKeyboardCallback: js.Function1[KeyboardEvent, Unit] = (event: KeyboardEvent) => {
-        val effect = storeControls(assignInfo.assign(assignInfo.currentControls, Controls.KeyCode(event.code))) *>
+        val effect = storeControls(assignInfo.assign(assignInfo.currentControls, event.toInputCode)) *>
           feedCurrentControl
 
         utils.runtime.unsafeRunToFuture(effect)
@@ -83,11 +85,11 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
           onClick.preventDefault.stopPropagation --> Observer.empty
         ),
         onMountCallback { _ =>
-          dom.window.addEventListener("keydown", assignKeyboardCallback)
+          dom.window.addEventListener("keypress", assignKeyboardCallback)
           dom.window.addEventListener("mousedown", assignMouseCallback)
         },
         onUnmountCallback { _ =>
-          dom.window.removeEventListener("keydown", assignKeyboardCallback)
+          dom.window.removeEventListener("keypress", assignKeyboardCallback)
           dom.window.removeEventListener("mousedown", assignMouseCallback)
         }
       )
@@ -98,10 +100,10 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
   ) =
     div(
       formGroup,
-      formLabel(name),
-      div(className := "md:w-1/3"),
+      formLabel(name, (1, 2)),
+      //div(className := "md:w-1/3"),
       div(
-        className := "md:w-1/3",
+        className := "md:w-1/2",
         label(
           className := "bg-gray-400 border-indigo-800 p-2 rounded cursor-pointer",
           code.label,
@@ -133,7 +135,7 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
       div(
         overflowY := "scroll",
         height := "500px",
-        className := "p-5 grid grid-cols-3",
+        className := "p-5 grid grid-cols-2",
         div(
           className := "col-start-1 col-end-1",
           children <-- controlsBus.events.map { implicit controls =>
@@ -142,12 +144,72 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
               controlSetting("Down", controls.downKey, (cs, c) => cs.copy(downKey                    = c)),
               controlSetting("Left", controls.leftKey, (cs, c) => cs.copy(leftKey                    = c)),
               controlSetting("Right", controls.rightKey, (cs, c) => cs.copy(rightKey                 = c)),
-              controlSetting("Next target", controls.nextTargetKey, (cs, c) => cs.copy(nextTargetKey = c))
+              controlSetting("Next target", controls.nextTargetKey, (cs, c) => cs.copy(nextTargetKey = c)),
+              controlSetting(
+                "Cross on target", 
+                controls.gameMarkerControls.crossTargetKey, 
+                (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(crossTargetKey = c))
+              ),
+              controlSetting(
+                "Lozenge on target", 
+                controls.gameMarkerControls.lozengeTargetKey, 
+                (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(lozengeTargetKey = c))
+              ),
+              controlSetting(
+                "Moon on target", 
+                controls.gameMarkerControls.moonTargetKey, 
+                (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(moonTargetKey = c))
+              ),
+              controlSetting(
+                "Square on target", 
+                controls.gameMarkerControls.squareTargetKey, 
+                (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(squareTargetKey = c))
+              ),
+              controlSetting(
+                "Star on target", 
+                controls.gameMarkerControls.starTargetKey, 
+                (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(starTargetKey = c))
+              ),
+              controlSetting(
+                "Triangle on target", 
+                controls.gameMarkerControls.triangleTargetKey, 
+                (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(triangleTargetKey = c))
+              ),
+              controlSetting(
+                "Fixed Cross", 
+                controls.gameMarkerControls.crossFixedKey, 
+                (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(crossFixedKey = c))
+              ),
+              controlSetting(
+                "Fixed Lozenge", 
+                controls.gameMarkerControls.lozengeFixedKey, 
+                (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(lozengeFixedKey = c))
+              ),
+              controlSetting(
+                "Fixed Moon", 
+                controls.gameMarkerControls.moonFixedKey, 
+                (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(moonFixedKey = c))
+              ),
+              controlSetting(
+                "Fixed Square", 
+                controls.gameMarkerControls.squareFixedKey, 
+                (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(squareFixedKey = c))
+              ),
+              controlSetting(
+                "Fixed Star", 
+                controls.gameMarkerControls.starFixedKey, 
+                (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(starFixedKey = c))
+              ),
+              controlSetting(
+                "Fixed Triangle", 
+                controls.gameMarkerControls.triangleFixedKey, 
+                (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(triangleFixedKey = c))
+              ),
             )
           }
         ),
         div(
-          className := "col-start-3 col-end-3",
+          className := "col-start-2 col-end-2",
           children <-- controlsBus.events.map { implicit controls =>
             controls.abilityKeys.zipWithIndex.map {
               case (code, idx) =>

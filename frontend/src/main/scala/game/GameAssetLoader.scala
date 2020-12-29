@@ -5,6 +5,7 @@ import assets.Asset.ingame.gui.abilities._
 import assets.Asset.ingame.gui.bars._
 import assets.Asset.ingame.gui.boss.dawnOfTime.boss102._
 import assets.Asset.ingame.gui.boss.dawnOfTime.boss103._
+import assets.Asset.ingame.gui.markers._
 import assets.{Asset, ScalaLogo}
 import com.raquo.airstream.eventbus.EventBus
 import game.GameAssetLoader.ProgressData
@@ -53,7 +54,8 @@ final class GameAssetLoader(application: Application) {
     punished,
     purified,
     inflamed,
-    sacredGroundArea
+    sacredGroundArea,
+    markerCross, markerLozenge, markerMoon, markerSquare, markerStar, markerTriangle
   )
 
   final val $progressData     = progressBus.events

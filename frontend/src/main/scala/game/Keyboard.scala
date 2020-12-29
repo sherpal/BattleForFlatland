@@ -6,6 +6,7 @@ import com.raquo.airstream.signal.Signal
 import models.bff.ingame.{Controls, KeyboardControls, UserInput}
 import org.scalajs.dom
 import typings.std.KeyboardEvent
+import utils.domutils.Implicits._
 
 import scala.scalajs.js
 
@@ -36,12 +37,10 @@ final class Keyboard(controls: Controls) {
   }
 
   val downUserInputEvents = $keyboardEvents.filter(_.`type` == "keydown")
-    .map(_.code)
-    .map(Controls.KeyCode)
+    .map(_.toInputCode)
     .map(controls.getOrUnknown)
   val upUserInputEvents = $keyboardEvents.filter(_.`type` == "keyup")
-    .map(_.code)
-    .map(Controls.KeyCode)
+    .map(_.toInputCode)
     .map(controls.getOrUnknown)
 
   private val keyDownHandler: js.Function1[dom.KeyboardEvent, _] = (event: dom.KeyboardEvent) => {

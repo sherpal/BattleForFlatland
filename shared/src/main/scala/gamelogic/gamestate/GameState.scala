@@ -10,6 +10,7 @@ import gamelogic.entities.staticstuff.Obstacle
 import models.syntax.Pointed
 
 import scala.reflect.ClassTag
+import gamelogic.gameextras.{GameMarker, GameMarkerInfo}
 
 /**
   * A [[gamelogic.gamestate.GameState]] has the complete knowledge of everything that exists in the game.
@@ -35,7 +36,8 @@ final class GameState(
     val castingEntityInfo: Map[Entity.Id, EntityCastingInfo],
     val passiveBuffs: Map[Entity.Id, Map[Buff.Id, PassiveBuff]],
     val tickerBuffs: Map[Entity.Id, Map[Buff.Id, TickerBuff]],
-    val entities: Map[Entity.Id, Entity]
+    val entities: Map[Entity.Id, Entity],
+    val markersInfo: Map[GameMarker, GameMarkerInfo]
 ) {
 
   def copy(
@@ -45,7 +47,8 @@ final class GameState(
       castingEntityInfo: Map[Entity.Id, EntityCastingInfo]    = castingEntityInfo,
       passiveBuffs: Map[Entity.Id, Map[Buff.Id, PassiveBuff]] = passiveBuffs,
       tickerBuffs: Map[Entity.Id, Map[Buff.Id, TickerBuff]]   = tickerBuffs,
-      entities: Map[Entity.Id, Entity]                        = entities
+      entities: Map[Entity.Id, Entity]                        = entities,
+      markersInfo: Map[GameMarker, GameMarkerInfo]            = markersInfo
   ): GameState = new GameState(
     time,
     startTime,
@@ -53,7 +56,8 @@ final class GameState(
     castingEntityInfo,
     passiveBuffs,
     tickerBuffs,
-    entities
+    entities,
+    markersInfo
   )
 
   def started: Boolean = startTime.isDefined
@@ -201,12 +205,30 @@ final class GameState(
   def removeObstacle(obstacleId: Entity.Id, time: Long): GameState =
     copy(entities = entities - obstacleId, time = time)
 
+  /**
+    * Adds the information about the given [[GameMarker]].
+    * If the [[GameMarker]] is already present, replaces it.
+    */
+  def withMarkerInfo(gameMarkerInfo: GameMarkerInfo): GameState =
+    copy(markersInfo = markersInfo + (gameMarkerInfo.marker -> gameMarkerInfo))
+
+    
+  /**
+   * Removes the information about the given marker.
+   */
+  def removeMarkerInfo(marker: GameMarker): GameState =
+    copy(markersInfo = markersInfo - marker)
+
+  /** Returns the information about the specified [[GameMaker]]. */
+  def maybeMarkerInfo(marker: GameMarker): Option[GameMarkerInfo] =
+    markersInfo.get(marker)
+
 }
 
 object GameState {
 
   implicit def pointed: Pointed[GameState] = Pointed.factory(
-    new GameState(0L, None, None, Map(), Map(), Map(), Map())
+    new GameState(0L, None, None, Map(), Map(), Map(), Map(), Map())
   )
 
   def empty: GameState = Pointed[GameState].unit

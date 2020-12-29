@@ -43,6 +43,8 @@ object BFFPicklers {
     .addConcreteType[boss103.PutPurifiedDebuff]
     .addConcreteType[boss103.PutInflamedDebuff]
     .addConcreteType[classes.pentagon.PutPentagonZone]
+    .addConcreteType[markers.RemoveMarker]
+    .addConcreteType[markers.UpdateMarker]
     .addConcreteType[AddDummyMob]
     .addConcreteType[AddPlayer]
     .addConcreteType[AddPlayerByClass]

@@ -2,10 +2,16 @@ package models.bff.ingame
 
 import models.bff.ingame.Controls.InputCode
 import models.syntax.Pointed
+import gamelogic.gameextras.GameMarker
+import io.circe.Encoder
 
 /**
   * Gathers all possible inputs that the user assigned.
   * The [[InputCode]]s in argument have the knowledge of what device is the source of the input.
+  * 
+  * @param markerOnTargetKeys Map from the [[InputCode]] to the marker that will be put on current target
+  * @param markerOnPositionKeys Map from the [[InputCode]] to the marker that will be put on the current
+  *                             mouse position.
   */
 final case class Controls(
     upKey: InputCode,
@@ -13,7 +19,8 @@ final case class Controls(
     leftKey: InputCode,
     rightKey: InputCode,
     nextTargetKey: InputCode,
-    abilityKeys: List[InputCode]
+    abilityKeys: List[InputCode],
+    gameMarkerControls: GameMarkerControls
 ) {
 
   lazy val controlMap: Map[InputCode, UserInput] = Map(
@@ -21,8 +28,9 @@ final case class Controls(
     downKey -> UserInput.Down,
     leftKey -> UserInput.Left,
     rightKey -> UserInput.Right,
-    nextTargetKey -> UserInput.NextTarget
-  ) ++ abilityKeys.zipWithIndex.map { case (code, idx) => code -> UserInput.AbilityInput(idx) }.toMap
+    nextTargetKey -> UserInput.NextTarget,
+  ) ++ abilityKeys.zipWithIndex.map { case (code, idx) => code -> UserInput.AbilityInput(idx) }.toMap ++
+    gameMarkerControls.controlMap
 
   def allKeysInMultiple: List[InputCode] =
     (List(upKey, downKey, rightKey, leftKey, nextTargetKey) ++ abilityKeys)
@@ -56,14 +64,29 @@ object Controls {
     def code: source.Code
     def label: String
   }
+
+  sealed trait KeyInputModifier {
+    def name: String
+  }
+  object KeyInputModifier {
+    case object WithShift extends KeyInputModifier {
+      def name: String = "Shift"
+    }
+  }
   case class KeyCode(code: String) extends InputCode {
     val source: KeyboardSource.type = KeyboardSource
     def label                       = code
+  }
+  case class ModifiedKeyCode(code: String, modifier: KeyInputModifier) extends InputCode {
+    val source: KeyboardSource.type = KeyboardSource
+    def label = s"${modifier.name} ${code}"
   }
   case class MouseCode(code: Int) extends InputCode {
     val source: MouseSource.type = MouseSource
     def label                    = s"Button $code"
   }
+
+  
 
   implicit val pointed: Pointed[Controls] = Pointed.factory(
     Controls(
@@ -72,10 +95,13 @@ object Controls {
       KeyCode("KeyA"),
       KeyCode("KeyD"),
       KeyCode("Tab"),
-      (1 to 10).map(_ % 10).map("Digit" + _).map(KeyCode).toList
+      (1 to 10).map(_ % 10).map("Digit" + _).map(KeyCode).toList,
+      Pointed[GameMarkerControls].unit
     )
   )
 
   val storageKey = "controls"
+
+  
 
 }

@@ -11,8 +11,20 @@ import laika.format.{HTML, Markdown}
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Div
 import utils.laminarzio.Implicits.zioFlattenStrategy
+import services.toaster.{toast, ToastOptions}
+import services.toaster.ToasterModifierBuilder._
 
+import scala.concurrent.duration._
 final class BossDescription private (bossNames: Signal[Option[String]]) extends Component[html.Div] {
+
+  def toastBossName(name: String) = toast.info(
+    s"Selected boss: $name",
+    hideProgressBar := true,
+    autoCloseDuration := 2.seconds
+  )
+
+  val bossNameToaster = bossNames.changes.collect { case Some(bossName) => bossName }
+        .flatMap(toastBossName) --> Observer.empty
 
   val transformer: Transformer = Transformer
     .from(Markdown)
@@ -51,7 +63,8 @@ final class BossDescription private (bossNames: Signal[Option[String]]) extends 
         descriptionSignal
           .foreach(context.thisNode.ref.innerHTML = _)(context.owner)
       })
-    )
+    ),
+      bossNameToaster
   )
 }
 

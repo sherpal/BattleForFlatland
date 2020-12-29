@@ -63,6 +63,9 @@ final class GameStateManager(
   val $gameStates: Signal[GameState] = gameStateBus.events.startWith(initialGameState)
   private val $strictGameStates      = $gameStates.observe
 
+  /**
+    * Signal giving at all time the game position of the user mouse.
+    */
   val $gameMousePosition: SignalViewer[Complex] =
     userControls.$effectiveMousePosition.map(gameDrawer.camera.mousePosToWorld)
       .startWith(Complex.zero)
@@ -154,6 +157,8 @@ final class GameStateManager(
     deltaTimeWithServer: Long,
     () => serverTime
   )
+
+  new MarkerManager(userControls, $maybeTarget, $gameMousePosition, socketOutWriter, () => serverTime)
 
   /** Side effect-full constructor */
   new ChoosingAbilityPositionEffect(
