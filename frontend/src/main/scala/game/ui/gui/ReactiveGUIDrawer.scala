@@ -32,7 +32,7 @@ final class ReactiveGUIDrawer(
     gameStateUpdates: EventStream[(GameState, Long)]
 ) {
 
-  val linearMode = 1.0//.asInstanceOf[SCALE_MODES.LINEAR]
+  val linearMode = 1.0 //.asInstanceOf[SCALE_MODES.LINEAR]
 
   val abilityColourMap: Map[Int, RGBColour] = (1 to Ability.abilityIdCount).map { abilityId =>
     abilityId -> RGBColour.someColours(abilityId % RGBColour.someColours.length)

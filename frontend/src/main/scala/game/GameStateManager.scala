@@ -180,7 +180,8 @@ final class GameStateManager(
   )
 
   private val targetManager = new TargetManager(
-    gameDrawer, $maybeTarget,
+    gameDrawer,
+    $maybeTarget,
     gameStateUpdates,
     guiDrawer.guiContainer,
     resources(minimalistBar).texture,

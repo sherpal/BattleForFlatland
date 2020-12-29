@@ -9,10 +9,10 @@ final class RemoveMarkerTransformer private (marker: GameMarker) extends GameSta
 
 object RemoveMarkerTransformer {
 
-  private val removeMarkerTransformerMap: Map[GameMarker, GameStateTransformer] = 
+  private val removeMarkerTransformerMap: Map[GameMarker, GameStateTransformer] =
     GameMarker.allMarkers.map(marker => marker -> new RemoveMarkerTransformer(marker)).toMap
 
-  def apply(marker: GameMarker): GameStateTransformer = 
+  def apply(marker: GameMarker): GameStateTransformer =
     removeMarkerTransformerMap(marker)
 
 }

@@ -28,7 +28,7 @@ final class GUIDrawer(
 ) {
   val guiContainer = new Container
 
-  val linearScale = 1.0//.asInstanceOf[typings.pixiJs.PIXI.SCALE_MODES.LINEAR]
+  val linearScale = 1.0 //.asInstanceOf[typings.pixiJs.PIXI.SCALE_MODES.LINEAR]
 
   val abilityColourMap: Map[Int, RGBColour] = (1 to Ability.abilityIdCount).map { abilityId =>
     abilityId -> RGBColour.someColours(abilityId % RGBColour.someColours.length)

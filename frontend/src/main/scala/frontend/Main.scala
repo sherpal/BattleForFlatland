@@ -107,6 +107,5 @@ object Main {
   def theMain(): Unit =
     zio.Runtime.default.unsafeRun(program.orDie)
 
-
   def main(args: Array[String]): Unit = theMain()
 }

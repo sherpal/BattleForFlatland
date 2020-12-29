@@ -23,7 +23,7 @@ final class MarkersDrawer(
 )(implicit owner: Owner) {
 
   private val gameStateUpdatesBus: EventBus[(GameState, Long)] = new EventBus
-  private val gameStates = gameStateUpdatesBus.events
+  private val gameStates                                       = gameStateUpdatesBus.events
 
   /**
     * External world should feed [[GameState]]s here every time it should be re-rendered.
@@ -31,16 +31,18 @@ final class MarkersDrawer(
   val gameStateWriter: Observer[(GameState, Long)] = gameStateUpdatesBus.writer
 
   private def makeMarkerElement(marker: GameMarker): PixiModifier[ReactiveContainer] = {
-    val maybeMarkerPosition = gameStates.map{
-      case (gs, time) =>
-        for {
-          markerInfo <- gs.maybeMarkerInfo(marker)
-          position <- markerInfo.maybePosition(gs, time)
-        } yield camera.worldToLocal(position)
-    }.startWith(None)
+    val maybeMarkerPosition = gameStates
+      .map {
+        case (gs, time) =>
+          for {
+            markerInfo <- gs.maybeMarkerInfo(marker)
+            position   <- markerInfo.maybePosition(gs, time)
+          } yield camera.worldToLocal(position)
+      }
+      .startWith(None)
     pixiSprite(
       resources(Asset.markerAssetMap(marker)).texture,
-      visible <-- maybeMarkerPosition.map(_.isDefined),
+      visible  <-- maybeMarkerPosition.map(_.isDefined),
       position <-- maybeMarkerPosition.map(_.getOrElse(0)),
       anchor := 0.5,
       dims := (20.0, 20.0)

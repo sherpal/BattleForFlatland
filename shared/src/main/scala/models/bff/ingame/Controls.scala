@@ -8,7 +8,7 @@ import io.circe.Encoder
 /**
   * Gathers all possible inputs that the user assigned.
   * The [[InputCode]]s in argument have the knowledge of what device is the source of the input.
-  * 
+  *
   * @param markerOnTargetKeys Map from the [[InputCode]] to the marker that will be put on current target
   * @param markerOnPositionKeys Map from the [[InputCode]] to the marker that will be put on the current
   *                             mouse position.
@@ -28,7 +28,7 @@ final case class Controls(
     downKey -> UserInput.Down,
     leftKey -> UserInput.Left,
     rightKey -> UserInput.Right,
-    nextTargetKey -> UserInput.NextTarget,
+    nextTargetKey -> UserInput.NextTarget
   ) ++ abilityKeys.zipWithIndex.map { case (code, idx) => code -> UserInput.AbilityInput(idx) }.toMap ++
     gameMarkerControls.controlMap
 
@@ -79,14 +79,12 @@ object Controls {
   }
   case class ModifiedKeyCode(code: String, modifier: KeyInputModifier) extends InputCode {
     val source: KeyboardSource.type = KeyboardSource
-    def label = s"${modifier.name} ${code}"
+    def label                       = s"${modifier.name} ${code}"
   }
   case class MouseCode(code: Int) extends InputCode {
     val source: MouseSource.type = MouseSource
     def label                    = s"Button $code"
   }
-
-  
 
   implicit val pointed: Pointed[Controls] = Pointed.factory(
     Controls(
@@ -101,7 +99,5 @@ object Controls {
   )
 
   val storageKey = "controls"
-
-  
 
 }

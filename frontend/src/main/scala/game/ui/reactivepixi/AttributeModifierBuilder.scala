@@ -69,11 +69,10 @@ object AttributeModifierBuilder {
   final val visible     = factory[ReactiveDisplayObject, Boolean](_.ref.visible     = _)
   final val interactive = factory[ReactiveDisplayObject, Boolean](_.ref.interactive = _)
 
-  final val filters = factory[ReactiveDisplayObject, List[Filter]]
-    { (obj: ReactiveDisplayObject, filters: List[Filter]) =>
+  final val filters = factory[ReactiveDisplayObject, List[Filter]] {
+    (obj: ReactiveDisplayObject, filters: List[Filter]) =>
       obj.ref.filters = filters.toJSArray
-      }
-  
+  }
 
   final val anchor = factory[ReactiveSprite, Double](_.ref.anchor.set(_))
   final val anchorXY = factory[ReactiveSprite, (Double, Double)] {

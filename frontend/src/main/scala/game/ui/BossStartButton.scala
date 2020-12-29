@@ -46,11 +46,11 @@ final class BossStartButton(
   })
   element.on(InteractionEventTypes.pointerover, { (_: InteractionEvent) =>
     element.filters = js.Array(mouseOverFilter)
-    })
+  })
   element.on(InteractionEventTypes.pointerout, { (_: InteractionEvent) =>
     element.filters = js.Array()
-    })
-  
+  })
+
   val boundingBox: BoundingBox = BoundingBox(-element.width, -element.height, element.width, element.height)
 
   def update(gameState: GameState, camera: Camera): Unit =

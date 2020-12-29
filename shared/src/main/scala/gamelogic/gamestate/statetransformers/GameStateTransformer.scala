@@ -14,7 +14,8 @@ import gamelogic.gamestate.GameState
   * building blocks of the current [[gamelogic.gamestate.GameState]].
   */
 trait GameStateTransformer extends (GameState => GameState) {
-  final def ++(that: GameStateTransformer): GameStateTransformer = (gameState: GameState) => (this andThen that)(gameState)
+  final def ++(that: GameStateTransformer): GameStateTransformer =
+    (gameState: GameState) => (this andThen that)(gameState)
 }
 
 object GameStateTransformer {

@@ -11,7 +11,7 @@ import gamelogic.entities.Entity
 
 trait Drawer {
 
-  val linearScale = 1.0//.asInstanceOf[typings.pixiJs.PIXI.SCALE_MODES.LINEAR]
+  val linearScale = 1.0 //.asInstanceOf[typings.pixiJs.PIXI.SCALE_MODES.LINEAR]
 
   def application: Application
 

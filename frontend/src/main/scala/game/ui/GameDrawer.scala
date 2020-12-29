@@ -36,7 +36,8 @@ final class GameDrawer(
     resources: PartialFunction[Asset, LoaderResource],
     bossStartPosition: Complex,
     startFightObserver: Observer[Unit]
-)(implicit owner: Owner) extends Drawer {
+)(implicit owner: Owner)
+    extends Drawer {
 
   @inline def application: Application = reactiveStage.application
   @inline def camera: Camera           = reactiveStage.camera
@@ -49,7 +50,7 @@ final class GameDrawer(
   val movingStuffContainer: ReactiveContainer     = pixiContainer()
   val obstacleContainer: ReactiveContainer        = pixiContainer()
   val otherStuffContainerAbove: ReactiveContainer = pixiContainer()
-  val markersContainer: ReactiveContainer = pixiContainer()
+  val markersContainer: ReactiveContainer         = pixiContainer()
 
   reactiveStage(
     otherStuffContainerBelow,
@@ -248,13 +249,16 @@ final class GameDrawer(
     )
 
   private val markersDrawer = new MarkersDrawer(
-    resources, camera, markersContainer
+    resources,
+    camera,
+    markersContainer
   )
 
   def maybeEntityDisplayObjectById(entityId: Entity.Id): Option[DisplayObject] =
-    players.get(entityId)
-    .orElse(bossesSprites.get(entityId))
-    .orElse(boss102Drawer.maybeEntityDisplayObjectById(entityId))
+    players
+      .get(entityId)
+      .orElse(bossesSprites.get(entityId))
+      .orElse(boss102Drawer.maybeEntityDisplayObjectById(entityId))
 
   def drawGameState(gameState: GameState, cameraPosition: Complex, currentTime: Long): Unit = {
     camera.worldCenter = cameraPosition

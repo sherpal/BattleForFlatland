@@ -45,8 +45,10 @@ final class GameViewContainer private (
 
   // We need to create the application with the correct size as it is the size used for the Camera at the beginning.
   val application: Application = new Application(
-    ApplicationOptions().setBackgroundColor(0x1099bb)
-      .setWidth(1200).setHeight(800)
+    ApplicationOptions()
+      .setBackgroundColor(0x1099bb)
+      .setWidth(1200)
+      .setHeight(800)
   )
   val loader = new GameAssetLoader(application)
 

@@ -6,7 +6,7 @@ import gamelogic.entities.Entity
 
 /**
   * A [[GameMarkerInfo]] remembers all there is to know for a certain [[GameMarker]].
-  * 
+  *
   * The most important things are what marker is represented, and where it should be
   * at a certain time.
   */
@@ -35,7 +35,7 @@ object GameMarkerInfo {
     * we at least need to have a position.
     */
   case class GameMarkerOnEntity(marker: GameMarker, entityId: Entity.Id) extends GameMarkerInfo {
-    def maybePosition(gameState: GameState, currentTime: Long): Option[Complex] = 
+    def maybePosition(gameState: GameState, currentTime: Long): Option[Complex] =
       gameState.movingBodyEntityById(entityId).map(_.currentPosition(currentTime))
   }
 

@@ -159,11 +159,11 @@ object Asset {
       }
 
       object markers {
-        val markerCross = Asset("assets/in-game/gui/markers/marker-cross.png")
-        val markerLozenge = Asset("assets/in-game/gui/markers/marker-lozenge.png")
-        val markerMoon = Asset("assets/in-game/gui/markers/marker-moon.png")
-        val markerSquare = Asset("assets/in-game/gui/markers/marker-square.png")
-        val markerStar = Asset("assets/in-game/gui/markers/marker-star.png")
+        val markerCross    = Asset("assets/in-game/gui/markers/marker-cross.png")
+        val markerLozenge  = Asset("assets/in-game/gui/markers/marker-lozenge.png")
+        val markerMoon     = Asset("assets/in-game/gui/markers/marker-moon.png")
+        val markerSquare   = Asset("assets/in-game/gui/markers/marker-square.png")
+        val markerStar     = Asset("assets/in-game/gui/markers/marker-star.png")
         val markerTriangle = Asset("assets/in-game/gui/markers/marker-triangle.png")
       }
     }

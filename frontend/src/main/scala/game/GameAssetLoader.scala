@@ -55,7 +55,12 @@ final class GameAssetLoader(application: Application) {
     purified,
     inflamed,
     sacredGroundArea,
-    markerCross, markerLozenge, markerMoon, markerSquare, markerStar, markerTriangle
+    markerCross,
+    markerLozenge,
+    markerMoon,
+    markerSquare,
+    markerStar,
+    markerTriangle
   )
 
   final val $progressData     = progressBus.events
@@ -75,7 +80,7 @@ final class GameAssetLoader(application: Application) {
           //.onProgress
           .on("progress", ({ ((loader: Loader), (resource: LoaderResource)) =>
             progressBus.writer.onNext(ProgressData(loader.progress, resource.name))
-          }))//: js.Function2[typings.pixiJs.PIXI.Loader,typings.pixiJs.PIXI.LoaderResource, Unit]).asInstanceOf[scala.scalajs.js.Function1[scala.scalajs.js.Any, _]])
+          })) //: js.Function2[typings.pixiJs.PIXI.Loader,typings.pixiJs.PIXI.LoaderResource, Unit]).asInstanceOf[scala.scalajs.js.Function1[scala.scalajs.js.Any, _]])
       }
       .fork
     resources <- fiber.join

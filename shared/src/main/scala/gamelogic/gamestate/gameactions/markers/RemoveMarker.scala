@@ -11,7 +11,7 @@ import gamelogic.gamestate.GameState
   */
 final case class RemoveMarker(id: GameAction.Id, time: Long, marker: GameMarker) extends GameAction {
 
-  def createGameStateTransformer(gameState: GameState): GameStateTransformer = 
+  def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     RemoveMarkerTransformer(marker)
 
   def isLegal(gameState: GameState): Boolean = true

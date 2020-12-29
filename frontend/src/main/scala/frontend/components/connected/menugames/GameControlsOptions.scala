@@ -146,65 +146,65 @@ final class GameControlsOptions private (closeWriter: Observer[Unit]) extends Co
               controlSetting("Right", controls.rightKey, (cs, c) => cs.copy(rightKey                 = c)),
               controlSetting("Next target", controls.nextTargetKey, (cs, c) => cs.copy(nextTargetKey = c)),
               controlSetting(
-                "Cross on target", 
-                controls.gameMarkerControls.crossTargetKey, 
+                "Cross on target",
+                controls.gameMarkerControls.crossTargetKey,
                 (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(crossTargetKey = c))
               ),
               controlSetting(
-                "Lozenge on target", 
-                controls.gameMarkerControls.lozengeTargetKey, 
+                "Lozenge on target",
+                controls.gameMarkerControls.lozengeTargetKey,
                 (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(lozengeTargetKey = c))
               ),
               controlSetting(
-                "Moon on target", 
-                controls.gameMarkerControls.moonTargetKey, 
+                "Moon on target",
+                controls.gameMarkerControls.moonTargetKey,
                 (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(moonTargetKey = c))
               ),
               controlSetting(
-                "Square on target", 
-                controls.gameMarkerControls.squareTargetKey, 
+                "Square on target",
+                controls.gameMarkerControls.squareTargetKey,
                 (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(squareTargetKey = c))
               ),
               controlSetting(
-                "Star on target", 
-                controls.gameMarkerControls.starTargetKey, 
+                "Star on target",
+                controls.gameMarkerControls.starTargetKey,
                 (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(starTargetKey = c))
               ),
               controlSetting(
-                "Triangle on target", 
-                controls.gameMarkerControls.triangleTargetKey, 
+                "Triangle on target",
+                controls.gameMarkerControls.triangleTargetKey,
                 (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(triangleTargetKey = c))
               ),
               controlSetting(
-                "Fixed Cross", 
-                controls.gameMarkerControls.crossFixedKey, 
+                "Fixed Cross",
+                controls.gameMarkerControls.crossFixedKey,
                 (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(crossFixedKey = c))
               ),
               controlSetting(
-                "Fixed Lozenge", 
-                controls.gameMarkerControls.lozengeFixedKey, 
+                "Fixed Lozenge",
+                controls.gameMarkerControls.lozengeFixedKey,
                 (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(lozengeFixedKey = c))
               ),
               controlSetting(
-                "Fixed Moon", 
-                controls.gameMarkerControls.moonFixedKey, 
+                "Fixed Moon",
+                controls.gameMarkerControls.moonFixedKey,
                 (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(moonFixedKey = c))
               ),
               controlSetting(
-                "Fixed Square", 
-                controls.gameMarkerControls.squareFixedKey, 
+                "Fixed Square",
+                controls.gameMarkerControls.squareFixedKey,
                 (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(squareFixedKey = c))
               ),
               controlSetting(
-                "Fixed Star", 
-                controls.gameMarkerControls.starFixedKey, 
+                "Fixed Star",
+                controls.gameMarkerControls.starFixedKey,
                 (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(starFixedKey = c))
               ),
               controlSetting(
-                "Fixed Triangle", 
-                controls.gameMarkerControls.triangleFixedKey, 
+                "Fixed Triangle",
+                controls.gameMarkerControls.triangleFixedKey,
                 (cs, c) => cs.copy(gameMarkerControls = cs.gameMarkerControls.copy(triangleFixedKey = c))
-              ),
+              )
             )
           }
         ),

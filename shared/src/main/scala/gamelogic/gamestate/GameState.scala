@@ -212,10 +212,9 @@ final class GameState(
   def withMarkerInfo(gameMarkerInfo: GameMarkerInfo): GameState =
     copy(markersInfo = markersInfo + (gameMarkerInfo.marker -> gameMarkerInfo))
 
-    
   /**
-   * Removes the information about the given marker.
-   */
+    * Removes the information about the given marker.
+    */
   def removeMarkerInfo(marker: GameMarker): GameState =
     copy(markersInfo = markersInfo - marker)
 

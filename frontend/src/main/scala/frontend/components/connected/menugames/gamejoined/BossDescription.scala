@@ -23,8 +23,9 @@ final class BossDescription private (bossNames: Signal[Option[String]]) extends 
     autoCloseDuration := 2.seconds
   )
 
-  val bossNameToaster = bossNames.changes.collect { case Some(bossName) => bossName }
-        .flatMap(toastBossName) --> Observer.empty
+  val bossNameToaster = bossNames.changes
+    .collect { case Some(bossName) => bossName }
+    .flatMap(toastBossName) --> Observer.empty
 
   val transformer: Transformer = Transformer
     .from(Markdown)
@@ -64,7 +65,7 @@ final class BossDescription private (bossNames: Signal[Option[String]]) extends 
           .foreach(context.thisNode.ref.innerHTML = _)(context.owner)
       })
     ),
-      bossNameToaster
+    bossNameToaster
   )
 }
 

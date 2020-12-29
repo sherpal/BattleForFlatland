@@ -179,6 +179,6 @@ final class EffectsManager(
       }
     }
 
-    def maybeEntityDisplayObjectById(entityId: Entity.Id): Option[DisplayObject] = None
+  def maybeEntityDisplayObjectById(entityId: Entity.Id): Option[DisplayObject] = None
 
 }
