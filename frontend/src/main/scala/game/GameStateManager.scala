@@ -10,6 +10,7 @@ import game.ui.GameDrawer
 import game.ui.effects.{ChoosingAbilityPositionEffect, EffectsManager}
 import game.ui.gui.ReactiveGUIDrawer
 import game.ui.reactivepixi.ReactiveStage
+import game.ui.effects.target.TargetManager
 import gamelogic.abilities.Ability
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.boss.Boss101
@@ -21,6 +22,7 @@ import models.bff.ingame.{InGameWSProtocol, UserInput}
 import typings.pixiJs.PIXI.LoaderResource
 import typings.pixiJs.mod.{Application, Container}
 import utils.pixi.monkeypatching.PIXIPatching._
+import assets.Asset.ingame.gui.bars.{liteStepBar, _}
 
 import scala.Ordering.Double.TotalOrdering
 import scala.scalajs.js.timers.setTimeout
@@ -170,6 +172,15 @@ final class GameStateManager(
     $maybeTarget,
     useAbilityBus.writer,
     gameStateUpdates
+  )
+
+  private val targetManager = new TargetManager(
+    gameDrawer, $maybeTarget,
+    gameStateUpdates,
+    guiDrawer.guiContainer,
+    resources(minimalistBar).texture,
+    resources(minimalistBar).texture,
+    gameDrawer.camera
   )
 
   var lastTimeStamp = 0L

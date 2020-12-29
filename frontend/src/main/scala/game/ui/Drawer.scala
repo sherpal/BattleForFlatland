@@ -3,9 +3,11 @@ package game.ui
 import gamelogic.physics.Complex
 import typings.pixiJs.PIXI
 import typings.pixiJs.mod.{Application, Graphics, Point}
+import typings.pixiJs.PIXI.DisplayObject
 
 import scala.scalajs.js.JSConverters._
 import scala.scalajs.js.|
+import gamelogic.entities.Entity
 
 trait Drawer {
 
@@ -67,5 +69,11 @@ trait Drawer {
 
     application.renderer.generateTexture(graphics, linearScale, 1)
   }
+
+  /**
+    * When defined, returns the [[DisplayObject]] reprensenting, in the game, the
+    * entity with the given id.
+    */
+  def maybeEntityDisplayObjectById(entityId: Entity.Id): Option[DisplayObject]
 
 }

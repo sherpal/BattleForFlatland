@@ -8,6 +8,8 @@ import gamelogic.abilities.Ability
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.BoundingBox
 import typings.pixiJs.mod.{Application, Container, Sprite}
+import typings.pixiJs.PIXI.DisplayObject
+import gamelogic.entities.Entity
 
 final class ChoosingAbilityPositionEffect(
     val application: Application,
@@ -38,5 +40,7 @@ final class ChoosingAbilityPositionEffect(
       application.view.style.cursor = "pointer"
 
   }
+
+  def maybeEntityDisplayObjectById(entityId: Entity.Id): Option[DisplayObject] = None
 
 }
