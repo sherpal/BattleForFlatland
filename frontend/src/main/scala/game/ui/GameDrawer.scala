@@ -24,6 +24,8 @@ import typings.pixiJs.mod.{DisplayObject => _, _}
 import typings.pixiJs.PIXI.DisplayObject
 
 import scala.collection.mutable
+import com.raquo.airstream.ownership.Owner
+import game.ui.markers.MarkersDrawer
 
 /**
   * This class is used to draw the game state at any moment in time.
@@ -34,7 +36,7 @@ final class GameDrawer(
     resources: PartialFunction[Asset, LoaderResource],
     bossStartPosition: Complex,
     startFightObserver: Observer[Unit]
-) extends Drawer {
+)(implicit owner: Owner) extends Drawer {
 
   @inline def application: Application = reactiveStage.application
   @inline def camera: Camera           = reactiveStage.camera
@@ -47,6 +49,7 @@ final class GameDrawer(
   val movingStuffContainer: ReactiveContainer     = pixiContainer()
   val obstacleContainer: ReactiveContainer        = pixiContainer()
   val otherStuffContainerAbove: ReactiveContainer = pixiContainer()
+  val markersContainer: ReactiveContainer = pixiContainer()
 
   reactiveStage(
     otherStuffContainerBelow,
@@ -56,7 +59,8 @@ final class GameDrawer(
     bossesContainer,
     movingStuffContainer,
     obstacleContainer,
-    otherStuffContainerAbove
+    otherStuffContainerAbove,
+    markersContainer
   )
 
   private val startButton = new BossStartButton(bossStartPosition, resources, startFightObserver)
@@ -243,6 +247,10 @@ final class GameDrawer(
       otherStuffContainerAbove.ref
     )
 
+  private val markersDrawer = new MarkersDrawer(
+    resources, camera, markersContainer
+  )
+
   def maybeEntityDisplayObjectById(entityId: Entity.Id): Option[DisplayObject] =
     players.get(entityId)
     .orElse(bossesSprites.get(entityId))
@@ -273,6 +281,8 @@ final class GameDrawer(
       )
 
     startButton.update(gameState, camera)
+
+    markersDrawer.gameStateWriter.onNext((gameState, currentTime))
   }
 
 }
