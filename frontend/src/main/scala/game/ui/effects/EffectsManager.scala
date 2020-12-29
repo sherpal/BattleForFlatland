@@ -21,6 +21,7 @@ import gamelogic.physics.Complex
 import gamelogic.physics.shape.ConvexPolygon
 import typings.pixiJs.PIXI.{LoaderResource, RenderTexture}
 import typings.pixiJs.mod.{Application, Container, Graphics}
+import typings.pixiJs.PIXI.DisplayObject
 import utils.misc.RGBColour
 import typings.pixiJs.PIXI.SCALE_MODES
 
@@ -177,5 +178,7 @@ final class EffectsManager(
         effect.update(currentTime, gameState)
       }
     }
+
+    def maybeEntityDisplayObjectById(entityId: Entity.Id): Option[DisplayObject] = None
 
 }

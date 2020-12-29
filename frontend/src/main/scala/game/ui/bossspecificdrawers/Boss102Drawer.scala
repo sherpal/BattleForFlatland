@@ -10,6 +10,7 @@ import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import typings.pixiJs.PIXI.{Container, LoaderResource}
 import typings.pixiJs.mod.{Application, ParticleContainer, Sprite}
+import typings.pixiJs.PIXI.DisplayObject
 import utils.misc.RGBColour
 
 import scala.collection.mutable
@@ -93,4 +94,6 @@ final class Boss102Drawer(
     drawBoss102DamageZones(gameState.entities.valuesIterator.collect { case zone: DamageZone => zone }.toList)
     drawHounds(gameState.entities.valuesIterator.collect { case hound: BossHound             => hound }.toList)
   }
+
+  def maybeEntityDisplayObjectById(entityId: Entity.Id): Option[DisplayObject] = houndsSprites.get(entityId)
 }

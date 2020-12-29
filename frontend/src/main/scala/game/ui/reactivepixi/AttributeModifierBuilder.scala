@@ -4,6 +4,9 @@ import com.raquo.airstream.core.Observable
 import gamelogic.physics.Complex
 import typings.pixiJs.PIXI.{Graphics, IHitArea, Rectangle, TextStyle}
 import utils.misc.Colour
+import typings.pixiJs.PIXI.Filter
+
+import scala.scalajs.js.JSConverters._
 
 /**
   * An [[AttributeModifierBuilder]] is the base trait for creating simple [[PixiModifier]] modifying attributes of
@@ -65,6 +68,12 @@ object AttributeModifierBuilder {
 
   final val visible     = factory[ReactiveDisplayObject, Boolean](_.ref.visible     = _)
   final val interactive = factory[ReactiveDisplayObject, Boolean](_.ref.interactive = _)
+
+  final val filters = factory[ReactiveDisplayObject, List[Filter]]
+    { (obj: ReactiveDisplayObject, filters: List[Filter]) =>
+      obj.ref.filters = filters.toJSArray
+      }
+  
 
   final val anchor = factory[ReactiveSprite, Double](_.ref.anchor.set(_))
   final val anchorXY = factory[ReactiveSprite, (Double, Double)] {

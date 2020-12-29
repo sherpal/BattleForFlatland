@@ -20,7 +20,8 @@ import gamelogic.entities.{DummyMob, Entity, SimpleBulletBody}
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import typings.pixiJs.PIXI.LoaderResource
-import typings.pixiJs.mod._
+import typings.pixiJs.mod.{DisplayObject => _, _}
+import typings.pixiJs.PIXI.DisplayObject
 
 import scala.collection.mutable
 
@@ -241,6 +242,11 @@ final class GameDrawer(
       otherStuffContainerBelow.ref,
       otherStuffContainerAbove.ref
     )
+
+  def maybeEntityDisplayObjectById(entityId: Entity.Id): Option[DisplayObject] =
+    players.get(entityId)
+    .orElse(bossesSprites.get(entityId))
+    .orElse(boss102Drawer.maybeEntityDisplayObjectById(entityId))
 
   def drawGameState(gameState: GameState, cameraPosition: Complex, currentTime: Long): Unit = {
     camera.worldCenter = cameraPosition
