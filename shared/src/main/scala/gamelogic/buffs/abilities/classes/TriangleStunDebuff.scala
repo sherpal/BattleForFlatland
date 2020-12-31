@@ -26,7 +26,7 @@ final case class TriangleStunDebuff(buffId: Buff.Id, bearerId: Entity.Id, appear
   }
 
   def actionTransformer(gameAction: GameAction): List[GameAction] = gameAction match {
-    case action :EntityTakesDamage if action.entityId == bearerId =>
+    case action: EntityTakesDamage if action.entityId == bearerId =>
       // Debuff is removed when entity takes damage (it still takes the damages, though)
       List(action, RemoveBuff(action.id, action.time, bearerId, buffId))
     case action if isActionPrevented(action) => Nil
