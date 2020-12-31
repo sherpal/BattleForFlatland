@@ -26,7 +26,8 @@ lazy val `shared` = crossProject(JSPlatform, JVMPlatform)
   .settings(
     SharedSettings(),
     scalaVersion := "2.13.4",
-    testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
+    testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
+    testFrameworks += new TestFramework("munit.Framework")
   )
   .jvmSettings(
     SharedSettings.jvmSettings
