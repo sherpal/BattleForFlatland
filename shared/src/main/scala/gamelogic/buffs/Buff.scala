@@ -58,21 +58,25 @@ object Buff {
 
   type ResourceIdentifier = Int
 
-  final val hexagonHotIdentifier     = 1
-  final val boss101BigDotIdentifier  = 2
-  final val squareDefaultShield      = 3
-  final val rageFiller               = 4
-  final val healingThreatAware       = 5
-  final val damageThreatAware        = 6
-  final val energyFiller             = 7
-  final val triangleUpgradeDirectHit = 8
-  final val manaFiller               = 9
-  final val boss102DamageZoneBuff    = 10
-  final val squareEnrage             = 11
-  final val entitiesPentagonZoneBuff = 12
-  final val boss102LivingDamageZone  = 13
-  final val boss103Punished          = 14
-  final val boss103Purified          = 15
-  final val boss103Inflamed          = 16
+  private var lastId: ResourceIdentifier = 0
+  def nextId(): ResourceIdentifier = { lastId += 1; lastId }
+
+  val hexagonHotIdentifier     = nextId()
+  val boss101BigDotIdentifier  = nextId()
+  val squareDefaultShield      = nextId()
+  val rageFiller               = nextId()
+  val healingThreatAware       = nextId()
+  val damageThreatAware        = nextId()
+  val energyFiller             = nextId()
+  val triangleUpgradeDirectHit = nextId()
+  val triangleStun             = nextId()
+  val manaFiller               = nextId()
+  val boss102DamageZoneBuff    = nextId()
+  val squareEnrage             = nextId()
+  val entitiesPentagonZoneBuff = nextId()
+  val boss102LivingDamageZone  = nextId()
+  val boss103Punished          = nextId()
+  val boss103Purified          = nextId()
+  val boss103Inflamed          = nextId()
 
 }

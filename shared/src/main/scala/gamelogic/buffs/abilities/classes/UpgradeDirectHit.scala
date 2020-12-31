@@ -20,9 +20,9 @@ final case class UpgradeDirectHit(buffId: Buff.Id, bearerId: Entity.Id, appearan
   ): List[GameAction] = Nil
 
   def actionTransformer(gameAction: GameAction): List[GameAction] = gameAction match {
-    case action @ EntityStartsCasting(_, _, _, ability) =>
+    case action @ EntityStartsCasting(_, _, _, ability) if ability.casterId == bearerId =>
       action.copy(ability = ability match {
-        case ability: DirectHit => ability.copy(damage = ability.damage * UpgradeDirectHit.damageIncrease)
+        case ability: DirectHit => ability.copy(damage = (ability.damage * UpgradeDirectHit.damageIncrease).toInt)
         case _                  => ability
       }) :: Nil
 

@@ -28,17 +28,19 @@ final class GameAssetLoader(application: Application) {
   private val progressBus: EventBus[ProgressData] = new EventBus
   private val endedBus: EventBus[Unit]            = new EventBus
 
-  val assets: List[Asset] = List(
-    ScalaLogo,
-    xeonBar,
-    liteStepBar,
-    minimalistBar,
-    abilityOverlay,
-    sacredGroundArea
-  ) ++ 
+  val assets: List[Asset] = (
+    List(
+      ScalaLogo: Asset,
+      xeonBar,
+      liteStepBar,
+      minimalistBar,
+      abilityOverlay,
+      sacredGroundArea
+    ) ++ 
     Asset.markerAssetMap.values ++ 
     Asset.buffAssetMap.values ++ 
     Asset.abilityAssetMap.values
+  ).distinct
 
   val $progressData     = progressBus.events
   val endedLoadingEvent = endedBus.events
@@ -49,7 +51,7 @@ final class GameAssetLoader(application: Application) {
       .effectAsync[Any, Nothing, StringDictionary[LoaderResource]] { callback =>
         assets
           .foldLeft(application.loader) { (loader, resourceUrl) =>
-            loader.add(resourceUrl)
+            loader.add(resourceUrl: String)
           }
           .load { (_, resources) =>
             callback(UIO(resources.asInstanceOf[StringDictionary[LoaderResource]]))

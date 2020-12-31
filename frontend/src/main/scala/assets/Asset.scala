@@ -9,8 +9,15 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 import scala.util.Try
 
-trait Asset extends js.Object {
+sealed trait Asset {
   val name: String
+
+  override final def equals(obj: Any): Boolean = obj match {
+    case that: Asset => this.name == that.name
+    case _ => false
+  }
+
+  override final def hashCode(): Int = name.hashCode()
 }
 
 object Asset {
@@ -197,6 +204,7 @@ object Asset {
     Buff.energyFiller -> ingame.gui.`default-abilities`.energyFiller,
     Buff.manaFiller -> ingame.gui.`default-abilities`.manaFiller,
     Buff.triangleUpgradeDirectHit -> ingame.gui.abilities.triangleUpgradeDirectHit,
+    Buff.triangleStun -> ingame.gui.abilities.triangleStun,
     Buff.squareEnrage -> ingame.gui.abilities.squareEnrage,
     Buff.boss102LivingDamageZone -> ingame.gui.boss.dawnOfTime.boss102.livingDamageZone,
     Buff.boss103Punished -> ingame.gui.boss.dawnOfTime.boss103.punished,
