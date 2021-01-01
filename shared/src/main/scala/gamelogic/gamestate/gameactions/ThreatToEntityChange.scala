@@ -24,7 +24,7 @@ final case class ThreatToEntityChange(
       newEntity = entity.changeThreats(sourceId, deltaThreat, isDamageThreat)
     } yield new WithEntity(newEntity, time)).getOrElse(GameStateTransformer.identityTransformer)
 
-  def isLegal(gameState: GameState): Boolean = true
+  def isLegal(gameState: GameState): None.type = None
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

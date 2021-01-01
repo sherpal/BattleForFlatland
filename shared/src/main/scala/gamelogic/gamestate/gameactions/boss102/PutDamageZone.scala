@@ -25,7 +25,7 @@ final case class PutDamageZone(
     new WithEntity(zone, time) ++ new WithBuff(zone.buff(buffId))
   }
 
-  def isLegal(gameState: GameState): Boolean = true
+  def isLegal(gameState: GameState): None.type = None
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

@@ -83,7 +83,7 @@ final case class BossHound(
         NoResource,
         BossHound.range * 2
       )
-    ).filter(canUseAbility(_, time))
+    ).filter(canUseAbility(_, time).isEmpty)
 
   def canBeStunned: Boolean = true
 

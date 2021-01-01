@@ -26,8 +26,8 @@ final case class AutoAttack(
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Boolean =
-    canBeCastEnemyOnly(gameState) && isInRange(gameState, time) &&
+  def canBeCast(gameState: GameState, time: Long): Option[String] =
+    canBeCastEnemyOnly(gameState) orElse isInRange(gameState, time) orElse
       isInSight(gameState, time)
 
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(0.0, resourceType)

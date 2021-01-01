@@ -101,7 +101,8 @@ final case class AddPlayerByClass(
         )
     }
 
-  def isLegal(gameState: GameState): Boolean = !gameState.players.isDefinedAt(entityId)
+  def isLegal(gameState: GameState): Option[String] =
+    Option.when(gameState.players.isDefinedAt(entityId))("Player already exists")
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

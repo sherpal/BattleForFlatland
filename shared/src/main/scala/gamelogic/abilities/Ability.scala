@@ -60,7 +60,22 @@ trait Ability {
   /** Change the time and id of this ability, without changing the rest. */
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): Ability
 
-  def canBeCast(gameState: GameState, time: Long): Boolean
+  /**
+    * Returns None when the ability can indeed be cast, otherwise return
+    * Some(error message).
+    *
+    * @param gameState state of the game at the time the entity wants to use the ability
+    * @param time time at which the entity wants to use the ability
+    * @return Some error message when the ability can't be cast at that time, with that
+    *         [[GameState]].
+    */
+  def canBeCast(gameState: GameState, time: Long): Option[String]
+
+  /**
+    * Returns whether this ability can be cast at that time with this [[GameState]].
+    */
+  final def canBeCastBoolean(gameState: GameState, time: Long): Boolean =
+    canBeCast(gameState, time).isEmpty
 
 }
 

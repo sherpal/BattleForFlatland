@@ -16,7 +16,7 @@ final case class AddDummyMob(
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     new WithEntity(DummyMob(entityId, time, position, DummyMob.speed, moving = false, 0.0, 0.0), time = time)
 
-  def isLegal(gameState: GameState): Boolean = true
+  def isLegal(gameState: GameState): None.type = None
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

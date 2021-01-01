@@ -18,7 +18,7 @@ final case class NewSimpleBullet(
     range: Double
 ) extends GameAction {
 
-  def isLegal(gameState: GameState): Boolean = true
+  def isLegal(gameState: GameState): None.type = None
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 

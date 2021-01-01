@@ -15,5 +15,5 @@ final case class UpdateMarker(id: GameAction.Id, time: Long, gameMarkerInfo: Gam
 
   def changeId(newId: GameAction.Id): GameAction = copy(id = newId)
 
-  def isLegal(gameState: GameState): Boolean = true
+  def isLegal(gameState: GameState): None.type = None
 }

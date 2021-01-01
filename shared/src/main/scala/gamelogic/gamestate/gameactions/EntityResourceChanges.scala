@@ -18,7 +18,10 @@ final case class EntityResourceChanges(
       new WithEntity(entity.resourceAmountChange(ResourceAmount(amount, resource)), time)
     }
 
-  def isLegal(gameState: GameState): Boolean = gameState.withAbilityEntitiesById(entityId).isDefined
+  def isLegal(gameState: GameState): Option[String] = gameState.withAbilityEntitiesById(entityId) match {
+    case None => Some(s"Entity $entityId does not exist or does not have abilities")
+    case _    => None
+  }
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

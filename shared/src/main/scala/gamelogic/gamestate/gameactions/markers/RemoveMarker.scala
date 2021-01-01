@@ -14,7 +14,7 @@ final case class RemoveMarker(id: GameAction.Id, time: Long, marker: GameMarker)
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     RemoveMarkerTransformer(marker)
 
-  def isLegal(gameState: GameState): Boolean = true
+  def isLegal(gameState: GameState): None.type = None
 
   def changeId(newId: GameAction.Id): GameAction = copy(id = newId)
 

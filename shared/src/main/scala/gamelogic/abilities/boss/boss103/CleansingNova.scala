@@ -28,7 +28,7 @@ final case class CleansingNova(useId: Ability.UseId, time: Long, casterId: Entit
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): CleansingNova = copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Boolean = true
+  def canBeCast(gameState: GameState, time: Long): None.type = None
 }
 
 object CleansingNova extends AbilityMetadata {

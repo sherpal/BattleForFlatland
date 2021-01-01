@@ -25,8 +25,8 @@ final case class DirectHit(useId: Ability.UseId, time: Long, casterId: Entity.Id
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Boolean =
-    canBeCastEnemyOnly(gameState) && isInRangeAndInSight(gameState, time)
+  def canBeCast(gameState: GameState, time: Long): Option[String] =
+    canBeCastEnemyOnly(gameState) orElse isInRangeAndInSight(gameState, time)
 
   def range: Distance = WithTargetAbility.meleeRange
 }

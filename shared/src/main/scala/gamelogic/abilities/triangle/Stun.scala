@@ -65,8 +65,12 @@ final case class Stun(useId: Ability.UseId, time: Long, casterId: Entity.Id, tar
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Boolean =
-    canBeCastEnemyOnly(gameState) && isInRangeAndInSight(gameState, time) && targetCanBeStunned(gameState)
+  def canBeCast(gameState: GameState, time: Long): Option[String] =
+    (for {
+      _ <- canBeCastEnemyOnly(gameState).toLeft(())
+      _ <- isInRangeAndInSight(gameState, time).toLeft(())
+      _ <- Either.cond(targetCanBeStunned(gameState), (), "Target can't be stunnned")
+    } yield ()).swap.toOption
 }
 
 object Stun {

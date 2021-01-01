@@ -50,14 +50,18 @@ trait WithAbilities extends WithPosition {
   val relevantUsedAbilities: Map[Ability.AbilityId, Ability]
 
   /**
-    * Returns whether this [[WithAbilities]] can cast this ability.
+    * Returns an error message when this [[WithAbilities]] can not cast this ability.
+    * Returns None if it can.
+    *
     * @param ability ability it wants to use
     * @param now game time now
     */
-  final def canUseAbility(ability: Ability, now: Long): Boolean =
-    hasAbility(ability.abilityId) &&
-      relevantUsedAbilities.get(ability.abilityId).forall { ability =>
+  final def canUseAbility(ability: Ability, now: Long): Option[String] =
+    Option
+      .unless(hasAbility(ability.abilityId))("You don't have that ability")
+      .orElse(Option.unless(relevantUsedAbilities.get(ability.abilityId).forall { ability =>
         now - ability.time >= ability.cooldown
-      } && (resourceAmount >= ability.cost)
+      })("Ability on cooldown"))
+      .orElse(Option.unless(resourceAmount >= ability.cost)(s"Not enough ${ability.cost.resourceType}"))
 
 }

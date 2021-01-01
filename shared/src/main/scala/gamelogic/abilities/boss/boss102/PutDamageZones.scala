@@ -38,7 +38,7 @@ final case class PutDamageZones(useId: Ability.UseId, time: Long, casterId: Enti
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): PutDamageZones = copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Boolean = true
+  def canBeCast(gameState: GameState, time: Long): None.type = None
 }
 
 object PutDamageZones extends AbilityMetadata {

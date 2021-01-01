@@ -27,7 +27,7 @@ final case class AddBossHound(id: GameAction.Id, time: Long, entityId: Entity.Id
     time
   )
 
-  def isLegal(gameState: GameState): Boolean = true
+  def isLegal(gameState: GameState): None.type = None
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

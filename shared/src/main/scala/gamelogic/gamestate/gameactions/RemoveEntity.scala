@@ -14,7 +14,7 @@ final case class RemoveEntity(id: GameAction.Id, time: Long, entityId: Entity.Id
           .filter(_.bearerId == entityId)
           .map(buff => new RemoveBuffTransformer(time, entityId, buff.buffId))
       )
-  def isLegal(gameState: GameState): Boolean = true
+  def isLegal(gameState: GameState): None.type = None
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

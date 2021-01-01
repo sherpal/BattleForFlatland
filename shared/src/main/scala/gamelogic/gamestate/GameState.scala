@@ -71,7 +71,7 @@ final class GameState(
     nextAction(currentGameState)
   }
 
-  def isLegalAction(action: GameAction): Boolean = action.isLegal(gameState = this)
+  def isLegalAction(action: GameAction): Boolean = action.isLegal(gameState = this).isEmpty
 
   def entityIsCasting(entityId: Entity.Id): Boolean = entityIsCasting(entityId, 0L)
   def entityIsCasting(entityId: Entity.Id, delay: Long): Boolean = castingEntityInfo.get(entityId).fold(false) {

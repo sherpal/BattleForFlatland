@@ -37,7 +37,10 @@ final case class UpdateConstantHot(
     )
   )
 
-  def isLegal(gameState: GameState): Boolean = gameState.livingEntityById(targetId).isDefined
+  def isLegal(gameState: GameState): Option[String] = gameState.livingEntityById(targetId) match {
+    case None => Some(s"Entity $targetId does not exist, or is not a living entity")
+    case _    => None
+  }
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

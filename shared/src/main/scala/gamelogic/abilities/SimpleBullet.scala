@@ -39,7 +39,7 @@ final case class SimpleBullet(
 
   val cost: ResourceAmount = ResourceAmount(0.0, NoResource)
 
-  def canBeCast(gameState: GameState, time: UseId): Boolean = true
+  def canBeCast(gameState: GameState, time: UseId): None.type = None
 }
 
 object SimpleBullet {

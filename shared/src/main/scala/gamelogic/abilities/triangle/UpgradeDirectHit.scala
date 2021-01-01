@@ -33,7 +33,7 @@ final case class UpgradeDirectHit(useId: Ability.UseId, time: Long, casterId: En
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Boolean = true
+  def canBeCast(gameState: GameState, time: Long): None.type = None
 }
 
 object UpgradeDirectHit {

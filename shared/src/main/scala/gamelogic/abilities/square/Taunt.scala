@@ -38,8 +38,8 @@ final case class Taunt(useId: Ability.UseId, time: Long, casterId: Entity.Id, ta
 
   def range: Distance = WithTargetAbility.healRange
 
-  def canBeCast(gameState: GameState, time: UseId): Boolean =
-    canBeCastEnemyOnly(gameState) && isInRangeAndInSight(gameState, time)
+  def canBeCast(gameState: GameState, time: UseId): Option[String] =
+    canBeCastEnemyOnly(gameState) orElse isInRangeAndInSight(gameState, time)
 }
 
 object Taunt {

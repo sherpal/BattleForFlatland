@@ -20,7 +20,7 @@ final case class PutInflamedDebuff(
       Inflamed(buffId = buffId, bearerId = bearerId, appearanceTime = time, lastTickTime = time, sourceId = sourceId)
     )
 
-  def isLegal(gameState: GameState): Boolean = true
+  def isLegal(gameState: GameState): None.type = None
 
   def changeId(newId: Id): PutInflamedDebuff = copy(id = newId)
 }

@@ -13,7 +13,7 @@ final case class EntityCastingInterrupted(id: GameAction.Id, time: Long, entityI
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     new EntityStopCastingTransformer(entityId)
 
-  def isLegal(gameState: GameState): Boolean = true
+  def isLegal(gameState: GameState): None.type = None
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

@@ -26,7 +26,10 @@ final case class PutSimpleBuff(
       new WithBuff(newBuff)
     }
 
-  def isLegal(gameState: GameState): Boolean = gameState.entityById(bearerId).isDefined
+  def isLegal(gameState: GameState): Option[String] = gameState.entityById(bearerId) match {
+    case None => Some(s"Entity $bearerId does not exist")
+    case _    => None
+  }
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }
