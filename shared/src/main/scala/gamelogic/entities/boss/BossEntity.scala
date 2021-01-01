@@ -43,6 +43,11 @@ trait BossEntity extends LivingEntity with MovingBody with WithAbilities with Wi
   /** Names of the abilities, to be displayed in the game UI. */
   def abilityNames: Map[Ability.AbilityId, String]
 
+  /**
+    * Bosses can't be stunned by default.
+    */
+  def canBeStunned: Boolean = false
+
 }
 
 object BossEntity {

@@ -56,6 +56,8 @@ final case class DummyLivingEntity(
   def teamId: Entity.TeamId = Entity.teams.playerTeam
 
   protected def patchResourceAmount(newResourceAmount: ResourceAmount): WithAbilities = this
+
+  def canBeStunned: Boolean = true
 }
 
 object DummyLivingEntity {

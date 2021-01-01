@@ -7,4 +7,7 @@ trait PlayerClass extends LivingEntity with MovingBody with WithAbilities with W
   def colour: Int
 
   def shape: Polygon
+
+  /** Players can always be stunned. */
+  def canBeStunned: Boolean = true
 }
