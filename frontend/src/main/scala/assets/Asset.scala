@@ -66,6 +66,7 @@ object Asset {
         // object triangleUpgradeDirectHit extends Asset
         val triangleUpgradeDirectHit = Asset("assets/in-game/gui/abilities/triangle-upgrade-direct-hit.png")
         val triangleStun             = Asset("assets/in-game/gui/abilities/triangle-stun.png")
+        val triangleEnergyKick       = Asset("assets/in-game/gui/abilities/triangle-energy-kick.png")
 
         // @js.native @JSImport("assets/in-game/gui/abilities/pentagon-bullet.png", JSImport.Default)
         // object pentagonBullet extends Asset
@@ -188,6 +189,7 @@ object Asset {
     Ability.squareTauntId -> ingame.gui.abilities.squareTaunt,
     Ability.squareEnrageId -> ingame.gui.abilities.squareEnrage,
     Ability.squareCleaveId -> ingame.gui.abilities.squareCleave,
+    Ability.triangleEnergyKick -> ingame.gui.abilities.triangleEnergyKick,
     Ability.triangleDirectHit -> ingame.gui.abilities.triangleDirectHit,
     Ability.triangleUpgradeDirectHit -> ingame.gui.abilities.triangleUpgradeDirectHit,
     Ability.triangleStun -> ingame.gui.abilities.triangleStun,

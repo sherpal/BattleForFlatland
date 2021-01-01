@@ -78,6 +78,7 @@ object Triangle extends PlayerClassBuilder {
   val initialMaxLife: Double = 100
 
   val abilities: Set[Ability.AbilityId] = Set(
+    Ability.triangleEnergyKick,
     Ability.triangleDirectHit,
     Ability.triangleUpgradeDirectHit,
     Ability.triangleStun

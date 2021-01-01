@@ -83,6 +83,7 @@ object Ability {
   val boss101BigHitId: AbilityId          = nextAbilityId()
   val boss101BigDotId: AbilityId          = nextAbilityId()
   val triangleDirectHit: AbilityId        = nextAbilityId()
+  val triangleEnergyKick: AbilityId       = nextAbilityId()
   val triangleUpgradeDirectHit: AbilityId = nextAbilityId()
   val triangleStun: AbilityId             = nextAbilityId()
   val pentagonPentagonBullet: AbilityId   = nextAbilityId()

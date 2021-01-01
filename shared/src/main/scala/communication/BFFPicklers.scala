@@ -31,6 +31,7 @@ object BFFPicklers {
     .addConcreteType[square.HammerHit]
     .addConcreteType[square.Taunt]
     .addConcreteType[triangle.DirectHit]
+    .addConcreteType[triangle.EnergyKick]
     .addConcreteType[triangle.UpgradeDirectHit]
     .addConcreteType[triangle.Stun]
     .addConcreteType[AutoAttack]
