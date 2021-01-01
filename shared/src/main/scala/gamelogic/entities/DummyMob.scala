@@ -27,6 +27,8 @@ final case class DummyMob(
     copy(time = time, pos = position, moving = moving, direction = direction, rotation = rotation)
 
   def teamId: Entity.TeamId = Entity.teams.mobTeam
+
+  def canBeStunned: Boolean = true
 }
 
 object DummyMob {

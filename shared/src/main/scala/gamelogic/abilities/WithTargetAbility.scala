@@ -31,6 +31,12 @@ trait WithTargetAbility extends Ability {
 
   final def canBeCastEnemyOnly(gameState: GameState): Boolean = !canBeCastFriendlyOnly(gameState)
 
+  /**
+    * Returns whether this target can be stunned.
+    */
+  final def targetCanBeStunned(gameState: GameState): Boolean =
+    gameState.livingEntityById(entityId = targetId).map(_.canBeStunned).getOrElse(false)
+
 }
 
 object WithTargetAbility {

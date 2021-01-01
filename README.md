@@ -405,6 +405,14 @@ The "Punished" buff will be display in player life bars. This means that the buf
 
 #### What about static abilities?
 
+## Tests
+
+### Game logic
+
+Testing the game logic is actually not that hard, since everything is immutable. Moreover, if all actions are known, the game is completely deterministic! The randomness that occurs during the game are on AIs' side. But once the actions have been create, they determine the game entirely.
+
+The tests contains a class `testutils.ActionComposer` which allows you to create a pipeline of actions, and "peak" at any point in time to check that everything works as expected (by using asserts). For example, you could have one action creating an entity, following with an action killing the entity. If you look at the game state after the first action, you should witness that the entity is indeed there, and after the second action it should have disappeared.
+
 ## Internal
 
 ### Adding a new Service

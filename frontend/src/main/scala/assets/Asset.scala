@@ -9,8 +9,15 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 import scala.util.Try
 
-trait Asset extends js.Object {
+sealed trait Asset {
   val name: String
+
+  override final def equals(obj: Any): Boolean = obj match {
+    case that: Asset => this.name == that.name
+    case _ => false
+  }
+
+  override final def hashCode(): Int = name.hashCode()
 }
 
 object Asset {
@@ -58,6 +65,7 @@ object Asset {
         // @js.native @JSImport("assets/in-game/gui/abilities/triangle-upgrade-direct-hit.png", JSImport.Default)
         // object triangleUpgradeDirectHit extends Asset
         val triangleUpgradeDirectHit = Asset("assets/in-game/gui/abilities/triangle-upgrade-direct-hit.png")
+        val triangleStun = Asset("assets/in-game/gui/abilities/triangle-stun.png")
 
         // @js.native @JSImport("assets/in-game/gui/abilities/pentagon-bullet.png", JSImport.Default)
         // object pentagonBullet extends Asset
@@ -173,35 +181,7 @@ object Asset {
   //   Try(asset.asInstanceOf[String]).fold(_ => throw new AssetNotProperlyDefined(asset), identity[String])
   implicit def assetAsString(asset: Asset): String = asset.name
 
-  // Touching all assets so that there are loaded
-  // ScalaLogo
-  // ingame.gui.abilities.abilityOverlay
-  // ingame.gui.abilities.hexagonFlashHeal
-  // ingame.gui.abilities.hexagonHot
-  // ingame.gui.abilities.squareHammerHit
-  // ingame.gui.abilities.squareTaunt
-  // ingame.gui.abilities.squareEnrage
-  // ingame.gui.abilities.squareCleave
-  // ingame.gui.abilities.triangleDirectHit
-  // ingame.gui.abilities.triangleUpgradeDirectHit
-  // ingame.gui.abilities.pentagonBullet
-  // ingame.gui.abilities.pentagonZone
-  // ingame.gui.abilities.pentagonDispel
-  // ingame.gui.bars.liteStepBar
-  // ingame.gui.bars.minimalistBar
-  // ingame.gui.bars.xeonBar
-  // ingame.gui.boss.dawnOfTime.boss102.livingDamageZone
-  // ingame.gui.boss.dawnOfTime.boss103.punished
-  // ingame.gui.boss.dawnOfTime.boss103.purified
-  // ingame.gui.boss.dawnOfTime.boss103.purified
-  // ingame.gui.boss.dawnOfTime.boss103.sacredGroundArea
-  // ingame.gui.abilities.boss101BigDot
-  // ingame.gui.`default-abilities`.squareShield
-  // ingame.gui.`default-abilities`.rageFiller
-  // ingame.gui.`default-abilities`.energyFiller
-  // ingame.gui.`default-abilities`.manaFiller
-
-  final val abilityAssetMap: Map[Ability.AbilityId, Asset] = Map(
+  val abilityAssetMap: Map[Ability.AbilityId, Asset] = Map(
     Ability.hexagonHexagonHotId -> ingame.gui.abilities.hexagonHot,
     Ability.hexagonFlashHealId -> ingame.gui.abilities.hexagonFlashHeal,
     Ability.squareHammerHit -> ingame.gui.abilities.squareHammerHit,
@@ -210,12 +190,13 @@ object Asset {
     Ability.squareCleaveId -> ingame.gui.abilities.squareCleave,
     Ability.triangleDirectHit -> ingame.gui.abilities.triangleDirectHit,
     Ability.triangleUpgradeDirectHit -> ingame.gui.abilities.triangleUpgradeDirectHit,
+    Ability.triangleStun -> ingame.gui.abilities.triangleStun,
     Ability.pentagonPentagonBullet -> ingame.gui.abilities.pentagonBullet,
     Ability.createPentagonZoneId -> ingame.gui.abilities.pentagonZone,
     Ability.pentagonDispelId -> ingame.gui.abilities.pentagonDispel
   )
 
-  final val buffAssetMap: Map[Buff.ResourceIdentifier, Asset] = Map(
+  val buffAssetMap: Map[Buff.ResourceIdentifier, Asset] = Map(
     Buff.hexagonHotIdentifier -> ingame.gui.abilities.hexagonHot,
     Buff.boss101BigDotIdentifier -> ingame.gui.abilities.boss101BigDot,
     Buff.squareDefaultShield -> ingame.gui.`default-abilities`.squareShield,
@@ -223,6 +204,7 @@ object Asset {
     Buff.energyFiller -> ingame.gui.`default-abilities`.energyFiller,
     Buff.manaFiller -> ingame.gui.`default-abilities`.manaFiller,
     Buff.triangleUpgradeDirectHit -> ingame.gui.abilities.triangleUpgradeDirectHit,
+    Buff.triangleStun -> ingame.gui.abilities.triangleStun,
     Buff.squareEnrage -> ingame.gui.abilities.squareEnrage,
     Buff.boss102LivingDamageZone -> ingame.gui.boss.dawnOfTime.boss102.livingDamageZone,
     Buff.boss103Punished -> ingame.gui.boss.dawnOfTime.boss103.punished,
