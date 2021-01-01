@@ -14,9 +14,9 @@ import gamelogic.physics.shape.{Polygon, Shape}
 import gamelogic.utils.IdGeneratorContainer
 
 /**
-  * The Triangle is the melee dps class in BFF. It attacks close its enemies.
+  * The [[Triangle]] is the melee dps class in BFF. It attacks close its enemies.
   *
-  * The Triangle has an energy bar that is replenish very often (10 seconds to replenish it entirely), but most of
+  * The [[Triangle]] has an energy bar that is replenish very often (10 seconds to replenish it entirely), but most of
   * the attacks uses a lot amount of them.
   */
 final case class Triangle(
@@ -71,13 +71,17 @@ final case class Triangle(
 
 object Triangle extends PlayerClassBuilder {
 
-  final val shape = Shape.regularPolygon(3, Constants.playerRadius)
+  val shape = Shape.regularPolygon(3, Constants.playerRadius)
 
   def initialResourceAmount: ResourceAmount = ResourceAmount(100, Energy)
 
-  final val initialMaxLife: Double = 100
+  val initialMaxLife: Double = 100
 
-  final val abilities: Set[Ability.AbilityId] = Set(Ability.triangleDirectHit, Ability.triangleUpgradeDirectHit)
+  val abilities: Set[Ability.AbilityId] = Set(
+    Ability.triangleDirectHit, 
+    Ability.triangleUpgradeDirectHit,
+    Ability.triangleStun
+  )
 
   def startingActions(time: Id, entityId: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
     PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.energyFiller)

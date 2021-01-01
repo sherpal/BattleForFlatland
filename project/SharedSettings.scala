@@ -21,7 +21,8 @@ object SharedSettings {
       "org.scala-lang" % "scala-reflect" % "2.13.1" % Provided,
       "org.planet42" %%% "laika-core" % "0.15.0",
       "io.suzaku" %%% "boopickle" % "1.3.3",
-      "org.scalacheck" %%% "scalacheck" % "1.14.3" % Test
+      "org.scalacheck" %%% "scalacheck" % "1.14.3" % Test,
+      "org.scalameta" %%% "munit" % "0.7.20" % Test
     ) ++ Seq( // circe for json serialisation
       "io.circe" %%% "circe-core",
       "io.circe" %%% "circe-generic",

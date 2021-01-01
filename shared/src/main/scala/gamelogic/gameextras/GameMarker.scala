@@ -1,7 +1,6 @@
 package gamelogic.gameextras
 
-import io.circe.Encoder
-
+// todo[scala3] change to enum
 /**
   * A [[GameMarker]] is a token that players can put in the game in order to improve
   * communication via some "markers".
@@ -13,34 +12,17 @@ import io.circe.Encoder
   * Markers can be put either in a fixed position in the game, or they can be assigned
   * to a particular entity (friend or foe).
   */
-sealed trait GameMarker {
-  def id: Int
-}
+sealed trait GameMarker
 
 object GameMarker {
 
-  case object Cross extends GameMarker {
-    def id: Int = 1
-  }
-  case object Lozenge extends GameMarker {
-    def id: Int = 2
-  }
-  case object Moon extends GameMarker {
-    def id: Int = 3
-  }
-  case object Square extends GameMarker {
-    def id: Int = 4
-  }
-  case object Star extends GameMarker {
-    def id: Int = 5
-  }
-  case object Triangle extends GameMarker {
-    def id: Int = 6
-  }
+  case object Cross extends GameMarker
+  case object Lozenge extends GameMarker
+  case object Moon extends GameMarker
+  case object Square extends GameMarker
+  case object Star extends GameMarker
+  case object Triangle extends GameMarker
 
-  val allMarkers = List(Cross, Lozenge, Moon, Square, Star, Triangle)
-
-  implicit val jsonEncoder: Encoder[GameMarker] =
-    Encoder.encodeInt.contramap(_.id)
+  val allMarkers: List[GameMarker] = List(Cross, Lozenge, Moon, Square, Star, Triangle)
 
 }

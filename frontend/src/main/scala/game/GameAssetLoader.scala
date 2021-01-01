@@ -28,43 +28,22 @@ final class GameAssetLoader(application: Application) {
   private val progressBus: EventBus[ProgressData] = new EventBus
   private val endedBus: EventBus[Unit]            = new EventBus
 
-  val assets: List[String] = List(
-    ScalaLogo,
-    xeonBar,
-    liteStepBar,
-    minimalistBar,
-    abilityOverlay,
-    hexagonFlashHeal,
-    hexagonHot,
-    squareTaunt,
-    squareHammerHit,
-    squareEnrage,
-    squareCleave,
-    triangleDirectHit,
-    triangleUpgradeDirectHit,
-    pentagonBullet,
-    pentagonZone,
-    pentagonDispel,
-    boss101BigDot,
-    squareShield,
-    rageFiller,
-    energyFiller,
-    manaFiller,
-    livingDamageZone,
-    punished,
-    purified,
-    inflamed,
-    sacredGroundArea,
-    markerCross,
-    markerLozenge,
-    markerMoon,
-    markerSquare,
-    markerStar,
-    markerTriangle
-  )
+  val assets: List[Asset] = (
+    List(
+      ScalaLogo: Asset,
+      xeonBar,
+      liteStepBar,
+      minimalistBar,
+      abilityOverlay,
+      sacredGroundArea
+    ) ++ 
+    Asset.markerAssetMap.values ++ 
+    Asset.buffAssetMap.values ++ 
+    Asset.abilityAssetMap.values
+  ).distinct
 
-  final val $progressData     = progressBus.events
-  final val endedLoadingEvent = endedBus.events
+  val $progressData     = progressBus.events
+  val endedLoadingEvent = endedBus.events
 
   // todo: handle errors when loading
   val loadAssets: ZIO[Any, Nothing, PartialFunction[Asset, LoaderResource]] = for {
@@ -72,7 +51,7 @@ final class GameAssetLoader(application: Application) {
       .effectAsync[Any, Nothing, StringDictionary[LoaderResource]] { callback =>
         assets
           .foldLeft(application.loader) { (loader, resourceUrl) =>
-            loader.add(resourceUrl)
+            loader.add(resourceUrl: String)
           }
           .load { (_, resources) =>
             callback(UIO(resources.asInstanceOf[StringDictionary[LoaderResource]]))

@@ -17,6 +17,15 @@ trait LivingEntity extends Entity {
     patchLifeTotal((0.0 max (life + delta)) min maxLife)
 
   /**
+    * Boolean indicating whether this [[Entity]] is normally affected by "stun" ability.
+    * 
+    * Stunning an [[Entity]] is a very powerful ability and therefore sometimes it can not be used,
+    * otherwise it would be too powerful.
+    * Typically, bosses are *not* affected by such mechanism.
+    */
+  def canBeStunned: Boolean
+
+  /**
     * Copy this entity by only changing its life total.
     *
     * Note: this method is not supposed to take care about clamping the new life total to [0, maxLife], but must
