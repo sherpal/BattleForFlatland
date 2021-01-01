@@ -64,4 +64,7 @@ trait WithAbilities extends WithPosition {
       })("Ability on cooldown"))
       .orElse(Option.unless(resourceAmount >= ability.cost)(s"Not enough ${ability.cost.resourceType}"))
 
+  final def canUseAbilityBoolean(ability: Ability, now: Long): Boolean =
+    canUseAbility(ability, now).isEmpty
+
 }

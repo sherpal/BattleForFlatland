@@ -50,12 +50,12 @@ object Boss103Controller extends AIController[Boss103, SpawnBoss] {
 
         val maybeUseCleansingNova =
           Some(CleansingNova(0L, startTime, me.id))
-            .filter(me.canUseAbility(_, startTime))
+            .filter(me.canUseAbilityBoolean(_, startTime))
             .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
 
         val maybeUseSacredGround =
           Some(SacredGround(0L, startTime, me.id, me.currentPosition(startTime), SacredGround.range))
-            .filter(me.canUseAbility(_, startTime))
+            .filter(me.canUseAbilityBoolean(_, startTime))
             .map(
               ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability)
             )
@@ -71,12 +71,12 @@ object Boss103Controller extends AIController[Boss103, SpawnBoss] {
             .map { target =>
               HolyFlame(0L, startTime, me.id, target.id)
             }
-            .filter(me.canUseAbility(_, startTime))
+            .filter(me.canUseAbilityBoolean(_, startTime))
             .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
 
         val maybeUsePunishment =
           Some(Punishment(0L, startTime, me.id))
-            .filter(me.canUseAbility(_, startTime))
+            .filter(me.canUseAbilityBoolean(_, startTime))
             .filter(_ => Random.nextInt(180) == 0) // expectation time should be 6s
             .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
 
