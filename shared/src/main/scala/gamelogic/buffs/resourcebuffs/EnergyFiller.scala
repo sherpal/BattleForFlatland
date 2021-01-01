@@ -34,6 +34,6 @@ final case class EnergyFiller(buffId: Buff.Id, bearerId: Entity.Id, appearanceTi
 
 object EnergyFiller {
 
-  @inline final def energyRefillPerSecond = 10.0
+  @inline final def energyRefillPerSecond = 4.0
 
 }

@@ -18,6 +18,7 @@ import models.bff.ingame.{InGameWSProtocol, UserInput}
 import org.scalajs.dom
 import utils.misc.RGBColour
 import gamelogic.abilities.triangle.Stun
+import gamelogic.abilities.triangle.EnergyKick
 
 /**
   * Singleton adding the effect of casting abilities.
@@ -182,6 +183,21 @@ final class CastAbilitiesHandler(
                   }
                 case None =>
                   dom.console.warn("You are dead")
+              }
+            case Ability.triangleEnergyKick =>
+              maybeTarget match {
+                case None => dom.console.warn("You need a target to use energy kick!")
+                case Some(target) =>
+                  val ability = EnergyKick(0L, now, playerId, target.id)
+                  val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
+                  if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
+                        $strictGameStates.now(),
+                        deltaTimeWithServer + 100
+                      )) {
+                    socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                  } else {
+                    dom.console.warn("Can't use Energy Kick")
+                  }
               }
             case Ability.triangleDirectHit =>
               maybeTarget match {

@@ -55,6 +55,8 @@ object AntiChamber {
         Behaviors.same
       case ShouldWeStart => // still waiting for players
         Behaviors.same
+      case GameInfo(_) =>
+        Behaviors.unhandled
     }
   }
 
