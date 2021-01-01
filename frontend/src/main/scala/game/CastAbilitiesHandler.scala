@@ -19,6 +19,7 @@ import org.scalajs.dom
 import utils.misc.RGBColour
 import gamelogic.abilities.triangle.Stun
 import gamelogic.abilities.triangle.EnergyKick
+import game.ui.effects.errormessages.ErrorMessagesManager
 
 /**
   * Singleton adding the effect of casting abilities.
@@ -186,7 +187,8 @@ final class CastAbilitiesHandler(
               }
             case Ability.triangleEnergyKick =>
               maybeTarget match {
-                case None => dom.console.warn("You need a target to use energy kick!")
+                case None =>
+                  ErrorMessagesManager.logError("You need a target to use energy kick!")
                 case Some(target) =>
                   val ability = EnergyKick(0L, now, playerId, target.id)
                   val action  = EntityStartsCasting(0L, now, ability.castingTime, ability)
@@ -196,7 +198,7 @@ final class CastAbilitiesHandler(
                       )) {
                     socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
                   } else {
-                    dom.console.warn("Can't use Energy Kick")
+                    ErrorMessagesManager.logError("Can't use Energy Kick")
                   }
               }
             case Ability.triangleDirectHit =>

@@ -26,6 +26,7 @@ import assets.Asset.ingame.gui.bars.{liteStepBar, _}
 
 import scala.Ordering.Double.TotalOrdering
 import scala.scalajs.js.timers.setTimeout
+import game.ui.effects.errormessages.ErrorMessagesManager
 
 final class GameStateManager(
     reactiveStage: ReactiveStage,
@@ -200,6 +201,8 @@ final class GameStateManager(
     val gameState = $strictGameStates.now()
     val deltaTime = now - lastTimeStamp
     lastTimeStamp = now
+
+    ErrorMessagesManager.updateMessageView(now)
 
     gameState.players.get(playerId) match {
       case Some(entity) =>
