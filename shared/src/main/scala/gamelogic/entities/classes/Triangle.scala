@@ -79,7 +79,8 @@ object Triangle extends PlayerClassBuilder {
 
   val abilities: Set[Ability.AbilityId] = Set(
     Ability.triangleDirectHit, 
-    Ability.triangleUpgradeDirectHit
+    Ability.triangleUpgradeDirectHit,
+    Ability.triangleStun
   )
 
   def startingActions(time: Id, entityId: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(

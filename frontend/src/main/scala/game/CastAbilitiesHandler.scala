@@ -17,6 +17,7 @@ import gamelogic.physics.Complex
 import models.bff.ingame.{InGameWSProtocol, UserInput}
 import org.scalajs.dom
 import utils.misc.RGBColour
+import gamelogic.abilities.triangle.Stun
 
 /**
   * Singleton adding the effect of casting abilities.
@@ -207,6 +208,21 @@ final class CastAbilitiesHandler(
                 socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
               } else {
                 dom.console.warn("Can't use UpgradeDirectHit")
+              }
+            case Ability.triangleStun =>
+              maybeTarget match {
+                case None => dom.console.warn("can't cast stun without target!")
+                case Some(target) => 
+                  val stun = Stun(0L, now, playerId, target.id)
+                  val action = EntityStartsCasting(0L, now, stun.castingTime, stun)
+                  if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
+                        $strictGameStates.now(),
+                        deltaTimeWithServer + 100
+                      )) {
+                    socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(action :: Nil))
+                  } else {
+                    dom.console.warn("Can't use CreatePentagonBullet")
+                  }
               }
             case Ability.pentagonPentagonBullet =>
               gameState.players.get(playerId) match {
