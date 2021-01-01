@@ -14,6 +14,7 @@ import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.buffs.abilities.classes.TriangleStunDebuff
 import gamelogic.buffs.Buff
 import gamelogic.gamestate.gameactions.RemoveBuff
+import gamelogic.gamestate.gameactions.EntityCastingInterrupted
 
 /**
   * Impeach the target from doing anything for the next 20 seconds.
@@ -31,7 +32,7 @@ final case class Stun(useId: Ability.UseId, time: Long, casterId: Entity.Id, tar
     def cost: ResourceAmount = Stun.cost
     def range: Distance = Stun.range
 
-    def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] = 
+    def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
       // First we remove the previous debuff, if any.
       (for {
         caster <- gameState.withAbilityEntitiesById(casterId)
@@ -42,15 +43,18 @@ final case class Stun(useId: Ability.UseId, time: Long, casterId: Entity.Id, tar
         actions = currentDebuffOfPreviousTarget.values.collect {
           case debuff: TriangleStunDebuff => debuff.buffId
         }.map(buffId => RemoveBuff(idGeneratorContainer.gameActionIdGenerator(), time, previousTargetId, buffId))
-      } yield actions).toList.flatten ++ 
-      List(PutSimpleBuff(
+      } yield actions).toList.flatten ++
+      List(
+        // the caster is interrupted if they were casting.
+      Option.when(gameState.entityIsCasting(targetId))(EntityCastingInterrupted(idGeneratorContainer.gameActionIdGenerator(), time, targetId)),
+        Some(PutSimpleBuff(
         idGeneratorContainer.gameActionIdGenerator(),
         time,
         idGeneratorContainer.buffIdGenerator(),
         targetId,
         time,
         Buff.triangleStun
-      ))
+      ))).flatten
 
     def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
 

@@ -18,6 +18,8 @@ import testutils.ActionComposer
 import gamelogic.abilities.Ability
 import gamelogic.buffs.abilities.classes.TriangleStunDebuff
 import gamelogic.gamestate.gameactions.EntityTakesDamage
+import gamelogic.gamestate.gameactions.EntityStartsCasting
+import gamelogic.abilities.hexagon.FlashHeal
 
 final class TriangleStunSpecs extends munit.FunSuite {
 
@@ -26,6 +28,7 @@ final class TriangleStunSpecs extends munit.FunSuite {
   def gameStart(time: Long): GameStart = GameStart(idGenerator.gameActionIdGenerator(), time)
   def addHound(time: Long): AddBossHound = AddBossHound(idGenerator.gameActionIdGenerator(), time, idGenerator.entityIdGenerator(), 0)
   def addPlayer(time: Long): AddPlayerByClass = AddPlayerByClass(idGenerator.gameActionIdGenerator(), time, idGenerator.entityIdGenerator(), 0, PlayerClasses.Triangle, 0, "Hey")
+  def addHexagon(time: Long): AddPlayerByClass = AddPlayerByClass(idGenerator.gameActionIdGenerator(), time, idGenerator.entityIdGenerator(), 0, PlayerClasses.Hexagon, 0xFF0000, "TheHexagon")
 
   def nextUseId() = idGenerator.abilityUseIdGenerator()
 
@@ -37,6 +40,34 @@ final class TriangleStunSpecs extends munit.FunSuite {
 
   def assertEntitiesPresent(entityIds: Entity.Id*)(gameState: GameState): Unit = 
     entityIds.map(gameState.entities.get).map(_.isDefined).foreach(assertEquals(_, true))
+
+  test("Triangle uses stun on a casting target, the cast should be interrupted") {
+    val addingPlayer = addPlayer(2)
+    val addingFoe = addHexagon(2)
+
+    val foeStartsCasting = EntityStartsCasting(
+      idGenerator.gameActionIdGenerator(), 
+      3, 3L, 
+      FlashHeal(idGenerator.abilityUseIdGenerator(), 
+      3, 
+      addingFoe.entityId, 
+      addingFoe.entityId)
+    )
+
+    val ability = Stun(nextUseId(), 4, addingPlayer.entityId, addingFoe.entityId)
+    val stunUse = useAbilityFromAbility(ability)
+
+    val composer = ActionComposer.empty >>
+      start >>
+      addingFoe >> addingPlayer >> 
+      foeStartsCasting >>>> { (gameState: GameState) =>
+        assert(gameState.entityIsCasting(addingFoe.entityId))
+      } >>> (gs => ability.createActions(gs)) >> stunUse >>>> { (gameState: GameState) =>
+        assert(!gameState.entityIsCasting(addingFoe.entityId), s"Foe is still casting, casting info were ${gameState.castingEntityInfo}.")
+      }
+
+    composer(initialGameState)
+  }
 
   test("Triangle uses stun then the target takes damage, the debuff should be removed") {
     val addingHound = addHound(2)
