@@ -212,8 +212,8 @@ final class CastAbilitiesHandler(
             case Ability.triangleStun =>
               maybeTarget match {
                 case None => dom.console.warn("can't cast stun without target!")
-                case Some(target) => 
-                  val stun = Stun(0L, now, playerId, target.id)
+                case Some(target) =>
+                  val stun   = Stun(0L, now, playerId, target.id)
                   val action = EntityStartsCasting(0L, now, stun.castingTime, stun)
                   if (!gameState.entityIsCasting(playerId) && action.isLegalDelay(
                         $strictGameStates.now(),

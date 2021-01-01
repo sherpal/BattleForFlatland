@@ -85,7 +85,6 @@ final case class BossHound(
       )
     ).filter(canUseAbility(_, time))
 
-  
   def canBeStunned: Boolean = true
 
 }

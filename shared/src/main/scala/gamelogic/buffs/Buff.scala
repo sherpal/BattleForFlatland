@@ -59,7 +59,7 @@ object Buff {
   type ResourceIdentifier = Int
 
   private var lastId: ResourceIdentifier = 0
-  def nextId(): ResourceIdentifier = { lastId += 1; lastId }
+  def nextId(): ResourceIdentifier       = { lastId += 1; lastId }
 
   val hexagonHotIdentifier     = nextId()
   val boss101BigDotIdentifier  = nextId()

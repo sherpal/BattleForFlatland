@@ -36,10 +36,10 @@ final class GameAssetLoader(application: Application) {
       minimalistBar,
       abilityOverlay,
       sacredGroundArea
-    ) ++ 
-    Asset.markerAssetMap.values ++ 
-    Asset.buffAssetMap.values ++ 
-    Asset.abilityAssetMap.values
+    ) ++
+      Asset.markerAssetMap.values ++
+      Asset.buffAssetMap.values ++
+      Asset.abilityAssetMap.values
   ).distinct
 
   val $progressData     = progressBus.events

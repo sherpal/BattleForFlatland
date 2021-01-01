@@ -14,7 +14,7 @@ sealed trait Asset {
 
   override final def equals(obj: Any): Boolean = obj match {
     case that: Asset => this.name == that.name
-    case _ => false
+    case _           => false
   }
 
   override final def hashCode(): Int = name.hashCode()
@@ -65,7 +65,7 @@ object Asset {
         // @js.native @JSImport("assets/in-game/gui/abilities/triangle-upgrade-direct-hit.png", JSImport.Default)
         // object triangleUpgradeDirectHit extends Asset
         val triangleUpgradeDirectHit = Asset("assets/in-game/gui/abilities/triangle-upgrade-direct-hit.png")
-        val triangleStun = Asset("assets/in-game/gui/abilities/triangle-stun.png")
+        val triangleStun             = Asset("assets/in-game/gui/abilities/triangle-stun.png")
 
         // @js.native @JSImport("assets/in-game/gui/abilities/pentagon-bullet.png", JSImport.Default)
         // object pentagonBullet extends Asset

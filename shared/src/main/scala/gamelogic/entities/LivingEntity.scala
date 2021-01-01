@@ -18,7 +18,7 @@ trait LivingEntity extends Entity {
 
   /**
     * Boolean indicating whether this [[Entity]] is normally affected by "stun" ability.
-    * 
+    *
     * Stunning an [[Entity]] is a very powerful ability and therefore sometimes it can not be used,
     * otherwise it would be too powerful.
     * Typically, bosses are *not* affected by such mechanism.
