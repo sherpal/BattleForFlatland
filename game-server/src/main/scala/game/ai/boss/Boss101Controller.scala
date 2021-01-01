@@ -70,47 +70,52 @@ object Boss101Controller {
 
           val bigHit = BigHit(0L, now, myId, target.id)
 
-          val maybeUseAnAbility = Option
-            .when(me.canUseAbility(bigHit, startTime) && bigHit.isInRangeAndInSight(currentGameState, startTime)) {
-              List(
-                MovingBodyMoves(
-                  0L,
-                  startTime,
-                  myId,
-                  currentPosition,
-                  me.direction,
-                  me.rotation,
-                  me.speed,
-                  moving = false
-                ),
-                EntityStartsCasting(0L, now, bigHit.castingTime, bigHit)
-              )
-
-            }
-            .orElse(
-              Some(
-                BigDot(
-                  0L,
-                  now,
-                  me.id,
-                  // targeting someone at random besides the target
-                  currentGameState.players
-                    .filterNot(_._1 == target.id)
-                    .keys
-                    .maxByOption(_ => Random.nextInt())
-                    .getOrElse(target.id)
+          val maybeUseAnAbility =
+            Option
+              .when(
+                me.canUseAbilityBoolean(bigHit, startTime) && bigHit
+                  .isInRangeAndInSight(currentGameState, startTime)
+                  .isEmpty
+              ) {
+                List(
+                  MovingBodyMoves(
+                    0L,
+                    startTime,
+                    myId,
+                    currentPosition,
+                    me.direction,
+                    me.rotation,
+                    me.speed,
+                    moving = false
+                  ),
+                  EntityStartsCasting(0L, now, bigHit.castingTime, bigHit)
                 )
-              ).filter(ability => me.canUseAbility(ability, startTime)).map { ability =>
-                List(EntityStartsCasting(0L, now, ability.castingTime, ability))
+
               }
-            )
-            .orElse(
-              Some(
-                SmallHit(0L, now, me.id, target.id, SmallHit.damageAmount)
-              ).filter(ability => me.canUseAbility(ability, startTime)).map { ability =>
-                List(EntityStartsCasting(0L, now, ability.castingTime, ability))
-              }
-            )
+              .orElse(
+                Some(
+                  BigDot(
+                    0L,
+                    now,
+                    me.id,
+                    // targeting someone at random besides the target
+                    currentGameState.players
+                      .filterNot(_._1 == target.id)
+                      .keys
+                      .maxByOption(_ => Random.nextInt())
+                      .getOrElse(target.id)
+                  )
+                ).filter(ability => me.canUseAbilityBoolean(ability, startTime)).map { ability =>
+                  List(EntityStartsCasting(0L, now, ability.castingTime, ability))
+                }
+              )
+              .orElse(
+                Some(
+                  SmallHit(0L, now, me.id, target.id, SmallHit.damageAmount)
+                ).filter(ability => me.canUseAbilityBoolean(ability, startTime)).map { ability =>
+                  List(EntityStartsCasting(0L, now, ability.castingTime, ability))
+                }
+              )
 
           val shouldINotMove = maybeUseAnAbility.fold(false) { actions =>
             actions.collect { case a: EntityStartsCasting => a }.exists(_.ability.abilityId == Ability.boss101BigHitId)

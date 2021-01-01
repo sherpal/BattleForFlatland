@@ -25,11 +25,14 @@ final case class MovingBodyMoves(
         new WithEntity(movingBody.move(time, position, direction, rotation, speed, moving), time)
       }
 
-  def isLegal(gameState: GameState): Boolean = gameState.movingBodyEntityById(entityId).forall { movingBody =>
-    movingBody.isInstanceOf[BossEntity] || {
+  def isLegal(gameState: GameState): Option[String] = gameState.movingBodyEntityById(entityId) match {
+    case None                => Some(s"Entity $entityId does not exist, or it is not a moving body")
+    case Some(_: BossEntity) => None
+    case Some(movingBody) =>
       val afterMovement = movingBody.move(time, position, direction, rotation, speed, moving)
-      gameState.obstaclesLike.forall(obstacle => !obstacle.collides(afterMovement, time))
-    }
+      Option.unless(gameState.obstaclesLike.forall(obstacle => !obstacle.collides(afterMovement, time)))(
+        s"Entity $entityId will collide an obstacle if it proceed"
+      )
   }
 
   def changeId(newId: Id): GameAction = copy(id = newId)

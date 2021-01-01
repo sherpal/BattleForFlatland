@@ -10,7 +10,7 @@ import game.ui.GameDrawer
 import game.ui.effects.{ChoosingAbilityPositionEffect, EffectsManager}
 import game.ui.gui.ReactiveGUIDrawer
 import game.ui.reactivepixi.ReactiveStage
-import game.ui.effects.target.TargetManager
+import game.ui.effects.targetmanager.TargetManager
 import gamelogic.abilities.Ability
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.boss.Boss101
@@ -26,6 +26,7 @@ import assets.Asset.ingame.gui.bars.{liteStepBar, _}
 
 import scala.Ordering.Double.TotalOrdering
 import scala.scalajs.js.timers.setTimeout
+import game.ui.effects.errormessages.ErrorMessagesManager
 
 final class GameStateManager(
     reactiveStage: ReactiveStage,
@@ -200,6 +201,8 @@ final class GameStateManager(
     val gameState = $strictGameStates.now()
     val deltaTime = now - lastTimeStamp
     lastTimeStamp = now
+
+    ErrorMessagesManager.updateMessageView(now)
 
     gameState.players.get(playerId) match {
       case Some(entity) =>

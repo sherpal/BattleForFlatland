@@ -31,7 +31,7 @@ final case class PutPentagonZone(
     new WithEntity(zone, time) ++ new WithBuff(buff)
   }
 
-  def isLegal(gameState: GameState): Boolean = true
+  def isLegal(gameState: GameState): None.type = None
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

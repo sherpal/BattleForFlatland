@@ -37,7 +37,7 @@ final case class Punishment(useId: Ability.UseId, time: Long, casterId: Entity.I
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Punishment = copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Boolean = true
+  def canBeCast(gameState: GameState, time: Long): None.type = None
 }
 
 object Punishment extends AbilityMetadata {

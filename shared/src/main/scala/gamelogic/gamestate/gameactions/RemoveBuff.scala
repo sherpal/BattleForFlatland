@@ -11,7 +11,7 @@ final case class RemoveBuff(id: GameAction.Id, time: Long, bearerId: Entity.Id, 
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     new RemoveBuffTransformer(time, bearerId, buffId)
 
-  def isLegal(gameState: GameState): Boolean = true // we accept this action in any case since it doesn't hurt.
+  def isLegal(gameState: GameState): None.type = None // we accept this action in any case since it doesn't hurt.
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

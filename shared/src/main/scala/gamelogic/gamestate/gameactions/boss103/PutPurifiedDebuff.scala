@@ -36,7 +36,7 @@ final case class PutPurifiedDebuff(
       )
     )
 
-  def isLegal(gameState: GameState): Boolean = true
+  def isLegal(gameState: GameState): None.type = None
 
   def changeId(newId: GameAction.Id): PutPurifiedDebuff = copy(id = newId)
 }

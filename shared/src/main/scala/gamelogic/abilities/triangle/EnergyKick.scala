@@ -43,8 +43,8 @@ final case class EnergyKick(useId: Ability.UseId, time: Long, casterId: Entity.I
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): Ability =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Boolean =
-    canBeCastEnemyOnly(gameState) && isInRangeAndInSight(gameState, time)
+  def canBeCast(gameState: GameState, time: Long): Option[String] =
+    canBeCastEnemyOnly(gameState) orElse isInRangeAndInSight(gameState, time)
 
   def range: WithTargetAbility.Distance = WithTargetAbility.meleeRange
 

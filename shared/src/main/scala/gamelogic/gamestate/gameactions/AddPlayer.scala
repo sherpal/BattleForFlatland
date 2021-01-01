@@ -11,7 +11,8 @@ final case class AddPlayer(id: Long, time: Long, playerId: Entity.Id, pos: Compl
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     ???
 
-  def isLegal(gameState: GameState): Boolean = !gameState.players.isDefinedAt(playerId)
+  def isLegal(gameState: GameState): Option[String] =
+    Option.when(gameState.players.isDefinedAt(playerId))("Player already exists")
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

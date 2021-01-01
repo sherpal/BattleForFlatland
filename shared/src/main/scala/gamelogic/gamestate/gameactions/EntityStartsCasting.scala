@@ -14,18 +14,38 @@ final case class EntityStartsCasting(id: GameAction.Id, time: Long, castingTime:
   /**
     * Testing that the entity is not already casting something, and that it exists.
     * Testing in that order because the first one is most likely the one which is going to fail.
+    *
+    * If the ability is not legal, then returns Some the error message.
+    * Otherwise, returns None.
     */
-  def isLegal(gameState: GameState): Boolean =
-    !gameState.entityIsCasting(ability.casterId) &&
-      gameState.withAbilityEntitiesById(ability.casterId).exists(_.canUseAbility(ability, time)) &&
-      ability.canBeCast(gameState, time)
+  def isLegal(gameState: GameState): Option[String] =
+    Option
+      .when(gameState.entityIsCasting(ability.casterId))("Already casting")
+      .orElse(
+        (for {
+          caster <- gameState
+            .withAbilityEntitiesById(ability.casterId)
+            .toRight(s"Entity ${ability.abilityId} does not exist")
+          _ <- caster.canUseAbility(ability, time).toLeft(())
+        } yield ()).swap.toOption
+      )
+      .orElse(ability.canBeCast(gameState, time))
 
   /**
     * Checks whether the caster will be authorized to cast this ability in `delay` milliseconds.
     */
-  def isLegalDelay(gameState: GameState, delay: Long): Boolean =
-    gameState.withAbilityEntitiesById(ability.casterId).exists(_.canUseAbility(ability, time + delay)) &&
-      !gameState.entityIsCasting(ability.casterId, delay) && ability.canBeCast(gameState, time + delay)
+  def isLegalDelay(gameState: GameState, delay: Long): Option[String] =
+    Option
+      .when(gameState.entityIsCasting(ability.casterId, delay))("Already casting")
+      .orElse(
+        (for {
+          caster <- gameState
+            .withAbilityEntitiesById(ability.casterId)
+            .toRight(s"Entity ${ability.abilityId} does not exist")
+          _ <- caster.canUseAbility(ability, time + delay).toLeft(())
+        } yield ()).swap.toOption
+      )
+      .orElse(ability.canBeCast(gameState, time + delay))
 
   def changeId(newId: Id): EntityStartsCasting = copy(id = newId)
 

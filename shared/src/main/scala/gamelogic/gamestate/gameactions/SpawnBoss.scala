@@ -18,7 +18,8 @@ final case class SpawnBoss(id: GameAction.Id, time: Long, entityId: Entity.Id, b
         new WithEntity(initialBoss, time)
       }
 
-  def isLegal(gameState: GameState): Boolean = BossEntity.bossExists(bossName)
+  def isLegal(gameState: GameState): Option[String] =
+    Option.unless(BossEntity.bossExists(bossName))(s"Boss $bossName does not exist")
 
   def changeId(newId: GameAction.Id): GameAction = copy(id = newId)
 }

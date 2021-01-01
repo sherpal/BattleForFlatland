@@ -27,7 +27,10 @@ final case class EntityTakesDamage(
       new WithEntity(entity.changeLifeTotal(-amount), time) // damage is negative
     }
 
-  def isLegal(gameState: GameState): Boolean = gameState.livingEntityById(entityId).isDefined
+  def isLegal(gameState: GameState): Option[String] = gameState.livingEntityById(entityId) match {
+    case None => Some(s"Entity $entityId does not exist, or it is not a living entity")
+    case _    => None
+  }
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

@@ -62,7 +62,7 @@ final case class SacredGround(useId: Ability.UseId, time: Long, casterId: Entity
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Boolean = true
+  def canBeCast(gameState: GameState, time: Long): None.type = None
 }
 
 object SacredGround extends AbilityMetadata {

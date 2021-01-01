@@ -18,11 +18,14 @@ final case class TickerBuffTicks(id: GameAction.Id, time: Long, buffId: Buff.Id,
       tickedBuff = buff.changeLastTickTime(time)
     } yield tickedBuff).fold(GameStateTransformer.identityTransformer)(new WithBuff(_))
 
-  def isLegal(gameState: GameState): Boolean =
+  def isLegal(gameState: GameState): Option[String] =
     (for {
       bearerBuffs <- gameState.tickerBuffs.get(bearerId)
       _           <- bearerBuffs.get(buffId)
-    } yield ()).isDefined
+    } yield ()) match {
+      case None => Some(s"The buff $buffId on entity $bearerId does not exist")
+      case _    => None
+    }
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

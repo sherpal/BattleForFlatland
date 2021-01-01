@@ -11,25 +11,35 @@ trait WithTargetAbility extends Ability {
   def range: Distance
   def targetId: Entity.Id
 
-  final def isInRange(gameState: GameState, time: Long): Boolean =
-    (for {
+  final def isInRange(gameState: GameState, time: Long): Option[String] =
+    Option.unless((for {
       caster <- gameState.withPositionEntityById(casterId)
       target <- gameState.withPositionEntityById(targetId)
       casterPosition = caster.currentPosition(time)
       targetPosition = target.currentPosition(time)
       distance       = (casterPosition - targetPosition).modulus
-    } yield distance <= range).getOrElse(false)
+    } yield distance <= range).getOrElse(false))("Not in range")
 
-  final def isInSight(gameState: GameState, time: Long): Boolean =
-    gameState.areTheyInSight(casterId, targetId, time).getOrElse(false)
+  final def isInSight(gameState: GameState, time: Long): Option[String] =
+    gameState.areTheyInSight(casterId, targetId, time) match {
+      case Some(inSight) => Option.unless(inSight)(s"Not in sight")
+      case None          => Some(s"One of two entities $casterId and $targetId does not exist")
+    }
 
-  final def isInRangeAndInSight(gameState: GameState, time: Long): Boolean =
-    isInRange(gameState, time) && isInSight(gameState, time)
+  final def isInRangeAndInSight(gameState: GameState, time: Long): Option[String] =
+    isInRange(gameState, time) orElse isInSight(gameState, time)
 
-  final def canBeCastFriendlyOnly(gameState: GameState): Boolean =
-    gameState.areTheyFromSameTeam(casterId, targetId).getOrElse(false)
+  final def canBeCastFriendlyOnly(gameState: GameState): Option[String] =
+    gameState.areTheyFromSameTeam(casterId, targetId) match {
+      case Some(sameTeam) => Option.unless(sameTeam)(s"Not an ally")
+      case None           => Some(s"One or both of entities $casterId, $targetId does not exist")
+    }
 
-  final def canBeCastEnemyOnly(gameState: GameState): Boolean = !canBeCastFriendlyOnly(gameState)
+  final def canBeCastEnemyOnly(gameState: GameState): Option[String] =
+    canBeCastFriendlyOnly(gameState) match {
+      case None => Some(s"Not an ennemy")
+      case _    => None
+    }
 
   /**
     * Returns whether this target can be stunned.

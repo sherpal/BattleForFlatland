@@ -36,7 +36,7 @@ final case class HolyFlame(useId: Ability.UseId, time: Long, casterId: Entity.Id
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): HolyFlame = copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Boolean = true
+  def canBeCast(gameState: GameState, time: Long): None.type = None
 }
 
 object HolyFlame extends AbilityMetadata {

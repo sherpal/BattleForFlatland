@@ -39,8 +39,9 @@ trait GameAction extends Ordered[GameAction] {
   /**
     * Returns whether this action is legal at that particular point in time, i.e., for that
     * [[gamelogic.gamestate.GameState]].
+    * If the action is not legal, it returns an error message saying why.
     */
-  def isLegal(gameState: GameState): Boolean
+  def isLegal(gameState: GameState): Option[String]
 
   /** We compare ids if the time are the same so that there never is ambiguity. */
   final def compare(that: GameAction): Int = this.time compare that.time match {

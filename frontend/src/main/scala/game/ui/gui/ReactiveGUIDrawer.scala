@@ -21,6 +21,7 @@ import typings.pixiJs.PIXI.{LoaderResource, RenderTexture}
 import typings.pixiJs.mod.Graphics
 import utils.misc.RGBColour
 import typings.pixiJs.PIXI.SCALE_MODES
+import game.ui.effects.errormessages.ErrorMessagesManager
 
 final class ReactiveGUIDrawer(
     playerId: Entity.Id,
@@ -57,6 +58,11 @@ final class ReactiveGUIDrawer(
 
   guiContainer.amend(new FPSDisplay(gameStateUpdates))
   guiContainer.amend(new ClockDisplay(slowGameStateUpdates, Val(Complex(10, 50))))
+  guiContainer.amend(
+    ErrorMessagesManager.container.amend(
+      x <-- stage.resizeEvents.map(_._1 / 2)
+    )
+  )
 
   val playerFrameShapeTexture: RenderTexture = {
     val graphics = new Graphics

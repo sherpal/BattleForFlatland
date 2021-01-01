@@ -22,7 +22,10 @@ final case class ChangeTarget(id: GameAction.Id, time: Long, entityId: Entity.Id
         new WithEntity(entity.changeTarget(newTargetId), time)
       }
 
-  def isLegal(gameState: GameState): Boolean = gameState.withTargetEntityById(entityId).isDefined
+  def isLegal(gameState: GameState): Option[String] = gameState.withTargetEntityById(entityId) match {
+    case None => Some(s"Entity $entityId does not exist or it is not an entity with target")
+    case _    => None
+  }
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

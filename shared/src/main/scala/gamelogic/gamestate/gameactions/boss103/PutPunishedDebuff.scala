@@ -26,7 +26,10 @@ final case class PutPunishedDebuff(
       )
     )
 
-  def isLegal(gameState: GameState): Boolean = gameState.movingBodyEntityById(bearerId).isDefined
+  def isLegal(gameState: GameState): Option[String] = gameState.movingBodyEntityById(bearerId) match {
+    case None    => Some(s"Entity $bearerId does not exist, or is not a Moving Body")
+    case Some(_) => None
+  }
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

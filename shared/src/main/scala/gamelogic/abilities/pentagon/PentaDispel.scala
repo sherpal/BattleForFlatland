@@ -42,8 +42,8 @@ final case class PentaDispel(useId: Ability.UseId, time: Long, casterId: Entity.
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): PentaDispel = copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Boolean =
-    canBeCastFriendlyOnly(gameState) && isInRangeAndInSight(gameState, time)
+  def canBeCast(gameState: GameState, time: Long): Option[String] =
+    canBeCastFriendlyOnly(gameState) orElse isInRangeAndInSight(gameState, time)
 }
 
 object PentaDispel {

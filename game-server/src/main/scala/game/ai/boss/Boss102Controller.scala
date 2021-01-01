@@ -62,12 +62,12 @@ object Boss102Controller extends AIController[Boss102, SpawnBoss] {
 
         lazy val maybePutDamageZones =
           Some(PutDamageZones(0L, startTime, me.id, currentGameState.players.valuesIterator.toList.map(_.id)))
-            .filter(me.canUseAbility(_, startTime))
+            .filter(me.canUseAbilityBoolean(_, startTime))
             .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
 
         lazy val maybeSpawnHound =
           Some(SpawnHound(0L, startTime, me.id, Complex.zero))
-            .filter(me.canUseAbility(_, startTime))
+            .filter(me.canUseAbilityBoolean(_, startTime))
             .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
 
         lazy val maybeLivingDZ = {
@@ -77,7 +77,7 @@ object Boss102Controller extends AIController[Boss102, SpawnBoss] {
             .getOrElse(target)
           Some(
             PutLivingDamageZoneOnTarget(0L, startTime, me.id, livingDZTarget.id)
-          ).filter(me.canUseAbility(_, startTime))
+          ).filter(me.canUseAbilityBoolean(_, startTime))
             .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
         }
 
