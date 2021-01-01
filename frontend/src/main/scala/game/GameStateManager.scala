@@ -10,7 +10,7 @@ import game.ui.GameDrawer
 import game.ui.effects.{ChoosingAbilityPositionEffect, EffectsManager}
 import game.ui.gui.ReactiveGUIDrawer
 import game.ui.reactivepixi.ReactiveStage
-import game.ui.effects.target.TargetManager
+import game.ui.effects.targetmanager.TargetManager
 import gamelogic.abilities.Ability
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.boss.Boss101
