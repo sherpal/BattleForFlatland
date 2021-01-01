@@ -20,6 +20,9 @@ import gamelogic.buffs.abilities.classes.TriangleStunDebuff
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.gameactions.EntityStartsCasting
 import gamelogic.abilities.hexagon.FlashHeal
+import gamelogic.gamestate.gameactions.SpawnBoss
+import gamelogic.entities.boss.BossFactory
+import gamelogic.entities.boss.Boss101
 
 final class TriangleStunSpecs extends munit.FunSuite {
 
@@ -29,6 +32,7 @@ final class TriangleStunSpecs extends munit.FunSuite {
   def addHound(time: Long): AddBossHound = AddBossHound(idGenerator.gameActionIdGenerator(), time, idGenerator.entityIdGenerator(), 0)
   def addPlayer(time: Long): AddPlayerByClass = AddPlayerByClass(idGenerator.gameActionIdGenerator(), time, idGenerator.entityIdGenerator(), 0, PlayerClasses.Triangle, 0, "Hey")
   def addHexagon(time: Long): AddPlayerByClass = AddPlayerByClass(idGenerator.gameActionIdGenerator(), time, idGenerator.entityIdGenerator(), 0, PlayerClasses.Hexagon, 0xFF0000, "TheHexagon")
+  def addBoss101(time: Long): SpawnBoss = SpawnBoss(idGenerator.gameActionIdGenerator(), time, idGenerator.entityIdGenerator(), Boss101.name)
 
   def nextUseId() = idGenerator.abilityUseIdGenerator()
 
@@ -40,6 +44,20 @@ final class TriangleStunSpecs extends munit.FunSuite {
 
   def assertEntitiesPresent(entityIds: Entity.Id*)(gameState: GameState): Unit = 
     entityIds.map(gameState.entities.get).map(_.isDefined).foreach(assertEquals(_, true))
+
+  test("Stun on a boss should be illegal") {
+    val addingBoss = addBoss101(2)
+    val addingPlayer = addPlayer(2)
+
+    val stun = Stun(nextUseId(), 4, addingPlayer.entityId, addingBoss.entityId)
+
+    val composer = ActionComposer.empty >> start >> addingBoss >> addingPlayer >>>> { (gs: GameState) =>
+      assert(stun.isInRangeAndInSight(gs, 3))
+      assert(!stun.canBeCast(gs, 3))
+    }
+
+    composer(initialGameState)
+  }
 
   test("Triangle uses stun on a casting target, the cast should be interrupted") {
     val addingPlayer = addPlayer(2)

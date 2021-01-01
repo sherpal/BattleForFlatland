@@ -59,7 +59,7 @@ final case class Stun(useId: Ability.UseId, time: Long, casterId: Entity.Id, tar
     def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
 
     def canBeCast(gameState: GameState, time: Long): Boolean = 
-      canBeCastEnemyOnly(gameState) && isInRangeAndInSight(gameState, time)
+      canBeCastEnemyOnly(gameState) && isInRangeAndInSight(gameState, time) && targetCanBeStunned(gameState)
 }
 
 object Stun {
