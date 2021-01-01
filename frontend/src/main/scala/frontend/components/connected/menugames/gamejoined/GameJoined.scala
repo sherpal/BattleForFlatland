@@ -49,8 +49,17 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
       )
       .collect { case Some(info) => info }
 
+  val isEveryoneReadyEvents: EventStream[Boolean] =
+    $gameInfo.map(_.game.gameConfiguration.playersInfo.values.forall(_.isReady))
+
   /** Indicates whether the creator of the game is the current user. If yes, we display the cancel game button. */
   val $amICreator: EventStream[Boolean] = $gameInfo.map(_.game.gameCreator.userId == me.userId)
+
+  val toastEveryOneIsReady =
+    isEveryoneReadyEvents
+      .combineWith($amICreator)
+      .filter { case (b1, b2) => b1 && b2 }
+      .flatMap(_ => toast.success("Everyone is ready!", hideProgressBar := true, autoCloseDuration := 2.seconds)) --> Observer.empty
 
   /** Each time the game is cancelled (at most once), the game cancelled message is issued. */
   val $gameCancelled: EventStream[Unit] = socket.$in.collect { case WebSocketProtocol.GameCancelled => () }
@@ -106,6 +115,7 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
     $cancelGame --> Observer.empty, // kicking off stream
     $leaveGame --> Observer.empty, // kicking off stream
     $moveToGame --> Observer.empty, // kicking off stream
+    toastEveryOneIsReady,
     div(
       mainContent,
       h1(
