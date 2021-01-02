@@ -189,7 +189,7 @@ final class GameStateManager(
     gameDrawer.camera
   )
 
-  var lastTimeStamp = 0L
+  var lastTimeStamp = org.scalajs.dom.window.performance.now()
 
   private val ticker = (_: Double) => {
     val pressedUserInput = pressedUserInputSignal.now()

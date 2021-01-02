@@ -69,7 +69,7 @@ final case class Stun(useId: Ability.UseId, time: Long, casterId: Entity.Id, tar
     (for {
       _ <- canBeCastEnemyOnly(gameState).toLeft(())
       _ <- isInRangeAndInSight(gameState, time).toLeft(())
-      _ <- Either.cond(targetCanBeStunned(gameState), (), "Target can't be stunnned")
+      _ <- Either.cond(targetCanBeStunned(gameState), (), "Target can't be stunned")
     } yield ()).swap.toOption
 }
 
