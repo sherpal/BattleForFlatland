@@ -19,6 +19,10 @@ import typings.pixiJs.anon.{Antialias => ApplicationOptions}
 import typings.pixiJs.mod.Application
 import zio.duration._
 import zio.{Exit, UIO, ZIO}
+import game.loaders.SoundAssetLoader
+import assets.sounds.SoundAsset
+import utils.laminarzio.onMountZIO
+import typings.std.global.Audio
 
 /**
   * The GameViewContainer is responsible for creating the instance of the [[game.GameStateManager]].
@@ -50,7 +54,8 @@ final class GameViewContainer private (
       .setWidth(1200)
       .setHeight(800)
   )
-  val loader = new GameAssetLoader(application)
+  val loader      = new GameAssetLoader(application)
+  val soundLoader = new SoundAssetLoader(SoundAsset.allSoundAssets)
 
   val assetLoading: Signal[Double] =
     EventStream
@@ -65,11 +70,34 @@ final class GameViewContainer private (
     value <-- assetLoading.map(_.toString)
   )
 
+  val soundLoadingProgressBar = progress(
+    maxAttr := "100",
+    value <-- soundLoader.allProgressionEvents.map(_.progression.toInt.toString)
+  )
+
+  val isStillLoadingSignal = EventStream
+    .merge(
+      assetLoading.changes.filter(_ >= 100.0).map(_ => 1),
+      soundLoader.allProgressionEvents.filter(_.ended).map(_ => 1)
+    )
+    .fold(0)(_ + _)
+    .map(_ < 2)
+
   val element: ReactiveHtmlElement[html.Div] = div(
     className := "GameViewContainer",
     className := "flex items-center justify-center",
     onMountCallback(ctx => componentDidMount(ctx.owner)),
-    div(child <-- assetLoading.map(_ < 100).map(if (_) loadingProgressBar else emptyNode))
+    div(
+      children <-- isStillLoadingSignal.map(
+        if (_)
+          List(
+            loadingProgressBar,
+            br(),
+            soundLoadingProgressBar
+          )
+        else Nil
+      )
+    )
   )
 
   def addWindowResizeEventListener(stage: ReactiveStage) =
@@ -104,7 +132,9 @@ final class GameViewContainer private (
 
   private def mountEffect(gameContainer: html.Div, owner: Owner) =
     for {
-      resources <- loader.loadAssets
+      soundResourcesFiber <- soundLoader.loadingEffect.catchAll(_ => UIO(Map.empty[SoundAsset[_], Audio])).fork
+      resources           <- loader.loadAssets
+      soundResources      <- soundResourcesFiber.join
       // todo!: remove hardcoded stuff
       stage    <- UIO(ReactivePixiElement.stage(application))
       _        <- addWindowResizeEventListener(stage)
