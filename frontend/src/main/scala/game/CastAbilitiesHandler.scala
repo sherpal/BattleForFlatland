@@ -30,7 +30,6 @@ final class CastAbilitiesHandler(
     $gameStates: Signal[GameState],
     $maybeTarget: Signal[Option[MovingBody with LivingEntity]],
     $gameMousePosition: Signal[Complex],
-    $strictGameStates: SignalViewer[GameState],
     socketOutWriter: Observer[InGameWSProtocol.Outgoing],
     choosingAbilityEffectPositionObserver: Observer[Option[Ability.AbilityId]],
     isChoosingAbilityEffectPosition: Signal[Option[Ability.AbilityId]],

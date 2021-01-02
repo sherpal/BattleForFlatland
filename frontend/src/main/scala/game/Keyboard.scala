@@ -27,7 +27,9 @@ final class Keyboard(controls: Controls) {
   val $upKeyEvents: EventStream[KeyboardEvent] = upKeyEventBus.events
 
   /** Merged key-press and key-up events. */
-  val $keyboardEvents: EventStream[KeyboardEvent] = EventStream.merge($downKeyEvents, $upKeyEvents)
+  val $keyboardEvents: EventStream[KeyboardEvent] = EventStream
+    .merge($downKeyEvents, $upKeyEvents)
+    .filterNot(_.repeat)
 
   /** Signal of all currently pressed key codes. */
   val $pressedKeys: Signal[Set[String]] = $keyboardEvents.fold(Set.empty[String]) {

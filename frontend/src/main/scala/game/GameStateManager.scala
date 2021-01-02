@@ -149,7 +149,6 @@ final class GameStateManager(
     $gameStates,
     $maybeTarget,
     $gameMousePosition,
-    $strictGameStates,
     socketOutWriter,
     choosingAbilityEffectPositionBus.writer,
     isChoosingAbilityEffectPosition,
@@ -180,7 +179,7 @@ final class GameStateManager(
     gameStateUpdates
   )
 
-  private val targetManager = new TargetManager(
+  new TargetManager(
     gameDrawer,
     $maybeTarget,
     gameStateUpdates,
