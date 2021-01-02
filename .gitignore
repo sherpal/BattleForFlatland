@@ -3,6 +3,7 @@ dist
 data
 .vscode
 .bsp
+temp
 
 .DS_Store
 .idea
