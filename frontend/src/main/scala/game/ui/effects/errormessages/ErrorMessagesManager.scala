@@ -50,8 +50,9 @@ private[errormessages] final class ErrorMessagesManager {
     case (time, state) => state.messageStatesNow(time)
   }
 
-  messageStates.map(_.filter(_._2 <= 0)).filter(_.nonEmpty).foreach { (endedMessages: List[(MessageInfo, Double)]) =>
-    endedMessages.foreach { case (message, _) => eventEventBus.writer.onNext(Event.MessageRemoved(message)) }
+  messageStates.map(_.filter(_._2 <= 0)).filter(_.nonEmpty).delay().foreach {
+    (endedMessages: List[(MessageInfo, Double)]) =>
+      endedMessages.foreach { case (message, _) => eventEventBus.writer.onNext(Event.MessageRemoved(message)) }
   }
 
   private val messagesToDisplay: EventStream[List[(String, Double)]] = messageStates

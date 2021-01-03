@@ -431,8 +431,24 @@ Steps to add a new service called `MyService`:
 
 - Add the image in the `frontend/src/main/resources/assets` folder
 - Add the `Asset` object in `frontend/src/main/scala/assets/Asset.scala`
-- "Touch" the asset in that same object below (and possibly add it to the map of corresponding assets)
 - Add the asset reference in the `game/GameAssetLoader` loading list
+
+### Sound assets
+
+The game is filled with small sounds. These sounds are loaded from the backend before the game starts. The [SoundAssetLoader](frontend/src/main/scala/game/loaders/SoundAssetLoader.scala) allows one to load all sounds, and to track the progress along the way.
+
+If a sound asset fails to load from some reason, a warning will be emitted in the console, but the game will work normally, with the missing sound simply not playing.
+
+The supported extensions are all in the [SoundFileExtension](frontend/src/main/scala/assets/sounds/SoundFileExtension.scala) enum, and adding new one should be easy. You can, if you want, specify several extensions for a sound asset. In which case they are tried to be load sequentially.
+
+In order to add a new asset, do the following:
+
+- add the sound file into `frontend/src/main/resources/asserts/in-game/sounds` directory, at the right place
+- add a new instance in the [SoundAsset](frontend/src/main/scala/assets/sounds/SoundAsset.scala), mirroring the directory structure in the resources foldre via object
+- add this new instance in the corresponding maps or raw list at the bottom
+- use the `SoundAsset` in the code, probably in the [SoundEffectsManager](frontend/src/main/scala/game/ui/effects/soundeffects/SoundEffectsManager.scala) class.
+
+Note that the current implementation does _not_ allow to run several sounds at the same time. Therefore, if a sound needs to be run often, try to keep it as short as possible, possibly by trimming an unecessary long tail (Audacity is a good software to do that easily).
 
 ### Adding a new npm dependencies.
 
