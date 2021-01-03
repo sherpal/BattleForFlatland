@@ -11,6 +11,17 @@ import gamelogic.gamestate.gameactions.EndGame
 import gamelogic.gamestate.gameactions.UseAbility
 import gamelogic.abilities.triangle.DirectHit
 
+/**
+  * This class is responsible for emitting sounds related to the [[GameAction]] occuring
+  * during the game.
+  * Abilities are usually only applied for the caster and if they are the target of such spells.
+  *
+  * Bosses will likely say some "threatening" lines during the game.
+  *
+  * @param playerId id of the player for this client
+  * @param actionsAndStatesEvents all actions occuring during the game, with the state at that point.
+  * @param soundsResources function giving [[Audio]] instances from the [[SoundAsset]].
+  */
 final class SoundEffectsManager(
     playerId: Entity.Id,
     actionsAndStatesEvents: EventStream[(GameAction, GameState)],

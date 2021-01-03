@@ -51,15 +51,7 @@ sealed trait SoundAsset[-For] {
   val filename: String
 
   def filePathWithNameAndExt: PathSegment[(String, SoundFileExtension), DummyError] =
-    filePath / segment[String].as(
-      { (str: String) =>
-        val parts    = str.split('.')
-        val ext      = SoundFileExtension.fromExt(parts.last).get
-        val filename = parts.dropRight(1).mkString(".")
-        (filename, ext)
-      },
-      ((filename: String, ext: SoundFileExtension) => filename ++ "." ++ ext.ext).tupled
-    )
+    filePath / SoundAsset.fileNameAndExt
 
   def possibleNames: NonEmptyList[String] = extensions.map(ext => filePathWithNameAndExt.createPath((filename, ext)))
 
@@ -84,6 +76,16 @@ object SoundAsset {
     val filename: String                             = filename0
     val extensions: NonEmptyList[SoundFileExtension] = NonEmptyList(extension0, otherExtensions.toList)
   }
+
+  private val fileNameAndExt = segment[String].as(
+    { (str: String) =>
+      val parts    = str.split('.')
+      val ext      = SoundFileExtension.fromExt(parts.last).get
+      val filename = parts.dropRight(1).mkString(".")
+      (filename, ext)
+    },
+    ((filename: String, ext: SoundFileExtension) => filename ++ "." ++ ext.ext).tupled
+  )
 
   val basePath = root / "assets" / "in-game" / "sounds"
 
