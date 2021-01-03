@@ -63,6 +63,8 @@ final class GameState(
   def started: Boolean = startTime.isDefined
   def ended: Boolean   = endTime.isDefined
 
+  def playersWon: Boolean = ended && bosses.isEmpty
+
   /**
     * Applies the effects of all the actions in the list to this [[GameState]].
     * Actions are assumed to be ordered in time already.

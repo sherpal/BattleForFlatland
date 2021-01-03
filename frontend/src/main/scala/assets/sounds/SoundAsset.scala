@@ -7,6 +7,11 @@ import cats.data.NonEmptyList
 import assets.sounds.SoundFileExtension.Wav
 import gamelogic.abilities.Ability
 import assets.sounds.SoundFileExtension.Mp3
+import gamelogic.abilities.triangle.DirectHit
+import gamelogic.abilities.triangle.EnergyKick
+import gamelogic.abilities.triangle.UpgradeDirectHit
+import gamelogic.abilities.hexagon.FlashHeal
+import gamelogic.abilities.triangle.Stun
 
 /**
   * Represents a loadable sound file. Instances of this trait will be used to load
@@ -91,18 +96,33 @@ object SoundAsset {
 
     val abilityPath = basePath / "abilities"
 
+    object hexagon {
+      val hexagonAbilitiesPath = abilityPath / "hexagon"
+
+      val flashHeal = SoundAsset[FlashHeal](hexagonAbilitiesPath, "flash-heal", Wav)
+    }
+
     object triangle {
 
       val triangleAbilitiesPath = abilityPath / "triangle"
 
-      val triangleDirectHit = SoundAsset[Ability](triangleAbilitiesPath, "direct-hit", Mp3)
-
+      val triangleDirectHit        = SoundAsset[DirectHit](triangleAbilitiesPath, "direct-hit", Mp3)
+      val triangleEnergyKick       = SoundAsset[EnergyKick](triangleAbilitiesPath, "energy-kick", Wav)
+      val triangleUpgradeDirectHit = SoundAsset[UpgradeDirectHit](triangleAbilitiesPath, "upgrade-direct-hit", Wav)
+      val triangleStun             = SoundAsset[Stun](triangleAbilitiesPath, "stun", Wav)
     }
   }
 
-  val allSoundAssets: List[SoundAsset[_]] = List(
-    gameOverSoundAsset,
-    abilities.triangle.triangleDirectHit
+  val abilitySounds: Map[Ability.AbilityId, SoundAsset[_ <: Ability]] = Map(
+    Ability.hexagonFlashHealId -> abilities.hexagon.flashHeal,
+    Ability.triangleDirectHit -> abilities.triangle.triangleDirectHit,
+    Ability.triangleEnergyKick -> abilities.triangle.triangleEnergyKick,
+    Ability.triangleUpgradeDirectHit -> abilities.triangle.triangleUpgradeDirectHit,
+    Ability.triangleStun -> abilities.triangle.triangleStun
   )
+
+  val allSoundAssets: List[SoundAsset[_]] = List(
+    gameOverSoundAsset
+  ) ++ abilitySounds.values
 
 }

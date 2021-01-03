@@ -153,6 +153,7 @@ final class GameViewContainer private (
         bossStartingPosition,
         deltaTimeWithServer,
         resources,
+        soundResources,
         maybeTargetBus.writer
       )(owner)
       _ <- ZIO.effectTotal(
