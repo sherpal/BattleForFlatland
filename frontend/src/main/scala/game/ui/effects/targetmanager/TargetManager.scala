@@ -72,6 +72,15 @@ final class TargetManager(
       }
       .toSignal((10.0, barHeight))
 
+  private val targetLifeSignal = gameStateUpdates
+    .withCurrentValueOf(maybeTargetSignal)
+    .collect {
+      case ((gs, _), Some(target)) => gs.livingEntityAndMovingBodyById(target.id)
+    }
+    .collect { case Some(target) => target }
+    .map(target => target.life / target.maxLife)
+    .toSignal(0.0)
+
   val lifeAboveContainer = pixiContainer(
     visible <-- maybeTargetSignal
       .combineWith(positioningInfo.map { case (b, _, _) => b }.toSignal(false))
@@ -97,7 +106,7 @@ final class TargetManager(
       dims <-- dimensionSignal
     ),
     new StatusBar(
-      definedTargetStream.map(target => target.life / target.maxLife).toSignal(0.0),
+      targetLifeSignal,
       Val(RGBColour.green),
       Val(true),
       barTexture,
