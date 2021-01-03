@@ -13,10 +13,11 @@ import com.raquo.airstream.eventbus.EventBus
 import com.raquo.airstream.eventstream.EventStream
 import scala.concurrent.Future
 import services.logging._
+import assets.sounds.Volume
 
 final class SoundAssetLoader(assets: List[SoundAsset[_]]) {
 
-  private def loadSound(soundAsset: SoundAsset[_]): ZIO[Any, MediaError, Audio] =
+  private def loadSound(soundAsset: SoundAsset[_], globalVolume: Volume): ZIO[Any, MediaError, Audio] =
     for {
       _ <- ZIO.unit
       audio = new Audio(soundAsset.url)
@@ -44,14 +45,17 @@ final class SoundAssetLoader(assets: List[SoundAsset[_]]) {
         }
         .fork
       _ <- fiber.join
+      _ <- ZIO.effectTotal {
+        audio.volume = globalVolume.value
+      }
     } yield audio
 
-  private def loadSoundRetry(soundAsset: SoundAsset[_]): ZIO[Any, LoadSoundException, Audio] =
-    loadSound(soundAsset)
+  private def loadSoundRetry(soundAsset: SoundAsset[_], globalVolume: Volume): ZIO[Any, LoadSoundException, Audio] =
+    loadSound(soundAsset, globalVolume)
       .mapError(mediaError => (soundAsset.nextExtension, mediaError))
       .catchAll {
         // trying next extention
-        case (Some(nextExtention), _) => loadSoundRetry(nextExtention)
+        case (Some(nextExtention), _) => loadSoundRetry(nextExtention, globalVolume)
         // exhausted all extensions, failing with last error
         case (_, mediaError) => ZIO.fail(new LoadSoundException(mediaError))
       }
@@ -84,18 +88,19 @@ final class SoundAssetLoader(assets: List[SoundAsset[_]]) {
   /**
     * You need to run this effect in order to load all sound assets
     */
-  val loadingEffect: IO[LoadSoundException, Map[SoundAsset[_], Audio]] = for {
-    _ <- ZIO.effectTotal(startedBus.writer.onNext(SoundAssetLoader.Started))
-    allLoadedAudio <- ZIO
-      .foreachParN(3)(assets) { asset =>
-        loadSoundRetry(asset) <* emitLoading(asset)
+  def loadingEffect(globalVolume: Volume): IO[LoadSoundException, Map[SoundAsset[_], Audio]] =
+    for {
+      _ <- ZIO.effectTotal(startedBus.writer.onNext(SoundAssetLoader.Started))
+      allLoadedAudio <- ZIO
+        .foreachParN(3)(assets) { asset =>
+          loadSoundRetry(asset, globalVolume) <* emitLoading(asset)
+        }
+        .tapError(error => ZIO.effectTotal(endedBus.writer.onError(_)))
+      assetToAudioMap = assets.zip(allLoadedAudio).toMap
+      _ <- ZIO.effectTotal {
+        endedBus.writer.onNext(SoundAssetLoader.LoadEnded)
       }
-      .tapError(error => ZIO.effectTotal(endedBus.writer.onError(_)))
-    assetToAudioMap = assets.zip(allLoadedAudio).toMap
-    _ <- ZIO.effectTotal {
-      endedBus.writer.onNext(SoundAssetLoader.LoadEnded)
-    }
-  } yield assetToAudioMap
+    } yield assetToAudioMap
 
   /**
     * Tries to load all [[Audio]]s from the list of [[SoundAsset]], and creates
@@ -104,36 +109,34 @@ final class SoundAssetLoader(assets: List[SoundAsset[_]]) {
     *
     * Log warnings in case it fails.
     */
-  val maybeLoadingEffect: ZIO[Logging, Nothing, Map[SoundAsset[_], Option[Audio]]] = for {
-    _ <- ZIO.effectTotal(startedBus.writer.onNext(SoundAssetLoader.Started))
-    allLoadedAudio <- ZIO
-      .foreachParN(3)(assets) { asset =>
-        for {
-          audioOrFail <- loadSoundRetry(asset)
-            .tapError(err => log.warn(s"Loading assert ${asset.url} resulted in following error: ${err.getMessage}."))
-            .either
-          maybeAudio = audioOrFail.toOption
-          _ <- emitLoading(asset)
-        } yield maybeAudio
+  def maybeLoadingEffect(globalVolume: Volume): ZIO[Logging, Nothing, Map[SoundAsset[_], Option[Audio]]] =
+    for {
+      _ <- ZIO.effectTotal(startedBus.writer.onNext(SoundAssetLoader.Started))
+      allLoadedAudio <- ZIO
+        .foreachParN(3)(assets) { asset =>
+          for {
+            audioOrFail <- loadSoundRetry(asset, globalVolume)
+              .tapError(err => log.warn(s"Loading assert ${asset.url} resulted in following error: ${err.getMessage}."))
+              .either
+            maybeAudio = audioOrFail.toOption
+            _ <- emitLoading(asset)
+          } yield maybeAudio
+        }
+      assetToAudioMap = assets.zip(allLoadedAudio).toMap
+      _ <- ZIO.effectTotal {
+        endedBus.writer.onNext(SoundAssetLoader.LoadEnded)
       }
-    assetToAudioMap = assets.zip(allLoadedAudio).toMap
-    _ <- ZIO.effectTotal {
-      endedBus.writer.onNext(SoundAssetLoader.LoadEnded)
-    }
-  } yield assetToAudioMap
+    } yield assetToAudioMap
 
   /**
     * Returns a Map from the [[SoundAsset]] to their corresponding [[Audio]], but only
     * for the one who succeeded to load.
     */
-  val onlySuccessLoadingEffect: ZIO[Logging, Nothing, Map[SoundAsset[_], Audio]] =
+  def onlySuccessLoadingEffect(globalVolume: Volume): ZIO[Logging, Nothing, Map[SoundAsset[_], Audio]] =
     for {
-      map <- maybeLoadingEffect
+      map <- maybeLoadingEffect(globalVolume)
       trimmedMap = map.collect { case (asset, Some(audio)) => (asset, audio) }
     } yield trimmedMap
-
-  def unsafeRunLoad(): Future[Map[SoundAsset[_], Audio]] =
-    utils.runtime.unsafeRunToFuture(loadingEffect)
 
   val allProgressionEvents: EventStream[SoundAssetLoader.ProgressData] = EventStream.merge(
     startedBus.events,

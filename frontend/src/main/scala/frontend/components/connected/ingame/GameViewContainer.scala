@@ -23,6 +23,7 @@ import game.loaders.SoundAssetLoader
 import assets.sounds.SoundAsset
 import utils.laminarzio.onMountZIO
 import typings.std.global.Audio
+import assets.sounds.Volume
 
 /**
   * The GameViewContainer is responsible for creating the instance of the [[game.GameStateManager]].
@@ -132,13 +133,12 @@ final class GameViewContainer private (
 
   private def mountEffect(gameContainer: html.Div, owner: Owner) =
     for {
-      soundResourcesFiber <- soundLoader.onlySuccessLoadingEffect.fork
+      soundResourcesFiber <- Volume.loadStoredVolume.flatMap(soundLoader.onlySuccessLoadingEffect).fork
       resources           <- loader.loadAssets
       soundResources      <- soundResourcesFiber.join
-      // todo!: remove hardcoded stuff
-      stage    <- UIO(ReactivePixiElement.stage(application))
-      _        <- addWindowResizeEventListener(stage)
-      controls <- retrieveControls
+      stage               <- UIO(ReactivePixiElement.stage(application))
+      _                   <- addWindowResizeEventListener(stage)
+      controls            <- retrieveControls
       userControls = new UserControls(
         new Keyboard(controls),
         new Mouse(application.view.asInstanceOf[html.Canvas], controls)
