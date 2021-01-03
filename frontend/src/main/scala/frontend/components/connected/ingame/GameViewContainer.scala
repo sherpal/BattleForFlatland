@@ -132,7 +132,7 @@ final class GameViewContainer private (
 
   private def mountEffect(gameContainer: html.Div, owner: Owner) =
     for {
-      soundResourcesFiber <- soundLoader.loadingEffect.catchAll(_ => UIO(Map.empty[SoundAsset[_], Audio])).fork
+      soundResourcesFiber <- soundLoader.onlySuccessLoadingEffect.fork
       resources           <- loader.loadAssets
       soundResources      <- soundResourcesFiber.join
       // todo!: remove hardcoded stuff

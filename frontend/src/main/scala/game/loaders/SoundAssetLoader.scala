@@ -12,6 +12,7 @@ import scala.scalajs.js
 import com.raquo.airstream.eventbus.EventBus
 import com.raquo.airstream.eventstream.EventStream
 import scala.concurrent.Future
+import services.logging._
 
 final class SoundAssetLoader(assets: List[SoundAsset[_]]) {
 
@@ -95,6 +96,41 @@ final class SoundAssetLoader(assets: List[SoundAsset[_]]) {
       endedBus.writer.onNext(SoundAssetLoader.LoadEnded)
     }
   } yield assetToAudioMap
+
+  /**
+    * Tries to load all [[Audio]]s from the list of [[SoundAsset]], and creates
+    * a Map from the sound asset to maybe the [[Audio]], depending on whether the
+    * loading was succesful.
+    *
+    * Log warnings in case it fails.
+    */
+  val maybeLoadingEffect: ZIO[Logging, Nothing, Map[SoundAsset[_], Option[Audio]]] = for {
+    _ <- ZIO.effectTotal(startedBus.writer.onNext(SoundAssetLoader.Started))
+    allLoadedAudio <- ZIO
+      .foreachParN(3)(assets) { asset =>
+        for {
+          audioOrFail <- loadSoundRetry(asset)
+            .tapError(err => log.warn(s"Loading assert ${asset.url} resulted in following error: ${err.getMessage}."))
+            .either
+          maybeAudio = audioOrFail.toOption
+          _ <- emitLoading(asset)
+        } yield maybeAudio
+      }
+    assetToAudioMap = assets.zip(allLoadedAudio).toMap
+    _ <- ZIO.effectTotal {
+      endedBus.writer.onNext(SoundAssetLoader.LoadEnded)
+    }
+  } yield assetToAudioMap
+
+  /**
+    * Returns a Map from the [[SoundAsset]] to their corresponding [[Audio]], but only
+    * for the one who succeeded to load.
+    */
+  val onlySuccessLoadingEffect: ZIO[Logging, Nothing, Map[SoundAsset[_], Audio]] =
+    for {
+      map <- maybeLoadingEffect
+      trimmedMap = map.collect { case (asset, Some(audio)) => (asset, audio) }
+    } yield trimmedMap
 
   def unsafeRunLoad(): Future[Map[SoundAsset[_], Audio]] =
     utils.runtime.unsafeRunToFuture(loadingEffect)
