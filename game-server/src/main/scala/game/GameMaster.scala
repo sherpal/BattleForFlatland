@@ -30,6 +30,9 @@ object GameMaster {
   /** Same as [[GameActionWrapper]] but for multiple actions. */
   case class MultipleActionsWrapper(gameActions: List[GameAction]) extends InGameMessage
 
+  /** Sent to itself one minute after the game has ended in order to close the server. */
+  private case object Close extends InGameMessage
+
   sealed trait PreGameMessage extends Message
 
   /**
@@ -66,6 +69,13 @@ object GameMaster {
       _     <- ZIO.effectTotal(to ! GameLoop)
     } yield ()
 
+  private def closeServerAfter(to: ActorRef[Close.type], delay: FiniteDuration) =
+    for {
+      fiber <- zio.clock.sleep(fromScala(delay)).fork
+      _     <- fiber.join
+      _     <- ZIO.effectTotal(to ! Close)
+    } yield ()
+
   // todo: add other server actions.
   private val serverAction = new ManageUsedAbilities ++
     new ManageStopCastingMovements ++
@@ -82,7 +92,8 @@ object GameMaster {
   def inGameBehaviour(
       pendingActions: List[GameAction],
       actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage],
-      actionCollector: ImmutableActionCollector
+      actionCollector: ImmutableActionCollector,
+      alreadyClosing: Boolean = false
   )(
       implicit
       idGeneratorContainer: IdGeneratorContainer
@@ -105,8 +116,6 @@ object GameMaster {
             actionUpdateCollector,
             actionCollector
           )
-        case GameLoop if actionCollector.currentGameState.ended =>
-          Behaviors.stopped
         case GameLoop =>
           val startTime = now
           val sortedActions = pendingActions.sorted
@@ -149,7 +158,14 @@ object GameMaster {
                   gameLoopTo(context.self, (gameLoopTiming - timeSpent).millis)
                 )
 
-            inGameBehaviour(Nil, actionUpdateCollector, finalCollector)
+            if (finalCollector.currentGameState.ended && !alreadyClosing) {
+              zio.Runtime.default.unsafeRunToFuture(
+                closeServerAfter(context.self, 1.minute)
+              )
+              inGameBehaviour(Nil, actionUpdateCollector, finalCollector, alreadyClosing = true)
+            } else {
+              inGameBehaviour(Nil, actionUpdateCollector, finalCollector)
+            }
 
           } catch {
             case e: Throwable =>
@@ -157,6 +173,10 @@ object GameMaster {
               e.printStackTrace()
               throw e
           }
+
+        case Close =>
+          println("Closing server...")
+          Behaviors.stopped
 
         case _: PreGameMessage => Behaviors.unhandled
       }

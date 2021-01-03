@@ -111,7 +111,14 @@ final class GameDrawer(
 
   private val bossesSprites: mutable.Map[Entity.Id, Sprite]        = mutable.Map.empty
   private val bossesRangeIndicator: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
-  private def drawBosses(entities: List[BossEntity], now: Long): Unit =
+  private def drawBosses(entities: List[BossEntity], now: Long): Unit = {
+    bossesSprites.filterNot(info => entities.contains(info._1)).map {
+      case (id, sprite) =>
+        sprite.visible = false
+        bossesSprites -= id
+        bossesRangeIndicator.get(id).foreach(_.visible = false)
+        bossesRangeIndicator -= id
+    }
     entities.foreach { entity =>
       val sprite = bossesSprites.getOrElse(
         entity.id, {
@@ -139,6 +146,7 @@ final class GameDrawer(
       camera.viewportManager(rangeSprite, entity.pos, entity.shape.boundingBox)
 
     }
+  }
 
   private val pentagonBullets: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
   private def drawPentagonBullets(bullets: List[PentagonBullet], currentTime: Long): Unit = {
