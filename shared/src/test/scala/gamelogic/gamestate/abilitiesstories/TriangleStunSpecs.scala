@@ -33,8 +33,8 @@ final class TriangleStunSpecs extends StoryTeller {
     val stun = Stun(nextUseId(), 4, addingPlayer.entityId, addingBoss.entityId)
 
     val composer = ActionComposer.empty >> start >> addingBoss >> addingPlayer >>>> { (gs: GameState) =>
-      assert(stun.isInRangeAndInSight(gs, 3))
-      assert(!stun.canBeCast(gs, 3))
+      assertEquals(stun.isInRangeAndInSight(gs, 3), None)
+      assertEquals(stun.canBeCast(gs, 3), Some("Target can't be stunned"))
     }
 
     composer(initialGameState)

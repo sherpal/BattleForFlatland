@@ -3,6 +3,7 @@ dist
 data
 .vscode
 .bsp
+temp
 
 .DS_Store
 .idea
@@ -42,3 +43,5 @@ frontend/src/main/resources/assets/in-game/bars/LiteStep.png
 frontend/src/main/resources/assets/in-game/bars/Minimalist.png
 frontend/src/main/resources/assets/in-game/bars/Xeon.png
 frontend/src/main/resources/assets.zip
+
+frontend/src/main/resources/assets/in-game/sounds

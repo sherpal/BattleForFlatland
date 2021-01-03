@@ -23,7 +23,11 @@ final class ChoosingAbilityPositionEffect(
 
   private var maybeCurrentSprite: Option[Sprite] = Option.empty
 
-  def createSmallDot(): Sprite = new Sprite(diskTexture(0xFF0000, 1.0, 5))
+  def createSmallDot(): Sprite = {
+    val sprite = new Sprite(diskTexture(0xFF0000, 1.0, 5))
+    sprite.anchor.set(0.5)
+    sprite
+  }
 
   choosingAbilityPositions.foreach {
     case (_, None) =>
@@ -36,6 +40,8 @@ final class ChoosingAbilityPositionEffect(
       maybeCurrentSprite = maybeCurrentSprite.orElse(Some(createSmallDot()))
       maybeCurrentSprite.foreach { sprite =>
         camera.viewportManager(sprite, mousePosition, BoundingBox(-1, -1, 1, 1))
+        if (!container.children.contains(sprite))
+          container.addChild(sprite)
       }
       application.view.style.cursor = "pointer"
 

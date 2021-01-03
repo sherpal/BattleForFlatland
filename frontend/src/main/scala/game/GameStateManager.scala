@@ -23,6 +23,9 @@ import typings.pixiJs.PIXI.LoaderResource
 import typings.pixiJs.mod.{Application, Container}
 import utils.pixi.monkeypatching.PIXIPatching._
 import assets.Asset.ingame.gui.bars.{liteStepBar, _}
+import game.ui.effects.soundeffects.SoundEffectsManager
+import assets.sounds.SoundAsset
+import typings.std.global.Audio
 
 import scala.Ordering.Double.TotalOrdering
 import scala.scalajs.js.timers.setTimeout
@@ -38,6 +41,7 @@ final class GameStateManager(
     bossStartingPosition: Complex,
     deltaTimeWithServer: Long,
     resources: PartialFunction[Asset, LoaderResource],
+    soundResources: PartialFunction[SoundAsset[_], Audio],
     maybeTargetWriter: Observer[Option[Entity]]
 )(implicit owner: Owner) {
 
@@ -133,6 +137,11 @@ final class GameStateManager(
   val $actionsWithStates: EventStream[(GameAction, GameState)] = newActionsBus.events.withCurrentValueOf($gameStates)
 
   val effectsManager = new EffectsManager(playerId, $actionsWithStates, gameDrawer.camera, application, resources)
+  val soundEffectsManager = new SoundEffectsManager(
+    playerId,
+    $actionsWithStates,
+    soundResources
+  )
 
   val pressedUserInputSignal: SignalViewer[Set[UserInput]] = userControls.$pressedUserInput.observe
 
@@ -149,7 +158,6 @@ final class GameStateManager(
     $gameStates,
     $maybeTarget,
     $gameMousePosition,
-    $strictGameStates,
     socketOutWriter,
     choosingAbilityEffectPositionBus.writer,
     isChoosingAbilityEffectPosition,
@@ -180,7 +188,7 @@ final class GameStateManager(
     gameStateUpdates
   )
 
-  private val targetManager = new TargetManager(
+  new TargetManager(
     gameDrawer,
     $maybeTarget,
     gameStateUpdates,
@@ -190,7 +198,7 @@ final class GameStateManager(
     gameDrawer.camera
   )
 
-  var lastTimeStamp = 0L
+  var lastTimeStamp = org.scalajs.dom.window.performance.now()
 
   private val ticker = (_: Double) => {
     val pressedUserInput = pressedUserInputSignal.now()
@@ -200,7 +208,7 @@ final class GameStateManager(
     val now       = serverTime
     val gameState = $strictGameStates.now()
     val deltaTime = now - lastTimeStamp
-    lastTimeStamp = now
+    lastTimeStamp = now.toDouble
 
     ErrorMessagesManager.updateMessageView(now)
 
