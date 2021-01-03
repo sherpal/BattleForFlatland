@@ -7,11 +7,10 @@ import cats.data.NonEmptyList
 import assets.sounds.SoundFileExtension.Wav
 import gamelogic.abilities.Ability
 import assets.sounds.SoundFileExtension.Mp3
-import gamelogic.abilities.triangle.DirectHit
-import gamelogic.abilities.triangle.EnergyKick
-import gamelogic.abilities.triangle.UpgradeDirectHit
-import gamelogic.abilities.hexagon.FlashHeal
-import gamelogic.abilities.triangle.Stun
+import gamelogic.abilities.triangle._
+import gamelogic.abilities.hexagon._
+import gamelogic.abilities.pentagon._
+import gamelogic.abilities.square._
 
 /**
   * Represents a loadable sound file. Instances of this trait will be used to load
@@ -93,7 +92,7 @@ object SoundAsset {
   sealed trait GeneralGameEffectSound
 
   val gameOverSoundAsset = SoundAsset[GeneralGameEffectSound](basePath, "game-over", Wav)
-
+  val bossDefeated       = SoundAsset[GeneralGameEffectSound](basePath, "boss-defeated", Wav)
   object abilities {
 
     val abilityPath = basePath / "abilities"
@@ -101,7 +100,18 @@ object SoundAsset {
     object hexagon {
       val hexagonAbilitiesPath = abilityPath / "hexagon"
 
-      val flashHeal = SoundAsset[FlashHeal](hexagonAbilitiesPath, "flash-heal", Wav)
+      val flashHeal  = SoundAsset[FlashHeal](hexagonAbilitiesPath, "flash-heal", Wav)
+      val hexagonHot = SoundAsset[HexagonHot](hexagonAbilitiesPath, "hexagon-hot", Wav, Mp3)
+    }
+
+    object pentagon {
+      val pentagonAbilitiesPath = abilityPath / "pentagon"
+
+      val createPentagonBullet =
+        SoundAsset[CreatePentagonBullet](pentagonAbilitiesPath, "create-pentagon-bullet", Wav, Mp3)
+      val createPentagonZone =
+        SoundAsset[CreatePentagonZone](pentagonAbilitiesPath, "create-pentagon-zone", Wav, Mp3)
+      val pentaDispel = SoundAsset[PentaDispel](pentagonAbilitiesPath, "penta-dispel", Wav, Mp3)
     }
 
     object triangle {
@@ -117,6 +127,10 @@ object SoundAsset {
 
   val abilitySounds: Map[Ability.AbilityId, SoundAsset[_ <: Ability]] = Map(
     Ability.hexagonFlashHealId -> abilities.hexagon.flashHeal,
+    Ability.hexagonHexagonHotId -> abilities.hexagon.hexagonHot,
+    Ability.pentagonPentagonBullet -> abilities.pentagon.createPentagonBullet,
+    Ability.createPentagonZoneId -> abilities.pentagon.createPentagonZone,
+    Ability.pentagonDispelId -> abilities.pentagon.pentaDispel,
     Ability.triangleDirectHit -> abilities.triangle.triangleDirectHit,
     Ability.triangleEnergyKick -> abilities.triangle.triangleEnergyKick,
     Ability.triangleUpgradeDirectHit -> abilities.triangle.triangleUpgradeDirectHit,
@@ -124,7 +138,8 @@ object SoundAsset {
   )
 
   val allSoundAssets: List[SoundAsset[_]] = List(
-    gameOverSoundAsset
+    gameOverSoundAsset,
+    bossDefeated
   ) ++ abilitySounds.values
 
 }

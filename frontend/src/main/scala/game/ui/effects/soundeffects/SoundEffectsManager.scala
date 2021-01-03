@@ -42,8 +42,9 @@ final class SoundEffectsManager(
           case _: UseAbility =>
             // no need to go further the match so we artificially stop here.
             Option.empty
-          case _: EndGame if !state.playersWon =>
-            liftedResources(SoundAsset.gameOverSoundAsset)
+          case _: EndGame =>
+            val assetToPlay = if (state.playersWon) SoundAsset.bossDefeated else SoundAsset.gameOverSoundAsset
+            liftedResources(assetToPlay)
           case _ =>
             Option.empty[Audio]
         }

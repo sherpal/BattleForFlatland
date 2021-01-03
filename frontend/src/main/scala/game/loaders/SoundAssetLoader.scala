@@ -115,14 +115,16 @@ final class SoundAssetLoader(assets: List[SoundAsset[_]]) {
       allLoadedAudio <- ZIO
         .foreachParN(3)(assets) { asset =>
           for {
-            audioOrFail <- loadSoundRetry(asset, globalVolume)
-              .tapError(err => log.warn(s"Loading assert ${asset.url} resulted in following error: ${err.getMessage}."))
-              .either
-            maybeAudio = audioOrFail.toOption
-            _ <- emitLoading(asset)
-          } yield maybeAudio
+            audioOrFail <- loadSoundRetry(asset, globalVolume).either
+            _           <- emitLoading(asset)
+          } yield audioOrFail
         }
-      assetToAudioMap = assets.zip(allLoadedAudio).toMap
+      assetWithAudioEither = assets.zip(allLoadedAudio)
+      assetToAudioMap      = assetWithAudioEither.map { case (asset, maybeAudio) => (asset, maybeAudio.toOption) }.toMap
+      assetFailed          = assetWithAudioEither.collect { case (asset, Left(_)) => asset.filename }
+      _ <- ZIO.when(assetFailed.nonEmpty)(
+        log.warn(s"The following asset could not be loaded: ${assetFailed.mkString(", ")}.")
+      )
       _ <- ZIO.effectTotal {
         endedBus.writer.onNext(SoundAssetLoader.LoadEnded)
       }
