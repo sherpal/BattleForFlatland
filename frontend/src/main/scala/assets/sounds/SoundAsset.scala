@@ -39,6 +39,11 @@ sealed trait SoundAsset[-For] {
     */
   val extensions: NonEmptyList[SoundFileExtension]
 
+  /**
+    * Creates a new [[SoundAsset]] like this one, but forgetting the first possible extension.
+    *
+    * This can be used to loop through all extensions in a recursive manner.
+    */
   def nextExtension: Option[SoundAsset[For]] = extensions.tail match {
     case Nil            => None
     case second :: rest => Some(SoundAsset[For](filePath, filename, second, rest: _*))
@@ -49,17 +54,28 @@ sealed trait SoundAsset[-For] {
     */
   val filename: String
 
-  def filePathWithNameAndExt: PathSegment[(String, SoundFileExtension), DummyError] =
+  /**
+    * [[PathSegment]] generating (or reading, but not that useful) the complete url path
+    * to the asset with the given extension.
+    */
+  def filePathWithNameAndExt: PathSegment[SoundFileExtension, DummyError] =
     filePath / SoundAsset.fileNameAndExt
+      .as[SoundFileExtension](
+        (nameAndExt: (String, SoundFileExtension)) => nameAndExt._2,
+        (ext: SoundFileExtension) => (filename, ext)
+      )
 
-  def possibleNames: NonEmptyList[String] = extensions.map(ext => filePathWithNameAndExt.createPath((filename, ext)))
+  /**
+    * [[NonEmptyList]] of all the complete urls for all the possible extensions.
+    */
+  def possibleNames: NonEmptyList[String] = extensions.map(filePathWithNameAndExt.createPath(_))
 
   /**
     * Returns the url corresponding to the first extension.
     *
     * Taking the head is safe since extensions is a [[NonEmptyList]].
     */
-  def url: String = filePathWithNameAndExt.createPath((filename, extensions.head))
+  def url: String = filePathWithNameAndExt.createPath(extensions.head)
 
 }
 
@@ -114,6 +130,12 @@ object SoundAsset {
       val pentaDispel = SoundAsset[PentaDispel](pentagonAbilitiesPath, "penta-dispel", Wav, Mp3)
     }
 
+    object square {
+      val squareAbilitiesPath = abilityPath / "square"
+
+      val hammerHit = SoundAsset[HammerHit](squareAbilitiesPath, "hammer-hit", Wav, Mp3)
+    }
+
     object triangle {
 
       val triangleAbilitiesPath = abilityPath / "triangle"
@@ -131,6 +153,7 @@ object SoundAsset {
     Ability.pentagonPentagonBullet -> abilities.pentagon.createPentagonBullet,
     Ability.createPentagonZoneId -> abilities.pentagon.createPentagonZone,
     Ability.pentagonDispelId -> abilities.pentagon.pentaDispel,
+    Ability.squareHammerHit -> abilities.square.hammerHit,
     Ability.triangleDirectHit -> abilities.triangle.triangleDirectHit,
     Ability.triangleEnergyKick -> abilities.triangle.triangleEnergyKick,
     Ability.triangleUpgradeDirectHit -> abilities.triangle.triangleUpgradeDirectHit,

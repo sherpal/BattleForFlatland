@@ -165,6 +165,12 @@ object Boss103 extends BossFactory[Boss103] with BossMetadata {
       (0 to sizeNumber).toList.map(pillar)
   }
 
+  def whenBossDiesActions(
+      gameState: GameState,
+      time: Long,
+      idGeneratorContainer: IdGeneratorContainer
+  ): List[GameAction] = Nil
+
   def playersStartingPosition: Complex = 0
 
   val name: String = "Boss 103"

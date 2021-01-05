@@ -11,11 +11,14 @@ import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
 import gamelogic.entities.classes.Constants
 import gamelogic.gamestate.GameAction
+import gamelogic.gamestate.GameState
 import gamelogic.gamestate.gameactions.CreateObstacle
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Circle, Shape}
 import gamelogic.utils.IdGeneratorContainer
 import models.syntax.Pointed
+import gamelogic.gamestate.gameactions.RemoveBuff
+import gamelogic.buffs.Buff
 
 /**
   * Very first boss to be coded. Probably not the most exiting one but the goal was to have a first proof of concept
@@ -127,6 +130,16 @@ object Boss101 extends BossFactory[Boss101] {
       Shape.regularPolygon(4, 50).vertices
     )
   )
+
+  def whenBossDiesActions(
+      gameState: GameState,
+      time: Long,
+      idGeneratorContainer: IdGeneratorContainer
+  ): List[GameAction] =
+    gameState.allBuffs.collect {
+      case bigDot: Buff if bigDot.resourceIdentifier == Buff.boss101BigDotIdentifier =>
+        RemoveBuff(idGeneratorContainer.gameActionIdGenerator(), time, bigDot.bearerId, bigDot.buffId)
+    }.toList
 
   def playersStartingPosition: Complex = -100 * Complex.i
 }

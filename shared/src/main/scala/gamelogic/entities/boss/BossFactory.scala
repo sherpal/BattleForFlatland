@@ -8,6 +8,7 @@ import gamelogic.gamestate.GameAction
 import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
+import gamelogic.gamestate.GameState
 
 trait BossFactory[Boss <: BossEntity] {
 
@@ -28,6 +29,20 @@ trait BossFactory[Boss <: BossEntity] {
     * This can be used, for example, to add obstacles to the game at the very beginning.
     */
   def stagingBossActions(time: Long, idGeneratorContainer: IdGeneratorContainer): List[GameAction]
+
+  /**
+    * Describes all actions to take when the boss dies at the end of the game.
+    * Typically, this can be used to clean up some remaining things, and probably
+    * prevent players from dying because of a remaining debuff or remaining adds.
+    *
+    * @param gameState [[GameState]] when the game ends
+    * @param time time when the game ends.
+    */
+  def whenBossDiesActions(
+      gameState: GameState,
+      time: Long,
+      idGeneratorContainer: IdGeneratorContainer
+  ): List[GameAction]
 
   /** Where the players should be created. */
   def playersStartingPosition: Complex
@@ -51,6 +66,7 @@ trait BossFactory[Boss <: BossEntity] {
 
 object BossFactory {
 
+  // todo[scala3] change this by imposing that the name of the boss must map to the correct boss factory with match types
   val factoriesByBossName: Map[String, BossFactory[_]] = List(
     Boss101,
     Boss102,
