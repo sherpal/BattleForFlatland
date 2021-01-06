@@ -67,7 +67,8 @@ trait BossFactory[Boss <: BossEntity] {
 object BossFactory {
 
   // todo[scala3] change this by imposing that the name of the boss must map to the correct boss factory with match types
-  val factoriesByBossName: Map[String, BossFactory[_]] = List(
+  val factoriesByBossName: Map[String, BossFactory[_ <: BossEntity]] = List(
+    Boss101Dev,
     Boss101,
     Boss102,
     Boss103
