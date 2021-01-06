@@ -107,6 +107,9 @@ object SoundAsset {
   /** Marker trait for sounds emitted by general events in the game. */
   sealed trait GeneralGameEffectSound
 
+  private def makeAutoAsset[For](name: String)(implicit path: PathSegment[Unit, DummyError]) =
+    SoundAsset[For](path, name, Wav, Mp3)
+
   val gameOverSoundAsset = SoundAsset[GeneralGameEffectSound](basePath, "game-over", Wav)
   val bossDefeated       = SoundAsset[GeneralGameEffectSound](basePath, "boss-defeated", Wav)
   object abilities {
@@ -118,6 +121,11 @@ object SoundAsset {
 
       val flashHeal  = SoundAsset[FlashHeal](hexagonAbilitiesPath, "flash-heal", Wav)
       val hexagonHot = SoundAsset[HexagonHot](hexagonAbilitiesPath, "hexagon-hot", Wav, Mp3)
+
+      val abilityMap = Map(
+        Ability.hexagonFlashHealId -> abilities.hexagon.flashHeal,
+        Ability.hexagonHexagonHotId -> abilities.hexagon.hexagonHot
+      )
     }
 
     object pentagon {
@@ -128,12 +136,28 @@ object SoundAsset {
       val createPentagonZone =
         SoundAsset[CreatePentagonZone](pentagonAbilitiesPath, "create-pentagon-zone", Wav, Mp3)
       val pentaDispel = SoundAsset[PentaDispel](pentagonAbilitiesPath, "penta-dispel", Wav, Mp3)
+
+      val abilityMap = Map(
+        Ability.pentagonPentagonBullet -> abilities.pentagon.createPentagonBullet,
+        Ability.createPentagonZoneId -> abilities.pentagon.createPentagonZone,
+        Ability.pentagonDispelId -> abilities.pentagon.pentaDispel
+      )
     }
 
     object square {
-      val squareAbilitiesPath = abilityPath / "square"
+      implicit private val squareAbilitiesPath = abilityPath / "square"
 
-      val hammerHit = SoundAsset[HammerHit](squareAbilitiesPath, "hammer-hit", Wav, Mp3)
+      val hammerHit = makeAutoAsset[HammerHit]("hammer-hit")
+      val taunt     = makeAutoAsset[Taunt]("taunt")
+      val enrage    = makeAutoAsset[Enrage]("enrage")
+      val cleave    = makeAutoAsset[Cleave]("cleave")
+
+      val abilityMap = Map(
+        Ability.squareCleaveId -> cleave,
+        Ability.squareEnrageId -> enrage,
+        Ability.squareHammerHit -> hammerHit,
+        Ability.squareTauntId -> taunt
+      )
     }
 
     object triangle {
@@ -144,21 +168,20 @@ object SoundAsset {
       val triangleEnergyKick       = SoundAsset[EnergyKick](triangleAbilitiesPath, "energy-kick", Wav)
       val triangleUpgradeDirectHit = SoundAsset[UpgradeDirectHit](triangleAbilitiesPath, "upgrade-direct-hit", Wav)
       val triangleStun             = SoundAsset[Stun](triangleAbilitiesPath, "stun", Wav)
+
+      val abilityMap = Map(
+        Ability.triangleDirectHit -> abilities.triangle.triangleDirectHit,
+        Ability.triangleEnergyKick -> abilities.triangle.triangleEnergyKick,
+        Ability.triangleUpgradeDirectHit -> abilities.triangle.triangleUpgradeDirectHit,
+        Ability.triangleStun -> abilities.triangle.triangleStun
+      )
     }
   }
 
-  val abilitySounds: Map[Ability.AbilityId, SoundAsset[_ <: Ability]] = Map(
-    Ability.hexagonFlashHealId -> abilities.hexagon.flashHeal,
-    Ability.hexagonHexagonHotId -> abilities.hexagon.hexagonHot,
-    Ability.pentagonPentagonBullet -> abilities.pentagon.createPentagonBullet,
-    Ability.createPentagonZoneId -> abilities.pentagon.createPentagonZone,
-    Ability.pentagonDispelId -> abilities.pentagon.pentaDispel,
-    Ability.squareHammerHit -> abilities.square.hammerHit,
-    Ability.triangleDirectHit -> abilities.triangle.triangleDirectHit,
-    Ability.triangleEnergyKick -> abilities.triangle.triangleEnergyKick,
-    Ability.triangleUpgradeDirectHit -> abilities.triangle.triangleUpgradeDirectHit,
-    Ability.triangleStun -> abilities.triangle.triangleStun
-  )
+  val abilitySounds: Map[Ability.AbilityId, SoundAsset[_ <: Ability]] = abilities.pentagon.abilityMap ++
+    abilities.square.abilityMap ++
+    abilities.hexagon.abilityMap ++
+    abilities.triangle.abilityMap
 
   val allSoundAssets: List[SoundAsset[_]] = List(
     gameOverSoundAsset,
