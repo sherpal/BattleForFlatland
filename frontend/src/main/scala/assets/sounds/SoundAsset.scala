@@ -129,13 +129,11 @@ object SoundAsset {
     }
 
     object pentagon {
-      val pentagonAbilitiesPath = abilityPath / "pentagon"
+      implicit private val pentagonAbilitiesPath = abilityPath / "pentagon"
 
-      val createPentagonBullet =
-        SoundAsset[CreatePentagonBullet](pentagonAbilitiesPath, "create-pentagon-bullet", Wav, Mp3)
-      val createPentagonZone =
-        SoundAsset[CreatePentagonZone](pentagonAbilitiesPath, "create-pentagon-zone", Wav, Mp3)
-      val pentaDispel = SoundAsset[PentaDispel](pentagonAbilitiesPath, "penta-dispel", Wav, Mp3)
+      val createPentagonBullet = makeAutoAsset[CreatePentagonBullet]("create-pentagon-bullet")
+      val createPentagonZone   = makeAutoAsset[CreatePentagonZone]("create-pentagon-zone")
+      val pentaDispel          = makeAutoAsset[PentaDispel]("penta-dispel")
 
       val abilityMap = Map(
         Ability.pentagonPentagonBullet -> abilities.pentagon.createPentagonBullet,
