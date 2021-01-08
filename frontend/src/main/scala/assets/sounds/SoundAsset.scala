@@ -4,9 +4,8 @@ import urldsl.language.PathSegment
 import urldsl.language.PathSegment.dummyErrorImpl._
 import urldsl.errors.DummyError
 import cats.data.NonEmptyList
-import assets.sounds.SoundFileExtension.Wav
+import assets.sounds.SoundFileExtension._
 import gamelogic.abilities.Ability
-import assets.sounds.SoundFileExtension.Mp3
 import gamelogic.abilities.triangle._
 import gamelogic.abilities.hexagon._
 import gamelogic.abilities.pentagon._
@@ -14,7 +13,7 @@ import gamelogic.abilities.square._
 
 /**
   * Represents a loadable sound file. Instances of this trait will be used to load
-  * all game sounds before the game start, and then easily run any of these sounds.
+  * all game sounds before the game starts, and then easily run any of these sounds.
   *
   * @tparam For represents the type of object this sound is downloaded for. For example,
   *             If the sound is intended to be played for an ability, we could have
@@ -136,7 +135,7 @@ object SoundAsset {
       val pentaDispel          = makeAutoAsset[PentaDispel]("penta-dispel")
 
       val abilityMap = Map(
-        Ability.pentagonPentagonBullet -> abilities.pentagon.createPentagonBullet,
+        //Ability.pentagonPentagonBullet -> abilities.pentagon.createPentagonBullet,
         Ability.createPentagonZoneId -> abilities.pentagon.createPentagonZone,
         Ability.pentagonDispelId -> abilities.pentagon.pentaDispel
       )
