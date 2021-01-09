@@ -459,3 +459,5 @@ Note that the current implementation does _not_ allow to run several sounds at t
 ### Sounds
 
 A great deal of sound effect you hear in the game are generously offered by [mixkit.co](https://mixkit.co/free-sound-effects/).
+
+The bars that you see in the game were made by wenakiri.
