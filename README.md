@@ -2,14 +2,13 @@
 
 ## Game controls
 
-Currently the controls are hard coded.
+The following default controls are coded (you need an AZERTY keyboard).
 
-It is in my plans to allow the user to chose their owns. However, if you wanted to change them, you can head over `frontend/src/main/scala/game/Keyboard.scala`.
-
-The current controls are:
-
-- zqsd (or qasd on QWERTY) for moving
+- zqsd for moving
 - keys 1, 2, 3,... for using ability, from left to right as their symbols appear at the bottom left of the game.
+- keys rfvtgb to put markers on target, and shift these to put fixed markers at the mouse position.
+
+You can easily change them when you join a game, at which point they are saved in your browser's local storage (meaning: if you keep the same browser and don't clear data, they will be remembered forever).
 
 ## History was made on June, 3rd, 2020
 
@@ -454,3 +453,11 @@ Note that the current implementation does _not_ allow to run several sounds at t
 
 - Go to either `frontend` or `game-server-launcher`, depending on which you want to install things.
 - run `npm install --save the-deps` for dependency and `npm install --save-dev the-deps` for a development dependency, such as the typings of a library.
+
+## Credits
+
+### Sounds
+
+A great deal of sound effect you hear in the game are generously offered by [mixkit.co](https://mixkit.co/free-sound-effects/).
+
+The bars that you see in the game were made by wenakiri.

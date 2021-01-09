@@ -93,6 +93,7 @@ object GameMaster {
       pendingActions: List[GameAction],
       actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage],
       actionCollector: ImmutableActionCollector,
+      bossFactory: List[BossFactory[_]],
       alreadyClosing: Boolean = false
   )(
       implicit
@@ -108,13 +109,15 @@ object GameMaster {
           inGameBehaviour(
             gameAction +: pendingActions,
             actionUpdateCollector,
-            actionCollector
+            actionCollector,
+            bossFactory
           )
         case MultipleActionsWrapper(gameActions) =>
           inGameBehaviour(
             gameActions ++ pendingActions,
             actionUpdateCollector,
-            actionCollector
+            actionCollector,
+            bossFactory
           )
         case GameLoop =>
           val startTime = now
@@ -162,9 +165,24 @@ object GameMaster {
               zio.Runtime.default.unsafeRunToFuture(
                 closeServerAfter(context.self, 1.minute)
               )
-              inGameBehaviour(Nil, actionUpdateCollector, finalCollector, alreadyClosing = true)
+
+              val endOfGameActions =
+                bossFactory.flatMap(_.whenBossDiesActions(finalCollector.currentGameState, now, idGeneratorContainer))
+
+              val (endOfGameCollector, oldestTimeToRemove, idsToRemove) =
+                actionCollector.masterAddAndRemoveActions(endOfGameActions)
+
+              actionUpdateCollector ! ActionUpdateCollector.GameStateWrapper(endOfGameCollector.currentGameState)
+              actionUpdateCollector ! ActionUpdateCollector
+                .AddAndRemoveActions(
+                  endOfGameActions,
+                  oldestTimeToRemove,
+                  idsToRemove
+                )
+
+              inGameBehaviour(Nil, actionUpdateCollector, endOfGameCollector, bossFactory, alreadyClosing = true)
             } else {
-              inGameBehaviour(Nil, actionUpdateCollector, finalCollector)
+              inGameBehaviour(Nil, actionUpdateCollector, finalCollector, bossFactory)
             }
 
           } catch {
@@ -262,12 +280,17 @@ object GameMaster {
             .fold(List.empty[GameAction])(_.initialBossActions(bossId, timeNow - 1, idGeneratorContainer))
         }
 
+        val bossFactories = gameInfo.game.gameConfiguration.maybeBossName.toList.flatMap(
+          BossFactory.factoriesByBossName.get(_)
+        )
+
         val newPendingActions = pendingActions ++ bossCreationActions :+ GameStart(0L, now)
 
         inGameBehaviour(
           newPendingActions,
           actionUpdateCollector,
-          actionCollector
+          actionCollector,
+          bossFactories
         )
       case _ =>
         Behaviors.unhandled

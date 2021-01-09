@@ -27,7 +27,7 @@ import typings.pixiJs.PIXI.SCALE_MODES
 
 import scala.collection.mutable
 import gamelogic.gamestate.gameactions.EndGame
-import game.ui.effects.visualeffects.Confetti
+import game.ui.effects.visualeffects.ConfettiEffect
 
 final class EffectsManager(
     playerId: Entity.Id,
@@ -162,7 +162,7 @@ final class EffectsManager(
               )
             )
           case _: EndGame if gameState.playersWon =>
-            Some(new Confetti)
+            Some(new ConfettiEffect)
           case _ =>
             Option.empty[SimpleTextEffect]
         }

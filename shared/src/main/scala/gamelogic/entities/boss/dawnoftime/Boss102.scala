@@ -17,6 +17,11 @@ import gamelogic.physics.Complex
 import gamelogic.physics.shape.Circle
 import gamelogic.utils.IdGeneratorContainer
 import models.syntax.Pointed
+import gamelogic.entities.boss.boss102.BossHound
+import gamelogic.gamestate.gameactions.RemoveEntity
+import gamelogic.entities.boss.boss102.DamageZone
+import gamelogic.buffs.Buff
+import gamelogic.gamestate.gameactions.RemoveBuff
 
 final case class Boss102(
     id: Entity.Id,
@@ -166,4 +171,18 @@ object Boss102 extends BossFactory[Boss102] {
       Ability.autoAttackId,
       Ability.putLivingDamageZoneId
     )
+
+  def whenBossDiesActions(
+      gameState: GameState,
+      time: Long,
+      idGeneratorContainer: IdGeneratorContainer
+  ): List[GameAction] =
+    gameState.entities.values.collect {
+      case hound: BossHound => RemoveEntity(idGeneratorContainer.gameActionIdGenerator(), time, hound.id)
+      case zone: DamageZone => RemoveEntity(idGeneratorContainer.gameActionIdGenerator(), time, zone.id)
+    }.toList ++ gameState.allBuffs.collect {
+      case buff: Buff
+          if List(Buff.boss102DamageZoneBuff, Buff.boss102LivingDamageZone) contains buff.resourceIdentifier =>
+        RemoveBuff(idGeneratorContainer.gameActionIdGenerator(), time, buff.bearerId, buff.buffId)
+    }
 }

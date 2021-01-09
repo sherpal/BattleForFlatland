@@ -21,20 +21,10 @@ import gamelogic.gamestate.gameactions.RemoveBuff
 import gamelogic.buffs.Buff
 
 /**
-  * Very first boss to be coded. Probably not the most exiting one but the goal was to have a first proof of concept
-  * and retrieve as much feedback as possible.
-  *
-  * The abilities of the boss are the following:
-  * - "big" hit that directly attack the target (with a casting time so that the player can react). This attack will
-  *   probably kill any player other than a tank (under cd)
-  * - dot placed on someone different from the target (no casting time)
-  * - spawn adds which will move towards and attack the player with the biggest healing threat (the heal if he is the
-  *   only one). These adds will have melee attacks and move not too fast, leaving time to dps to kill them before
-  *   they reach the heal.
-  *
-  * This boss is intended for 5 players (1 tank, 2 dps and 2 healers)
+  * This is a clone of the [[Boss101]] with low life to test how the end of a boss
+  * behaves in general.
   */
-final case class Boss101(
+final case class Boss101Dev(
     id: Entity.Id,
     time: Long,
     targetId: Entity.Id,
@@ -50,36 +40,43 @@ final case class Boss101(
     damageThreats: Map[Id, ThreatAmount]
 ) extends BossEntity {
 
-  def name: String = Boss101.name
+  def name: String = Boss101Dev.name
 
-  def shape: Circle = Boss101.shape
+  def shape: Circle = Boss101Dev.shape
 
   def abilities: Set[AbilityId] = Set(Ability.boss101BigDotId, Ability.boss101BigHitId, Ability.boss101SmallHitId)
 
-  def useAbility(ability: Ability): Boss101 = copy(
+  def useAbility(ability: Ability): Boss101Dev = copy(
     relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability)
   )
 
   def maxResourceAmount: Double      = 0.0
   def resourceAmount: ResourceAmount = ResourceAmount(0, NoResource)
 
-  def move(time: Long, position: Complex, direction: Angle, rotation: Angle, speed: Double, moving: Boolean): Boss101 =
+  def move(
+      time: Long,
+      position: Complex,
+      direction: Angle,
+      rotation: Angle,
+      speed: Double,
+      moving: Boolean
+  ): Boss101Dev =
     copy(time = time, pos = position, direction = direction, rotation = rotation, speed = speed, moving = moving)
 
-  protected def patchLifeTotal(newLife: Double): Boss101 =
+  protected def patchLifeTotal(newLife: Double): Boss101Dev =
     copy(life = newLife)
 
   def teamId: Entity.TeamId = Entity.teams.mobTeam
 
-  def changeDamageThreats(threatId: Id, delta: ThreatAmount): Boss101 =
+  def changeDamageThreats(threatId: Id, delta: ThreatAmount): Boss101Dev =
     copy(damageThreats = damageThreats + (threatId -> (damageThreats.getOrElse(threatId, 0.0) + delta)))
 
-  def changeHealingThreats(threatId: Id, delta: ThreatAmount): Boss101 =
+  def changeHealingThreats(threatId: Id, delta: ThreatAmount): Boss101Dev =
     copy(healingThreats = healingThreats + (threatId -> (healingThreats.getOrElse(threatId, 0.0) + delta)))
 
-  def changeTarget(newTargetId: Id): Boss101 = copy(targetId = newTargetId)
+  def changeTarget(newTargetId: Id): Boss101Dev = copy(targetId = newTargetId)
 
-  protected def patchResourceAmount(newResourceAmount: ResourceAmount): Boss101 = this
+  protected def patchResourceAmount(newResourceAmount: ResourceAmount): Boss101Dev = this
 
   def abilityNames: Map[AbilityId, String] = Map(
     Ability.boss101BigHitId -> BigHit.name,
@@ -88,20 +85,20 @@ final case class Boss101(
   )
 }
 
-object Boss101 extends BossFactory[Boss101] {
+object Boss101Dev extends BossFactory[Boss101Dev] {
   final val shape: Circle = new Circle(Constants.bossRadius)
 
-  final val maxLife: Double = 20000
+  final val maxLife: Double = 400 // 20000
 
   final val meleeRange: Distance = shape.radius + 20.0
   final val rangeRange: Distance = 2000.0 // basically infinite distance
 
-  final val name: String = "Boss 101"
+  final val name: String = "Boss 101 Dev"
 
   final val fullSpeed: Double = 300.0
 
-  def initialBoss(entityId: Entity.Id, time: Long): Boss101 =
-    Pointed[Boss101].unit
+  def initialBoss(entityId: Entity.Id, time: Long): Boss101Dev =
+    Pointed[Boss101Dev].unit
       .copy(
         id    = entityId,
         time  = time,

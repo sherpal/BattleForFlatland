@@ -91,7 +91,7 @@ object Asset {
 
         // @js.native @JSImport("assets/in-game/gui/bars/Minimalist.png", JSImport.Default)
         // object minimalistBar extends Asset
-        val minimalistBar = Asset("assets/in-game/gui/bars/Minimalist.png")
+        val minimalistBar = Asset("assets/in-game/gui/bars/life-bar_wenakari.png")
 
         // @js.native @JSImport("assets/in-game/gui/bars/Xeon.png", JSImport.Default)
         // object xeonBar extends Asset
