@@ -35,6 +35,7 @@ trait AIController[
       me: EntityType,
       currentPosition: Complex,
       startTime: Long,
+      lastTimeStamp: Long,
       maybeTarget: Option[PlayerClass],
       obstacleGraph: Graph
   ): List[GameAction]
@@ -67,7 +68,7 @@ trait AIController[
     case AIControllerMessage.GameStateWrapper(newGameState) =>
       waitingForGraph(actionTranslator, initialMessage, newGameState)
     case AIControllerMessage.ObstacleGraph(graph) =>
-      receiver(actionTranslator, initialMessage, gameState, graph)
+      receiver(actionTranslator, initialMessage, gameState, graph, now)
     case _ => Behaviors.unhandled
   }
 
@@ -75,7 +76,8 @@ trait AIController[
       actionTranslator: ActorRef[ActionTranslator.Message],
       initialAction: InitialAction,
       currentGameState: GameState,
-      obstacleGraph: Graph
+      obstacleGraph: Graph,
+      lastTimeStamp: Long
   ): Behavior[AIControllerMessage] = Behaviors.receive { (context, message) =>
     val myId = initialAction.entityId
 
@@ -88,7 +90,8 @@ trait AIController[
                 actionTranslator,
                 initialAction,
                 gameState,
-                obstacleGraph
+                obstacleGraph,
+                lastTimeStamp
               )
           )
       case AIControllerMessage.NewActions(_) => Behaviors.same
@@ -100,7 +103,8 @@ trait AIController[
 
         val maybeTarget = findTarget(me, currentGameState)
 
-        val actions = takeActions(currentGameState, me, currentPosition, startTime, maybeTarget, obstacleGraph)
+        val actions =
+          takeActions(currentGameState, me, currentPosition, startTime, lastTimeStamp, maybeTarget, obstacleGraph)
 
         if (actions.nonEmpty) {
           actionTranslator ! ActionTranslator.GameActionsWrapper(actions)
@@ -113,9 +117,9 @@ trait AIController[
             ((loopRate - timeTaken) max 0).millis
           )
         )
-        Behaviors.same
+        receiver(actionTranslator, initialAction, currentGameState, obstacleGraph, startTime)
       case AIControllerMessage.ObstacleGraph(graph) =>
-        receiver(actionTranslator, initialAction, currentGameState, graph)
+        receiver(actionTranslator, initialAction, currentGameState, graph, lastTimeStamp)
     }
   }
 

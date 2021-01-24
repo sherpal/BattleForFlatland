@@ -17,6 +17,7 @@ object Boss102Controller extends AIController[Boss102, SpawnBoss] {
       me: Boss102,
       currentPosition: Complex,
       startTime: Long,
+      lastTimeStamp: Long,
       maybeTarget: Option[PlayerClass],
       obstacleGraph: Graph
   ): List[GameAction] =
@@ -48,12 +49,14 @@ object Boss102Controller extends AIController[Boss102, SpawnBoss] {
         val maybeMove = aiMovementToTargetWithGraph(
           me.id,
           startTime,
+          startTime - lastTimeStamp,
           currentPosition,
           me.shape.radius,
           target.currentPosition(startTime),
           Boss102.meleeRange,
           Boss102.fullSpeed,
           Boss102.fullSpeed / 4,
+          me.speed,
           me.moving,
           me.rotation,
           obstacleGraph,

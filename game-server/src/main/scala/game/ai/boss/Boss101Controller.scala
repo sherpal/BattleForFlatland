@@ -26,7 +26,7 @@ object Boss101Controller {
     Behaviors.receiveMessage {
       case AIControllerMessage.GameStateWrapper(gameState) =>
         AIControllerMessage.unsafeRunSendMeLoop(context.self, zio.duration.Duration.fromScala(loopRate.millis))
-        receiver(actionTranslator, spawnBoss = initialMessage, currentGameState = gameState)
+        receiver(actionTranslator, spawnBoss = initialMessage, currentGameState = gameState, now)
       case _ =>
         //waiting for first game state
         Behaviors.same
@@ -36,7 +36,8 @@ object Boss101Controller {
   private def receiver(
       actionTranslator: ActorRef[ActionTranslator.Message],
       spawnBoss: SpawnBoss,
-      currentGameState: GameState
+      currentGameState: GameState,
+      lastTimeStamp: Long
   ): Behavior[AIControllerMessage] = Behaviors.receive { (context, message) =>
     def myId = spawnBoss.entityId
 
@@ -49,14 +50,16 @@ object Boss101Controller {
               receiver(
                 actionTranslator,
                 spawnBoss,
-                gameState
+                gameState,
+                lastTimeStamp
               )
           )
       case AIControllerMessage.NewActions(_) => Behaviors.same
       case AIControllerMessage.Loop =>
-        val startTime       = now
-        val me              = currentGameState.bosses(myId)
-        val currentPosition = me.currentPosition(startTime)
+        val startTime          = now
+        val timeSinceLastFrame = startTime - lastTimeStamp
+        val me                 = currentGameState.bosses(myId)
+        val currentPosition    = me.currentPosition(startTime)
 
         val maybeTarget = findTarget(me, currentGameState)
 
@@ -130,12 +133,14 @@ object Boss101Controller {
                 aiMovementToTarget(
                   me.id,
                   startTime,
+                  timeSinceLastFrame,
                   currentPosition,
                   me.shape.radius,
                   targetPosition,
                   Boss101.meleeRange,
                   Boss101.fullSpeed,
                   Boss101.fullSpeed / 4,
+                  me.speed,
                   me.moving,
                   me.rotation
                 )
@@ -165,7 +170,7 @@ object Boss101Controller {
           )
         )
 
-        Behaviors.same
+        receiver(actionTranslator, spawnBoss, currentGameState, startTime)
       case AIControllerMessage.ObstacleGraph(_) => Behaviors.unhandled
     }
   }
