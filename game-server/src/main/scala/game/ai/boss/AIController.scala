@@ -95,6 +95,9 @@ trait AIController[
               )
           )
       case AIControllerMessage.NewActions(_) => Behaviors.same
+      case AIControllerMessage.Loop if currentGameState.ended =>
+        println("Game has ended, I stop doing stuff")
+        Behaviors.same
       case AIControllerMessage.Loop =>
         val startTime       = now
         val me              = getMe(currentGameState, myId).get
@@ -106,9 +109,9 @@ trait AIController[
         val actions =
           takeActions(currentGameState, me, currentPosition, startTime, lastTimeStamp, maybeTarget, obstacleGraph)
 
-        if (actions.nonEmpty) {
-          actionTranslator ! ActionTranslator.GameActionsWrapper(actions)
-        }
+        Option
+          .unless(actions.isEmpty)(ActionTranslator.GameActionsWrapper(actions))
+          .foreach(actionTranslator ! _)
 
         val timeTaken = now - startTime
         AIControllerMessage.unsafeRunSendMeLoop(

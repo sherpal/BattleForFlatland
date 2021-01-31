@@ -45,14 +45,15 @@ object Boss102Controller extends AIController[Boss102, SpawnBoss] {
 //          me.moving,
 //          me.rotation
 //        )
+        val elapsedSinceLastFrame = startTime - lastTimeStamp
 
         val maybeMove = aiMovementToTargetWithGraph(
           me.id,
           startTime,
-          startTime - lastTimeStamp,
+          elapsedSinceLastFrame,
           currentPosition,
           me.shape.radius,
-          target.currentPosition(startTime),
+          target.currentPosition(startTime + 100),
           Boss102.meleeRange,
           Boss102.fullSpeed,
           Boss102.fullSpeed / 4,

@@ -28,7 +28,9 @@ package object utils {
     * @param elapsedSinceLastFrame time (in ms) since the last refresh. This is needed to have a frame
     *                              independent implementation.
     */
-  def findNextSpeed(currentSpeed: Double, targetSpeed: Double, elapsedSinceLastFrame: Long): Double = targetSpeed
+  def findNextSpeed(currentSpeed: Double, targetSpeed: Double, elapsedSinceLastFrame: Long): Double =
+    targetSpeed
+  //currentSpeed + (targetSpeed - currentSpeed) / 10 * elapsedSinceLastFrame / 1000
 
   /**
     * This is the same as `aiMovementToTarget`, but uses the underlying [[gamelogic.physics.pathfinding.Graph]] to
@@ -158,7 +160,7 @@ package object utils {
           currentPosition,
           (-toTarget).arg,
           toTarget.arg,
-          findNextSpeed(currentSpeed, slowSpeed, timeSinceLastFrame),
+          slowSpeed,
           moving = true
         )
       )
@@ -180,12 +182,11 @@ package object utils {
   }
 
   def findTarget(me: WithThreat with WithPosition, currentGameState: GameState): Option[PlayerClass] =
-    me.damageThreats
-      .maxByOption(_._2)
-      .map(_._1)
-      .flatMap(
-        currentGameState.players.get // this could change in the future
-      )
+    (for {
+      biggestThreat <- me.damageThreats.maxByOption(_._2)
+      biggestThreatId = biggestThreat._1
+      biggestThreatAsPlayer <- currentGameState.players.get(biggestThreatId) // this could change in the future
+    } yield biggestThreatAsPlayer)
       .fold(currentGameState.players.values.minByOption(player => (player.pos - me.pos).modulus))(Some(_))
 
   def changeTarget(me: WithTarget, targetId: Entity.Id, time: Long): Option[ChangeTarget] =
