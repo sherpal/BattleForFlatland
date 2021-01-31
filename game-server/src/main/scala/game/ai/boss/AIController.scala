@@ -102,7 +102,6 @@ trait AIController[
         val startTime       = now
         val me              = getMe(currentGameState, myId).get
         val currentPosition = me.currentPosition(startTime)
-        //me.lastValidPosition(me.currentPosition(startTime), currentGameState.obstaclesLike.toList)
 
         val maybeTarget = findTarget(me, currentGameState)
 
