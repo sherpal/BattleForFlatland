@@ -17,6 +17,7 @@ object BossHoundController extends AIController[BossHound, AddBossHound] {
       me: BossHound,
       currentPosition: Complex,
       startTime: Long,
+      lastTimeStamp: Long,
       maybeTarget: Option[PlayerClass],
       obstacleGraph: Graph
   ): List[GameAction] = maybeTarget.fold(List[GameAction]()) { target =>
@@ -26,12 +27,14 @@ object BossHoundController extends AIController[BossHound, AddBossHound] {
     val maybeMove = aiMovementToTarget(
       me.id,
       startTime,
+      lastTimeStamp,
       currentPosition,
       me.shape.radius,
       target.currentPosition(startTime),
       BossHound.range,
       BossHound.fullSpeed,
       BossHound.fullSpeed / 10,
+      me.speed,
       me.moving,
       me.rotation
     )

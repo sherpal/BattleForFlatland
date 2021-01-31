@@ -35,6 +35,7 @@ trait AIController[
       me: EntityType,
       currentPosition: Complex,
       startTime: Long,
+      lastTimeStamp: Long,
       maybeTarget: Option[PlayerClass],
       obstacleGraph: Graph
   ): List[GameAction]
@@ -67,7 +68,7 @@ trait AIController[
     case AIControllerMessage.GameStateWrapper(newGameState) =>
       waitingForGraph(actionTranslator, initialMessage, newGameState)
     case AIControllerMessage.ObstacleGraph(graph) =>
-      receiver(actionTranslator, initialMessage, gameState, graph)
+      receiver(actionTranslator, initialMessage, gameState, graph, now)
     case _ => Behaviors.unhandled
   }
 
@@ -75,7 +76,8 @@ trait AIController[
       actionTranslator: ActorRef[ActionTranslator.Message],
       initialAction: InitialAction,
       currentGameState: GameState,
-      obstacleGraph: Graph
+      obstacleGraph: Graph,
+      lastTimeStamp: Long
   ): Behavior[AIControllerMessage] = Behaviors.receive { (context, message) =>
     val myId = initialAction.entityId
 
@@ -88,23 +90,27 @@ trait AIController[
                 actionTranslator,
                 initialAction,
                 gameState,
-                obstacleGraph
+                obstacleGraph,
+                lastTimeStamp
               )
           )
       case AIControllerMessage.NewActions(_) => Behaviors.same
+      case AIControllerMessage.Loop if currentGameState.ended =>
+        println("Game has ended, I stop doing stuff")
+        Behaviors.same
       case AIControllerMessage.Loop =>
         val startTime       = now
         val me              = getMe(currentGameState, myId).get
         val currentPosition = me.currentPosition(startTime)
-        //me.lastValidPosition(me.currentPosition(startTime), currentGameState.obstaclesLike.toList)
 
         val maybeTarget = findTarget(me, currentGameState)
 
-        val actions = takeActions(currentGameState, me, currentPosition, startTime, maybeTarget, obstacleGraph)
+        val actions =
+          takeActions(currentGameState, me, currentPosition, startTime, lastTimeStamp, maybeTarget, obstacleGraph)
 
-        if (actions.nonEmpty) {
-          actionTranslator ! ActionTranslator.GameActionsWrapper(actions)
-        }
+        Option
+          .unless(actions.isEmpty)(ActionTranslator.GameActionsWrapper(actions))
+          .foreach(actionTranslator ! _)
 
         val timeTaken = now - startTime
         AIControllerMessage.unsafeRunSendMeLoop(
@@ -113,9 +119,9 @@ trait AIController[
             ((loopRate - timeTaken) max 0).millis
           )
         )
-        Behaviors.same
+        receiver(actionTranslator, initialAction, currentGameState, obstacleGraph, startTime)
       case AIControllerMessage.ObstacleGraph(graph) =>
-        receiver(actionTranslator, initialAction, currentGameState, graph)
+        receiver(actionTranslator, initialAction, currentGameState, graph, lastTimeStamp)
     }
   }
 

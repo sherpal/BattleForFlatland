@@ -96,6 +96,9 @@ object AIManager {
     def removeEntityController(ref: ActorRef[Nothing]): ReceiverInfo =
       copy(entityControllers = entityControllers - ref.unsafeUpcast[AIControllerMessage])
 
+    def removeAllEntityControllers: ReceiverInfo =
+      copy(entityControllers = Set.empty)
+
   }
 
   private def receiver(
@@ -105,6 +108,10 @@ object AIManager {
       receiverInfo.entityControllers.foreach(_ ! message)
 
     message match {
+      case HereIsTheGameState(gameState) if gameState.ended =>
+        context.log.info("Game has ended, killing all AIs")
+        receiverInfo.entityControllers.foreach(context.stop)
+        receiver(receiverInfo.removeAllEntityControllers.withGameState(gameState))
       case HereIsTheGameState(gameState) =>
         broadcastMessage(AIControllerMessage.GameStateWrapper(gameState))
 
