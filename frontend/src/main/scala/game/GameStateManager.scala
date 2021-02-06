@@ -27,9 +27,12 @@ import game.ui.effects.soundeffects.SoundEffectsManager
 import assets.sounds.SoundAsset
 import typings.std.global.Audio
 
+import scala.scalajs.js
+
 import scala.Ordering.Double.TotalOrdering
 import scala.scalajs.js.timers.setTimeout
 import game.ui.effects.errormessages.ErrorMessagesManager
+import scala.concurrent.duration._
 
 final class GameStateManager(
     reactiveStage: ReactiveStage,
@@ -49,6 +52,15 @@ final class GameStateManager(
 
   val slowSocketOutWriterBus = new EventBus[InGameWSProtocol.Outgoing]
   slowSocketOutWriterBus.events.throttle(100).foreach(socketOutWriter.onNext)
+
+  var maybeLastPositionUpdate: Option[MovingBodyMoves] = Option.empty
+
+  js.timers.setInterval(100.millis) {
+    maybeLastPositionUpdate.foreach { action =>
+      socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(List(action)))
+    }
+    maybeLastPositionUpdate = None
+  }
 
   private val gameStateUpdatesBus                      = new EventBus[(GameState, Long)]
   val gameStateUpdates: EventStream[(GameState, Long)] = gameStateUpdatesBus.events
@@ -123,7 +135,8 @@ final class GameStateManager(
     case AddAndRemoveActions(actionsToAdd, oldestTimeToRemove, idsOfActionsToRemove) =>
       actionCollector = actionCollector.slaveAddAndRemoveActions(actionsToAdd, oldestTimeToRemove, idsOfActionsToRemove)
 
-      unconfirmedActions = unconfirmedActions.dropWhile(_.time < actionCollector.currentGameState.time)
+      //unconfirmedActions = unconfirmedActions.dropWhile(_.time < actionCollector.currentGameState.time)
+      unconfirmedActions = unconfirmedActions.lastOption.toList
 
       setTimeout(1) {
         actionsToAdd.filterNot(action => idsOfActionsToRemove.contains(action.id)).foreach(newActionsBus.writer.onNext)
@@ -227,14 +240,14 @@ final class GameStateManager(
             now,
             playerId,
             nextPos,
-            entity.direction,
+            playerMovement.arg,
             rotation,
             entity.speed,
             moving
           )
           unconfirmedActions = unconfirmedActions :+ newAction
 
-          socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(List(newAction)))
+          maybeLastPositionUpdate = Some(newAction)
 
           nextGameState()
         }

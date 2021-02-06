@@ -14,15 +14,16 @@ import com.raquo.airstream.eventstream.EventStream
 import scala.concurrent.Future
 import services.logging._
 import assets.sounds.Volume
+import scala.util.Try
 
 final class SoundAssetLoader(assets: List[SoundAsset[_]]) {
 
-  private def loadSound(soundAsset: SoundAsset[_], globalVolume: Volume): ZIO[Any, MediaError, Audio] =
+  private def loadSound(soundAsset: SoundAsset[_], globalVolume: Volume): ZIO[Any, Option[MediaError], Audio] =
     for {
       _ <- ZIO.unit
       audio = new Audio(soundAsset.url)
       fiber <- ZIO
-        .effectAsync[Any, MediaError, Unit] { cb =>
+        .effectAsync[Any, Option[MediaError], Unit] { cb =>
           audio.addEventListener_canplaythrough(typings.std.stdStrings.canplaythrough, { (_: Audio, _: dom.Event) =>
             cb(UIO(()))
           })
@@ -31,13 +32,15 @@ final class SoundAssetLoader(assets: List[SoundAsset[_]]) {
             typings.std.stdStrings.error, { (_: Audio, error: ErrorEvent) =>
               cb(
                 ZIO.fail(
-                  error
-                    .asInstanceOf[js.Dynamic]
-                    .path
-                    .asInstanceOf[js.Array[js.Object]](0)
-                    .asInstanceOf[js.Dynamic]
-                    .error
-                    .asInstanceOf[MediaError]
+                  Try(
+                    error
+                      .asInstanceOf[js.Dynamic]
+                      .path
+                      .asInstanceOf[js.Array[js.Object]](0)
+                      .asInstanceOf[js.Dynamic]
+                      .error
+                      .asInstanceOf[MediaError]
+                  ).toOption
                 )
               )
             }

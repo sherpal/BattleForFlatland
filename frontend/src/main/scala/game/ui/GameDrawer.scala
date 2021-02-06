@@ -69,7 +69,7 @@ final class GameDrawer(
 
   private val players: mutable.Map[Entity.Id, Sprite] = mutable.Map()
 
-  private def drawPlayers(entities: List[PlayerClass]): Unit = {
+  private def drawPlayers(entities: List[PlayerClass], currentTime: Long): Unit = {
     players.filterNot(playerInfo => entities.map(_.id).contains(playerInfo._1)).foreach {
       case (entityId, sprite) =>
         players -= entityId
@@ -88,7 +88,7 @@ final class GameDrawer(
       )
 
       sprite.rotation = -entity.rotation
-      camera.viewportManager(sprite, entity.pos, entity.shape.boundingBox)
+      camera.viewportManager(sprite, entity.currentPosition(currentTime), entity.shape.boundingBox)
     }
   }
 
@@ -270,7 +270,7 @@ final class GameDrawer(
 
   def drawGameState(gameState: GameState, cameraPosition: Complex, currentTime: Long): Unit = {
     camera.worldCenter = cameraPosition
-    drawPlayers(gameState.players.values.toList)
+    drawPlayers(gameState.players.values.toList, currentTime)
     drawSimpleBullets(gameState.simpleBullets.values.toList, currentTime)
     drawDummyMobs(gameState.dummyMobs.values.toList, currentTime)
     drawBosses(gameState.bosses.valuesIterator.toList, currentTime)
