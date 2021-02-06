@@ -73,7 +73,7 @@ object JoinedGameDispatcherTyped extends ActorModule {
               if !info.isClosing => // this game is already taken care of, and not closing, we notify the actor
             info.ref ! GameAntiChamberTyped.PlayerConnected(ref, user)
             Behaviors.same
-          case None => // this game does not exist, we create it and start over
+          case _ => // this game does not exist, we create it and start over
             context.self ! NewClient(gameId, user, ref)
             val antiChamber = context.spawn(
               GameAntiChamberTyped(gameId, context.self, info.layer),
