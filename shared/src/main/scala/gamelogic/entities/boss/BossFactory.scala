@@ -9,6 +9,7 @@ import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
 import gamelogic.gamestate.GameState
+import gamelogic.entities.boss.dawnoftime.Boss110
 
 trait BossFactory[Boss <: BossEntity] {
 
@@ -71,7 +72,8 @@ object BossFactory {
     Boss101Dev,
     Boss101,
     Boss102,
-    Boss103
+    Boss103,
+    Boss110
   ).map(factory => factory.name -> factory).toMap
 
 }

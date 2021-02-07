@@ -172,7 +172,7 @@ After filling the blanks, only a few members are still not implemented (`???`):
 
 The previous actions where made in "auto-pilot" mode, and could even be done automatically via an `sbt` command. Now is the time to begin implementing stuff for your boss specifically.
 
-The main goal of the `stagingBossActions` method is to setup the topology of the room. That is, create all the actions to put obstacles into the game. In the case of the Boss103, the room will have the shape of an Hexagon, with 6 triangle "pillars" placed in an inner hexagon, pointing towards the center.
+The main goal of the `stagingBossActions` method is to setup the topology of the room. That is, create all the actions to put obstacles into the game. In the case of the Boss103, the room will have the shape of a Hexagon, with 6 triangle "pillars" placed in an inner hexagon, pointing towards the center.
 
 #### Seeing the staging in action
 
@@ -183,7 +183,7 @@ To that end:
 - fill the `abilities` and `abilityNames` section with empty collections
 - fill the `initialBoss` with the `unit` of the `Pointed` type class of your boss, changing at least the `id`, the `life` and `maxLife` (so that the boss doesn't die instantly)
 
-Then add your `BossFactory` instance to the `allBossesFactories` of the `BossEntity` companion object and the `factoriesByBossName` of the `BossFactory` companion object, so that the boss will be available to the `GameMaster` and to the web frontend for users to select it.
+Then add your `BossFactory` instance to the `factoriesByBossName` of the `BossFactory` companion object, so that the boss will be available to the `GameMaster` and to the web frontend for users to select it.
 
 You can launch the game and you should see all your obstacles. Clicking on "start game" will make the boss appear. However, since we didn't code any AI for it yet, il will stay put (and you can freely kill it).
 
@@ -259,7 +259,7 @@ We need to take into account that the AI could use its auto-attack ability. The 
         )
 ```
 
-The first argument specifies all the attack to try, in order. In this case, there is currently only one attack. That means that if `maybeAutoAttack` returns something defined, the boss is going to use its ability. Otherwise it will do as before (maybe change target and maybe move towards its destination).
+The first argument specifies all the attacks to try, in order. In this case, there is currently only one attack. That means that if `maybeAutoAttack` returns something defined, the boss is going to use its ability. Otherwise it will do as before (maybe change target and maybe move towards its destination).
 
 You may now launch the game, and you'll see that the boss, when in range, is going to attack you. You can also see on the (currently) top right of your screen that the "cooldown" (aka the time before the ability is usable again) will be properly displayed as a status bar.
 

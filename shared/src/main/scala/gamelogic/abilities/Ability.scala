@@ -115,6 +115,7 @@ object Ability {
   val boss103SacredGroundId: AbilityId    = nextAbilityId()
   val boss103HolyFlameId: AbilityId       = nextAbilityId()
   val pentagonDispelId: AbilityId         = nextAbilityId()
+  val boss110SpawnBigGuies: AbilityId     = nextAbilityId()
 
   /** Global cooldown. Not sure if this should be there... */
   @inline def gcd = 200L
