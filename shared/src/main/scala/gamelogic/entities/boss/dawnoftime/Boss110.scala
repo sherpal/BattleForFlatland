@@ -5,7 +5,7 @@ import gamelogic.entities.boss.BossFactory
 
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
-import gamelogic.abilities.boss.boss102.{PutDamageZones, PutLivingDamageZoneOnTarget, SpawnHound}
+import gamelogic.abilities.boss.boss110.SpawnBigGuies
 import gamelogic.abilities.{Ability, AutoAttack}
 import gamelogic.entities.Entity
 import gamelogic.entities.Entity.Id
@@ -44,7 +44,8 @@ final case class Boss110(
 ) extends BossEntity {
 
   def abilityNames: Map[gamelogic.abilities.Ability.AbilityId, String] = Map(
-    Ability.autoAttackId -> "Auto attack"
+    Ability.autoAttackId -> "Auto attack",
+    Ability.boss110SpawnBigGuies -> SpawnBigGuies.name
   )
 
   def name: String = Boss110.name
@@ -136,7 +137,12 @@ object Boss110 extends BossFactory[Boss110] {
       time    = time,
       speed   = fullSpeed,
       life    = maxLife,
-      maxLife = maxLife
+      maxLife = maxLife,
+      relevantUsedAbilities = Map(
+        Ability.boss110SpawnBigGuies -> Pointed[SpawnBigGuies].unit.copy(
+          time = time - SpawnBigGuies.cooldown + SpawnBigGuies.timeToFirstAbility
+        )
+      )
     )
 
   def initialBossActions(
@@ -184,7 +190,8 @@ object Boss110 extends BossFactory[Boss110] {
 
   final val abilities: Set[Ability.AbilityId] =
     Set(
-      Ability.autoAttackId
+      Ability.autoAttackId,
+      Ability.boss110SpawnBigGuies
     )
 
 }

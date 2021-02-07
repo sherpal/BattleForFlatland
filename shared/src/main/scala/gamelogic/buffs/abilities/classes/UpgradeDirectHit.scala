@@ -13,7 +13,8 @@ import gamelogic.utils.IdGeneratorContainer
   * `UpgradeDirectHit.damageIncrease`.
   * This buff is cumulative.
   */
-final case class UpgradeDirectHit(buffId: Buff.Id, bearerId: Entity.Id, appearanceTime: Long) extends PassiveBuff {
+final case class UpgradeDirectHit(buffId: Buff.Id, bearerId: Entity.Id, sourceId: Entity.Id, appearanceTime: Long)
+    extends PassiveBuff {
 
   def endingAction(gameState: GameState, time: Long)(
       implicit idGeneratorContainer: IdGeneratorContainer

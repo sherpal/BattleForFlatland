@@ -11,7 +11,8 @@ import gamelogic.utils.IdGeneratorContainer
   * An entity with this buff will increase the healing threats of enemies when their heal one of their
   * allies.
   */
-final case class HealingThreatAware(buffId: Buff.Id, bearerId: Entity.Id, appearanceTime: Long) extends PassiveBuff {
+final case class HealingThreatAware(buffId: Buff.Id, bearerId: Entity.Id, sourceId: Entity.Id, appearanceTime: Long)
+    extends PassiveBuff {
 
   def endingAction(gameState: GameState, time: Long)(
       implicit idGeneratorContainer: IdGeneratorContainer

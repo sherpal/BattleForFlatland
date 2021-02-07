@@ -35,11 +35,11 @@ object SpawnBigGuies extends AbilityMetadata {
 
   def name: String = "Spawn Big Guies"
 
-  def cooldown: Long = ???
+  def cooldown: Long = 30000L
 
   def castingTime: Long = 1500L
 
-  def timeToFirstAbility: Long = ???
+  def timeToFirstAbility: Long = 10000L
 
   import Complex.DoubleWithI
 

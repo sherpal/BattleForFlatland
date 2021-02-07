@@ -71,6 +71,7 @@ object Hexagon extends PlayerClassBuilder {
       time,
       idGeneratorContainer.buffIdGenerator(),
       entityId,
+      entityId,
       time,
       Buff.manaFiller
     )

@@ -85,6 +85,6 @@ object Triangle extends PlayerClassBuilder {
   )
 
   def startingActions(time: Id, entityId: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
-    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.energyFiller)
+    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, entityId, time, Buff.energyFiller)
   )
 }

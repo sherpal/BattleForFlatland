@@ -57,6 +57,7 @@ final case class Stun(useId: Ability.UseId, time: Long, casterId: Entity.Id, tar
             time,
             idGeneratorContainer.buffIdGenerator(),
             targetId,
+            casterId,
             time,
             Buff.triangleStun
           )

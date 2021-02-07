@@ -31,6 +31,8 @@ object Entity {
 
   type Id = Long
 
+  val dummyEntityId: Id = -1L // This id can be used wherever an entity id is required, but meaningless.
+
   type TeamId = Int
 
   object teams {

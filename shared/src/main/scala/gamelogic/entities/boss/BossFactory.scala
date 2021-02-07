@@ -59,8 +59,8 @@ trait BossFactory[Boss <: BossEntity] {
       time: Long,
       idGeneratorContainer: IdGeneratorContainer
   ): List[GameAction] = List(
-    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.healingThreatAware),
-    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.damageThreatAware)
+    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, entityId, time, Buff.healingThreatAware),
+    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, entityId, time, Buff.damageThreatAware)
   )
 
 }

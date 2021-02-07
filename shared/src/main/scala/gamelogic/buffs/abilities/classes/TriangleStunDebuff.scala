@@ -12,7 +12,7 @@ import gamelogic.buffs.ActionPreventerBuff
 import gamelogic.gamestate.gameactions.MovingBodyMoves
 import gamelogic.gamestate.gameactions.UseAbility
 
-final case class TriangleStunDebuff(buffId: Buff.Id, bearerId: Entity.Id, appearanceTime: Long)
+final case class TriangleStunDebuff(buffId: Buff.Id, bearerId: Entity.Id, sourceId: Entity.Id, appearanceTime: Long)
     extends PassiveBuff
     with ActionPreventerBuff {
   def endingAction(gameState: GameState, time: Long)(

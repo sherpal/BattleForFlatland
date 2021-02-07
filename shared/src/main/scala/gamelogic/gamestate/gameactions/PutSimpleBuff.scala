@@ -17,12 +17,13 @@ final case class PutSimpleBuff(
     time: Long,
     buffId: Buff.Id,
     bearerId: Entity.Id,
+    sourceId: Entity.Id,
     appearanceTime: Long,
     resourceIdentifier: ResourceIdentifier
 ) extends GameAction {
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     gameState.entityById(bearerId).fold(GameStateTransformer.identityTransformer) { _ =>
-      val newBuff = SimpleBuffs(resourceIdentifier, buffId, bearerId, appearanceTime).get
+      val newBuff = SimpleBuffs(resourceIdentifier, buffId, bearerId, sourceId, appearanceTime).get
       new WithBuff(newBuff)
     }
 

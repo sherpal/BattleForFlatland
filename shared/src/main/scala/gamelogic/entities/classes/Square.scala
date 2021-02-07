@@ -64,7 +64,15 @@ object Square extends PlayerClassBuilder {
 
   def startingActions(time: Long, entityId: Entity.Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
     List(
-      PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.rageFiller),
-      PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.squareDefaultShield)
+      PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, entityId, time, Buff.rageFiller),
+      PutSimpleBuff(
+        0L,
+        time,
+        idGeneratorContainer.buffIdGenerator(),
+        entityId,
+        entityId,
+        time,
+        Buff.squareDefaultShield
+      )
     )
 }
