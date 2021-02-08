@@ -58,8 +58,8 @@ final class NextTargetHandler(
     .sample(gameStates)
     .map(gs => gs.players.get(myId) -> gs.allTargetableEntities.filter(_.teamId == Entity.teams.mobTeam).toSet)
     .collect { case (Some(me), possibleNextTargets) => (me, possibleNextTargets) }
-    .fold((Map.empty[Entity.Id, WasTargetedInfo], Option.empty[Entity.Id])) {
-      case ((previouslyTargeted, _), (me, possibleNextTargets)) =>
+    .fold((Map.empty[Entity.Id, WasTargetedInfo], Option.empty[Entity.Id], 0L)) {
+      case ((previouslyTargeted, _, _), (me, possibleNextTargets)) =>
         // todo[enhance]: not really satisfied by the implementation.
         val possibleNextTargetsIds = possibleNextTargets.map(_.id)
         val now                    = currentTime()
@@ -76,10 +76,12 @@ final class NextTargetHandler(
 
         (
           maybeNextTarget.fold(tooRecentlyTargeted)(id => tooRecentlyTargeted + (id -> new WasTargetedInfo(now, id))),
-          maybeNextTarget
+          maybeNextTarget,
+          now // adding this to separate subsequent calls, even if the previous info did not change.
+          // this is because fold returns a signal, and signals don't emit twice the same value.
         )
     }
     .changes
-    .collect { case (_, Some(nextTargetId)) => nextTargetId }
+    .collect { case (_, Some(nextTargetId), _) => nextTargetId }
     .foreach(targetEntityWriter.onNext)
 }
