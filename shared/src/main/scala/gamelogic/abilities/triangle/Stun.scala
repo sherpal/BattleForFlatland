@@ -42,7 +42,7 @@ final case class Stun(useId: Ability.UseId, time: Long, casterId: Entity.Id, tar
       currentDebuffOfPreviousTarget <- gameState.passiveBuffs.get(previousTargetId)
       actions = currentDebuffOfPreviousTarget.values
         .collect {
-          case debuff: TriangleStunDebuff => debuff.buffId
+          case debuff: TriangleStunDebuff if debuff.sourceId == caster.id => debuff.buffId
         }
         .map(buffId => RemoveBuff(idGeneratorContainer.gameActionIdGenerator(), time, previousTargetId, buffId))
     } yield actions).toList.flatten ++
@@ -77,6 +77,6 @@ final case class Stun(useId: Ability.UseId, time: Long, casterId: Entity.Id, tar
 object Stun {
 
   @inline def cooldown: Long       = 10000L
-  @inline def cost: ResourceAmount = ResourceAmount(50.0, Energy)
+  @inline def cost: ResourceAmount = ResourceAmount(20.0, Energy)
   @inline def range: Distance      = 300.0
 }

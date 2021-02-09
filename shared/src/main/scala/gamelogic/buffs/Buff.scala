@@ -78,5 +78,6 @@ object Buff {
   val boss103Punished          = nextId()
   val boss103Purified          = nextId()
   val boss103Inflamed          = nextId()
+  val boss110BrokenArmor       = nextId()
 
 }

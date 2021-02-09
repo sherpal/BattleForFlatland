@@ -5,6 +5,7 @@ import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 import io.circe.{Decoder, Encoder, Json}
+import scala.annotation.tailrec
 
 /**
   * A [[gamelogic.abilities.Ability]] represents an action that an entity can take besides moving.
@@ -71,6 +72,23 @@ trait Ability {
     */
   def canBeCast(gameState: GameState, time: Long): Option[String]
 
+  protected def canBeCastAll(gameState: GameState, time: Long)(
+      checks: (GameState, Long) => Option[String]*
+  ): Option[String] = {
+    @tailrec
+    def canBeCastAllList(remainingChecks: List[(GameState, Long) => Option[String]]): Option[String] =
+      remainingChecks match {
+        case Nil => None
+        case head :: tail =>
+          head(gameState, time) match {
+            case Some(value) => Some(value)
+            case None        => canBeCastAllList(tail)
+          }
+      }
+
+    canBeCastAllList(checks.toList)
+  }
+
   /**
     * Returns whether this ability can be cast at that time with this [[GameState]].
     */
@@ -116,6 +134,7 @@ object Ability {
   val boss103HolyFlameId: AbilityId       = nextAbilityId()
   val pentagonDispelId: AbilityId         = nextAbilityId()
   val boss110SpawnBigGuies: AbilityId     = nextAbilityId()
+  val boss110BigGuyBrokenArmor: AbilityId = nextAbilityId()
 
   /** Global cooldown. Not sure if this should be there... */
   @inline def gcd = 200L

@@ -58,7 +58,7 @@ final case class BigGuy(
 
   def changeTarget(newTargetId: Id): BigGuy = copy(targetId = newTargetId)
 
-  def abilities: Set[AbilityId] = Set(Ability.autoAttackId)
+  def abilities: Set[AbilityId] = Set(Ability.autoAttackId, Ability.boss110BigGuyBrokenArmor)
 
   def useAbility(ability: Ability): BigGuy =
     copy(
@@ -84,7 +84,7 @@ final case class BigGuy(
         NoResource,
         BigGuy.range * 2
       )
-    ).filter(canUseAbility(_, time).isEmpty)
+    ).filter(canUseAbilityBoolean(_, time))
 
   def canBeStunned: Boolean = true
 
@@ -98,6 +98,6 @@ object BigGuy {
   val tickRate          = 1000L
   val range: Double     = Constants.playerRadius * 2
 
-  val shape = new Circle(Constants.playerRadius)
+  val shape = new Circle(Constants.playerRadius * 1.5)
 
 }

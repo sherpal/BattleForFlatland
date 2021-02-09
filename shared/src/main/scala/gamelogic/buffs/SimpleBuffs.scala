@@ -5,6 +5,7 @@ import gamelogic.buffs.ai.{DamageThreatAware, HealingThreatAware}
 import gamelogic.buffs.resourcebuffs.{EnergyFiller, ManaFiller, RageFiller}
 import gamelogic.entities.Entity
 import gamelogic.buffs.abilities.classes.TriangleStunDebuff
+import gamelogic.buffs.boss.boss110.BrokenArmor
 
 /**
   * A lot of buffs (especially the "never ending" ones) simply require
@@ -28,7 +29,8 @@ object SimpleBuffs {
     Buff.manaFiller -> { (buffId, entityId, sourceId, appearanceTime) =>
       ManaFiller(buffId, entityId, appearanceTime, appearanceTime)
     },
-    Buff.triangleStun -> TriangleStunDebuff.apply
+    Buff.triangleStun -> TriangleStunDebuff.apply,
+    Buff.boss110BrokenArmor -> BrokenArmor.apply
   )
 
   def apply(

@@ -4,6 +4,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import game.ActionTranslator
 import game.ai.boss.boss102units.BossHoundController
+import game.ai.boss.boss110units.BigGuyController
 import game.ai.boss._
 import game.ai.utils.pathfinders.{OnlyObstaclesPathFinder, PathFinder}
 import gamelogic.entities.boss.Boss101
@@ -13,6 +14,8 @@ import gamelogic.gamestate.gameactions.boss102.AddBossHound
 import gamelogic.gamestate.gameactions.{AddDummyMob, CreateObstacle, SpawnBoss}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.entities.boss.dawnoftime.Boss110
+import gamelogic.gamestate.gameactions.boss110.AddBigGuies
+import gamelogic.entities.boss.boss110.BigGuy
 
 /**
   * The [[game.ai.AIManager]] is responsible for spawning and removing "artificial intelligence" actors that will
@@ -69,6 +72,10 @@ object AIManager {
           Constants.bossRadius -> context.spawn(
             new OnlyObstaclesPathFinder(Constants.bossRadius)(GameState.empty),
             "OnlyObstaclesPathFinderBossRadius"
+          ),
+          BigGuy.shape.radius -> context.spawn(
+            new OnlyObstaclesPathFinder(BigGuy.shape.radius)(GameState.empty),
+            "OnlyObstaclesPathFinderBigGuyRadius"
           )
         )
       )
@@ -126,69 +133,85 @@ object AIManager {
             .GameActionsWrapper(unRemovedActions, receiverInfo.lastGameState)
         )
 
-        val newEntityControllers = unRemovedActions.collect {
-          case action: AddDummyMob =>
-            val ref =
-              context.spawn(
-                DummyMobController(receiverInfo.actionTranslator, action),
-                s"DummyMob-${action.entityId}"
+        val newEntityControllers = unRemovedActions
+          .collect {
+            case action: AddDummyMob =>
+              val ref =
+                context.spawn(
+                  DummyMobController(receiverInfo.actionTranslator, action),
+                  s"DummyMob-${action.entityId}"
+                )
+
+              context.watchWith(ref, ControllerDied(ref))
+
+              List(ref)
+            case action: SpawnBoss if action.bossName == Boss101.name =>
+              val ref = context.spawn(
+                Boss101Controller(receiverInfo.actionTranslator, action),
+                s"Boss101-${action.entityId}"
               )
-
-            context.watchWith(ref, ControllerDied(ref))
-
-            ref
-          case action: SpawnBoss if action.bossName == Boss101.name =>
-            val ref = context.spawn(
-              Boss101Controller(receiverInfo.actionTranslator, action),
-              s"Boss101-${action.entityId}"
-            )
-            context.watchWith(ref, ControllerDied(ref))
-            ref
-          case action: SpawnBoss if action.bossName == Boss102.name =>
-            val ref = context.spawn(
-              Boss102Controller.apply(
-                receiverInfo.actionTranslator,
-                action,
-                receiverInfo.onlyObstaclesPathFinders(Constants.bossRadius)
-              ),
-              s"Boss102-${action.entityId}"
-            )
-            context.watchWith(ref, ControllerDied(ref))
-            ref
-          case action: SpawnBoss if action.bossName == Boss103.name =>
-            val ref = context.spawn(
-              Boss103Controller.apply(
-                receiverInfo.actionTranslator,
-                action,
-                receiverInfo.onlyObstaclesPathFinders(Constants.bossRadius)
-              ),
-              s"Boss103-${action.entityId}"
-            )
-            context.watchWith(ref, ControllerDied(ref))
-            ref
-          case action: SpawnBoss if action.bossName == Boss110.name =>
-            val ref = context.spawn(
-              Boss110Controller.apply(
-                receiverInfo.actionTranslator,
-                action,
-                receiverInfo.onlyObstaclesPathFinders(Constants.bossRadius)
-              ),
-              s"Boss110-${action.entityId}"
-            )
-            context.watchWith(ref, ControllerDied(ref))
-            ref
-          case action: AddBossHound =>
-            val ref = context.spawn(
-              BossHoundController.apply(
-                receiverInfo.actionTranslator,
-                action,
-                receiverInfo.onlyObstaclesPathFinders(Constants.playerRadius)
-              ),
-              s"BossHound-${action.entityId}"
-            )
-            context.watchWith(ref, ControllerDied(ref))
-            ref
-        }.toSet
+              context.watchWith(ref, ControllerDied(ref))
+              List(ref)
+            case action: SpawnBoss if action.bossName == Boss102.name =>
+              val ref = context.spawn(
+                Boss102Controller.apply(
+                  receiverInfo.actionTranslator,
+                  action,
+                  receiverInfo.onlyObstaclesPathFinders(Constants.bossRadius)
+                ),
+                s"Boss102-${action.entityId}"
+              )
+              context.watchWith(ref, ControllerDied(ref))
+              List(ref)
+            case action: SpawnBoss if action.bossName == Boss103.name =>
+              val ref = context.spawn(
+                Boss103Controller.apply(
+                  receiverInfo.actionTranslator,
+                  action,
+                  receiverInfo.onlyObstaclesPathFinders(Constants.bossRadius)
+                ),
+                s"Boss103-${action.entityId}"
+              )
+              context.watchWith(ref, ControllerDied(ref))
+              List(ref)
+            case action: SpawnBoss if action.bossName == Boss110.name =>
+              val ref = context.spawn(
+                Boss110Controller.apply(
+                  receiverInfo.actionTranslator,
+                  action,
+                  receiverInfo.onlyObstaclesPathFinders(Constants.bossRadius)
+                ),
+                s"Boss110-${action.entityId}"
+              )
+              context.watchWith(ref, ControllerDied(ref))
+              List(ref)
+            case action: AddBossHound =>
+              val ref = context.spawn(
+                BossHoundController.apply(
+                  receiverInfo.actionTranslator,
+                  action,
+                  receiverInfo.onlyObstaclesPathFinders(Constants.playerRadius)
+                ),
+                s"BossHound-${action.entityId}"
+              )
+              context.watchWith(ref, ControllerDied(ref))
+              List(ref)
+            case action: AddBigGuies =>
+              val refs = action.splitToSingleAddBigGuies.map { addBigGuy =>
+                context.spawn(
+                  BigGuyController.apply(
+                    receiverInfo.actionTranslator,
+                    addBigGuy,
+                    receiverInfo.onlyObstaclesPathFinders(BigGuy.shape.radius)
+                  ),
+                  s"BigGuy-${addBigGuy.entityId}"
+                )
+              }
+              refs.foreach(ref => context.watchWith(ref, ControllerDied(ref)))
+              refs
+          }
+          .flatten
+          .toSet
 
         newEntityControllers.foreach(_ ! AIControllerMessage.GameStateWrapper(receiverInfo.lastGameState))
         if (newActions.nonEmpty) {

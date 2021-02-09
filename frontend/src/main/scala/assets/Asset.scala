@@ -134,6 +134,12 @@ object Asset {
             // object sacredGroundArea extends Asset
             val sacredGroundArea = Asset("assets/in-game/gui/boss/dawn-of-time/boss103/sacred-ground.png")
           }
+
+          object boss110 {
+
+            val brokenArmor = Asset("assets/in-game/gui/boss/dawn-of-time/boss110/broken-armor.png")
+
+          }
         }
       }
 
@@ -211,7 +217,8 @@ object Asset {
     Buff.boss102LivingDamageZone -> ingame.gui.boss.dawnOfTime.boss102.livingDamageZone,
     Buff.boss103Punished -> ingame.gui.boss.dawnOfTime.boss103.punished,
     Buff.boss103Purified -> ingame.gui.boss.dawnOfTime.boss103.purified,
-    Buff.boss103Inflamed -> ingame.gui.boss.dawnOfTime.boss103.inflamed
+    Buff.boss103Inflamed -> ingame.gui.boss.dawnOfTime.boss103.inflamed,
+    Buff.boss110BrokenArmor -> ingame.gui.boss.dawnOfTime.boss110.brokenArmor
   )
 
   val markerAssetMap: Map[GameMarker, Asset] = Map(

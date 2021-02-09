@@ -26,6 +26,8 @@ import typings.pixiJs.PIXI.DisplayObject
 import scala.collection.mutable
 import com.raquo.airstream.ownership.Owner
 import game.ui.markers.MarkersDrawer
+import gamelogic.entities.boss.dawnoftime.Boss110
+import game.ui.bossspecificdrawers.Boss110Drawer
 
 /**
   * This class is used to draw the game state at any moment in time.
@@ -256,6 +258,16 @@ final class GameDrawer(
       otherStuffContainerAbove.ref
     )
 
+  val boss110Drawer = new Boss110Drawer(
+    application,
+    resources,
+    bossStartPosition,
+    startFightObserver,
+    camera,
+    otherStuffContainerBelow.ref,
+    otherStuffContainerAbove.ref
+  )
+
   private val markersDrawer = new MarkersDrawer(
     resources,
     camera,
@@ -291,6 +303,10 @@ final class GameDrawer(
             currentTime
           )
       )
+
+    gameState.bosses.valuesIterator
+      .find(_.isInstanceOf[Boss110])
+      .foreach(_ => boss110Drawer.drawGameState(gameState, cameraPosition, currentTime))
 
     startButton.update(gameState, camera)
 

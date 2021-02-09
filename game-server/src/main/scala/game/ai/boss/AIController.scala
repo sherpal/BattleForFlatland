@@ -27,7 +27,7 @@ import scala.concurrent.duration._
   */
 trait AIController[
     EntityType <: MovingBody with WithThreat with WithPosition,
-    InitialAction <: GameAction with EntityCreatorAction
+    InitialAction <: EntityCreatorAction
 ] {
 
   protected def takeActions(

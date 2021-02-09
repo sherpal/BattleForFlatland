@@ -9,6 +9,7 @@ import gamelogic.physics.Complex
 import gamelogic.physics.pathfinding.Graph
 
 import scala.util.Random
+import gamelogic.abilities.boss.boss110.SpawnBigGuies
 
 object Boss110Controller extends AIController[Boss110, SpawnBoss] {
   protected def takeActions(
@@ -50,8 +51,13 @@ object Boss110Controller extends AIController[Boss110, SpawnBoss] {
           position => !currentGameState.obstacles.valuesIterator.exists(_.collidesShape(me.shape, position, 0, 0))
         )
 
+        val maybeSpawnBigGuies = Some(SpawnBigGuies(0L, startTime, me.id))
+          .filter(me.canUseAbilityBoolean(_, startTime))
+          .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
+
         useAbility(
           List(
+            maybeSpawnBigGuies,
             me.maybeAutoAttack(startTime, currentGameState)
               .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
           ),
