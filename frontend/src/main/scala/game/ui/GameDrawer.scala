@@ -279,6 +279,7 @@ final class GameDrawer(
       .get(entityId)
       .orElse(bossesSprites.get(entityId))
       .orElse(boss102Drawer.maybeEntityDisplayObjectById(entityId))
+      .orElse(boss110Drawer.maybeEntityDisplayObjectById(entityId))
 
   def drawGameState(gameState: GameState, cameraPosition: Complex, currentTime: Long): Unit = {
     camera.worldCenter = cameraPosition

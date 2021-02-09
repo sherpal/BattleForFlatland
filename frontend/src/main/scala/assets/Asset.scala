@@ -8,6 +8,7 @@ import scala.language.implicitConversions
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 import scala.util.Try
+import scala.tools.nsc.doc.html.HtmlTags.Li
 
 sealed trait Asset {
   val name: String
@@ -139,6 +140,8 @@ object Asset {
 
             val brokenArmor = Asset("assets/in-game/gui/boss/dawn-of-time/boss110/broken-armor.png")
 
+            val bigGuy = Asset("assets/in-game/gui/boss/dawn-of-time/boss110/big-guy.png")
+
           }
         }
       }
@@ -228,6 +231,10 @@ object Asset {
     GameMarker.Square -> ingame.gui.markers.markerSquare,
     GameMarker.Star -> ingame.gui.markers.markerStar,
     GameMarker.Triangle -> ingame.gui.markers.markerTriangle
+  )
+
+  val units: List[Asset] = List(
+    ingame.gui.boss.dawnOfTime.boss110.bigGuy
   )
 
 }

@@ -39,7 +39,8 @@ final class GameAssetLoader(application: Application) {
     ) ++
       Asset.markerAssetMap.values ++
       Asset.buffAssetMap.values ++
-      Asset.abilityAssetMap.values
+      Asset.abilityAssetMap.values ++
+      Asset.units
   ).distinct
 
   val $progressData     = progressBus.events

@@ -26,10 +26,18 @@ final class Boss110Drawer(
     otherStuffContainerAbove: Container
 ) extends Drawer {
 
-  def maybeEntityDisplayObjectById(entityId: Entity.Id): Option[DisplayObject] = ???
+  def maybeEntityDisplayObjectById(entityId: Entity.Id): Option[DisplayObject] =
+    bigGuiesSprites.get(entityId)
 
-  private val bigGuyTexture   = diskTexture(RGBColour.orange.intColour, 1, BigGuy.shape.radius)
-  private val bigGuyContainer = new ParticleContainer
+  private val bigGuyTexture = {
+    val t = resources(Asset.ingame.gui.boss.dawnOfTime.boss110.bigGuy).texture
+    val s = new Sprite(t)
+    s.width  = BigGuy.shape.radius * 2
+    s.height = BigGuy.shape.radius * 2
+
+    application.renderer.generateTexture(s, linearScale, 1)
+  }
+  private val bigGuyContainer = new typings.pixiJs.mod.Container
   otherStuffContainerBelow.addChild(bigGuyContainer)
 
   private val bigGuiesSprites: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
@@ -50,7 +58,6 @@ final class Boss110Drawer(
     bigGuies.foreach { bigGuy =>
       val sprite = bigGuiesSprites.getOrElse(bigGuy.id, {
         val s = new Sprite(bigGuyTexture)
-        s.cacheAsBitmap = true
         s.anchor.set(0.5, 0.5)
         bigGuiesSprites += (bigGuy.id -> s)
         bigGuyContainer.addChild(s)
