@@ -9,6 +9,7 @@ import gamelogic.gamestate.GameState
 import gamelogic.docs.AbilityMetadata
 import gamelogic.entities.boss.boss110.BombPod
 import gamelogic.gamestate.gameactions.EntityTakesDamage
+import gamelogic.gamestate.gameactions.RemoveEntity
 
 /**
   * Check that each bomb pod touches exactly one player. If not, they explode and they
@@ -37,7 +38,7 @@ final case class ExplodeBombs(useId: Ability.UseId, time: Long, casterId: Entity
           players.map(
             player => EntityTakesDamage(idGeneratorContainer.gameActionIdGenerator(), time, player.id, 1000, casterId)
           )
-      )
+      ) ++ bombs.map(bomb => RemoveEntity(idGeneratorContainer.gameActionIdGenerator(), time, bomb.id))
   }
 
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): Ability =
@@ -58,7 +59,7 @@ object ExplodeBombs extends AbilityMetadata {
 
   def name: String = "Explode bombs!"
 
-  def cooldown: Long = 9000L
+  def cooldown: Long = 4000L
 
   def castingTime: Long = 1000L
 

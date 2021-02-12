@@ -2,13 +2,15 @@ package game.ai
 
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.classes.PlayerClass
-import gamelogic.entities.{Entity, WithPosition, WithTarget, WithThreat}
+import gamelogic.entities.{Entity, WithAbilities, WithPosition, WithTarget, WithThreat}
 import gamelogic.gamestate.gameactions.{ChangeTarget, MovingBodyMoves}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import gamelogic.physics.pathfinding.Graph
 
 import scala.Ordering.Double.TotalOrdering
+import gamelogic.abilities.Ability
+import gamelogic.gamestate.gameactions.EntityStartsCasting
 
 package object utils {
 
@@ -191,5 +193,11 @@ package object utils {
 
   def changeTarget(me: WithTarget, targetId: Entity.Id, time: Long): Option[ChangeTarget] =
     Option.unless(targetId == me.targetId)(ChangeTarget(0L, time, me.id, targetId))
+
+  def maybeAbilityUsage[T <: Ability](me: WithAbilities, ability: T, gameState: GameState): Option[T] =
+    Option
+      .when(me.canUseAbilityBoolean(ability, ability.time) && ability.canBeCastBoolean(gameState, ability.time))(
+        ability
+      )
 
 }

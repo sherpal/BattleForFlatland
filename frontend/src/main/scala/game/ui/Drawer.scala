@@ -8,6 +8,7 @@ import typings.pixiJs.PIXI.DisplayObject
 import scala.scalajs.js.JSConverters._
 import scala.scalajs.js.|
 import gamelogic.entities.Entity
+import typings.pixiJs.mod.Sprite
 
 trait Drawer {
 
@@ -68,6 +69,18 @@ trait Drawer {
       )
 
     application.renderer.generateTexture(graphics, linearScale, 1)
+  }
+
+  def redimensionTexture(
+      texture: typings.pixiJs.PIXI.Texture,
+      width: Double,
+      height: Double
+  ): typings.pixiJs.PIXI.Texture = {
+    val s = new Sprite(texture)
+    s.width  = width
+    s.height = height
+
+    application.renderer.generateTexture(s, linearScale, 1)
   }
 
   /**

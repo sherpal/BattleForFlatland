@@ -16,6 +16,7 @@ import gamelogic.physics.Complex
 import gamelogic.physics.pathfinding.Graph
 
 import scala.concurrent.duration._
+import gamelogic.abilities.Ability
 
 /**
   * The AIController trait contains all the boilerplate that you need for implementing an AI.
@@ -29,6 +30,12 @@ trait AIController[
     EntityType <: MovingBody with WithThreat with WithPosition,
     InitialAction <: EntityCreatorAction
 ] {
+
+  protected implicit class StartCasting(maybeAbility: Option[Ability]) {
+    def startCasting: Option[EntityStartsCasting] = maybeAbility.map(
+      ability => EntityStartsCasting(0L, ability.time, ability.castingTime, ability)
+    )
+  }
 
   protected def takeActions(
       currentGameState: GameState,

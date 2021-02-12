@@ -10,6 +10,10 @@ import gamelogic.physics.pathfinding.Graph
 
 import scala.util.Random
 import gamelogic.abilities.boss.boss110.SpawnBigGuies
+import gamelogic.abilities.boss.boss110.PlaceBombPods
+import gamelogic.entities.boss.boss110.BombPod
+import gamelogic.abilities.boss.boss110.ExplodeBombs
+import gamelogic.abilities.Ability
 
 object Boss110Controller extends AIController[Boss110, SpawnBoss] {
   protected def takeActions(
@@ -28,6 +32,8 @@ object Boss110Controller extends AIController[Boss110, SpawnBoss] {
         // If the boss is casting, he doesn't do anything else.
         // If the boss has no target, the only possibility is that all players are dead.
         // In that case, the game either has not started yet or it will end very soon so we don't do anything.
+
+        def iMightCastThis[T <: Ability](ability: T) = maybeAbilityUsage(me, ability, currentGameState)
 
         /** changing target */
         val maybeChangeTarget = changeTarget(me, target.id, startTime)
@@ -55,9 +61,23 @@ object Boss110Controller extends AIController[Boss110, SpawnBoss] {
           .filter(me.canUseAbilityBoolean(_, startTime))
           .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
 
+        val maybePlaceBombPods = iMightCastThis(
+          PlaceBombPods(0L, startTime, me.id, Nil) // Nil to not compute for nothing
+        ).map(
+            _.copy(
+              positions = PlaceBombPods
+                .randomPositionsInSquare(-Boss110.halfWidth / 2, Boss110.halfHeight / 2, PlaceBombPods.numberOfBombs)
+            )
+          )
+          .startCasting
+
+        val maybeExplodeBombs = iMightCastThis(ExplodeBombs(0L, startTime, me.id)).startCasting
+
         useAbility(
           List(
-            maybeSpawnBigGuies,
+            //maybeSpawnBigGuies,
+            maybePlaceBombPods,
+            maybeExplodeBombs,
             me.maybeAutoAttack(startTime, currentGameState)
               .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
           ),

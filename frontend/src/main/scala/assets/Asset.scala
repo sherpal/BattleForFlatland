@@ -139,8 +139,8 @@ object Asset {
           object boss110 {
 
             val brokenArmor = Asset("assets/in-game/gui/boss/dawn-of-time/boss110/broken-armor.png")
-
-            val bigGuy = Asset("assets/in-game/gui/boss/dawn-of-time/boss110/big-guy.png")
+            val bigGuy      = Asset("assets/in-game/gui/boss/dawn-of-time/boss110/big-guy.png")
+            val bombPod     = Asset("assets/in-game/gui/boss/dawn-of-time/boss110/bomb-pod.png")
 
           }
         }
@@ -234,7 +234,8 @@ object Asset {
   )
 
   val units: List[Asset] = List(
-    ingame.gui.boss.dawnOfTime.boss110.bigGuy
+    ingame.gui.boss.dawnOfTime.boss110.bigGuy,
+    ingame.gui.boss.dawnOfTime.boss110.bombPod
   )
 
 }

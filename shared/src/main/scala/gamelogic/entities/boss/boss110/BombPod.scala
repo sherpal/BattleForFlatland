@@ -32,5 +32,5 @@ final case class BombPod(
 }
 
 object BombPod {
-  def shape: Circle = new Circle(5.0)
+  def shape: Circle = new Circle(15.0)
 }

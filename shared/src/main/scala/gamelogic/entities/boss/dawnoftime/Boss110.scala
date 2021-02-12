@@ -26,6 +26,10 @@ import gamelogic.entities.boss.boss102.DamageZone
 import gamelogic.buffs.Buff
 import gamelogic.gamestate.gameactions.RemoveBuff
 import gamelogic.entities.Resource
+import gamelogic.abilities.boss.boss110.ExplodeBombs
+import gamelogic.abilities.boss.boss110.PlaceBombPods
+import gamelogic.entities.boss.boss110.BigGuy
+import gamelogic.entities.boss.boss110.BombPod
 
 final case class Boss110(
     id: Entity.Id,
@@ -45,7 +49,9 @@ final case class Boss110(
 
   def abilityNames: Map[gamelogic.abilities.Ability.AbilityId, String] = Map(
     Ability.autoAttackId -> "Auto attack",
-    Ability.boss110SpawnBigGuies -> SpawnBigGuies.name
+    Ability.boss110SpawnBigGuies -> SpawnBigGuies.name,
+    Ability.boss110PlaceBombPods -> PlaceBombPods.name,
+    Ability.boss110ExplodeBombs -> ExplodeBombs.name
   )
 
   def name: String = Boss110.name
@@ -119,7 +125,7 @@ object Boss110 extends BossFactory[Boss110] {
 
   final val shape: Circle = new Circle(30.0)
 
-  final val maxLife: Double = 40000
+  final val maxLife: Double = 100_000
 
   val intendedFor = 10 // players
 
@@ -127,7 +133,7 @@ object Boss110 extends BossFactory[Boss110] {
   final val rangeRange: Distance = 2000.0 // basically infinite distance
 
   final val autoAttackDamage: Double = 10.0
-  final val autoAttackTickRate: Long = 3000L
+  final val autoAttackTickRate: Long = 1000L
 
   @inline final def fullSpeed: Double = 300.0
 
@@ -141,6 +147,9 @@ object Boss110 extends BossFactory[Boss110] {
       relevantUsedAbilities = Map(
         Ability.boss110SpawnBigGuies -> Pointed[SpawnBigGuies].unit.copy(
           time = time - SpawnBigGuies.cooldown + SpawnBigGuies.timeToFirstAbility
+        ),
+        Ability.boss110PlaceBombPods -> Pointed[PlaceBombPods].unit.copy(
+          time = time - PlaceBombPods.cooldown + PlaceBombPods.timeToFirstAbility
         )
       )
     )
@@ -186,12 +195,21 @@ object Boss110 extends BossFactory[Boss110] {
       gameState: gamelogic.gamestate.GameState,
       time: Long,
       idGeneratorContainer: gamelogic.utils.IdGeneratorContainer
-  ): List[gamelogic.gamestate.GameAction] = Nil
+  ): List[gamelogic.gamestate.GameAction] =
+    gameState.entities.values
+      .collect {
+        case bigGuy: BigGuy => bigGuy
+        case bomb: BombPod  => bomb
+      }
+      .map(entity => RemoveEntity(idGeneratorContainer.gameActionIdGenerator(), time, entity.id))
+      .toList
 
   final val abilities: Set[Ability.AbilityId] =
     Set(
       Ability.autoAttackId,
-      Ability.boss110SpawnBigGuies
+      Ability.boss110SpawnBigGuies,
+      Ability.boss110ExplodeBombs,
+      Ability.boss110PlaceBombPods
     )
 
 }

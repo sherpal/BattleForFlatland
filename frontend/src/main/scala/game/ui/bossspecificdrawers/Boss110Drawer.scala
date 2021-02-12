@@ -15,6 +15,7 @@ import utils.misc.RGBColour
 
 import scala.collection.mutable
 import gamelogic.entities.boss.boss110.BigGuy
+import gamelogic.entities.boss.boss110.BombPod
 
 final class Boss110Drawer(
     val application: Application,
@@ -29,16 +30,48 @@ final class Boss110Drawer(
   def maybeEntityDisplayObjectById(entityId: Entity.Id): Option[DisplayObject] =
     bigGuiesSprites.get(entityId)
 
-  private val bigGuyTexture = {
-    val t = resources(Asset.ingame.gui.boss.dawnOfTime.boss110.bigGuy).texture
-    val s = new Sprite(t)
-    s.width  = BigGuy.shape.radius * 2
-    s.height = BigGuy.shape.radius * 2
+  private val bigGuyTexture = redimensionTexture(
+    resources(Asset.ingame.gui.boss.dawnOfTime.boss110.bigGuy).texture,
+    BigGuy.shape.radius * 2,
+    BigGuy.shape.radius * 2
+  )
 
-    application.renderer.generateTexture(s, linearScale, 1)
-  }
+  private val bombPodTexture = redimensionTexture(
+    resources(Asset.ingame.gui.boss.dawnOfTime.boss110.bombPod).texture,
+    BombPod.shape.radius * 2,
+    BombPod.shape.radius * 2
+  )
+
   private val bigGuyContainer = new typings.pixiJs.mod.Container
   otherStuffContainerBelow.addChild(bigGuyContainer)
+  private val bombPodContainer = new typings.pixiJs.mod.Container
+  otherStuffContainerBelow.addChild(bombPodContainer)
+
+  private val bombPodSprites: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
+
+  def drawBombPods(bombs: List[BombPod]): Unit = {
+    val currentIds = bombs.map(_.id).toSet
+
+    bombPodSprites
+      .filterNot { case (entityId, _) => currentIds.contains(entityId) }
+      .foreach {
+        case (entityId, sprite) =>
+          sprite.destroy()
+          bombPodSprites -= entityId
+      }
+
+    bombs.foreach { bomb =>
+      val sprite = bombPodSprites.getOrElse(bomb.id, {
+        val s = new Sprite(bombPodTexture)
+        s.anchor.set(0.5, 0.5)
+        bombPodSprites += (bomb.id -> s)
+        bombPodContainer.addChild(s)
+        s
+      })
+
+      camera.viewportManager(sprite, bomb.pos, bomb.shape.boundingBox)
+    }
+  }
 
   private val bigGuiesSprites: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
 
@@ -69,9 +102,9 @@ final class Boss110Drawer(
     }
   }
 
-  def drawGameState(gameState: GameState, cameraPosition: Complex, currentTime: Long): Unit =
-    drawBigGuies(gameState.entities.values.collect {
-      case bigGuy: BigGuy => bigGuy
-    }.toList)
+  def drawGameState(gameState: GameState, cameraPosition: Complex, currentTime: Long): Unit = {
+    drawBigGuies(gameState.allTEntities[BigGuy].values.toList)
+    drawBombPods(gameState.allTEntities[BombPod].values.toList)
+  }
 
 }

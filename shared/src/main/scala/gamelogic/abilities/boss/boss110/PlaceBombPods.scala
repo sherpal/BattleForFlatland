@@ -65,6 +65,8 @@ object PlaceBombPods extends AbilityMetadata {
 
   def timeToFirstAbility: Long = 5000L
 
+  val numberOfBombs: Int = 4
+
   /**
     * Returns random position in a square of given center and L-Infinity radius, that are
     * apart each other with a distance at least twice the radius of [[BombPod]]s.
