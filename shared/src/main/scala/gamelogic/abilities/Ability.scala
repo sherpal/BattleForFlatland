@@ -135,6 +135,8 @@ object Ability {
   val pentagonDispelId: AbilityId         = nextAbilityId()
   val boss110SpawnBigGuies: AbilityId     = nextAbilityId()
   val boss110BigGuyBrokenArmor: AbilityId = nextAbilityId()
+  val boss110PlaceBombPods: AbilityId     = nextAbilityId()
+  val boss110ExplodeBombs: AbilityId      = nextAbilityId()
 
   /** Global cooldown. Not sure if this should be there... */
   @inline def gcd = 200L

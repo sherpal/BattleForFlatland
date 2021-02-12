@@ -56,6 +56,6 @@ object SpawnBigGuies extends AbilityMetadata {
       0,
       1
     ).map(_ * Boss110.halfHeight.toDouble.i * 3 / 5)
-      .map(_ + Boss110.halfWidth * 3 / 5)
+      .map(_ + Boss110.halfWidth * 4 / 5)
 
 }
