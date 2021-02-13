@@ -6,18 +6,16 @@ import gamelogic.entities.Resource
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 import gamelogic.gamestate.GameState
-import gamelogic.docs.AbilityMetadata
+import gamelogic.docs.{AbilityInfoFromMetadata, AbilityMetadata}
 import gamelogic.physics.Complex
 import gamelogic.entities.boss.dawnoftime.Boss110
 import gamelogic.gamestate.gameactions.boss110.AddBigGuies
 
-final case class SpawnBigGuies(useId: Ability.UseId, time: Long, casterId: Entity.Id) extends Ability {
+final case class SpawnBigGuies(useId: Ability.UseId, time: Long, casterId: Entity.Id)
+    extends Ability
+    with AbilityInfoFromMetadata[SpawnBigGuies.type] {
 
-  def abilityId: Ability.AbilityId = Ability.boss110SpawnBigGuies
-
-  def cooldown: Long = SpawnBigGuies.cooldown
-
-  def castingTime: Long = SpawnBigGuies.castingTime
+  def metadata = SpawnBigGuies
 
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(0.0, Resource.NoResource)
 
@@ -57,5 +55,7 @@ object SpawnBigGuies extends AbilityMetadata {
       1
     ).map(_ * Boss110.halfHeight.toDouble.i * 3 / 5)
       .map(_ + Boss110.halfWidth * 4 / 5)
+
+  def abilityId: Ability.AbilityId = Ability.boss110SpawnBigGuies
 
 }

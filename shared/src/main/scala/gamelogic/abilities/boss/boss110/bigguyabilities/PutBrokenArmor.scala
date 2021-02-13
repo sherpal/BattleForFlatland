@@ -3,7 +3,7 @@ package gamelogic.abilities.boss.boss110.bigguyabilities
 import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.{Ability, WithTargetAbility}
-import gamelogic.docs.AbilityMetadata
+import gamelogic.docs.{AbilityInfoFromMetadata, AbilityMetadata}
 import gamelogic.entities.boss.dawnoftime.Boss110
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.{GameAction, GameState}
@@ -17,13 +17,10 @@ import gamelogic.buffs.Buff
   * Puts The [[gamelogic.buffs.boss.boss110.BrokenArmor]] debuff on the target.
   */
 final case class PutBrokenArmor(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
-    extends WithTargetAbility {
+    extends WithTargetAbility
+    with AbilityInfoFromMetadata[PutBrokenArmor.type] {
 
-  def abilityId: Ability.AbilityId = Ability.boss110BigGuyBrokenArmor
-
-  def cooldown: Long = PutBrokenArmor.cooldown
-
-  def castingTime: Long = PutBrokenArmor.castingTime
+  def metadata = PutBrokenArmor
 
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(0.0, Resource.NoResource)
 
@@ -63,5 +60,7 @@ object PutBrokenArmor extends AbilityMetadata {
   def castingTime: Long = 0L
 
   def timeToFirstAbility: Long = 0L
+
+  def abilityId: Ability.AbilityId = Ability.boss110BigGuyBrokenArmor
 
 }

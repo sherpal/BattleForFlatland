@@ -2,19 +2,17 @@ package gamelogic.abilities.boss.boss103
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.{AbilityId, UseId}
-import gamelogic.docs.AbilityMetadata
+import gamelogic.docs.{AbilityInfoFromMetadata, AbilityMetadata}
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
 /** Deals a deadly amount of damage to every player in sight of the boss. */
-final case class CleansingNova(useId: Ability.UseId, time: Long, casterId: Entity.Id) extends Ability {
-  def abilityId: AbilityId = Ability.boss103CleansingNovaId
-
-  def cooldown: Long = CleansingNova.cooldown
-
-  def castingTime: Long = CleansingNova.castingTime
+final case class CleansingNova(useId: Ability.UseId, time: Long, casterId: Entity.Id)
+    extends Ability
+    with AbilityInfoFromMetadata[CleansingNova.type] {
+  def metadata = CleansingNova
 
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(0, Resource.NoResource)
 
@@ -41,5 +39,7 @@ object CleansingNova extends AbilityMetadata {
   val name: String = "CleansingNova"
 
   val timeToFirstAbility: Long = 30000L
+
+  def abilityId: Ability.AbilityId = Ability.boss103CleansingNovaId
 
 }

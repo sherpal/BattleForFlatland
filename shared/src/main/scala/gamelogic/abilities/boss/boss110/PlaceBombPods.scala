@@ -6,7 +6,7 @@ import gamelogic.entities.Resource
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 import gamelogic.gamestate.GameState
-import gamelogic.docs.AbilityMetadata
+import gamelogic.docs.{AbilityInfoFromMetadata, AbilityMetadata}
 import gamelogic.gamestate.gameactions.UseAbility
 import gamelogic.gamestate.gameactions.boss110.AddBombPods
 import gamelogic.physics.Complex
@@ -20,13 +20,10 @@ import scala.annotation.tailrec
   * that it will trigger the actual explosion the given time after that.
   */
 final case class PlaceBombPods(useId: Ability.UseId, time: Long, casterId: Entity.Id, positions: List[Complex])
-    extends Ability {
+    extends Ability
+    with AbilityInfoFromMetadata[PlaceBombPods.type] {
 
-  def abilityId: Ability.AbilityId = Ability.boss110PlaceBombPods
-
-  def cooldown: Long = PlaceBombPods.cooldown
-
-  def castingTime: Long = PlaceBombPods.castingTime
+  def metadata = PlaceBombPods
 
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(0.0, Resource.NoResource)
 
@@ -96,5 +93,7 @@ object PlaceBombPods extends AbilityMetadata {
 
     positionsAccumulator(Nil, numberOfPositions, 500)
   }
+
+  def abilityId: Ability.AbilityId = Ability.boss110PlaceBombPods
 
 }

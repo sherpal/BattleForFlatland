@@ -30,6 +30,7 @@ import gamelogic.abilities.boss.boss110.ExplodeBombs
 import gamelogic.abilities.boss.boss110.PlaceBombPods
 import gamelogic.entities.boss.boss110.BigGuy
 import gamelogic.entities.boss.boss110.BombPod
+import gamelogic.abilities.boss.boss110.SpawnSmallGuies
 
 final case class Boss110(
     id: Entity.Id,
@@ -51,7 +52,8 @@ final case class Boss110(
     Ability.autoAttackId -> "Auto attack",
     Ability.boss110SpawnBigGuies -> SpawnBigGuies.name,
     Ability.boss110PlaceBombPods -> PlaceBombPods.name,
-    Ability.boss110ExplodeBombs -> ExplodeBombs.name
+    Ability.boss110ExplodeBombs -> ExplodeBombs.name,
+    Ability.boss110SpawnSmallGuies -> SpawnSmallGuies.name
   )
 
   def name: String = Boss110.name
@@ -145,11 +147,14 @@ object Boss110 extends BossFactory[Boss110] {
       life    = maxLife,
       maxLife = maxLife,
       relevantUsedAbilities = Map(
-        Ability.boss110SpawnBigGuies -> Pointed[SpawnBigGuies].unit.copy(
-          time = time - SpawnBigGuies.cooldown + SpawnBigGuies.timeToFirstAbility
+        SpawnBigGuies.abilityId -> Pointed[SpawnBigGuies].unit.copy(
+          time = SpawnBigGuies.setBeginningOfGameAbilityUse(time)
         ),
         Ability.boss110PlaceBombPods -> Pointed[PlaceBombPods].unit.copy(
           time = time - PlaceBombPods.cooldown + PlaceBombPods.timeToFirstAbility
+        ),
+        Ability.boss110SpawnSmallGuies -> Pointed[SpawnSmallGuies].unit.copy(
+          time = time - SpawnSmallGuies.cooldown + SpawnSmallGuies.timeToFirstAbility
         )
       )
     )
@@ -209,7 +214,8 @@ object Boss110 extends BossFactory[Boss110] {
       Ability.autoAttackId,
       Ability.boss110SpawnBigGuies,
       Ability.boss110ExplodeBombs,
-      Ability.boss110PlaceBombPods
+      Ability.boss110PlaceBombPods,
+      Ability.boss110SpawnSmallGuies
     )
 
 }

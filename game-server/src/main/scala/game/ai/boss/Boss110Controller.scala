@@ -49,8 +49,7 @@ object Boss110Controller extends SimpleAIController[Boss110, SpawnBoss] {
       maybeSpawnBigGuies,
       maybePlaceBombPods,
       maybeExplodeBombs,
-      me.maybeAutoAttack(time, gameState)
-        .map(ability => EntityStartsCasting(0L, time, ability.castingTime, ability))
+      me.maybeAutoAttack(time, gameState).startCasting
     )
   }
 
