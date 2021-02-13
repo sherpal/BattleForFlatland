@@ -40,7 +40,7 @@ object SpawnSmallGuies extends AbilityMetadata {
 
   def castingTime: Long = 0L
 
-  def timeToFirstAbility: Long = 14000L
+  def timeToFirstAbility: Long = 1000L
 
   import Complex.i
 

@@ -43,7 +43,7 @@ object BigGuyController extends AIController[BigGuy, AddBigGuies.AddBigGuy] {
     val maybeAttack =
       me.maybeAutoAttack(startTime)
         .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
-        .filter(_.isLegal(currentGameState).isEmpty)
+        .filter(_.isLegalBoolean(currentGameState))
 
     val maybePutBrokenArmor =
       Some(PutBrokenArmor(0L, startTime, me.id, target.id))

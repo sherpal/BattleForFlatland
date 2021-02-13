@@ -16,6 +16,8 @@ import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.entities.boss.dawnoftime.Boss110
 import gamelogic.gamestate.gameactions.boss110.AddBigGuies
 import gamelogic.entities.boss.boss110.BigGuy
+import gamelogic.gamestate.gameactions.boss110.AddSmallGuy
+import game.ai.boss.boss110units.SmallGuyController
 
 /**
   * The [[game.ai.AIManager]] is responsible for spawning and removing "artificial intelligence" actors that will
@@ -209,6 +211,17 @@ object AIManager {
               }
               refs.foreach(ref => context.watchWith(ref, ControllerDied(ref)))
               refs
+            case action: AddSmallGuy =>
+              val ref = context.spawn(
+                SmallGuyController.apply(
+                  receiverInfo.actionTranslator,
+                  action,
+                  receiverInfo.onlyObstaclesPathFinders(Constants.playerRadius)
+                ),
+                s"SmallGuy-${action.entityId}"
+              )
+              context.watchWith(ref, ControllerDied(ref))
+              List(ref)
           }
           .flatten
           .toSet

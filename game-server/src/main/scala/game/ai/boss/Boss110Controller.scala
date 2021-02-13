@@ -15,6 +15,7 @@ import gamelogic.entities.boss.boss110.BombPod
 import gamelogic.abilities.boss.boss110.ExplodeBombs
 import gamelogic.abilities.Ability
 import scala.reflect.ClassTag
+import gamelogic.abilities.boss.boss110.SpawnSmallGuies
 
 object Boss110Controller extends SimpleAIController[Boss110, SpawnBoss] {
 
@@ -24,6 +25,8 @@ object Boss110Controller extends SimpleAIController[Boss110, SpawnBoss] {
 
   def actions(gameState: GameState, me: Boss110, time: Long): List[Option[EntityStartsCasting]] = {
     def iMightCastThis[T <: Ability](ability: T) = maybeAbilityUsage(me, ability, gameState)
+
+    val maybeSpawnSmallGuies = iMightCastThis(SpawnSmallGuies(0L, time, me.id)).startCasting
 
     val maybeSpawnBigGuies = Some(SpawnBigGuies(0L, time, me.id))
       .filter(me.canUseAbilityBoolean(_, time))
@@ -46,6 +49,7 @@ object Boss110Controller extends SimpleAIController[Boss110, SpawnBoss] {
     val maybeExplodeBombs = iMightCastThis(ExplodeBombs(0L, time, me.id)).startCasting
 
     List(
+      maybeSpawnSmallGuies,
       maybeSpawnBigGuies,
       maybePlaceBombPods,
       maybeExplodeBombs,

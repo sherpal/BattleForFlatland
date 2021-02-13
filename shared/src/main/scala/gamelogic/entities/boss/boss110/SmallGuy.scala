@@ -94,7 +94,7 @@ object SmallGuy {
 
   def maxLife: Double   = 1000.0
   val fullSpeed: Double = Constants.playerSpeed
-  val damageOnTick      = 5.0
+  val damageOnTick      = 2.0
   val tickRate          = 1000L
   val range: Double     = Constants.playerRadius * 2
 

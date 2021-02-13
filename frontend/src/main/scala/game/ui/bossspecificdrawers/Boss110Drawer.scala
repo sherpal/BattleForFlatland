@@ -14,8 +14,8 @@ import typings.pixiJs.PIXI.DisplayObject
 import utils.misc.RGBColour
 
 import scala.collection.mutable
-import gamelogic.entities.boss.boss110.BigGuy
-import gamelogic.entities.boss.boss110.BombPod
+import gamelogic.entities.boss.boss110.{BigGuy, BombPod, SmallGuy}
+import game.ui.EntitySpriteContainer
 
 final class Boss110Drawer(
     val application: Application,
@@ -28,12 +28,20 @@ final class Boss110Drawer(
 ) extends Drawer {
 
   def maybeEntityDisplayObjectById(entityId: Entity.Id): Option[DisplayObject] =
-    bigGuiesSprites.get(entityId)
+    bigGuiesDrawer
+      .maybeSpriteById(entityId)
+      .orElse(smallGuiesDrawer.maybeSpriteById(entityId))
 
   private val bigGuyTexture = redimensionTexture(
     resources(Asset.ingame.gui.boss.dawnOfTime.boss110.bigGuy).texture,
     BigGuy.shape.radius * 2,
     BigGuy.shape.radius * 2
+  )
+
+  private val smallGuyTexture = redimensionTexture(
+    resources(Asset.ingame.gui.boss.dawnOfTime.boss110.smallGuy).texture,
+    SmallGuy.shape.radius * 2,
+    SmallGuy.shape.radius * 2
   )
 
   private val bombPodTexture = redimensionTexture(
@@ -44,67 +52,19 @@ final class Boss110Drawer(
 
   private val bigGuyContainer = new typings.pixiJs.mod.Container
   otherStuffContainerBelow.addChild(bigGuyContainer)
+  private val smallGuyContainer = new typings.pixiJs.mod.Container
+  otherStuffContainerBelow.addChild(smallGuyContainer)
   private val bombPodContainer = new typings.pixiJs.mod.Container
   otherStuffContainerBelow.addChild(bombPodContainer)
 
-  private val bombPodSprites: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
-
-  def drawBombPods(bombs: List[BombPod]): Unit = {
-    val currentIds = bombs.map(_.id).toSet
-
-    bombPodSprites
-      .filterNot { case (entityId, _) => currentIds.contains(entityId) }
-      .foreach {
-        case (entityId, sprite) =>
-          sprite.destroy()
-          bombPodSprites -= entityId
-      }
-
-    bombs.foreach { bomb =>
-      val sprite = bombPodSprites.getOrElse(bomb.id, {
-        val s = new Sprite(bombPodTexture)
-        s.anchor.set(0.5, 0.5)
-        bombPodSprites += (bomb.id -> s)
-        bombPodContainer.addChild(s)
-        s
-      })
-
-      camera.viewportManager(sprite, bomb.pos, bomb.shape.boundingBox)
-    }
-  }
-
-  private val bigGuiesSprites: mutable.Map[Entity.Id, Sprite] = mutable.Map.empty
-
-  def drawBigGuies(bigGuies: List[BigGuy]): Unit = {
-    val currentIds = bigGuies.map(_.id).toSet
-
-    /** First removing dead [[BigGuy]]s */
-    bigGuiesSprites
-      .filterNot { case (entityId, _) => currentIds.contains(entityId) }
-      .foreach {
-        case (entityId, sprite) =>
-          bigGuiesSprites -= entityId
-          sprite.destroy()
-      }
-
-    /** Then updating remaining ones, creating missing ones along the way. */
-    bigGuies.foreach { bigGuy =>
-      val sprite = bigGuiesSprites.getOrElse(bigGuy.id, {
-        val s = new Sprite(bigGuyTexture)
-        s.anchor.set(0.5, 0.5)
-        bigGuiesSprites += (bigGuy.id -> s)
-        bigGuyContainer.addChild(s)
-        s
-      })
-
-      sprite.rotation = -bigGuy.rotation
-      camera.viewportManager(sprite, bigGuy.pos, bigGuy.shape.boundingBox)
-    }
-  }
+  lazy val smallGuiesDrawer = new EntitySpriteContainer[SmallGuy](smallGuyContainer, smallGuyTexture, camera)
+  lazy val bigGuiesDrawer   = new EntitySpriteContainer[BigGuy](bigGuyContainer, bigGuyTexture, camera)
+  lazy val bombPodDrawer    = new EntitySpriteContainer[BombPod](bombPodContainer, bombPodTexture, camera)
 
   def drawGameState(gameState: GameState, cameraPosition: Complex, currentTime: Long): Unit = {
-    drawBigGuies(gameState.allTEntities[BigGuy].values.toList)
-    drawBombPods(gameState.allTEntities[BombPod].values.toList)
+    bombPodDrawer.update(gameState, currentTime)
+    bigGuiesDrawer.update(gameState, currentTime)
+    smallGuiesDrawer.update(gameState, currentTime)
   }
 
 }

@@ -155,6 +155,9 @@ object Boss110 extends BossFactory[Boss110] {
         ),
         Ability.boss110SpawnSmallGuies -> Pointed[SpawnSmallGuies].unit.copy(
           time = time - SpawnSmallGuies.cooldown + SpawnSmallGuies.timeToFirstAbility
+        ),
+        SpawnSmallGuies.abilityId -> Pointed[SpawnSmallGuies].unit.copy(
+          time = SpawnSmallGuies.setBeginningOfGameAbilityUse(time)
         )
       )
     )
