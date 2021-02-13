@@ -14,79 +14,46 @@ import gamelogic.abilities.boss.boss110.PlaceBombPods
 import gamelogic.entities.boss.boss110.BombPod
 import gamelogic.abilities.boss.boss110.ExplodeBombs
 import gamelogic.abilities.Ability
+import scala.reflect.ClassTag
 
-object Boss110Controller extends AIController[Boss110, SpawnBoss] {
-  protected def takeActions(
-      currentGameState: GameState,
-      me: Boss110,
-      currentPosition: Complex,
-      startTime: Long,
-      lastTimeStamp: Long,
-      maybeTarget: Option[PlayerClass],
-      obstacleGraph: Graph
-  ): List[GameAction] =
-    Option
-      .unless(currentGameState.entityIsCasting(me.id))(maybeTarget)
-      .flatten
-      .map { target =>
-        // If the boss is casting, he doesn't do anything else.
-        // If the boss has no target, the only possibility is that all players are dead.
-        // In that case, the game either has not started yet or it will end very soon so we don't do anything.
+object Boss110Controller extends SimpleAIController[Boss110, SpawnBoss] {
 
-        def iMightCastThis[T <: Ability](ability: T) = maybeAbilityUsage(me, ability, currentGameState)
+  def meleeRange: Double = Boss110.meleeRange
 
-        /** changing target */
-        val maybeChangeTarget = changeTarget(me, target.id, startTime)
+  def fullSpeed: Double = Boss110.fullSpeed
 
-        val elapsedSinceLastFrame = startTime - lastTimeStamp
+  def actions(gameState: GameState, me: Boss110, time: Long): List[Option[EntityStartsCasting]] = {
+    def iMightCastThis[T <: Ability](ability: T) = maybeAbilityUsage(me, ability, gameState)
 
-        val maybeMove = aiMovementToTargetWithGraph(
-          me.id,
-          startTime,
-          elapsedSinceLastFrame,
-          currentPosition,
-          me.shape.radius,
-          target.currentPosition(startTime + 100),
-          Boss110.meleeRange,
-          Boss110.fullSpeed,
-          Boss110.fullSpeed / 4,
-          me.speed,
-          me.moving,
-          me.rotation,
-          obstacleGraph,
-          position => !currentGameState.obstacles.valuesIterator.exists(_.collidesShape(me.shape, position, 0, 0))
-        )
+    val maybeSpawnBigGuies = Some(SpawnBigGuies(0L, time, me.id))
+      .filter(me.canUseAbilityBoolean(_, time))
+      .startCasting
 
-        val maybeSpawnBigGuies = Some(SpawnBigGuies(0L, startTime, me.id))
-          .filter(me.canUseAbilityBoolean(_, startTime))
-          .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
-
-        val maybePlaceBombPods = iMightCastThis(
-          PlaceBombPods(0L, startTime, me.id, Nil) // Nil to not compute for nothing
-        ).map(
-            _.copy(
-              positions = PlaceBombPods
-                .randomPositionsInSquare(-Boss110.halfWidth / 2, Boss110.halfHeight / 2, PlaceBombPods.numberOfBombs)
+    val maybePlaceBombPods = iMightCastThis(
+      PlaceBombPods(0L, time, me.id, Nil) // Nil to not compute for nothing
+    ).map(
+        _.copy(
+          positions = PlaceBombPods
+            .randomPositionsInSquare(
+              -Boss110.halfWidth * 9 / 10 / 2,
+              Boss110.halfHeight * 9 / 10 / 2,
+              PlaceBombPods.numberOfBombs
             )
-          )
-          .startCasting
-
-        val maybeExplodeBombs = iMightCastThis(ExplodeBombs(0L, startTime, me.id)).startCasting
-
-        useAbility(
-          List(
-            //maybeSpawnBigGuies,
-            maybePlaceBombPods,
-            maybeExplodeBombs,
-            me.maybeAutoAttack(startTime, currentGameState)
-              .map(ability => EntityStartsCasting(0L, startTime, ability.castingTime, ability))
-          ),
-          maybeChangeTarget,
-          maybeMove
         )
-      }
-      .getOrElse(Nil)
+      )
+      .startCasting
 
-  protected def getMe(gameState: GameState, entityId: Id): Option[Boss110] =
-    gameState.bosses.get(entityId).collect { case boss110: Boss110 => boss110 }
+    val maybeExplodeBombs = iMightCastThis(ExplodeBombs(0L, time, me.id)).startCasting
+
+    List(
+      maybeSpawnBigGuies,
+      maybePlaceBombPods,
+      maybeExplodeBombs,
+      me.maybeAutoAttack(time, gameState)
+        .map(ability => EntityStartsCasting(0L, time, ability.castingTime, ability))
+    )
+  }
+
+  val classTag: ClassTag[Boss110] = implicitly[ClassTag[Boss110]]
+
 }
