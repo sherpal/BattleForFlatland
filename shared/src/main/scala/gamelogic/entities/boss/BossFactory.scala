@@ -22,6 +22,8 @@ trait BossFactory[Boss <: BossEntity] {
   /**
     * Describes all actions to take immediately after creating the boss.
     * These actions will most probably contain the heal aware and threat aware buffs.
+    *
+    * @param entityId id of the boss that was created.
     */
   def initialBossActions(entityId: Entity.Id, time: Long, idGeneratorContainer: IdGeneratorContainer): List[GameAction]
 

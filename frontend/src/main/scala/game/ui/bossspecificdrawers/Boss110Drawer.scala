@@ -16,6 +16,7 @@ import utils.misc.RGBColour
 import scala.collection.mutable
 import gamelogic.entities.boss.boss110.{BigGuy, BombPod, SmallGuy}
 import game.ui.EntitySpriteContainer
+import gamelogic.entities.boss.boss110.CreepingShadow
 
 final class Boss110Drawer(
     val application: Application,
@@ -50,6 +51,8 @@ final class Boss110Drawer(
     BombPod.shape.radius * 2
   )
 
+  private val creepingShadowContainer = new typings.pixiJs.mod.Container
+  otherStuffContainerBelow.addChild(creepingShadowContainer)
   private val bigGuyContainer = new typings.pixiJs.mod.Container
   otherStuffContainerBelow.addChild(bigGuyContainer)
   private val smallGuyContainer = new typings.pixiJs.mod.Container
@@ -60,11 +63,23 @@ final class Boss110Drawer(
   lazy val smallGuiesDrawer = new EntitySpriteContainer[SmallGuy](smallGuyContainer, smallGuyTexture, camera)
   lazy val bigGuiesDrawer   = new EntitySpriteContainer[BigGuy](bigGuyContainer, bigGuyTexture, camera)
   lazy val bombPodDrawer    = new EntitySpriteContainer[BombPod](bombPodContainer, bombPodTexture, camera)
+  lazy val creepingShadowDrawer = new EntitySpriteContainer[CreepingShadow](
+    creepingShadowContainer,
+    diskTexture(RGBColour.black.intColour, 1, 5),
+    camera
+  )
+  lazy val creepingShadowDrawer2 = new EntitySpriteContainer[CreepingShadow](
+    creepingShadowContainer,
+    diskTexture(RGBColour.black.intColour, 0.5, 30),
+    camera
+  )
 
   def drawGameState(gameState: GameState, cameraPosition: Complex, currentTime: Long): Unit = {
     bombPodDrawer.update(gameState, currentTime)
     bigGuiesDrawer.update(gameState, currentTime)
     smallGuiesDrawer.update(gameState, currentTime)
+    creepingShadowDrawer.update(gameState, currentTime)
+    creepingShadowDrawer2.update(gameState, currentTime)
   }
 
 }

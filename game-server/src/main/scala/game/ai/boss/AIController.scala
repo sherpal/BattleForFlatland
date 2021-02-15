@@ -4,7 +4,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import game.ActionTranslator
 import game.ai.AIControllerMessage
-import game.ai.AIManager.loopRate
+import game.ai.AIManager
 import game.ai.utils.findTarget
 import game.ai.utils.pathfinders.PathFinder
 import gamelogic.entities.classes.PlayerClass
@@ -50,6 +50,8 @@ trait AIController[
   protected def getMe(gameState: GameState, entityId: Entity.Id): Option[EntityType]
 
   @inline private def now = System.currentTimeMillis
+
+  def loopRate = AIManager.loopRate
 
   def apply(
       actionTranslator: ActorRef[ActionTranslator.Message],

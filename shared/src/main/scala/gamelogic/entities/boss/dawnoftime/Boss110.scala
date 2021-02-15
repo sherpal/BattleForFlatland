@@ -3,6 +3,7 @@ package gamelogic.entities.boss.dawnoftime
 import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.boss.BossFactory
 
+import gamelogic.gamestate.gameactions.boss110.AddCreepingShadow
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.boss.boss110.SpawnBigGuies
@@ -167,7 +168,14 @@ object Boss110 extends BossFactory[Boss110] {
       time: Long,
       idGeneratorContainer: gamelogic.utils.IdGeneratorContainer
   ): List[gamelogic.gamestate.GameAction] =
-    healAndDamageAwareActions(entityId, time, idGeneratorContainer)
+    healAndDamageAwareActions(entityId, time, idGeneratorContainer) ++ List(
+      AddCreepingShadow(
+        idGeneratorContainer.gameActionIdGenerator(),
+        time,
+        idGeneratorContainer.entityIdGenerator(),
+        entityId
+      )
+    )
 
   def name: String = "Boss 110"
 

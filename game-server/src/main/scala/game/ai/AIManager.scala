@@ -14,10 +14,11 @@ import gamelogic.gamestate.gameactions.boss102.AddBossHound
 import gamelogic.gamestate.gameactions.{AddDummyMob, CreateObstacle, SpawnBoss}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.entities.boss.dawnoftime.Boss110
-import gamelogic.gamestate.gameactions.boss110.AddBigGuies
+import gamelogic.gamestate.gameactions.boss110.{AddBigGuies, AddCreepingShadow}
 import gamelogic.entities.boss.boss110.BigGuy
 import gamelogic.gamestate.gameactions.boss110.AddSmallGuy
 import game.ai.boss.boss110units.SmallGuyController
+import game.ai.boss.boss110units.CreepingShadowController
 
 /**
   * The [[game.ai.AIManager]] is responsible for spawning and removing "artificial intelligence" actors that will
@@ -219,6 +220,17 @@ object AIManager {
                   receiverInfo.onlyObstaclesPathFinders(Constants.playerRadius)
                 ),
                 s"SmallGuy-${action.entityId}"
+              )
+              context.watchWith(ref, ControllerDied(ref))
+              List(ref)
+            case action: AddCreepingShadow =>
+              val ref = context.spawn(
+                CreepingShadowController.apply(
+                  receiverInfo.actionTranslator,
+                  action,
+                  receiverInfo.onlyObstaclesPathFinders(Constants.playerRadius)
+                ),
+                s"CreepingShadow-${action.entityId}"
               )
               context.watchWith(ref, ControllerDied(ref))
               List(ref)
