@@ -13,6 +13,9 @@ import gamelogic.entities.boss.dawnoftime.Boss110
 import gamelogic.entities.WithChangingRadius
 import gamelogic.entities.classes.Constants
 import gamelogic.entities.WithThreat
+import gamelogic.entities.WithAbilities
+import gamelogic.abilities.Ability
+import gamelogic.entities.Resource
 
 /**
   * Instance of the [[CreepingShadow]] in [[Boss110]].
@@ -32,10 +35,24 @@ final case class CreepingShadow(
     radius: Double,
     sourceId: Entity.Id,
     direction: WithPosition.Angle,
-    moving: Boolean
+    moving: Boolean,
+    relevantUsedAbilities: Map[Ability.AbilityId, Ability]
 ) extends MovingBody
     with WithChangingRadius
-    with WithThreat {
+    with WithThreat
+    with WithAbilities {
+
+  def abilities: Set[Ability.AbilityId] = Set(Ability.boss110CreepingShadowTick)
+
+  def useAbility(ability: Ability): CreepingShadow = copy(
+    relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability)
+  )
+
+  def resourceAmount: Resource.ResourceAmount = Resource.noResourceAmount
+
+  def maxResourceAmount: Double = 0.0
+
+  protected def patchResourceAmount(newResourceAmount: Resource.ResourceAmount): CreepingShadow = this
 
   def healingThreats: Map[Entity.Id, WithThreat.ThreatAmount] = Map.empty
 
@@ -68,6 +85,9 @@ final case class CreepingShadow(
 }
 
 object CreepingShadow {
+
+  def extractCreepingShadow(gameState: GameState, entityId: Entity.Id): Option[CreepingShadow] =
+    gameState.entityByIdAs[CreepingShadow](entityId)
 
   /**
     * Computes the current position and the current radius of the [[CreepingShadow]].

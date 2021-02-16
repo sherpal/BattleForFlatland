@@ -66,7 +66,7 @@ final case class BigGuy(
         relevantUsedAbilities + (ability.abilityId -> ability)
     )
 
-  def resourceAmount: Resource.ResourceAmount = Resource.ResourceAmount(0.0, NoResource)
+  def resourceAmount: Resource.ResourceAmount = Resource.noResourceAmount
 
   def maxResourceAmount: Double = 0.0
 

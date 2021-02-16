@@ -10,7 +10,7 @@ import gamelogic.gamestate.gameactions.boss110.AddBigGuies
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import gamelogic.physics.pathfinding.Graph
-import gamelogic.abilities.boss.boss110.bigguyabilities.PutBrokenArmor
+import gamelogic.abilities.boss.boss110.addsabilities.PutBrokenArmor
 
 object BigGuyController extends AIController[BigGuy, AddBigGuies.AddBigGuy] {
   protected def takeActions(

@@ -11,6 +11,8 @@ import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import gamelogic.gamestate.gameactions.EntityRadiusChange
 import gamelogic.gamestate.gameactions.MovingBodyMoves
+import game.ai.utils.maybeAbilityUsage
+import gamelogic.abilities.boss.boss110.addsabilities.CreepingShadowTick
 
 object CreepingShadowController extends AIController[CreepingShadow, AddCreepingShadow] {
 
@@ -49,9 +51,12 @@ object CreepingShadowController extends AIController[CreepingShadow, AddCreeping
         Some(action)
       } else None
 
+    val maybeTick = maybeAbilityUsage(me, CreepingShadowTick(0L, startTime, me.id), currentGameState).startCasting
+
     List(
       maybeMoving,
-      maybeChangeRadius
+      maybeChangeRadius,
+      maybeTick
     ).flatten
 
   }

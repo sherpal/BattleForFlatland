@@ -1,4 +1,4 @@
-package gamelogic.abilities.boss.boss110.bigguyabilities
+package gamelogic.abilities.boss.boss110.addsabilities
 
 import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.abilities.WithTargetAbility.Distance

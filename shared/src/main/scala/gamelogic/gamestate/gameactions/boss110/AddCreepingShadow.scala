@@ -24,7 +24,7 @@ final case class AddCreepingShadow(id: GameAction.Id, time: Long, entityId: Enti
 
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     new WithEntity(
-      CreepingShadow(entityId, time, Complex(-Boss110.halfWidth, 0), 1.0, sourceId, 0.0, moving = false),
+      CreepingShadow(entityId, time, Complex(-Boss110.halfWidth, 0), 1.0, sourceId, 0.0, moving = false, Map.empty),
       time
     )
 

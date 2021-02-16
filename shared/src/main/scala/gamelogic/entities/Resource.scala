@@ -47,6 +47,8 @@ object Resource {
     def colour: RGBColour = RGBColour.fromIntColour(0)
   }
 
+  val noResourceAmount: ResourceAmount = ResourceAmount(0.0, NoResource)
+
   final val resources: Map[String, Resource] = Map(
     Mana.toString -> Mana,
     Energy.toString -> Energy,
