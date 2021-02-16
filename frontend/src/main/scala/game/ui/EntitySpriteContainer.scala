@@ -8,11 +8,13 @@ import gamelogic.gamestate.GameState
 import gamelogic.entities.Entity
 
 import scala.collection.mutable
+import typings.pixiJs.mod.Texture
 
 final class EntitySpriteContainer[EntityType <: Body](
     val container: typings.pixiJs.mod.Container,
     texture: typings.pixiJs.PIXI.Texture,
-    camera: Camera
+    camera: Camera,
+    textureScale: Double = 1.0
 )(
     implicit classTag: ClassTag[EntityType]
 ) {
@@ -43,6 +45,7 @@ final class EntitySpriteContainer[EntityType <: Body](
 
       sprite.rotation = -entity.rotation
       camera.viewportManager(sprite, entity.currentPosition(time), entity.shape.boundingBox)
+      sprite.scale.set(sprite.scale.x * textureScale, sprite.scale.y * textureScale)
     }
   }
 

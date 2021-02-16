@@ -18,6 +18,8 @@ import gamelogic.entities.boss.boss110.{BigGuy, BombPod, SmallGuy}
 import game.ui.EntitySpriteContainer
 import gamelogic.entities.boss.boss110.CreepingShadow
 
+import org.scalajs.dom
+
 final class Boss110Drawer(
     val application: Application,
     resources: PartialFunction[Asset, LoaderResource],
@@ -33,23 +35,9 @@ final class Boss110Drawer(
       .maybeSpriteById(entityId)
       .orElse(smallGuiesDrawer.maybeSpriteById(entityId))
 
-  private val bigGuyTexture = redimensionTexture(
-    resources(Asset.ingame.gui.boss.dawnOfTime.boss110.bigGuy).texture,
-    BigGuy.shape.radius * 2,
-    BigGuy.shape.radius * 2
-  )
-
-  private val smallGuyTexture = redimensionTexture(
-    resources(Asset.ingame.gui.boss.dawnOfTime.boss110.smallGuy).texture,
-    SmallGuy.shape.radius * 2,
-    SmallGuy.shape.radius * 2
-  )
-
-  private val bombPodTexture = redimensionTexture(
-    resources(Asset.ingame.gui.boss.dawnOfTime.boss110.bombPod).texture,
-    BombPod.shape.radius * 2,
-    BombPod.shape.radius * 2
-  )
+  private val bigGuyTexture   = resources(Asset.ingame.gui.boss.dawnOfTime.boss110.bigGuy).texture
+  private val smallGuyTexture = resources(Asset.ingame.gui.boss.dawnOfTime.boss110.smallGuy).texture
+  private val bombPodTexture  = resources(Asset.ingame.gui.boss.dawnOfTime.boss110.bombPod).texture
 
   private val creepingShadowContainer = new typings.pixiJs.mod.Container
   otherStuffContainerBelow.addChild(creepingShadowContainer)
@@ -60,9 +48,24 @@ final class Boss110Drawer(
   private val bombPodContainer = new typings.pixiJs.mod.Container
   otherStuffContainerBelow.addChild(bombPodContainer)
 
-  lazy val smallGuiesDrawer = new EntitySpriteContainer[SmallGuy](smallGuyContainer, smallGuyTexture, camera)
-  lazy val bigGuiesDrawer   = new EntitySpriteContainer[BigGuy](bigGuyContainer, bigGuyTexture, camera)
-  lazy val bombPodDrawer    = new EntitySpriteContainer[BombPod](bombPodContainer, bombPodTexture, camera)
+  lazy val smallGuiesDrawer = new EntitySpriteContainer[SmallGuy](
+    smallGuyContainer,
+    smallGuyTexture,
+    camera,
+    SmallGuy.shape.radius * 2 / smallGuyTexture.width
+  )
+  lazy val bigGuiesDrawer = new EntitySpriteContainer[BigGuy](
+    bigGuyContainer,
+    bigGuyTexture,
+    camera,
+    BigGuy.shape.radius * 2 / bigGuyTexture.width
+  )
+  lazy val bombPodDrawer = new EntitySpriteContainer[BombPod](
+    bombPodContainer,
+    bombPodTexture,
+    camera,
+    BombPod.shape.radius * 2 / bombPodTexture.width
+  )
   lazy val creepingShadowDrawer = new EntitySpriteContainer[CreepingShadow](
     creepingShadowContainer,
     diskTexture(RGBColour.black.intColour, 1, 5),

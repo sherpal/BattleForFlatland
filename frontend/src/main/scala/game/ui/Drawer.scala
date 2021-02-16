@@ -71,18 +71,6 @@ trait Drawer {
     application.renderer.generateTexture(graphics, linearScale, 1)
   }
 
-  def redimensionTexture(
-      texture: typings.pixiJs.PIXI.Texture,
-      width: Double,
-      height: Double
-  ): typings.pixiJs.PIXI.Texture = {
-    val s = new Sprite(texture)
-    s.width  = width
-    s.height = height
-
-    application.renderer.generateTexture(s, linearScale, 1)
-  }
-
   /**
     * When defined, returns the [[DisplayObject]] reprensenting, in the game, the
     * entity with the given id.
