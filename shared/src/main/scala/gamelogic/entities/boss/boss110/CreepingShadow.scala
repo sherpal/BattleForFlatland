@@ -101,7 +101,7 @@ object CreepingShadow {
 
     val howManyGuies = smallGuies.length
 
-    val radius = howManyGuies * (Boss110.halfWidth * 2) / 10.0
+    val radius = howManyGuies * (Boss110.halfWidth * 2) / 20.0
     val position =
       if (howManyGuies == 0) Complex(-Boss110.halfWidth, 0)
       else smallGuies.map(_.currentPosition(currentTime)).sum / howManyGuies

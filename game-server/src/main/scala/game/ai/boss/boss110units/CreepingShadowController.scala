@@ -62,6 +62,6 @@ object CreepingShadowController extends AIController[CreepingShadow, AddCreeping
   }
 
   override protected def getMe(gameState: GameState, entityId: Entity.Id): Option[CreepingShadow] =
-    gameState.entities.get(entityId).collect { case cs: CreepingShadow => cs }
+    CreepingShadow.extractCreepingShadow(gameState, entityId)
 
 }

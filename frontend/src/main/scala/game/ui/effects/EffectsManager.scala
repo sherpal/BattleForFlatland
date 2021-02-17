@@ -28,6 +28,8 @@ import typings.pixiJs.PIXI.SCALE_MODES
 import scala.collection.mutable
 import gamelogic.gamestate.gameactions.EndGame
 import game.ui.effects.visualeffects.ConfettiEffect
+import gamelogic.gamestate.gameactions.boss110.AddCreepingShadow
+import game.ui.effects.boss.boss110.CreepingShadowArea
 
 final class EffectsManager(
     playerId: Entity.Id,
@@ -163,6 +165,14 @@ final class EffectsManager(
             )
           case _: EndGame if gameState.playersWon =>
             Some(new ConfettiEffect)
+          case addCreepingShadow: AddCreepingShadow =>
+            Some(
+              new CreepingShadowArea(
+                addCreepingShadow.entityId,
+                addCreepingShadow.time,
+                camera
+              )
+            )
           case _ =>
             Option.empty[SimpleTextEffect]
         }
