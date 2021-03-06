@@ -16,7 +16,9 @@ import gamelogic.abilities.boss.boss110.addsabilities.CreepingShadowTick
 
 object CreepingShadowController extends AIController[CreepingShadow, AddCreepingShadow] {
 
-  override protected def takeActions(
+  override def loopRate: Long = 500L
+
+  protected def takeActions(
       currentGameState: GameState,
       me: CreepingShadow,
       currentPosition: Complex,
