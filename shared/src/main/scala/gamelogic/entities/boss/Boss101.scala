@@ -19,6 +19,8 @@ import gamelogic.utils.IdGeneratorContainer
 import models.syntax.Pointed
 import gamelogic.gamestate.gameactions.RemoveBuff
 import gamelogic.buffs.Buff
+import gamelogic.docs.BossMetadata
+import models.bff.outofgame.PlayerClasses
 
 /**
   * Very first boss to be coded. Probably not the most exiting one but the goal was to have a first proof of concept
@@ -88,7 +90,21 @@ final case class Boss101(
   )
 }
 
-object Boss101 extends BossFactory[Boss101] {
+object Boss101 extends BossFactory[Boss101] with BossMetadata {
+
+  def intendedFor: Int = 5
+
+  def maybeAIComposition: Option[List[PlayerClasses]] =
+    Some(
+      List(
+        PlayerClasses.Hexagon,
+        PlayerClasses.Hexagon,
+        PlayerClasses.Square,
+        PlayerClasses.Pentagon,
+        PlayerClasses.Triangle
+      )
+    )
+
   final val shape: Circle = new Circle(Constants.bossRadius)
 
   final val maxLife: Double = 20000

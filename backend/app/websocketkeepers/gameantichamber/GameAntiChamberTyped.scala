@@ -128,6 +128,11 @@ object GameAntiChamberTyped {
             case WebSocketProtocol.GameLaunched =>
               clients.foreach(_ ! protocol(WebSocketProtocol.GameLaunched))
               Behaviors.same
+            case toggle: WebSocketProtocol.ToggleAI =>
+              zio.Runtime.default.unsafeRun(
+                updateGameConfiguration(_.toggleAis(toggle == WebSocketProtocol.ChooseAIs))
+              )
+              Behaviors.same
           }
         case SendHeartBeat =>
           // keeping connection alive

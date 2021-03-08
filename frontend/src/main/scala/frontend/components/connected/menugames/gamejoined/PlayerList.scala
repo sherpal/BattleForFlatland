@@ -20,17 +20,20 @@ object PlayerList {
     ),
     tbody(
       children <-- $players.map { players =>
-        players.map {
+        players.filter(_.playerType.playing).map {
           player =>
             tr(
-              td(tableData, player.playerName),
+              td(tableData, player.playerName.name),
               td(
                 tableData,
                 className := "flex justify-center",
                 player.maybePlayerColour
                   .map(colour => span(className := "rounded-full h-4 w-4 flex", backgroundColor := colour.rgb))
               ),
-              td(tableData, player.maybePlayerClass.fold("No class")(_.toString)),
+              td(
+                tableData,
+                player.maybePlayerClass.fold("No class")(_.toString)
+              ),
               td(
                 tableData,
                 className := "flex justify-center",

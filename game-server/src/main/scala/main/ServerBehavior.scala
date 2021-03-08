@@ -37,6 +37,9 @@ import zio.{Has, ZIO, ZLayer}
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future, TimeoutException}
 import scala.util.{Failure, Success}
+import akka.actor.typed.SupervisorStrategy
+import org.slf4j.event.Level
+import game.ai.goodais.GoodAIManager
 
 /**
   * Creates a behaviour that will have a root for websockets, decoding incoming (string) messages as In and
@@ -194,17 +197,32 @@ trait ServerBehavior[In, Out] {
       inPickler: Pickler[In],
       outPickler: Pickler[Out]
   ): Behavior[ServerMessage] = Behaviors.setup { context =>
+    context.setLoggerName("server")
     implicit val classic: ClassicActorSystem = context.system.toClassic
 
-    val tokenBearer           = context.spawn(TokenBearer(), "TokenBearer")
-    val actionUpdateCollector = context.spawn(ActionUpdateCollector(), "ActionUpdateCollector")
-    val gameMaster            = context.spawn(GameMaster(actionUpdateCollector), "GameMaster")
+    def spawnWithFailure[U](behaviour: Behavior[U], name: String) =
+      context.spawn(
+        Behaviors
+          .supervise(behaviour)
+          .onFailure[Throwable](SupervisorStrategy.stop.withLogLevel(Level.DEBUG).withLoggingEnabled(true)),
+        name
+      )
+
+    val tokenBearer           = spawnWithFailure(TokenBearer(), "TokenBearer")
+    val actionUpdateCollector = spawnWithFailure(ActionUpdateCollector(), "ActionUpdateCollector")
+    val gameMaster =
+      spawnWithFailure(GameMaster(actionUpdateCollector), "GameMaster")
+
     context.watchWith(gameMaster, GameMasterDied)
 
-    val actionTranslator = context.spawn(ActionTranslator(gameMaster), "ActionTranslator")
-    val aiManager        = context.spawn(AIManager(actionTranslator), "AIManager")
+    val actionTranslator = spawnWithFailure(ActionTranslator(gameMaster), "ActionTranslator")
+    val aiManager        = spawnWithFailure(AIManager(actionTranslator), "AIManager")
     actionUpdateCollector ! ActionUpdateCollector.HereIsTheAIManager(aiManager)
-    val antiChamber = context.spawn(AntiChamber(gameMaster, actionUpdateCollector), "AntiChamber")
+    val goodAIManager = spawnWithFailure(GoodAIManager(actionTranslator), "GoodAIManager")
+    actionUpdateCollector ! ActionUpdateCollector.HereIsTheGoodAIManager(goodAIManager)
+    val antiChamber = spawnWithFailure(AntiChamber(gameMaster, actionUpdateCollector), "AntiChamber")
+
+    context.log.info("Children created")
 
     val serverBinding: Future[Http.ServerBinding] =
       Http().bindAndHandle(requestHandler(context, tokenBearer, antiChamber, actionTranslator), host, port)
@@ -230,6 +248,7 @@ trait ServerBehavior[In, Out] {
           println("Forward credentials to token bearer.")
           tokenBearer ! TokenBearer.CredentialsWrapper(users, credentials)
           antiChamber ! AntiChamber.GameInfo(gameInfo)
+          goodAIManager ! GoodAIManager.HereIsTheGameConfiguration(gameInfo.game.gameConfiguration)
           Behaviors.same
         case WarnMeWhenStopped(replyTo) =>
           started(Some(replyTo))
@@ -257,6 +276,7 @@ trait ServerBehavior[In, Out] {
         case ReceivedCredentials(users, credentials, gameInfo) =>
           tokenBearer ! TokenBearer.CredentialsWrapper(users, credentials)
           antiChamber ! AntiChamber.GameInfo(gameInfo)
+          goodAIManager ! GoodAIManager.HereIsTheGameConfiguration(gameInfo.game.gameConfiguration)
           Behaviors.same
         case WarnMeWhenStopped(replyTo) =>
           notYetStarted(waitingForStartedNotification, Some(replyTo))
@@ -299,15 +319,11 @@ trait ServerBehavior[In, Out] {
   def waitForServerToStop(ref: ActorSystem[ServerMessage]): ZIO[Any, Nothing, Unit] =
     for {
       _ <- ZIO
-        .fromFuture { _ =>
-          ref.ask[Unit](replyTo => WarnMeWhenStopped(replyTo))(Timeout(5.minutes), ref.scheduler)
-        }
+        .fromFuture(_ => ref.ask[Unit](replyTo => WarnMeWhenStopped(replyTo))(Timeout(5.minutes), ref.scheduler))
         .refineOrDie {
           case e: TimeoutException => e
         }
-        .catchAll { _ =>
-          waitForServerToStop(ref)
-        }
+        .catchAll(_ => waitForServerToStop(ref))
     } yield ()
 
 }

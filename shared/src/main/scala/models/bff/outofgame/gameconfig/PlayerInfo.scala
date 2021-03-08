@@ -6,10 +6,11 @@ import models.bff.outofgame.gameconfig.PlayerStatus.Ready
 import utils.misc.RGBColour
 
 final case class PlayerInfo(
-    playerName: String,
+    playerName: PlayerName,
     maybePlayerClass: Option[PlayerClasses],
     maybePlayerColour: Option[RGBColour],
-    status: PlayerStatus
+    status: PlayerStatus,
+    playerType: PlayerType
 ) {
   def isReady: Boolean = status == Ready
   def isValid: Boolean = asValid.isDefined
@@ -18,7 +19,7 @@ final case class PlayerInfo(
       playerClass  <- maybePlayerClass
       playerColour <- maybePlayerColour
       if isReady
-    } yield ValidPlayerInfo(playerName, playerClass, playerColour)
+    } yield ValidPlayerInfo(playerName, playerClass, playerColour, playerType)
 }
 
 object PlayerInfo {
@@ -28,9 +29,10 @@ object PlayerInfo {
   implicit val fooEncoder: Encoder[PlayerInfo] = deriveEncoder[PlayerInfo]
 
   final case class ValidPlayerInfo(
-      playerName: String,
+      playerName: PlayerName,
       playerClass: PlayerClasses,
-      playerColour: RGBColour
+      playerColour: RGBColour,
+      playerType: PlayerType
   ) {
     def status: PlayerStatus = Ready
   }

@@ -10,6 +10,8 @@ import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
 import models.bff.ingame.InGameWSProtocol
 import models.bff.outofgame.MenuGameWithPlayers
+import models.bff.outofgame.gameconfig.PlayerName
+import models.bff.outofgame.gameconfig.PlayerName.{AIPlayerName, HumanPlayerName}
 import zio.ZIO
 import zio.duration.Duration.fromScala
 
@@ -304,18 +306,20 @@ object GameMaster {
       maybePreGameActions: Option[List[GameAction]]
   )(implicit idGeneratorContainer: IdGeneratorContainer): Behavior[Message] =
     Behaviors.receive { (context, message) =>
+      context.log.info("GameMaster started")
       message match {
         case message: PreGameMessage =>
           message match {
             case LetsStartTheGame =>
               Behaviors.unhandled // we only care about this message when in preGameBehaviour
             case EveryoneIsReady(playerMap, gameInfo) =>
+              context.log.info("Everyone is ready")
               // first message that kick off the actor and will trigger others
               val timeNow = now
 
               gameInfo.game.gameConfiguration.asValid match {
                 case None =>
-                  println("""
+                  context.log.info("""
                       |I received game information with an invalid game configuration.
                       |This should not happen. Something went terribly wrong upstream.
                       |
@@ -328,70 +332,87 @@ object GameMaster {
                     def maybeBossFactory = BossFactory.factoriesByBossName.get(gameConfiguration.bossName).toList
 
                     if (maybeBossFactory.isEmpty) {
-                      println("Starting Game without boss, that's weird.")
+                      context.log.warn("Starting Game without boss, that's weird.")
                     }
 
-                    val refsByName = gameInfo.players.map(user => user.userName -> playerMap(user.userId)).toMap
+                    context.log.info("Creating refs by name map.")
+                    val refsByName: Map[PlayerName, ActorRef[InGameWSProtocol]] =
+                      gameInfo.players.map(user => HumanPlayerName(user.userName) -> playerMap(user.userId)).toMap
 
+                    context.log.info("Computing player positions.")
                     val playersPosition = maybeBossFactory
                       .map(_.playersStartingPosition)
                       .head
 
                     val bossStartingPosition = maybeBossFactory.headOption.fold(Complex.zero)(_.bossStartingPosition)
 
+                    context.log.info("Creating NewPlayer actions")
                     val newPlayerActions = gameConfiguration.playersInfo.values.map { info =>
                       val playerId = idGeneratorContainer.entityIdGenerator()
                       (
-                        refsByName(info.playerName),
-                        playerId,
-                        AddPlayerByClass(
-                          0L,
-                          timeNow - 2,
-                          playerId,
-                          playersPosition,
-                          info.playerClass,
-                          info.playerColour.intColour,
-                          info.playerName
-                        ) +: info.playerClass.builder.startingActions(timeNow - 1, playerId, idGeneratorContainer)
+                        refsByName.get(info.playerName),
+                        if (info.playerType.playing) playerId else -1,
+                        Option.when(info.playerType.playing)(
+                          AddPlayerByClass(
+                            0L,
+                            timeNow - 2,
+                            playerId,
+                            playersPosition,
+                            info.playerClass,
+                            info.playerColour.intColour,
+                            info.playerName.name
+                          ) +: info.playerClass.builder.startingActions(timeNow - 1, playerId, idGeneratorContainer)
+                        ),
+                        info.playerName
                       )
 
                     }
 
+                    context.log.info("Creating Boss Creation actions")
                     val bossCreationActions = gameInfo.game.gameConfiguration.maybeBossName.toList.flatMap { name =>
                       BossFactory.factoriesByBossName
                         .get(name)
                         .fold(List.empty[GameAction])(_.stagingBossActions(timeNow, idGeneratorContainer))
                     }
 
-                    println(s"Boss creation action at $timeNow")
+                    context.log.info(s"Boss creation action at $timeNow")
 
                     newPlayerActions.foreach {
-                      case (ref, playerId, _) =>
+                      case (Some(ref), playerId, _, _) =>
                         ref ! InGameWSProtocol.YourEntityIdIs(playerId)
                         ref ! InGameWSProtocol.StartingBossPosition(bossStartingPosition.re, bossStartingPosition.im)
+                      case (None, playerId, _, name) =>
                     }
+
+                    actionUpdateCollector ! ActionUpdateCollector.EntityIdsAndNamesForAIs(
+                      newPlayerActions.collect {
+                        case (None, playerId, _, AIPlayerName(cls, index)) =>
+                          (playerId, AIPlayerName(cls, index))
+                      }.toList
+                    )
 
                     setupBehaviour(
                       actionUpdateCollector,
                       Some(gameInfo),
                       Set(),
-                      Some(newPlayerActions.flatMap(_._3).toList ++ bossCreationActions)
+                      Some(newPlayerActions.flatMap(_._3).flatten.toList ++ bossCreationActions)
                     )
 
                   } catch {
                     case e: Throwable =>
-                      e.printStackTrace()
+                      context.log.error("Failed to follow on EveryoneIsReady", e)
                       throw e
                   }
 
               }
 
             case IAmReadyToStart(userId) =>
+              context.log.info(s"${userId} is ready to start.")
               val newReadyPlayers = readyPlayers + userId
 
               if (maybeGameInfo.map(_.players.length).contains(newReadyPlayers.size)) {
 
-                println(s"Everyone is ready at $now")
+                context.log.info(s"Everyone is ready at $now")
 
                 context.self ! MultipleActionsWrapper(maybePreGameActions.get)
                 context.self ! GameLoop
@@ -409,7 +430,7 @@ object GameMaster {
           }
 
         case _ =>
-          println("weird")
+          context.log.warn("weird")
           Behaviors.unhandled
       }
     }
