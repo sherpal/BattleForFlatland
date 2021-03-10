@@ -11,10 +11,9 @@ import game.ai.utils.maybeAbilityUsage
 import gamelogic.entities.boss.Boss101
 import gamelogic.entities.movingstuff.PentagonBullet
 import gamelogic.abilities.pentagon.CreatePentagonBullet
+import game.ai.goodais.classes.PentagonAIController
 
-final class PentagonForBoss101(index: Int) extends GoodAIController[Pentagon] {
-
-  val classTag: ClassTag[Pentagon] = implicitly[ClassTag[Pentagon]]
+final class PentagonForBoss101(index: Int) extends PentagonAIController {
 
   val name: PlayerName.AIPlayerName = PlayerName.AIPlayerName(PlayerClasses.Pentagon, index)
 
@@ -27,21 +26,7 @@ final class PentagonForBoss101(index: Int) extends GoodAIController[Pentagon] {
     val actions: List[GameAction] = gameState.bosses.values.headOption match {
       case Some(theBoss) =>
         val rotationTowardsBoss = (theBoss.pos - me.pos).arg
-
-        val maybePentagonBullet = maybeAbilityUsage(
-          me,
-          CreatePentagonBullet(
-            0L,
-            startingTime,
-            me.id,
-            me.pos,
-            CreatePentagonBullet.damage,
-            rotationTowardsBoss,
-            me.colour
-          ),
-          gameState
-        ).startCasting
-
+        val maybePentagonBullet = maybePentagonBulletUsage(gameState, startingTime, me, rotationTowardsBoss)
         maybePentagonBullet.toList
       case None =>
         val targetPosition = Boss101.bossStartingPosition + (index - 0.5) * 150

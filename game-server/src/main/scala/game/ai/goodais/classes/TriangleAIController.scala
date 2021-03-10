@@ -10,8 +10,11 @@ import game.ai.utils.maybeAbilityUsage
 import gamelogic.abilities.triangle.DirectHit
 import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.Entity
+import scala.reflect.ClassTag
 
 trait TriangleAIController extends GoodAIController[Triangle] {
+
+  final val classTag: ClassTag[Triangle] = implicitly[ClassTag[Triangle]]
 
   def defaultAggressiveAbility(
       gameState: GameState,

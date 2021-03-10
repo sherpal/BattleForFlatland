@@ -21,12 +21,11 @@ import gamelogic.abilities.square.Enrage
 import gamelogic.buffs.Buff
 import scala.reflect.ClassTag
 import gamelogic.abilities.square.HammerHit
+import game.ai.goodais.classes.SquareAIController
 
-object SquareForBoss101 extends GoodAIController[Square] {
+object SquareForBoss101 extends SquareAIController {
 
   val name: PlayerName.AIPlayerName = PlayerName.AIPlayerName(PlayerClasses.Square, 0)
-
-  val classTag: ClassTag[Square] = implicitly[ClassTag[Square]]
 
   def loop(
       startingTime: Long,
@@ -41,31 +40,21 @@ object SquareForBoss101 extends GoodAIController[Square] {
 
     val actions: List[GameAction] = gameState.bosses.values.headOption match {
       case Some(theBoss) =>
-        val shouldIHammer = (for {
-          myThreatToBoss <- theBoss.damageThreats.get(me.id)
-          threatsFromOthers = theBoss.damageThreats.filterNot(_._1 == me.id).values.toList
-          if threatsFromOthers.nonEmpty
-          secondThreat <- threatsFromOthers.sorted.reverse.headOption
-          if secondThreat < myThreatToBoss - 2000
-        } yield ()).isDefined
+        val shouldIHammer = shouldIHammerTheBoss(theBoss, me)
 
         val maybeTaunt = Option
-          .unless(shouldIHammer)(
-            maybeAbilityUsage(me, Taunt(0L, startingTime, me.id, theBoss.id), gameState).startCasting
-          )
+          .unless(shouldIHammer)(maybeTauntUsage(gameState, startingTime, me, theBoss))
           .flatten
         val alreadyEnraged = gameState.allBuffsOfEntity(me.id).exists(_.resourceIdentifier == Buff.squareEnrage)
-        val maybeEnrage =
-          Option
-            .when(me.resourceAmount.amount < 5 && me.life > 180 && !alreadyEnraged)(
-              maybeAbilityUsage(me, Enrage(0L, startingTime, me.id), gameState).startCasting
-            )
-            .flatten
+        val maybeEnrage = maybeEnrageUsage(
+          gameState,
+          startingTime,
+          me,
+          me.resourceAmount.amount < 5 && me.life > 180 && !alreadyEnraged
+        )
 
         val maybeHammerHit = Option
-          .when(shouldIHammer)(
-            maybeAbilityUsage(me, HammerHit(0L, startingTime, me.id, theBoss.id), gameState).startCasting
-          )
+          .when(shouldIHammer)(maybeHammerHitUsage(gameState, startingTime, me, theBoss))
           .flatten
         maybeHammerHit.orElse(maybeTaunt).orElse(maybeEnrage).toList
       case None =>

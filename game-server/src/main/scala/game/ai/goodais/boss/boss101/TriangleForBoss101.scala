@@ -19,8 +19,6 @@ import game.ai.goodais.classes.TriangleAIController
 
 final class TriangleForBoss101(index: Int) extends TriangleAIController {
 
-  val classTag: ClassTag[Triangle] = implicitly[ClassTag[Triangle]]
-
   val name: PlayerName.AIPlayerName = PlayerName.AIPlayerName(PlayerClasses.Triangle, index)
 
   def loop(startingTime: Long, gameState: GameState, me: Triangle, sendActions: List[GameAction] => Unit): Unit = {

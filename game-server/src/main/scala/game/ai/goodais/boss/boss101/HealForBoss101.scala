@@ -20,8 +20,6 @@ import game.ai.goodais.classes.HexagonAIController
 
 final class HealForBoss101(index: Int) extends HexagonAIController {
 
-  val classTag: ClassTag[Hexagon] = implicitly[ClassTag[Hexagon]]
-
   val name: PlayerName.AIPlayerName = PlayerName.AIPlayerName(PlayerClasses.Hexagon, index)
 
   def loop(startingTime: Long, gameState: GameState, me: Hexagon, sendActions: List[GameAction] => Unit): Unit = {

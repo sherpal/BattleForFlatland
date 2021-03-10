@@ -11,8 +11,11 @@ import game.ai.utils.maybeAbilityUsage
 import gamelogic.entities.classes.Square
 import gamelogic.gamestate.gameactions.EntityStartsCasting
 import gamelogic.abilities.hexagon.HexagonHot
+import scala.reflect.ClassTag
 
 trait HexagonAIController extends GoodAIController[Hexagon] {
+
+  final val classTag: ClassTag[Hexagon] = implicitly[ClassTag[Hexagon]]
 
   def countOfMyHotOnEntity(gameState: GameState, entityId: Entity.Id, me: Hexagon): Int =
     gameState
