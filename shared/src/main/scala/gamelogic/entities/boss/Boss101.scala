@@ -101,7 +101,7 @@ object Boss101 extends BossFactory[Boss101] with BossMetadata {
         PlayerClasses.Hexagon,
         PlayerClasses.Square,
         PlayerClasses.Pentagon,
-        PlayerClasses.Triangle
+        PlayerClasses.Pentagon
       )
     )
 

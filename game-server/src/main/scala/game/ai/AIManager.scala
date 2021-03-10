@@ -120,7 +120,6 @@ object AIManager {
 
     message match {
       case HereIsTheGameState(gameState) if gameState.ended =>
-        context.log.info("Game has ended, killing all AIs")
         receiverInfo.entityControllers.foreach(context.stop)
         receiver(receiverInfo.removeAllEntityControllers.withGameState(gameState))
       case HereIsTheGameState(gameState) =>
