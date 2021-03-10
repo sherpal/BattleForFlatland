@@ -16,8 +16,9 @@ import gamelogic.buffs.DoT
 import gamelogic.entities.Entity
 import gamelogic.buffs.HoT
 import gamelogic.abilities.hexagon.FlashHeal
+import game.ai.goodais.classes.HexagonAIController
 
-final class HealForBoss101(index: Int) extends GoodAIController[Hexagon] {
+final class HealForBoss101(index: Int) extends HexagonAIController {
 
   val classTag: ClassTag[Hexagon] = implicitly[ClassTag[Hexagon]]
 
@@ -31,34 +32,21 @@ final class HealForBoss101(index: Int) extends GoodAIController[Hexagon] {
 
     val actions: List[GameAction] = gameState.bosses.values.headOption match {
       case Some(theBoss) =>
-        def countOfMyHotOnEntity(entityId: Entity.Id): Int =
-          gameState
-            .allBuffsOfEntity(entityId)
-            .collect {
-              case hot: HoT => hot
-            }
-            .count(hot => hot.sourceId == me.id && hot.resourceIdentifier == Buff.hexagonHotIdentifier)
-
-        val maybeTank = gameState.players.values
-          .collectFirst {
-            case player: Square => player
-          }
-          .filter(square => countOfMyHotOnEntity(square.id) == 0)
+        val maybeTank = maybeTankWithNotEnoughHot(gameState, me)
 
         val entityWithBossDebuffAndNoHotFromMe = gameState.players.values.find { player =>
           val buffs = gameState.allBuffsOfEntity(player.id)
-          buffs.count(_.resourceIdentifier == Buff.boss101BigDotIdentifier) > countOfMyHotOnEntity(player.id)
+          buffs.count(_.resourceIdentifier == Buff.boss101BigDotIdentifier) > countOfMyHotOnEntity(
+            gameState,
+            player.id,
+            me
+          )
         }
 
-        val putHot = (for {
-          target       <- maybeTank.orElse(entityWithBossDebuffAndNoHotFromMe)
-          abilityUsage <- maybeAbilityUsage(me, HexagonHot(0L, startingTime, me.id, target.id), gameState)
-        } yield abilityUsage).startCasting
+        val putHot =
+          putHotOnFirstDefined(gameState, me, startingTime, List(maybeTank, entityWithBossDebuffAndNoHotFromMe))
 
-        val maybeFlashHeal = for {
-          target  <- gameState.players.values.find(buddy => buddy.life < buddy.maxLife / 2)
-          ability <- maybeAbilityUsage(me, FlashHeal(0L, startingTime, me.id, target.id), gameState).startCasting
-        } yield ability
+        val maybeFlashHeal = maybeFlashHealWithThreshold(gameState, startingTime, me, 0.5)
 
         putHot.orElse(maybeFlashHeal).toList
 

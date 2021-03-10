@@ -15,8 +15,9 @@ import gamelogic.abilities.triangle.UpgradeDirectHit
 import gamelogic.abilities.triangle.DirectHit
 import gamelogic.abilities.triangle.EnergyKick
 import gamelogic.gamestate.gameactions.MovingBodyMoves
+import game.ai.goodais.classes.TriangleAIController
 
-final class TriangleForBoss101(index: Int) extends GoodAIController[Triangle] {
+final class TriangleForBoss101(index: Int) extends TriangleAIController {
 
   val classTag: ClassTag[Triangle] = implicitly[ClassTag[Triangle]]
 
@@ -30,26 +31,7 @@ final class TriangleForBoss101(index: Int) extends GoodAIController[Triangle] {
 
     val actions: List[GameAction] = gameState.bosses.values.headOption match {
       case Some(theBoss) if theBoss.pos.distanceTo(currentPosition) < WithTargetAbility.meleeRange =>
-        val shouldIBuffMyself =
-          !gameState.allBuffsOfEntity(me.id).exists(_.resourceIdentifier == Buff.triangleUpgradeDirectHit)
-
-        val maybeBuffMyself =
-          Option
-            .when(shouldIBuffMyself)(
-              maybeAbilityUsage(me, UpgradeDirectHit(0L, startingTime, me.id), gameState).startCasting
-            )
-            .flatten
-
-        val maybeDirectHit =
-          Option
-            .unless(shouldIBuffMyself)(
-              maybeAbilityUsage(
-                me,
-                DirectHit(0L, startingTime, me.id, theBoss.id, DirectHit.directHitDamage),
-                gameState
-              ).startCasting
-            )
-            .flatten
+        val maybeAggressiveAttack = defaultAggressiveAbility(gameState, me, startingTime, theBoss)
 
         val maybeFiller = maybeAbilityUsage(me, EnergyKick(0L, startingTime, me.id, theBoss.id), gameState).startCasting
 
@@ -67,8 +49,7 @@ final class TriangleForBoss101(index: Int) extends GoodAIController[Triangle] {
             )
           ),
           maybeFiller,
-          maybeBuffMyself,
-          maybeDirectHit
+          maybeAggressiveAttack
         ).flatten
 
       case Some(theBoss) =>
