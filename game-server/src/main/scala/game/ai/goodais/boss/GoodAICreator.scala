@@ -14,6 +14,8 @@ import game.ActionTranslator
 import game.ai.goodais.GoodAIController
 import game.ai.goodais.boss.boss101.PentagonForBoss101
 import game.ai.goodais.boss.boss101.TriangleForBoss101
+import gamelogic.entities.boss.dawnoftime.Boss110
+import game.ai.goodais.boss.goodaiscreators.GoodAICreatorDispatcher
 
 trait GoodAICreator[BossType <: BossMetadata] {
 
@@ -45,21 +47,18 @@ object GoodAICreator {
     def gameStateWrapper(gameState: GameState): GameStateWrapper =
       GoodAIController.GameStateWrapper(gameState)
   }
+  def defaultAICreator[BossType <: BossMetadata](
+      behavior: (Entity.Id, ActionTranslatorRef) => Behavior[GoodAIController.Command]
+  ): GoodAICreator[BossType] =
+    new DefaultAICreator[BossType](behavior)
 
   def maybeCreatorByBossMetadata(
       metadata: BossMetadata,
       playerName: PlayerName.AIPlayerName
   ): Option[GoodAICreator[_ <: BossMetadata]] =
-    (metadata, playerName) match {
-      case (Boss101, SquareForBoss101.name) =>
-        Some(new DefaultAICreator[Boss101.type](SquareForBoss101(_, _)))
-      case (Boss101, PlayerName.AIPlayerName(PlayerClasses.Hexagon, index)) =>
-        Some(new DefaultAICreator[Boss101.type](new HealForBoss101(index)(_, _)))
-      case (Boss101, PlayerName.AIPlayerName(PlayerClasses.Pentagon, index)) =>
-        Some(new DefaultAICreator[Boss101.type](new PentagonForBoss101(index)(_, _)))
-      case (Boss101, PlayerName.AIPlayerName(PlayerClasses.Triangle, index)) =>
-        Some(new DefaultAICreator[Boss101.type](new TriangleForBoss101(index)(_, _)))
-      case _ => Option.empty
-    }
+    for {
+      dispatcher <- GoodAICreatorDispatcher.maybeDispatcherByMetadata(metadata)
+      creator    <- dispatcher.maybeCreator(playerName)
+    } yield creator
 
 }

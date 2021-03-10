@@ -40,17 +40,16 @@ object SquareForBoss101 extends SquareAIController {
 
     val actions: List[GameAction] = gameState.bosses.values.headOption match {
       case Some(theBoss) =>
-        val shouldIHammer = shouldIHammerTheBoss(theBoss, me)
+        val shouldIHammer = shouldIHammerThisTarget(theBoss, me)
 
         val maybeTaunt = Option
           .unless(shouldIHammer)(maybeTauntUsage(gameState, startingTime, me, theBoss))
           .flatten
-        val alreadyEnraged = gameState.allBuffsOfEntity(me.id).exists(_.resourceIdentifier == Buff.squareEnrage)
         val maybeEnrage = maybeEnrageUsage(
           gameState,
           startingTime,
           me,
-          me.resourceAmount.amount < 5 && me.life > 180 && !alreadyEnraged
+          me.resourceAmount.amount < 5 && me.life > 180 && !alreadyEnraged(gameState, me)
         )
 
         val maybeHammerHit = Option

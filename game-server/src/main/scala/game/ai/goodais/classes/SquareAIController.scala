@@ -10,18 +10,24 @@ import gamelogic.entities.Entity
 import gamelogic.abilities.square.Taunt
 import gamelogic.abilities.square.Enrage
 import gamelogic.abilities.square.HammerHit
+import gamelogic.abilities.square.Cleave
+import gamelogic.buffs.Buff
+import gamelogic.entities.WithThreat
 
 trait SquareAIController extends GoodAIController[Square] {
   final val classTag: ClassTag[Square] = implicitly[ClassTag[Square]]
 
-  def shouldIHammerTheBoss(theBoss: BossEntity, me: Square, threshold: Double = 2000): Boolean =
+  def shouldIHammerThisTarget(target: WithThreat, me: Square, threshold: Double = 2000): Boolean =
     (for {
-      myThreatToBoss <- theBoss.damageThreats.get(me.id)
-      threatsFromOthers = theBoss.damageThreats.filterNot(_._1 == me.id).values.toList
+      myThreatToBoss <- target.damageThreats.get(me.id)
+      threatsFromOthers = target.damageThreats.filterNot(_._1 == me.id).values.toList
       if threatsFromOthers.nonEmpty
       secondThreat <- threatsFromOthers.sorted.reverse.headOption
       if secondThreat < myThreatToBoss - threshold
     } yield ()).isDefined
+
+  def alreadyEnraged(gameState: GameState, me: Square): Boolean =
+    buffsOnMe(gameState, me).exists(_.resourceIdentifier == Buff.squareEnrage)
 
   final def maybeTauntUsage(gameState: GameState, time: Long, me: Square, target: Entity) =
     maybeAbilityUsage(me, Taunt(0L, time, me.id, target.id), gameState).startCasting
@@ -35,5 +41,8 @@ trait SquareAIController extends GoodAIController[Square] {
 
   final def maybeHammerHitUsage(gameState: GameState, time: Long, me: Square, target: Entity) =
     maybeAbilityUsage(me, HammerHit(0L, time, me.id, target.id), gameState).startCasting
+
+  final def maybeCleaveUsage(gameState: GameState, time: Long, me: Square, direction: Double) =
+    maybeAbilityUsage(me, Cleave(0L, time, me.id, me.pos, direction), gameState).startCasting
 
 }

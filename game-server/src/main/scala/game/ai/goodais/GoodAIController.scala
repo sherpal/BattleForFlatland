@@ -19,6 +19,7 @@ import models.bff.outofgame.gameconfig.PlayerName
 import game.ai.goodais.boss.GoodAICreator.ActionTranslatorRef
 import game.ActionTranslator
 import zio.duration._
+import gamelogic.buffs.Buff
 
 trait GoodAIController[EntityType <: MovingBody] {
 
@@ -44,6 +45,16 @@ trait GoodAIController[EntityType <: MovingBody] {
     def startCasting: Option[EntityStartsCasting] = maybeAbility.map(
       ability => EntityStartsCasting(0L, ability.time, ability.castingTime, ability)
     )
+  }
+
+  protected implicit class IterableEnhanced[T](elements: Iterable[T]) {
+    def avg(implicit fractional: Fractional[T]): T =
+      if (elements.isEmpty) fractional.zero
+      else {
+        val sum    = elements.sum
+        val length = fractional.fromInt(elements.size)
+        fractional.div(sum, length)
+      }
   }
 
   /**
@@ -125,6 +136,24 @@ trait GoodAIController[EntityType <: MovingBody] {
       me: EntityType,
       sendActions: List[GameAction] => Unit
   ): Unit
+
+  /**
+    * Returns a triplet containing information about the current and past positions of the entity
+    *
+    * @param time current time (of the loop)
+    * @param me instance of the entity type this controller controls
+    * @return the previous position of the AI (in last loop) and the current position (now)
+    */
+  final def someDistanceInfo(time: Long, me: EntityType): (Complex, Complex) = {
+    val previousPosition = me.pos
+    val currentPosition  = me.currentPosition(time)
+
+    (previousPosition, currentPosition)
+  }
+
+  final def buffsOnMe(gameState: GameState, me: EntityType): List[Buff] =
+    gameState.allBuffsOfEntity(me.id).toList
+
 }
 
 object GoodAIController {
