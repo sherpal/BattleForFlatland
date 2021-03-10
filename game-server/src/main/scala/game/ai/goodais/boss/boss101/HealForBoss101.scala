@@ -15,6 +15,7 @@ import gamelogic.buffs.Buff
 import gamelogic.buffs.DoT
 import gamelogic.entities.Entity
 import gamelogic.buffs.HoT
+import gamelogic.abilities.hexagon.FlashHeal
 
 final class HealForBoss101(index: Int) extends GoodAIController[Hexagon] {
 
@@ -54,7 +55,12 @@ final class HealForBoss101(index: Int) extends GoodAIController[Hexagon] {
           abilityUsage <- maybeAbilityUsage(me, HexagonHot(0L, startingTime, me.id, target.id), gameState)
         } yield abilityUsage).startCasting
 
-        putHot.toList
+        val maybeFlashHeal = for {
+          target  <- gameState.players.values.find(buddy => buddy.life < buddy.maxLife / 2)
+          ability <- maybeAbilityUsage(me, FlashHeal(0L, startingTime, me.id, target.id), gameState).startCasting
+        } yield ability
+
+        putHot.orElse(maybeFlashHeal).toList
 
       case None =>
         val targetPosition = Boss101.bossStartingPosition - 100.i + (index - 0.5) * 60

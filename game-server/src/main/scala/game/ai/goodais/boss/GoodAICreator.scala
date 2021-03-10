@@ -13,6 +13,7 @@ import akka.actor.typed.Behavior
 import game.ActionTranslator
 import game.ai.goodais.GoodAIController
 import game.ai.goodais.boss.boss101.PentagonForBoss101
+import game.ai.goodais.boss.boss101.TriangleForBoss101
 
 trait GoodAICreator[BossType <: BossMetadata] {
 
@@ -33,28 +34,14 @@ object GoodAICreator {
 
   type ActionTranslatorRef = ActorRef[ActionTranslator.GameActionsWrapper]
 
-  val squareForBoss101Creator = new GoodAICreator[Boss101.type] {
+  private class DefaultAICreator[BossType <: BossMetadata](
+      behavior: (Entity.Id, ActionTranslatorRef) => Behavior[GoodAIController.Command]
+  ) extends GoodAICreator[BossType] {
     type GameStateWrapper = GoodAIController.GameStateWrapper
     def apply(
         entityId: Entity.Id,
         actionCollector: ActionTranslatorRef
-    ): Behavior[GameStateWrapper] = SquareForBoss101(entityId, actionCollector).narrow[GameStateWrapper]
-    def gameStateWrapper(gameState: GameState): GameStateWrapper =
-      GoodAIController.GameStateWrapper(gameState)
-  }
-
-  private def hexagonForBoss101Creator(index: Int) = new GoodAICreator[Boss101.type] {
-    type GameStateWrapper = GoodAIController.GameStateWrapper
-    def apply(entityId: Entity.Id, actionCollector: ActionTranslatorRef): Behavior[GameStateWrapper] =
-      new HealForBoss101(index).apply(entityId, actionCollector).narrow[GameStateWrapper]
-    def gameStateWrapper(gameState: GameState): GameStateWrapper =
-      GoodAIController.GameStateWrapper(gameState)
-  }
-
-  private def pentagonForBoss101Creator(index: Int) = new GoodAICreator[Boss101.type] {
-    type GameStateWrapper = GoodAIController.GameStateWrapper
-    def apply(entityId: Entity.Id, actionCollector: ActionTranslatorRef): Behavior[GameStateWrapper] =
-      new PentagonForBoss101(index)(entityId, actionCollector).narrow[GameStateWrapper]
+    ): Behavior[GameStateWrapper] = behavior(entityId, actionCollector).narrow[GameStateWrapper]
     def gameStateWrapper(gameState: GameState): GameStateWrapper =
       GoodAIController.GameStateWrapper(gameState)
   }
@@ -65,11 +52,13 @@ object GoodAICreator {
   ): Option[GoodAICreator[_ <: BossMetadata]] =
     (metadata, playerName) match {
       case (Boss101, SquareForBoss101.name) =>
-        Some(squareForBoss101Creator)
+        Some(new DefaultAICreator[Boss101.type](SquareForBoss101(_, _)))
       case (Boss101, PlayerName.AIPlayerName(PlayerClasses.Hexagon, index)) =>
-        Some(hexagonForBoss101Creator(index))
+        Some(new DefaultAICreator[Boss101.type](new HealForBoss101(index)(_, _)))
       case (Boss101, PlayerName.AIPlayerName(PlayerClasses.Pentagon, index)) =>
-        Some(pentagonForBoss101Creator(index))
+        Some(new DefaultAICreator[Boss101.type](new PentagonForBoss101(index)(_, _)))
+      case (Boss101, PlayerName.AIPlayerName(PlayerClasses.Triangle, index)) =>
+        Some(new DefaultAICreator[Boss101.type](new TriangleForBoss101(index)(_, _)))
       case _ => Option.empty
     }
 
