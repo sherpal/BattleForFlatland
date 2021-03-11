@@ -154,6 +154,20 @@ trait GoodAIController[EntityType <: MovingBody] {
   final def buffsOnMe(gameState: GameState, me: EntityType): List[Buff] =
     gameState.allBuffsOfEntity(me.id).toList
 
+  final def stopMoving(time: Long, me: EntityType, currentPosition: Complex, rotation: Double) =
+    Option.when(me.moving)(
+      MovingBodyMoves(
+        0L,
+        time,
+        me.id,
+        currentPosition,
+        rotation,
+        rotation,
+        me.speed,
+        moving = false
+      )
+    )
+
 }
 
 object GoodAIController {

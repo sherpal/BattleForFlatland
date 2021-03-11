@@ -130,7 +130,7 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
 
   final val shape: Circle = new Circle(30.0)
 
-  final val maxLife: Double = 100_000
+  final val maxLife: Double = 50_000
 
   val intendedFor = 10 // players
 

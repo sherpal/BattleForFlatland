@@ -11,6 +11,8 @@ import gamelogic.abilities.triangle.DirectHit
 import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.Entity
 import scala.reflect.ClassTag
+import gamelogic.abilities.triangle.EnergyKick
+import gamelogic.abilities.triangle.Stun
 
 trait TriangleAIController extends GoodAIController[Triangle] {
 
@@ -45,5 +47,11 @@ trait TriangleAIController extends GoodAIController[Triangle] {
 
     maybeBuffMyself.orElse(maybeDirectHit)
   }
+
+  def maybeEnergyKickUsage(gameState: GameState, time: Long, me: Triangle, target: Entity) =
+    maybeAbilityUsage(me, EnergyKick(0L, time, me.id, target.id), gameState).startCasting
+
+  def maybeStunUsage(gameState: GameState, time: Long, me: Triangle, target: Entity) =
+    maybeAbilityUsage(me, Stun(0L, time, me.id, target.id), gameState).startCasting
 
 }

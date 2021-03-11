@@ -67,7 +67,7 @@ final class GameStateManager(
 
   def serverTime: Long = System.currentTimeMillis() + deltaTimeWithServer
 
-  private var actionCollector = ImmutableActionCollector(initialGameState)
+  private var actionCollector = ImmutableActionCollector(initialGameState, timeBetweenGameStates = 200)
   private val gameDrawer = new GameDrawer(
     reactiveStage,
     resources,

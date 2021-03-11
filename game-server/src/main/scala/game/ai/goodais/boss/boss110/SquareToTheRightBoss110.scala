@@ -42,7 +42,7 @@ object SquareToTheRightBoss110 extends SquareAIController {
           case bigGuy :: _             => bigGuy // we are probably going to die soon anyway
         }
 
-        val shouldIHammer = shouldIHammerThisTarget(target, me)
+        val shouldIHammer = shouldIHammerThisTarget(target, me, threshold = 10000)
         val maybeTaunt = Option
           .unless(shouldIHammer)(maybeTauntUsage(gameState, startingTime, me, target))
           .flatten
