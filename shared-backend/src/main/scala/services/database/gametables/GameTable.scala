@@ -9,6 +9,7 @@ import errors.ErrorADT.{
   YouAreNotInGame
 }
 import models.bff.outofgame.gameconfig.{GameConfiguration, PlayerInfo}
+import models.bff.outofgame.gameconfig.PlayerName.HumanPlayerName
 import models.bff.outofgame.{DBMenuGame, MenuGame, MenuGameWithPlayers}
 import models.syntax.Pointed
 import models.users.User
@@ -131,7 +132,7 @@ object GameTable {
         now              <- currentDateTime.map(_.toLocalDateTime)
         userInGameTable  <- UIO(UserInGameTable(gameId, user.userId, now))
         added            <- addUsersInGameTables(userInGameTable)
-        _                <- modifyGameConfiguration(gameId, game.gameConfiguration.addPlayer(user.userName))
+        _                <- modifyGameConfiguration(gameId, game.gameConfiguration.addPlayer(HumanPlayerName(user.userName)))
       } yield added
 
     final def modifyPlayerInfo(gameId: String, user: User, playerInfo: PlayerInfo): ZIO[Any, Throwable, Unit] =
@@ -182,7 +183,8 @@ object GameTable {
             )
             maybeUserName <- userNameFiber.join
             _ <- maybeUserName.fold(Task(0))(
-              userName => modifyGameConfiguration(gameId, game.gameConfiguration.removePlayer(userName))
+              userName =>
+                modifyGameConfiguration(gameId, game.gameConfiguration.removePlayer(HumanPlayerName(userName)))
             )
           } yield ()
       } yield game.gameCreator.userId == userId

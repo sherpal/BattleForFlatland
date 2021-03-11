@@ -56,10 +56,10 @@ case class CreatePentagonBullet(
 object CreatePentagonBullet {
 
   final val cooldown    = 0L
-  final val castingTime = 500L
+  final val castingTime = 1000L
 
   final val cost = Resource.ResourceAmount(2.0, Resource.Mana)
 
-  final def damage: Double = 40.0 // approx match triangle direct hit
+  final def damage: Double = 80.0 // approx match triangle direct hit
 
 }

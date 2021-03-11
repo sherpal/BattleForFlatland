@@ -27,6 +27,7 @@ final case class UpgradeDirectHit(useId: Ability.UseId, time: Long, casterId: En
       time,
       idGeneratorContainer.buffIdGenerator(),
       casterId,
+      casterId,
       time,
       Buff.triangleUpgradeDirectHit
     ) :: Nil

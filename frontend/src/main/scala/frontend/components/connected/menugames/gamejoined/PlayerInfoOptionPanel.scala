@@ -19,6 +19,7 @@ import org.scalajs.dom.html.{Element, Select}
 import services.localstorage._
 import utils.misc.{RGBAColour, RGBColour}
 import zio.{CancelableFuture, UIO, ZIO}
+import models.bff.outofgame.gameconfig.PlayerType
 
 /**
   * This component is displayed in the GameJoined component, and allows the player to select the game configuration
@@ -51,12 +52,14 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
   def changeColour(colour: RGBColour): PlayerInfo => PlayerInfo            = _.copy(maybePlayerColour = Some(colour))
   def changeClass(playerClass: PlayerClasses): PlayerInfo => PlayerInfo    = _.copy(maybePlayerClass = Some(playerClass))
   def overridePlayerInfo(playerInfo: PlayerInfo): PlayerInfo => PlayerInfo = _ => playerInfo
+  def changePlayerType(playerType: PlayerType): PlayerInfo => PlayerInfo   = _.copy(playerType = playerType)
 
   val changerBus: EventBus[PlayerInfo => PlayerInfo] = new EventBus
   val readyStateWriter: Observer[PlayerStatus]       = changerBus.writer.contramap(changeReadyState)
   val playerClassWriter: Observer[PlayerClasses]     = changerBus.writer.contramap(changeClass)
   val colourWriter: Observer[RGBAColour]             = changerBus.writer.contramap(changeColour).contramap(_.withoutAlpha)
   val overrideWriter: Observer[PlayerInfo]           = changerBus.writer.contramap(overridePlayerInfo)
+  val playerTypeWriter: Observer[PlayerType]         = changerBus.writer.contramap(changePlayerType)
 
   val $playerInfo: Signal[PlayerInfo] = changerBus.events.fold(initialPlayerInfo) { (info, changer) =>
     changer(info)
@@ -66,6 +69,13 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
 
   def storePlayerClassChoice(playerClasses: PlayerClasses): CancelableFuture[Unit] =
     storeElement(playerClassStorageKey, playerClasses)
+
+  val typeSelector = select(
+    disabled <-- $playerInfo.map(_.isReady),
+    List(PlayerType.Human, PlayerType.Observer).map(_.toString).map(tpe => option(value := tpe, tpe)),
+    inContext(elem => onChange.mapTo(elem.ref.value).map(PlayerType.unsafePlayerTypeByName) --> playerTypeWriter),
+    value <-- $playerInfo.changes.map(_.playerType).map(_.toString)
+  )
 
   /**
     * This is the selector for the Player class.
@@ -214,6 +224,10 @@ final class PlayerInfoOptionPanel private (initialPlayerInfo: PlayerInfo, player
       ),
       "Ready: ",
       ToggleButton(readyStateWriter.contramap(PlayerStatus.fromBoolean), initialPlayerInfo.isReady),
+      div(
+        "Player or Observer:",
+        typeSelector
+      ),
       div(
         "Choose a class:",
         classSelector

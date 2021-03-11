@@ -66,8 +66,7 @@ object Server extends zio.App {
           actorSystem <- ZIO.service[ActorSystem[ServerBehavior.ServerMessage]]
           _           <- putStrLn("""Execute curl -X POST "http://localhost:22222/stop" to close the server.""")
           allGameInfo <- setup.fetchGameInfo(credentials, actorSystem)
-          _ <- if (allGameInfo.gameInfo.game.gameConfiguration.isValid) ZIO.unit
-          else ZIO.fail(InvalidGameConfiguration)
+          _           <- ZIO.unless(allGameInfo.gameInfo.game.gameConfiguration.isValid)(ZIO.fail(InvalidGameConfiguration))
           _ <- ZIO.effectTotal(
             actorSystem ! ServerBehavior.ReceivedCredentials(
               allGameInfo.gameInfo.players,
@@ -76,10 +75,10 @@ object Server extends zio.App {
             )
           )
           _ <- server.waitForServerToStop(actorSystem)
-        } yield 0)
-          .catchAll(error => putStrLn(error.toString) *> UIO(1)) // todo: warn server that something went wrong
-          .provideLayer(layer): URIO[ZEnv, Int]
-      case None => UIO(1)
-    }).map(ExitCode(_))
+        } yield ExitCode.success)
+          .catchAll(error => putStrLn(error.toString) *> UIO(ExitCode.failure)) // todo: warn server that something went wrong
+          .provideLayer(layer)
+      case None => UIO(ExitCode.failure)
+    })
 
 }

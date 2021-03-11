@@ -31,6 +31,8 @@ final case class EntityStartsCasting(id: GameAction.Id, time: Long, castingTime:
       )
       .orElse(ability.canBeCast(gameState, time))
 
+  def isLegalBoolean(gameState: GameState): Boolean = isLegal(gameState).isEmpty
+
   /**
     * Checks whether the caster will be authorized to cast this ability in `delay` milliseconds.
     */

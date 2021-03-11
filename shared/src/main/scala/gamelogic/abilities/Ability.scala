@@ -5,6 +5,7 @@ import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 import io.circe.{Decoder, Encoder, Json}
+import scala.annotation.tailrec
 
 /**
   * A [[gamelogic.abilities.Ability]] represents an action that an entity can take besides moving.
@@ -71,6 +72,23 @@ trait Ability {
     */
   def canBeCast(gameState: GameState, time: Long): Option[String]
 
+  protected def canBeCastAll(gameState: GameState, time: Long)(
+      checks: (GameState, Long) => Option[String]*
+  ): Option[String] = {
+    @tailrec
+    def canBeCastAllList(remainingChecks: List[(GameState, Long) => Option[String]]): Option[String] =
+      remainingChecks match {
+        case Nil => None
+        case head :: tail =>
+          head(gameState, time) match {
+            case Some(value) => Some(value)
+            case None        => canBeCastAllList(tail)
+          }
+      }
+
+    canBeCastAllList(checks.toList)
+  }
+
   /**
     * Returns whether this ability can be cast at that time with this [[GameState]].
     */
@@ -90,31 +108,37 @@ object Ability {
 
   def abilityIdCount: AbilityId = lastAbilityId
 
-  val simpleBulletId: AbilityId           = nextAbilityId()
-  val hexagonFlashHealId: AbilityId       = nextAbilityId()
-  val hexagonHexagonHotId: AbilityId      = nextAbilityId()
-  val squareTauntId: AbilityId            = nextAbilityId()
-  val squareHammerHit: AbilityId          = nextAbilityId()
-  val boss101BigHitId: AbilityId          = nextAbilityId()
-  val boss101BigDotId: AbilityId          = nextAbilityId()
-  val triangleDirectHit: AbilityId        = nextAbilityId()
-  val triangleEnergyKick: AbilityId       = nextAbilityId()
-  val triangleUpgradeDirectHit: AbilityId = nextAbilityId()
-  val triangleStun: AbilityId             = nextAbilityId()
-  val pentagonPentagonBullet: AbilityId   = nextAbilityId()
-  val boss101SmallHitId: AbilityId        = nextAbilityId()
-  val squareEnrageId: AbilityId           = nextAbilityId()
-  val boss102PutDamageZones: AbilityId    = nextAbilityId()
-  val boss102SpawnBossHound: AbilityId    = nextAbilityId()
-  val autoAttackId: AbilityId             = nextAbilityId()
-  val squareCleaveId: AbilityId           = nextAbilityId()
-  val createPentagonZoneId: AbilityId     = nextAbilityId()
-  val putLivingDamageZoneId: AbilityId    = nextAbilityId()
-  val boss103CleansingNovaId: AbilityId   = nextAbilityId()
-  val boss103PunishmentId: AbilityId      = nextAbilityId()
-  val boss103SacredGroundId: AbilityId    = nextAbilityId()
-  val boss103HolyFlameId: AbilityId       = nextAbilityId()
-  val pentagonDispelId: AbilityId         = nextAbilityId()
+  val simpleBulletId: AbilityId            = nextAbilityId()
+  val hexagonFlashHealId: AbilityId        = nextAbilityId()
+  val hexagonHexagonHotId: AbilityId       = nextAbilityId()
+  val squareTauntId: AbilityId             = nextAbilityId()
+  val squareHammerHit: AbilityId           = nextAbilityId()
+  val boss101BigHitId: AbilityId           = nextAbilityId()
+  val boss101BigDotId: AbilityId           = nextAbilityId()
+  val triangleDirectHit: AbilityId         = nextAbilityId()
+  val triangleEnergyKick: AbilityId        = nextAbilityId()
+  val triangleUpgradeDirectHit: AbilityId  = nextAbilityId()
+  val triangleStun: AbilityId              = nextAbilityId()
+  val pentagonPentagonBullet: AbilityId    = nextAbilityId()
+  val boss101SmallHitId: AbilityId         = nextAbilityId()
+  val squareEnrageId: AbilityId            = nextAbilityId()
+  val boss102PutDamageZones: AbilityId     = nextAbilityId()
+  val boss102SpawnBossHound: AbilityId     = nextAbilityId()
+  val autoAttackId: AbilityId              = nextAbilityId()
+  val squareCleaveId: AbilityId            = nextAbilityId()
+  val createPentagonZoneId: AbilityId      = nextAbilityId()
+  val putLivingDamageZoneId: AbilityId     = nextAbilityId()
+  val boss103CleansingNovaId: AbilityId    = nextAbilityId()
+  val boss103PunishmentId: AbilityId       = nextAbilityId()
+  val boss103SacredGroundId: AbilityId     = nextAbilityId()
+  val boss103HolyFlameId: AbilityId        = nextAbilityId()
+  val pentagonDispelId: AbilityId          = nextAbilityId()
+  val boss110SpawnBigGuies: AbilityId      = nextAbilityId()
+  val boss110BigGuyBrokenArmor: AbilityId  = nextAbilityId()
+  val boss110PlaceBombPods: AbilityId      = nextAbilityId()
+  val boss110ExplodeBombs: AbilityId       = nextAbilityId()
+  val boss110SpawnSmallGuies: AbilityId    = nextAbilityId()
+  val boss110CreepingShadowTick: AbilityId = nextAbilityId()
 
   /** Global cooldown. Not sure if this should be there... */
   @inline def gcd = 200L

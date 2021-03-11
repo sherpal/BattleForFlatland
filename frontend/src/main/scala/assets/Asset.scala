@@ -8,6 +8,7 @@ import scala.language.implicitConversions
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 import scala.util.Try
+import scala.tools.nsc.doc.html.HtmlTags.Li
 
 sealed trait Asset {
   val name: String
@@ -134,6 +135,15 @@ object Asset {
             // object sacredGroundArea extends Asset
             val sacredGroundArea = Asset("assets/in-game/gui/boss/dawn-of-time/boss103/sacred-ground.png")
           }
+
+          object boss110 {
+
+            val brokenArmor = Asset("assets/in-game/gui/boss/dawn-of-time/boss110/broken-armor.png")
+            val bigGuy      = Asset("assets/in-game/gui/boss/dawn-of-time/boss110/big-guy.png")
+            val smallGuy    = Asset("assets/in-game/gui/boss/dawn-of-time/boss110/small-guy.png")
+            val bombPod     = Asset("assets/in-game/gui/boss/dawn-of-time/boss110/bomb-pod.png")
+
+          }
         }
       }
 
@@ -211,7 +221,8 @@ object Asset {
     Buff.boss102LivingDamageZone -> ingame.gui.boss.dawnOfTime.boss102.livingDamageZone,
     Buff.boss103Punished -> ingame.gui.boss.dawnOfTime.boss103.punished,
     Buff.boss103Purified -> ingame.gui.boss.dawnOfTime.boss103.purified,
-    Buff.boss103Inflamed -> ingame.gui.boss.dawnOfTime.boss103.inflamed
+    Buff.boss103Inflamed -> ingame.gui.boss.dawnOfTime.boss103.inflamed,
+    Buff.boss110BrokenArmor -> ingame.gui.boss.dawnOfTime.boss110.brokenArmor
   )
 
   val markerAssetMap: Map[GameMarker, Asset] = Map(
@@ -221,6 +232,12 @@ object Asset {
     GameMarker.Square -> ingame.gui.markers.markerSquare,
     GameMarker.Star -> ingame.gui.markers.markerStar,
     GameMarker.Triangle -> ingame.gui.markers.markerTriangle
+  )
+
+  val units: List[Asset] = List(
+    ingame.gui.boss.dawnOfTime.boss110.bigGuy,
+    ingame.gui.boss.dawnOfTime.boss110.bombPod,
+    ingame.gui.boss.dawnOfTime.boss110.smallGuy
   )
 
 }

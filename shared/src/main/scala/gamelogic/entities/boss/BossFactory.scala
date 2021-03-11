@@ -9,6 +9,7 @@ import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
 import gamelogic.gamestate.GameState
+import gamelogic.entities.boss.dawnoftime.Boss110
 
 trait BossFactory[Boss <: BossEntity] {
 
@@ -21,6 +22,8 @@ trait BossFactory[Boss <: BossEntity] {
   /**
     * Describes all actions to take immediately after creating the boss.
     * These actions will most probably contain the heal aware and threat aware buffs.
+    *
+    * @param entityId id of the boss that was created.
     */
   def initialBossActions(entityId: Entity.Id, time: Long, idGeneratorContainer: IdGeneratorContainer): List[GameAction]
 
@@ -58,8 +61,8 @@ trait BossFactory[Boss <: BossEntity] {
       time: Long,
       idGeneratorContainer: IdGeneratorContainer
   ): List[GameAction] = List(
-    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.healingThreatAware),
-    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, time, Buff.damageThreatAware)
+    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, entityId, time, Buff.healingThreatAware),
+    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, entityId, time, Buff.damageThreatAware)
   )
 
 }
@@ -71,7 +74,8 @@ object BossFactory {
     Boss101Dev,
     Boss101,
     Boss102,
-    Boss103
+    Boss103,
+    Boss110
   ).map(factory => factory.name -> factory).toMap
 
 }

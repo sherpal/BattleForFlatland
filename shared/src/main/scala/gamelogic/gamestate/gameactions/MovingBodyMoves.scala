@@ -7,6 +7,7 @@ import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
+import gamelogic.entities.boss.boss110.CreepingShadow
 
 final case class MovingBodyMoves(
     id: GameAction.Id,
@@ -26,8 +27,9 @@ final case class MovingBodyMoves(
       }
 
   def isLegal(gameState: GameState): Option[String] = gameState.movingBodyEntityById(entityId) match {
-    case None                => Some(s"Entity $entityId does not exist, or it is not a moving body")
-    case Some(_: BossEntity) => None
+    case None                    => Some(s"Entity $entityId does not exist, or it is not a moving body")
+    case Some(_: BossEntity)     => None
+    case Some(_: CreepingShadow) => None
     case Some(movingBody) =>
       val afterMovement = movingBody.move(time, position, direction, rotation, speed, moving)
       Option.unless(gameState.obstaclesLike.forall(obstacle => !obstacle.collides(afterMovement, time)))(

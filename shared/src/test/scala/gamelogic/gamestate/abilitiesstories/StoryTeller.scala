@@ -11,6 +11,9 @@ import gamelogic.abilities.Ability
 import gamelogic.gamestate.GameState
 import gamelogic.entities.Entity
 import gamelogic.entities.boss.Boss101
+import gamelogic.gamestate.gameactions.MovingBodyMoves
+import gamelogic.entities.WithPosition.Angle
+import gamelogic.physics.Complex
 
 /**
   * Contains lots of facility methods for game action stories specs.
@@ -43,6 +46,17 @@ trait StoryTeller extends munit.FunSuite {
     )
   def addBoss101(time: Long): SpawnBoss =
     SpawnBoss(idGenerator.gameActionIdGenerator(), time, idGenerator.entityIdGenerator(), Boss101.name)
+
+  def entityMoves(
+      time: Long,
+      entityId: Entity.Id,
+      position: Complex,
+      direction: Angle,
+      rotation: Angle,
+      speed: Double,
+      moving: Boolean
+  ): MovingBodyMoves =
+    MovingBodyMoves(idGenerator.gameActionIdGenerator(), time, entityId, position, direction, rotation, speed, moving)
 
   def nextUseId() = idGenerator.abilityUseIdGenerator()
 

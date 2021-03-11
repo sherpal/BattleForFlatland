@@ -8,6 +8,7 @@ import typings.pixiJs.PIXI.DisplayObject
 import scala.scalajs.js.JSConverters._
 import scala.scalajs.js.|
 import gamelogic.entities.Entity
+import typings.pixiJs.mod.Sprite
 
 trait Drawer {
 

@@ -11,7 +11,8 @@ import gamelogic.utils.IdGeneratorContainer
   * Each time the bearer takes damage, it adds a amount of threat towards the source of the damage proportional to
   * the amount of damage.
   */
-final case class DamageThreatAware(buffId: Buff.Id, bearerId: Entity.Id, appearanceTime: Long) extends PassiveBuff {
+final case class DamageThreatAware(buffId: Buff.Id, bearerId: Entity.Id, sourceId: Entity.Id, appearanceTime: Long)
+    extends PassiveBuff {
 
   def endingAction(gameState: GameState, time: Long)(
       implicit idGeneratorContainer: IdGeneratorContainer

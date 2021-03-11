@@ -4,7 +4,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import game.ActionTranslator
 import game.ai.AIControllerMessage
-import game.ai.AIManager.loopRate
+import game.ai.AIManager
 import game.ai.utils.findTarget
 import game.ai.utils.pathfinders.PathFinder
 import gamelogic.entities.classes.PlayerClass
@@ -16,6 +16,7 @@ import gamelogic.physics.Complex
 import gamelogic.physics.pathfinding.Graph
 
 import scala.concurrent.duration._
+import gamelogic.abilities.Ability
 
 /**
   * The AIController trait contains all the boilerplate that you need for implementing an AI.
@@ -27,8 +28,14 @@ import scala.concurrent.duration._
   */
 trait AIController[
     EntityType <: MovingBody with WithThreat with WithPosition,
-    InitialAction <: GameAction with EntityCreatorAction
+    InitialAction <: EntityCreatorAction
 ] {
+
+  protected implicit class StartCasting(maybeAbility: Option[Ability]) {
+    def startCasting: Option[EntityStartsCasting] = maybeAbility.map(
+      ability => EntityStartsCasting(0L, ability.time, ability.castingTime, ability)
+    )
+  }
 
   protected def takeActions(
       currentGameState: GameState,
@@ -43,6 +50,8 @@ trait AIController[
   protected def getMe(gameState: GameState, entityId: Entity.Id): Option[EntityType]
 
   @inline private def now = System.currentTimeMillis
+
+  def loopRate = AIManager.loopRate
 
   def apply(
       actionTranslator: ActorRef[ActionTranslator.Message],

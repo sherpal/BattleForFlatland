@@ -15,6 +15,7 @@ import gamelogic.buffs.abilities.classes.TriangleStunDebuff
 import gamelogic.buffs.Buff
 import gamelogic.gamestate.gameactions.RemoveBuff
 import gamelogic.gamestate.gameactions.EntityCastingInterrupted
+import gamelogic.gamestate.gameactions.MovingBodyMoves
 
 /**
   * Impeach the target from doing anything for the next 20 seconds.
@@ -42,7 +43,7 @@ final case class Stun(useId: Ability.UseId, time: Long, casterId: Entity.Id, tar
       currentDebuffOfPreviousTarget <- gameState.passiveBuffs.get(previousTargetId)
       actions = currentDebuffOfPreviousTarget.values
         .collect {
-          case debuff: TriangleStunDebuff => debuff.buffId
+          case debuff: TriangleStunDebuff if debuff.sourceId == caster.id => debuff.buffId
         }
         .map(buffId => RemoveBuff(idGeneratorContainer.gameActionIdGenerator(), time, previousTargetId, buffId))
     } yield actions).toList.flatten ++
@@ -51,12 +52,25 @@ final case class Stun(useId: Ability.UseId, time: Long, casterId: Entity.Id, tar
         Option.when(gameState.entityIsCasting(targetId))(
           EntityCastingInterrupted(idGeneratorContainer.gameActionIdGenerator(), time, targetId)
         ),
+        for {
+          target <- gameState.movingBodyEntityById(targetId)
+        } yield MovingBodyMoves(
+          idGeneratorContainer.gameActionIdGenerator(),
+          time,
+          target.id,
+          target.currentPosition(time),
+          target.direction,
+          target.rotation,
+          target.speed,
+          moving = false
+        ),
         Some(
           PutSimpleBuff(
             idGeneratorContainer.gameActionIdGenerator(),
             time,
             idGeneratorContainer.buffIdGenerator(),
             targetId,
+            casterId,
             time,
             Buff.triangleStun
           )
@@ -76,6 +90,6 @@ final case class Stun(useId: Ability.UseId, time: Long, casterId: Entity.Id, tar
 object Stun {
 
   @inline def cooldown: Long       = 10000L
-  @inline def cost: ResourceAmount = ResourceAmount(50.0, Energy)
+  @inline def cost: ResourceAmount = ResourceAmount(20.0, Energy)
   @inline def range: Distance      = 300.0
 }

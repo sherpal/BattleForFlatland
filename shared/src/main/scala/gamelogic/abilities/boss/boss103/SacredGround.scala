@@ -2,7 +2,7 @@ package gamelogic.abilities.boss.boss103
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.{AbilityId, UseId}
-import gamelogic.docs.AbilityMetadata
+import gamelogic.docs.{AbilityInfoFromMetadata, AbilityMetadata}
 import gamelogic.entities.boss.dawnoftime.Boss103
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.EntityTakesDamage
@@ -21,12 +21,9 @@ import gamelogic.utils.IdGeneratorContainer
   * - 5 if more than two players are hit.
   */
 final case class SacredGround(useId: Ability.UseId, time: Long, casterId: Entity.Id, position: Complex, radius: Double)
-    extends Ability {
-  def abilityId: AbilityId = Ability.boss103SacredGroundId
-
-  def cooldown: Long = SacredGround.cooldown
-
-  def castingTime: Long = SacredGround.castingTime
+    extends Ability
+    with AbilityInfoFromMetadata[SacredGround.type] {
+  def metadata = SacredGround
 
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(0, Resource.NoResource)
 
@@ -75,4 +72,6 @@ object SacredGround extends AbilityMetadata {
   def name: String = "Sacred Ground"
 
   def timeToFirstAbility: Long = 0L
+
+  def abilityId: AbilityId = Ability.boss103SacredGroundId
 }
