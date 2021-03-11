@@ -35,9 +35,7 @@ final class ReactiveGUIDrawer(
 
   val linearMode = 1.0 //.asInstanceOf[SCALE_MODES.LINEAR]
 
-  val abilityColourMap: Map[Int, RGBColour] = (1 to Ability.abilityIdCount).map { abilityId =>
-    abilityId -> RGBColour.someColours(abilityId % RGBColour.someColours.length)
-  }.toMap
+  val abilityColourMap: Map[Int, RGBColour] = (1 to Ability.abilityIdCount).zip(RGBColour.repeatedColours).toMap
 
   private val blackTexture = {
     val graphics = new Graphics

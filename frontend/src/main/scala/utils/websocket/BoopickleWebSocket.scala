@@ -45,11 +45,10 @@ final class BoopickleWebSocket[In, Out, P, Q] private (
         webSocket.onmessage = (event: MessageEvent) => {
           val arrayBuffer = event.data.asInstanceOf[ArrayBuffer]
           val array       = new Uint8Array(arrayBuffer)
-          inBus.writer.onNext(
-            Unpickle
-              .apply[In]
-              .fromBytes(ByteBuffer.wrap(array.toArray.map(_.asInstanceOf[Byte])))
-          )
+          val in = Unpickle
+            .apply[In]
+            .fromBytes(ByteBuffer.wrap(array.toArray.map(_.asInstanceOf[Byte])))
+          inBus.writer.onNext(in)
         }
       }
       _ <- UIO {

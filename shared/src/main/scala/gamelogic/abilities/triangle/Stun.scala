@@ -15,6 +15,7 @@ import gamelogic.buffs.abilities.classes.TriangleStunDebuff
 import gamelogic.buffs.Buff
 import gamelogic.gamestate.gameactions.RemoveBuff
 import gamelogic.gamestate.gameactions.EntityCastingInterrupted
+import gamelogic.gamestate.gameactions.MovingBodyMoves
 
 /**
   * Impeach the target from doing anything for the next 20 seconds.
@@ -50,6 +51,18 @@ final case class Stun(useId: Ability.UseId, time: Long, casterId: Entity.Id, tar
         // the caster is interrupted if they were casting.
         Option.when(gameState.entityIsCasting(targetId))(
           EntityCastingInterrupted(idGeneratorContainer.gameActionIdGenerator(), time, targetId)
+        ),
+        for {
+          target <- gameState.movingBodyEntityById(targetId)
+        } yield MovingBodyMoves(
+          idGeneratorContainer.gameActionIdGenerator(),
+          time,
+          target.id,
+          target.currentPosition(time),
+          target.direction,
+          target.rotation,
+          target.speed,
+          moving = false
         ),
         Some(
           PutSimpleBuff(

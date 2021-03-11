@@ -99,7 +99,7 @@ object Complex {
   def apply(z: (Double, Double)): Complex = Complex(z._1, z._2)
 
   final val i    = Complex(0, 1)
-  final val zero = ComplexIsNumeric.zero
+  final val zero = ComplexIsFractional.zero
 
   private val rnd: java.util.Random = new java.util.Random()
 
@@ -126,7 +126,7 @@ object Complex {
 
   def rotation(angle: Double): Complex = Complex(math.cos(angle), math.sin(angle))
 
-  implicit object ComplexIsNumeric extends Numeric[Complex] {
+  trait ComplexIsNumeric extends Numeric[Complex] {
     override def plus(x: Complex, y: Complex): Complex = x + y
 
     override def minus(x: Complex, y: Complex): Complex = x - y
@@ -155,6 +155,12 @@ object Complex {
         imag <- values(1)
       } yield Complex(real, imag)
     }
+  }
+
+  implicit object ComplexIsFractional extends Fractional[Complex] with ComplexIsNumeric {
+
+    override def div(x: Complex, y: Complex): Complex = x / y
+
   }
 
   implicit class DoubleWithI(x: Double) {

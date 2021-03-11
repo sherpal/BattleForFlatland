@@ -32,6 +32,8 @@ import gamelogic.abilities.boss.boss110.PlaceBombPods
 import gamelogic.entities.boss.boss110.BigGuy
 import gamelogic.entities.boss.boss110.BombPod
 import gamelogic.abilities.boss.boss110.SpawnSmallGuies
+import gamelogic.docs.BossMetadata
+import models.bff.outofgame.PlayerClasses
 
 final case class Boss110(
     id: Entity.Id,
@@ -122,15 +124,31 @@ final case class Boss110(
 
 }
 
-object Boss110 extends BossFactory[Boss110] {
+object Boss110 extends BossFactory[Boss110] with BossMetadata {
 
   import Complex.i
 
   final val shape: Circle = new Circle(30.0)
 
-  final val maxLife: Double = 100_000
+  final val maxLife: Double = 50_000
 
   val intendedFor = 10 // players
+
+  def maybeAIComposition: Option[List[PlayerClasses]] =
+    Some(
+      List(
+        PlayerClasses.Square,
+        PlayerClasses.Square,
+        PlayerClasses.Hexagon,
+        PlayerClasses.Hexagon,
+        PlayerClasses.Pentagon,
+        PlayerClasses.Pentagon,
+        PlayerClasses.Pentagon,
+        PlayerClasses.Pentagon,
+        PlayerClasses.Triangle,
+        PlayerClasses.Triangle
+      )
+    )
 
   final val meleeRange: Distance = shape.radius + 20.0
   final val rangeRange: Distance = 2000.0 // basically infinite distance
@@ -177,7 +195,7 @@ object Boss110 extends BossFactory[Boss110] {
       )
     )
 
-  def name: String = "Boss 110"
+  val name: String = "Boss 110"
 
   def playersStartingPosition: gamelogic.physics.Complex = 0
 

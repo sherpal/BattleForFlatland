@@ -11,15 +11,18 @@ import org.scalajs.dom.html
 import services.localstorage._
 import utils.ziohelpers.failIfWith
 import zio.{Task, UIO, ZIO, ZLayer}
+import utils.laminarzio.onMountZIO
+import frontend.components.utils.ToggleButton
 
 final class GameOptionPanel private (initialGameInfo: MenuGameWithPlayers, socketOutWriter: Observer[WebSocketProtocol])
     extends Component[html.Element] {
 
-  val localStorage: ZLayer[Any, Nothing, LocalStorage] = zio.clock.Clock.live >>> FLocalStorage.live
-
   val bossNameStorageKey = "lastBossName"
 
-  def selectFirstBoss(maybeInitialBoss: Option[String], selectElement: html.Select): Task[String] =
+  def selectFirstBoss(
+      maybeInitialBoss: Option[String],
+      selectElement: html.Select
+  ): ZIO[LocalStorage, Exception, String] =
     (for {
       _                       <- failIfWith(maybeInitialBoss.isDefined, maybeInitialBoss.get)
       maybePreviouslySelected <- retrieveFrom[String](bossNameStorageKey)
@@ -29,7 +32,6 @@ final class GameOptionPanel private (initialGameInfo: MenuGameWithPlayers, socke
     } yield nextSelected)
       .catchSome { case bossName: String => UIO(bossName) }
       .mapError(ser => new Exception(s"This is weird: $ser"))
-      .provideLayer(localStorage)
       .tap(
         bossName =>
           ZIO.effectTotal {
@@ -37,13 +39,20 @@ final class GameOptionPanel private (initialGameInfo: MenuGameWithPlayers, socke
           }
       )
 
-  def selectNewBoss(bossName: String): UIO[Unit] =
+  def selectNewBoss(bossName: String) =
     (for {
       _ <- ZIO.effect(socketOutWriter.onNext(WebSocketProtocol.UpdateBossName(bossName)))
       _ <- storeAt(bossNameStorageKey, bossName)
-    } yield ()).orDie.provideLayer(localStorage)
+    } yield ()).orDie
 
   val nextBossNameBus: EventBus[String] = new EventBus
+
+  val chooseAis = div(
+    "Watch AIs ",
+    ToggleButton(
+      socketOutWriter.contramap[Boolean](if (_) WebSocketProtocol.ChooseAIs else WebSocketProtocol.ChooseHumans)
+    )
+  )
 
   val element: ReactiveHtmlElement[html.Element] = section(
     h2(
@@ -54,13 +63,14 @@ final class GameOptionPanel private (initialGameInfo: MenuGameWithPlayers, socke
     select(
       BossEntity.allBossesNames.map(name => option(value := name, name)),
       onMountCallback { ctx =>
-        zio.Runtime.default
+        utils.runtime
           .unsafeRunToFuture(selectFirstBoss(initialGameInfo.game.gameConfiguration.maybeBossName, ctx.thisNode.ref))
         nextBossNameBus.events
-          .foreach(bossName => zio.Runtime.default.unsafeRunToFuture(selectNewBoss(bossName)))(ctx.owner)
+          .foreach(bossName => utils.runtime.unsafeRunToFuture(selectNewBoss(bossName)))(ctx.owner)
       },
       inContext(elem => onChange.mapTo(elem.ref.value) --> nextBossNameBus)
-    )
+    ),
+    chooseAis
   )
 
 }

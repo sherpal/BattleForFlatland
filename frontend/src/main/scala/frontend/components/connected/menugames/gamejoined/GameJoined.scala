@@ -147,6 +147,11 @@ final class GameJoined private (gameId: String, me: User) extends Component[html
                 .mapTo(GameOptionPanel(info, socket.outWriter)),
               PlayerList($gameInfo.map(_.game.gameConfiguration.playersInfo.values.toList)),
               div(
+                "Observers: ",
+                child <-- $gameInfo.map(_.game.gameConfiguration.playersInfo.values.filterNot(_.playerType.playing))
+                  .map(_.map(_.playerName.name).mkString(", "))
+              ),
+              div(
                 child <-- $amICreator.map {
                   if (_)
                     button(

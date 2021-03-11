@@ -19,6 +19,7 @@ import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Circle, Shape}
 import gamelogic.utils.IdGeneratorContainer
 import models.syntax.Pointed
+import models.bff.outofgame.PlayerClasses
 
 final case class Boss103(
     id: Entity.Id,
@@ -176,4 +177,7 @@ object Boss103 extends BossFactory[Boss103] with BossMetadata {
   val name: String = "Boss 103"
 
   def intendedFor: AbilityId = 5
+
+  def maybeAIComposition: Option[List[PlayerClasses]] = Option.empty
+
 }

@@ -50,8 +50,8 @@ object Boss110Controller extends SimpleAIController[Boss110, SpawnBoss] {
 
     List(
       maybeSpawnSmallGuies,
-      //maybeSpawnBigGuies,
-      //maybePlaceBombPods,
+      maybeSpawnBigGuies,
+      maybePlaceBombPods,
       maybeExplodeBombs,
       me.maybeAutoAttack(time, gameState).startCasting
     )

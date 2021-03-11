@@ -30,9 +30,7 @@ final class GUIDrawer(
 
   val linearScale = 1.0 //.asInstanceOf[typings.pixiJs.PIXI.SCALE_MODES.LINEAR]
 
-  val abilityColourMap: Map[Int, RGBColour] = (1 to Ability.abilityIdCount).map { abilityId =>
-    abilityId -> RGBColour.someColours(abilityId % RGBColour.someColours.length)
-  }.toMap
+  val abilityColourMap: Map[Int, RGBColour] = (1 to Ability.abilityIdCount).zip(RGBColour.repeatedColours).toMap
 
   application.stage.addChild(guiContainer)
 
@@ -138,14 +136,15 @@ final class GUIDrawer(
 
       val boss = gameState.bosses.head._2
 
-      boss.abilityNames.zipWithIndex
+      boss.abilityNames
+        .zip(RGBColour.repeatedColours)
         .map {
-          case ((abilityId, name), idx) =>
+          case ((abilityId, name), colour) =>
             new CooldownBar(
               bossId,
               abilityId,
               name,
-              RGBColour.someColours(idx % RGBColour.someColours.length),
+              colour,
               resources(minimalistBar).texture
             )
         }
