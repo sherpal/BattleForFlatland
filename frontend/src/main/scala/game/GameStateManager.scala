@@ -67,11 +67,8 @@ final class GameStateManager(
 
   def serverTime: Long = System.currentTimeMillis() + deltaTimeWithServer
 
-  private var actionCollector = ImmutableActionCollector(
-    initialGameState,
-    timeBetweenGameStates = 300,
-    timeToOldestGameState = 6000
-  )
+  private var actionCollector =
+    ImmutableActionCollector(initialGameState, timeBetweenGameStates = 300, timeToOldestGameState = 20000)
   private val gameDrawer = new GameDrawer(
     reactiveStage,
     resources,
@@ -137,6 +134,7 @@ final class GameStateManager(
 
   $actionsFromServer.foreach {
     case AddAndRemoveActions(actionsToAdd, oldestTimeToRemove, idsOfActionsToRemove) =>
+      //println(actionsToAdd.length)
       actionCollector = actionCollector.slaveAddAndRemoveActions(actionsToAdd, oldestTimeToRemove, idsOfActionsToRemove)
 
       //unconfirmedActions = unconfirmedActions.dropWhile(_.time < actionCollector.currentGameState.time)

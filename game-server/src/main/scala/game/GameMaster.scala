@@ -5,7 +5,7 @@ import akka.actor.typed.{ActorRef, Behavior}
 import gamelogic.entities.boss.BossFactory
 import gamelogic.gamestate.gameactions.{AddPlayerByClass, GameStart, MovingBodyMoves, SpawnBoss, UpdateTimestamp}
 import gamelogic.gamestate.serveractions._
-import gamelogic.gamestate.{GameAction, GameState, ImmutableActionCollector}
+import gamelogic.gamestate.{ActionGatherer, GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
 import models.bff.ingame.InGameWSProtocol
@@ -94,7 +94,7 @@ object GameMaster {
   def inGameBehaviour(
       pendingActions: List[GameAction],
       actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage],
-      actionCollector: ImmutableActionCollector,
+      actionCollector: ActionGatherer,
       bossFactory: List[BossFactory[_]],
       alreadyClosing: Boolean = false
   )(
@@ -204,12 +204,12 @@ object GameMaster {
   }
 
   /** In millis */
-  final val gameLoopTiming = 1000L / 30L
+  final val gameLoopTiming = 1000L / 10L
 
   private def preGameBehaviour(
       pendingActions: List[GameAction],
       actionUpdateCollector: ActorRef[ActionUpdateCollector.ExternalMessage],
-      actionCollector: ImmutableActionCollector,
+      actionCollector: ActionGatherer,
       gameInfo: MenuGameWithPlayers
   )(
       implicit

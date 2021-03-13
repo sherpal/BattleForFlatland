@@ -1,6 +1,6 @@
 package gamelogic.gamestate.serveractions
 
-import gamelogic.gamestate.ImmutableActionCollector
+import gamelogic.gamestate.ActionGatherer
 import gamelogic.gamestate.gameactions.TickerBuffTicks
 import gamelogic.utils.IdGeneratorContainer
 
@@ -12,9 +12,9 @@ import gamelogic.utils.IdGeneratorContainer
   * without delays.
   */
 final class ManageTickerBuffs extends ServerAction {
-  def apply(currentState: ImmutableActionCollector, nowGenerator: () => Long)(
+  def apply(currentState: ActionGatherer, nowGenerator: () => Long)(
       implicit idGeneratorContainer: IdGeneratorContainer
-  ): (ImmutableActionCollector, ServerAction.ServerActionOutput) = {
+  ): (ActionGatherer, ServerAction.ServerActionOutput) = {
     val startTime = nowGenerator()
     val gameState = currentState.currentGameState
 

@@ -50,7 +50,7 @@ final class ImmutableActionCollector private (
     val actionsAndStates: List[(GameState, List[GameAction])],
     val timeBetweenGameStates: Long,
     val timeToOldestGameState: Long
-) {
+) extends ActionGatherer {
 
   /**
     * Blindly add the actions, then remove all actions with ids in the list of ids to remove.

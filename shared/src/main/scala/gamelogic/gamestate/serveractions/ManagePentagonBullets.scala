@@ -1,12 +1,12 @@
 package gamelogic.gamestate.serveractions
 import gamelogic.gamestate.gameactions.{EntityTakesDamage, RemoveEntity}
-import gamelogic.gamestate.{GameAction, ImmutableActionCollector}
+import gamelogic.gamestate.{ActionGatherer, GameAction}
 import gamelogic.utils.IdGeneratorContainer
 
 final class ManagePentagonBullets extends ServerAction {
-  def apply(currentState: ImmutableActionCollector, nowGenerator: () => Long)(
+  def apply(currentState: ActionGatherer, nowGenerator: () => Long)(
       implicit idGeneratorContainer: IdGeneratorContainer
-  ): (ImmutableActionCollector, ServerAction.ServerActionOutput) = {
+  ): (ActionGatherer, ServerAction.ServerActionOutput) = {
 
     val startTime = nowGenerator()
     val gameState = currentState.currentGameState

@@ -1,16 +1,16 @@
 package gamelogic.gamestate.serveractions
 
-import gamelogic.gamestate.ImmutableActionCollector
+import gamelogic.gamestate.ActionGatherer
 import gamelogic.gamestate.gameactions.UseAbility
 import gamelogic.utils.IdGeneratorContainer
 
 final class ManageUsedAbilities extends ServerAction {
   def apply(
-      currentState: ImmutableActionCollector,
+      currentState: ActionGatherer,
       nowGenerator: () => Long
   )(
       implicit idGeneratorContainer: IdGeneratorContainer
-  ): (ImmutableActionCollector, ServerAction.ServerActionOutput) = {
+  ): (ActionGatherer, ServerAction.ServerActionOutput) = {
     val startTime = nowGenerator()
     val gameState = currentState.currentGameState
 

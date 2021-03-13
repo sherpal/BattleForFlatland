@@ -1,14 +1,14 @@
 package gamelogic.gamestate.serveractions
 
 import gamelogic.entities.Entity
-import gamelogic.gamestate.ImmutableActionCollector
+import gamelogic.gamestate.ActionGatherer
 import gamelogic.gamestate.gameactions.RemoveEntity
 import gamelogic.utils.IdGeneratorContainer
 
 final class ManageDeadAIs extends ServerAction {
-  def apply(currentState: ImmutableActionCollector, nowGenerator: () => Long)(
+  def apply(currentState: ActionGatherer, nowGenerator: () => Long)(
       implicit idGeneratorContainer: IdGeneratorContainer
-  ): (ImmutableActionCollector, ServerAction.ServerActionOutput) = {
+  ): (ActionGatherer, ServerAction.ServerActionOutput) = {
     val now = nowGenerator()
 
     val actions = currentState.currentGameState.allLivingEntities
