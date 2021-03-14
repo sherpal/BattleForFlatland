@@ -12,7 +12,7 @@ object EdgeGameActionsSpecs extends DefaultRunnableSpec {
     testM("Game must be started after GameStart action") {
       checkM(Gen.long(0, Long.MaxValue), Gen.long(0, Long.MaxValue)) { (time, startingTime) =>
         val gameStart = GameStart(0, startingTime)
-        val gameState = GameState.empty.copy(time = time)
+        val gameState = GameState.empty.copy(newTime = time)
         assertM(UIO(gameStart(gameState).started))(equalTo(true))
       }
     },
@@ -25,7 +25,7 @@ object EdgeGameActionsSpecs extends DefaultRunnableSpec {
     testM("Applying a time update on a game state changes its time") {
       checkM(Gen.anyLong, Gen.anyLong) { (time, updateTime) =>
         val updateTimestamp = UpdateTimestamp(0, updateTime)
-        val gameState       = GameState.empty.copy(time = time)
+        val gameState       = GameState.empty.copy(newTime = time)
         assertM(UIO(updateTimestamp(gameState).time))(equalTo(updateTime))
       }
     }

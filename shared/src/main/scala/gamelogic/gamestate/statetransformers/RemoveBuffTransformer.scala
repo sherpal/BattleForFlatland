@@ -13,15 +13,15 @@ final class RemoveBuffTransformer(time: Long, bearerId: Entity.Id, buffId: Buff.
       case Some(_: TickerBuff) =>
         val newBearerBuffs = gameState.tickerBuffs.get(bearerId).map(_ - buffId).getOrElse(Map())
         if (newBearerBuffs.isEmpty)
-          gameState.copy(time = time, tickerBuffs = gameState.tickerBuffs - bearerId)
+          gameState.copy(newTime = time, tickerBuffs = gameState.tickerBuffs - bearerId)
         else
-          gameState.copy(time = time, tickerBuffs = gameState.tickerBuffs + (bearerId -> newBearerBuffs))
+          gameState.copy(newTime = time, tickerBuffs = gameState.tickerBuffs + (bearerId -> newBearerBuffs))
       case Some(_: PassiveBuff) =>
         val newBearerBuffs = gameState.passiveBuffs.get(bearerId).map(_ - buffId).getOrElse(Map())
         if (newBearerBuffs.isEmpty)
-          gameState.copy(time = time, passiveBuffs = gameState.passiveBuffs - bearerId)
+          gameState.copy(newTime = time, passiveBuffs = gameState.passiveBuffs - bearerId)
         else
-          gameState.copy(time = time, passiveBuffs = gameState.passiveBuffs + (bearerId -> newBearerBuffs))
+          gameState.copy(newTime = time, passiveBuffs = gameState.passiveBuffs + (bearerId -> newBearerBuffs))
       case None => gameState
       case Some(buff) =>
         println("wtf!?")

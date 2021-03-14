@@ -16,6 +16,7 @@ import zio.ZIO
 import zio.duration.Duration.fromScala
 
 import scala.concurrent.duration._
+import gamelogic.gamestate.GreedyActionGatherer
 
 object GameMaster {
 
@@ -204,7 +205,7 @@ object GameMaster {
   }
 
   /** In millis */
-  final val gameLoopTiming = 1000L / 10L
+  final val gameLoopTiming = 1000L / 30L
 
   private def preGameBehaviour(
       pendingActions: List[GameAction],
@@ -417,7 +418,7 @@ object GameMaster {
                 context.self ! MultipleActionsWrapper(maybePreGameActions.get)
                 context.self ! GameLoop
 
-                val actionCollector = ImmutableActionCollector(GameState.empty)
+                val actionCollector = new GreedyActionGatherer(GameState.empty)
                 preGameBehaviour(
                   Nil,
                   actionUpdateCollector,

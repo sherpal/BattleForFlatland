@@ -7,7 +7,7 @@ import gamelogic.gamestate.GameState
 final class EntityStartsCastingTransformer(entityCastingInfo: EntityCastingInfo) extends GameStateTransformer {
   def apply(gameState: GameState): GameState =
     gameState.copy(
-      time              = entityCastingInfo.startedTime,
+      newTime           = entityCastingInfo.startedTime,
       castingEntityInfo = gameState.castingEntityInfo + (entityCastingInfo.casterId -> entityCastingInfo)
     )
 }

@@ -33,6 +33,8 @@ import scala.Ordering.Double.TotalOrdering
 import scala.scalajs.js.timers.setTimeout
 import game.ui.effects.errormessages.ErrorMessagesManager
 import scala.concurrent.duration._
+import gamelogic.gamestate.GreedyActionGatherer
+import gamelogic.gamestate.ActionGatherer
 
 final class GameStateManager(
     reactiveStage: ReactiveStage,
@@ -67,8 +69,7 @@ final class GameStateManager(
 
   def serverTime: Long = System.currentTimeMillis() + deltaTimeWithServer
 
-  private var actionCollector =
-    ImmutableActionCollector(initialGameState, timeBetweenGameStates = 300, timeToOldestGameState = 20000)
+  private var actionCollector: ActionGatherer = new GreedyActionGatherer(initialGameState)
   private val gameDrawer = new GameDrawer(
     reactiveStage,
     resources,
