@@ -20,10 +20,10 @@ object ImmutableActionCollectorSpecs extends DefaultRunnableSpec {
       val (afterGameStart, _, _) = collector.masterAddAndRemoveActions(List(gameStart))
 
       for {
-        gameIsStarted <- assertM(UIO(afterGameStart.currentGameState.started))(equalTo(true))
-        thereAreActions <- assertM(UIO(afterGameStart.actionsAndStates.nonEmpty))(equalTo(true))
+        gameIsStarted          <- assertM(UIO(afterGameStart.currentGameState.started))(equalTo(true))
+        thereAreActions        <- assertM(UIO(afterGameStart.actionsAndStates.nonEmpty))(equalTo(true))
         gameStartActionIsThere <- assertM(UIO(afterGameStart.actionsAndStates.head._2))(equalTo(List(gameStart)))
-        t <- ZIO.effectTotal(afterGameStart.masterAddAndRemoveActions(List(endGame)))
+        t                      <- ZIO.effectTotal(afterGameStart.masterAddAndRemoveActions(List(endGame)))
         (afterGameEnds, _, _) = t
         gameHasEnded <- assertM(UIO(afterGameEnds.currentGameState.ended))(equalTo(true))
       } yield gameIsStarted && thereAreActions && gameStartActionIsThere && gameHasEnded
@@ -49,11 +49,11 @@ object ImmutableActionCollectorSpecs extends DefaultRunnableSpec {
       val secondPlayer = AddPlayerByClass(1L, 2L, 1L, Complex.i, PlayerClasses.Hexagon, 2, "hexagon")
 
       for {
-        afterGameStart <- UIO(collector.masterAddAndRemoveActions(gameStart :: Nil)).map(_._1)
-        afterFirstPlayer <- UIO(afterGameStart.masterAddAndRemoveActions(firstPlayer :: Nil)).map(_._1)
+        afterGameStart    <- UIO(collector.masterAddAndRemoveActions(gameStart :: Nil)).map(_._1)
+        afterFirstPlayer  <- UIO(afterGameStart.masterAddAndRemoveActions(firstPlayer :: Nil)).map(_._1)
         afterSecondPlayer <- UIO(afterFirstPlayer.masterAddAndRemoveActions(secondPlayer :: Nil)).map(_._1)
-        actionsInOrder <- UIO(afterSecondPlayer.actionsAndStates.head._2)
-        result <- assertM(UIO(actionsInOrder))(equalTo(List[GameAction](gameStart, secondPlayer, firstPlayer)))
+        actionsInOrder    <- UIO(afterSecondPlayer.actionsAndStates.head._2)
+        result            <- assertM(UIO(actionsInOrder))(equalTo(List[GameAction](gameStart, secondPlayer, firstPlayer)))
       } yield result
     },
     testM("Adding two players makes gameState with two players") {
@@ -63,9 +63,9 @@ object ImmutableActionCollectorSpecs extends DefaultRunnableSpec {
       val secondPlayer = AddPlayerByClass(1L, 2L, 1L, Complex.i, PlayerClasses.Hexagon, 2, "hexagon")
 
       for {
-        afterGameStart <- UIO(collector.masterAddAndRemoveActions(gameStart :: Nil)).map(_._1)
-        afterFirstPlayer <- UIO(afterGameStart.masterAddAndRemoveActions(firstPlayer :: Nil)).map(_._1)
-        firstPlayerCheck <- assertM(UIO(afterFirstPlayer.currentGameState.players.size))(equalTo(1))
+        afterGameStart    <- UIO(collector.masterAddAndRemoveActions(gameStart :: Nil)).map(_._1)
+        afterFirstPlayer  <- UIO(afterGameStart.masterAddAndRemoveActions(firstPlayer :: Nil)).map(_._1)
+        firstPlayerCheck  <- assertM(UIO(afterFirstPlayer.currentGameState.players.size))(equalTo(1))
         afterSecondPlayer <- UIO(afterFirstPlayer.masterAddAndRemoveActions(secondPlayer :: Nil)).map(_._1)
         secondPlayerCheck <- assertM(UIO(afterSecondPlayer.currentGameState.players.size))(equalTo(2))
       } yield firstPlayerCheck && secondPlayerCheck
@@ -80,11 +80,11 @@ object ImmutableActionCollectorSpecs extends DefaultRunnableSpec {
 
       for {
         withActions <- UIO { collector.masterAddAndRemoveActions(actions) }.map(_._1)
-        result <- assertM(UIO(withActions.currentGameState.players.keys.toList.sorted))(equalTo(List(0L, 1L)))
+        result      <- assertM(UIO(withActions.currentGameState.players.keys.toList.sorted))(equalTo(List(0L, 1L)))
       } yield result
     },
     testM("Actions separated by more than the limit") {
-      val collector = ImmutableActionCollector(GameState.empty, timeBetweenGameStates = 3L)
+      val collector = ImmutableActionCollector(GameState.empty, numberOfActionsBetweenGameStates = 2)
       val someDummyUpdates = (0 until 10).map(_.toLong).map { idx =>
         UpdateTimestamp(idx, idx * 4)
       }
@@ -96,11 +96,11 @@ object ImmutableActionCollectorSpecs extends DefaultRunnableSpec {
         afterDummies <- UIO(someDummyUpdates.foldLeft(collector) { (newCollector, action) =>
           newCollector.masterAddAndRemoveActions(action :: Nil)._1
         })
-        afterGameStart <- UIO(afterDummies.masterAddAndRemoveActions(gameStart :: Nil)).map(_._1)
+        afterGameStart    <- UIO(afterDummies.masterAddAndRemoveActions(gameStart :: Nil)).map(_._1)
         afterSecondPlayer <- UIO(afterGameStart.masterAddAndRemoveActions(secondPlayer :: Nil)).map(_._1)
-        afterFirstPlayer <- UIO(afterSecondPlayer.masterAddAndRemoveActions(firstPlayer :: Nil)).map(_._1)
-        actionsInOrder <- UIO(afterFirstPlayer.actionsAndStates.head._2)
-        result <- assertM(UIO(actionsInOrder))(equalTo(List(firstPlayer))) // only first player should be there
+        afterFirstPlayer  <- UIO(afterSecondPlayer.masterAddAndRemoveActions(firstPlayer :: Nil)).map(_._1)
+        actionsInOrder    <- UIO(afterFirstPlayer.actionsAndStates.head._2)
+        result            <- assertM(UIO(actionsInOrder))(equalTo(List(firstPlayer))) // only first player should be there
       } yield result
     },
     testM("Adding one player and starting game together") {

@@ -41,7 +41,7 @@ final class GameState(
 ) {
 
   def copy(
-      time: Long                                              = time,
+      newTime: Long                                           = time,
       startTime: Option[Long]                                 = startTime,
       endTime: Option[Long]                                   = endTime,
       castingEntityInfo: Map[Entity.Id, EntityCastingInfo]    = castingEntityInfo,
@@ -50,7 +50,7 @@ final class GameState(
       entities: Map[Entity.Id, Entity]                        = entities,
       markersInfo: Map[GameMarker, GameMarkerInfo]            = markersInfo
   ): GameState = new GameState(
-    time,
+    time max newTime,
     startTime,
     endTime,
     castingEntityInfo,
@@ -203,9 +203,9 @@ final class GameState(
     * a simple Map in the future. Perhaps something like a QuadTree would be better for performances.
     */
   def withObstacle(obstacle: Obstacle): GameState =
-    copy(time = obstacle.time, entities = entities + (obstacle.id -> obstacle))
-  def removeObstacle(obstacleId: Entity.Id, time: Long): GameState =
-    copy(entities = entities - obstacleId, time = time)
+    copy(newTime = obstacle.time max time, entities = entities + (obstacle.id -> obstacle))
+  def removeObstacle(obstacleId: Entity.Id, newTime: Long): GameState =
+    copy(entities = entities - obstacleId, newTime = time max newTime)
 
   /**
     * Adds the information about the given [[GameMarker]].

@@ -34,4 +34,6 @@ trait ActionGatherer {
     */
   def masterAddAndRemoveActions(actionsToAdd: List[GameAction]): (ActionGatherer, Long, List[GameAction.Id])
 
+  protected final def shouldKeepAction(action: GameAction, state: GameState): Boolean = state.isLegalAction(action)
+
 }

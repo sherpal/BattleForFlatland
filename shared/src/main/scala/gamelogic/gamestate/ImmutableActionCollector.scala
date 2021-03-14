@@ -5,12 +5,12 @@ import errors.ErrorADT.TooOldActionException
 object ImmutableActionCollector {
   def apply(
       currentGameState: GameState,
-      timeBetweenGameStates: Long = 2000,
-      timeToOldestGameState: Long = 60000
+      numberOfActionsBetweenGameStates: Int = 64,
+      timeToOldestGameState: Long           = 60000
   ): ImmutableActionCollector = new ImmutableActionCollector(
     currentGameState,
     List((currentGameState, Nil)),
-    timeBetweenGameStates,
+    numberOfActionsBetweenGameStates,
     timeToOldestGameState
   )
 }
@@ -39,16 +39,16 @@ object ImmutableActionCollector {
   * @param currentGameState game state as it is now
   * @param actionsAndStates history of some [[gamelogic.gamestate.GameState]] and [[gamelogic.gamestate.GameAction]]
   *                         between them
-  * @param timeBetweenGameStates time between two game states. This value should typically be of the order magnitude you
-  *                               are willing to accept going back in time (with a small margin). Expressed in game
-  *                               units (millis for BFF). Defaults to 2000.
+  * @param numberOfActionsBetweenGameStates number of actions to keep between game states. This number should typically
+  *                                         corresponds to the usual maximum batch size of actions that you can receive
+  *                                         at once
   * @param timeToOldestGameState time during which you want to keep the history in memory. Expressed in game time units
   *                               (millis for BFF). Defaults to 60000.
   */
 final class ImmutableActionCollector private (
     val currentGameState: GameState,
     val actionsAndStates: List[(GameState, List[GameAction])],
-    val timeBetweenGameStates: Long,
+    val numberOfActionsBetweenGameStates: Int,
     val timeToOldestGameState: Long
 ) extends ActionGatherer {
 
@@ -84,7 +84,7 @@ final class ImmutableActionCollector private (
     new ImmutableActionCollector(
       updatedActionsAndStates.head._1.applyActions(updatedActionsAndStates.head._2),
       updatedActionsAndStates,
-      timeBetweenGameStates,
+      numberOfActionsBetweenGameStates,
       timeToOldestGameState
     )
   }
@@ -199,7 +199,7 @@ final class ImmutableActionCollector private (
       action: GameAction,
       currentActionsAndStates: List[(GameState, List[GameAction])]
   ): List[(GameState, List[GameAction])] =
-    if (action.time > currentActionsAndStates.head._1.time + timeBetweenGameStates) { //} && currentActionsAndStates.length > 3) {
+    if (currentActionsAndStates.head._2.length >= numberOfActionsBetweenGameStates) { //} && currentActionsAndStates.length > 3) {
       val temp = (currentActionsAndStates.head._1.applyActions(currentActionsAndStates.head._2), List(action)) +: currentActionsAndStates
       if (timeToOldestGameState < temp.head._1.time - temp.last._1.time) {
         temp.dropRight(1)
@@ -258,7 +258,5 @@ final class ImmutableActionCollector private (
       .reverse
       .flatMap(_._2)
       .dropWhile(_.time <= time)
-
-  private def shouldKeepAction(action: GameAction, state: GameState): Boolean = state.isLegalAction(action)
 
 }
