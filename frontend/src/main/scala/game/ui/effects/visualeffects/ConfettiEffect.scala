@@ -4,14 +4,13 @@ import game.ui.effects.GameEffect
 
 import com.raquo.laminar.api.L._
 
-import typings.canvasConfetti.mod.{Options, Origin}
-
 import scala.concurrent.duration._
 import scala.scalajs.js
 
 import gamelogic.gamestate.GameState
 import typings.pixiJs.mod.Container
 import scala.util.Random
+import org.scalajs.dom
 
 import scala.scalajs.js.annotation.JSImport
 
@@ -21,7 +20,7 @@ final class ConfettiEffect extends GameEffect {
   val animationEnd = System.currentTimeMillis() + duration.toMillis
 
   def defaultOptions =
-    Options()
+    ConfettiOptions()
       .setStartVelocity(30)
       .setSpread(360)
       .setTicks(60)
@@ -37,14 +36,23 @@ final class ConfettiEffect extends GameEffect {
   private def optionsWithXBetween(particleCount: Double, minX: Double, maxX: Double) =
     defaultOptions
       .setParticleCount(particleCount)
-      .setOrigin(Origin().setX(Random.between(minX, maxX)).setY(Random.nextDouble() - 0.2))
+      .setOrigin(OriginConfetti().setX(Random.between(minX, maxX)).setY(Random.nextDouble() - 0.2))
 
   newConfettiBus.events.throttle(250).foreach { (currentTime: Long) =>
     val timeLeft = animationEnd - currentTime
 
     val particleCount = 50.0 * (timeLeft.toDouble / duration.toMillis)
-    confetti(optionsWithXBetween(particleCount, 0.1, 0.3))
-    confetti(optionsWithXBetween(particleCount, 0.7, 0.9))
+
+    (dom.window: WindowConfetti).confetti(optionsWithXBetween(particleCount, 0.1, 0.3))
+    (dom.window: WindowConfetti).confetti(optionsWithXBetween(particleCount, 0.7, 0.9))
+
+  // if (scala.scalajs.LinkingInfo.developmentMode && false) {
+  //   confetti(optionsWithXBetween(particleCount, 0.1, 0.3))
+  //   confetti(optionsWithXBetween(particleCount, 0.7, 0.9))
+  // } else {
+  //   ProdConfetti(optionsWithXBetween(particleCount, 0.1, 0.3))
+  //   ProdConfetti(optionsWithXBetween(particleCount, 0.7, 0.9))
+  // }
   }
 
   def destroy(): Unit =
