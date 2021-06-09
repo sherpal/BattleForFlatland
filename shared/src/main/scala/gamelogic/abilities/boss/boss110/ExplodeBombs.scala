@@ -57,7 +57,7 @@ object ExplodeBombs extends AbilityMetadata {
 
   def name: String = "Explode bombs!"
 
-  def cooldown: Long = 5000L
+  def cooldown: Long = 8000L
 
   def castingTime: Long = 1000L
 

@@ -16,7 +16,7 @@ import gamelogic.buffs.Buff
   */
 object SquareToTheRightBoss110 extends SquareAIController {
 
-  val name: PlayerName.AIPlayerName = PlayerName.AIPlayerName(PlayerClasses.Square, 1)
+  val name: PlayerName.AIPlayerName = PlayerName.AIPlayerName(PlayerClasses.Square, 0)
 
   def loop(startingTime: Long, gameState: GameState, me: Square, sendActions: List[GameAction] => Unit): Unit = {
 

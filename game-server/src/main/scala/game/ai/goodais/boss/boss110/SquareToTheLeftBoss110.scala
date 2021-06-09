@@ -14,11 +14,11 @@ import scala.util.Random
   * of the game.
   * This tank is responsible for collecting small units, and keeping them on him.
   *
-  * It will have index 0
+  * It will have index 1
   */
 object SquareToTheLeftBoss110 extends SquareAIController {
 
-  val name: PlayerName.AIPlayerName = PlayerName.AIPlayerName(PlayerClasses.Square, 0)
+  val name: PlayerName.AIPlayerName = PlayerName.AIPlayerName(PlayerClasses.Square, 1)
 
   def loop(startingTime: Long, gameState: GameState, me: Square, sendActions: List[GameAction] => Unit): Unit = {
     val actions: List[GameAction] = gameState.bosses.values.headOption match {

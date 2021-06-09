@@ -32,9 +32,13 @@ final class PentagonForBoss110(index: Int) extends PentagonAIController {
 
         val shouldIDamageZone = (distanceBetweenBossAndShadow < 200.0) && !isMyZoneThere(gameState, me)
 
+        val notTooMuchAggro = (for {
+          myAggro   <- theBoss.damageThreats.get(me.id)
+          tankAggro <- theBoss.damageThreats.values.maxOption
+        } yield myAggro < tankAggro * 0.95).getOrElse(true)
         val rotationTowardsBoss = (theBoss.pos - me.pos).arg
         val maybePentagonBullet = Option
-          .unless(shouldIDamageZone || theBoss.moving)(
+          .unless(shouldIDamageZone || theBoss.moving || !notTooMuchAggro)(
             maybePentagonBulletUsage(gameState, startingTime, me, rotationTowardsBoss)
           )
           .flatten
