@@ -56,7 +56,7 @@ final class PentagonForBoss110(index: Int) extends PentagonAIController {
             .flatten
 
         maybeDamageZone.orElse(maybePentagonBullet).toList
-      case Some(_) if shouldIMoveToBombPod =>
+      case Some(_) =>
         /*
           I need to move to one of the bomb pod.
           I will go to the one corresponding to my index. To that end, I sort
