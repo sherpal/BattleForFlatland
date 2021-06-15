@@ -95,11 +95,9 @@ object Users {
 
     final def confirmPendingRegistration(registrationKey: String): ZIO[Clock with Crypto, Throwable, (Int, Int)] =
       for {
-        maybePendingRegistration <- selectPendingRegistrationByKey(registrationKey)
-        pendingRegistration <- maybePendingRegistration match {
-          case Some(e) => UIO.succeed(e)
-          case None    => ZIO.fail(PendingRegistrationDoesNotExist(registrationKey))
-        }
+        pendingRegistration <- selectPendingRegistrationByKey(registrationKey).someOrFail(
+          PendingRegistrationDoesNotExist(registrationKey)
+        )
         PendingRegistration(_, userName, hashed, email, _) = pendingRegistration
         alreadyExists <- selectDBUser(userName).map(_.isDefined)
         id            <- uuid
