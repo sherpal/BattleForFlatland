@@ -101,12 +101,13 @@ object Users {
           case None    => ZIO.fail(PendingRegistrationDoesNotExist(registrationKey))
         }
         PendingRegistration(_, userName, hashed, email, _) = pendingRegistration
-        id  <- uuid
-        now <- currentDateTime
+        alreadyExists <- selectDBUser(userName).map(_.isDefined)
+        id            <- uuid
+        now           <- currentDateTime
         dbUser = DBUser(id, userName, hashed, email, now.toLocalDateTime)
-        added   <- addRawDBUser(dbUser)
-        removed <- removePendingRegistration(registrationKey)
-      } yield (added, removed)
+        added <- ZIO.ifM(UIO(alreadyExists))(UIO(0), addRawDBUser(dbUser))
+        //removed <- removePendingRegistration(registrationKey)
+      } yield (added, 0)
 
     /**
       * Gets the user from their name, if it exists.
