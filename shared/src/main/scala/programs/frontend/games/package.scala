@@ -26,20 +26,20 @@ package object games {
   val downloadGames: ZIO[HttpClient, ErrorADT, List[MenuGame]] =
     get[List[MenuGame]](allGames).refineOrDie(ErrorADT.onlyErrorADT)
 
-  val loadGames: ZStream[HttpClient with Clock, Nothing, Either[ErrorADT, List[MenuGame]]] = ZStream
+  val loadGames: ZStream[HttpClient & Clock, Nothing, Either[ErrorADT, List[MenuGame]]] = ZStream
     .fromSchedule(Schedule.spaced(zio.duration.Duration.fromScala(5.seconds)))
     .flatMap(_ => ZStream.fromEffect(downloadGames.either))
 
   def createNewGame(game: MenuGame): ZIO[HttpClient, Throwable, String] = post[String](newMenuGame, game)
 
-  def joinGameProgram(game: MenuGame, maybePassword: PasswordWrapper): ZIO[Routing with HttpClient, Throwable, Int] =
+  def joinGameProgram(game: MenuGame, maybePassword: PasswordWrapper): ZIO[Routing & HttpClient, Throwable, Int] =
     for {
       statusCode <- postIgnore(joinGame, joinGameParam, maybePassword)(game.gameId)
       _          <- unsuccessfulStatusCode(statusCode)
       _          <- moveTo(gameJoined ? gameIdParam)(game.gameId)
     } yield statusCode
 
-  val amIAmPlayingSomewhere: ZIO[Routing with HttpClient, Throwable, Unit] = for {
+  val amIAmPlayingSomewhere: ZIO[Routing & HttpClient, Throwable, Unit] = for {
     maybeGameId <- get[Option[String]](amIPlaying)
     _ <- maybeGameId match {
       case Some(gameId) => moveTo(gameJoined ? gameIdParam)(gameId)
@@ -55,7 +55,7 @@ package object games {
     * // todo: refinement of behaviour depending on the actual error.
     * @return the game information wrapped into an Option if it succeed, None otherwise.
     */
-  def fetchGameInfo(gameId: String): URIO[Routing with Logging with HttpClient, Option[MenuGameWithPlayers]] =
+  def fetchGameInfo(gameId: String): URIO[Routing & Logging & HttpClient, Option[MenuGameWithPlayers]] =
     get[MenuGameWithPlayers](gameInfo, gameIdParam)(gameId)
       .flatMapError(
         error =>
@@ -72,7 +72,7 @@ package object games {
   def sendLaunchGame(gameId: String): ZIO[HttpClient, ErrorADT, Int] =
     postIgnore(startGame, gameIdParam)(gameId).refineOrDie(ErrorADT.onlyErrorADT)
 
-  def pokingPresence(gameId: String): ZIO[Routing with HttpClient, ErrorADT, Int] =
+  def pokingPresence(gameId: String): ZIO[Routing & HttpClient, ErrorADT, Int] =
     postIgnore(iAmStilThere, gameIdParam)(gameId)
       .refineOrDie(ErrorADT.onlyErrorADT)
       .tapError(_ => moveTo(homeRoute))

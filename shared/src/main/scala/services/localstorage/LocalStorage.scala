@@ -89,7 +89,7 @@ object LocalStorage {
         now                <- zio.clock.currentTime(TimeUnit.SECONDS).provideLayer(clock)
         maybeIsExpired = maybeStoredElement
           .map(_.expireAt)
-          .map(_ isBefore nowLocalDateTimeFromSeconds(now))
+          .map(_.isBefore(nowLocalDateTimeFromSeconds(now)))
         maybeElement = for {
           isExpired <- maybeIsExpired
           if !isExpired

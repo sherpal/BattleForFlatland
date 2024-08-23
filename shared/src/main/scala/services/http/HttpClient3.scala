@@ -2,12 +2,11 @@ package services.http
 
 import io.circe.{Decoder, Encoder}
 import urldsl.errors.DummyError
-import urldsl.language.QueryParameters.dummyErrorImpl.{empty => emptyParam}
+import urldsl.language.QueryParameters.dummyErrorImpl.ignore
 import urldsl.language.{PathSegment, QueryParameters}
 import zio._
 
-/**
-  * The [[HttpClient]] service allows to make http calls to the server.
+/** The [[HttpClient]] service allows to make http calls to the server.
   */
 object HttpClient3 {
 
@@ -22,80 +21,68 @@ object HttpClient3 {
     /** Returns the csrf token cookie if it is set, None otherwise. */
     def maybeCsrfToken: UIO[Option[String]]
 
-    /**
-      * Makes a GET http call to the given [[Path]] with the given [[Query]] parameters.
-      * Interpret the response as an element of type `R`.
+    /** Makes a GET http call to the given [[Path]] with the given [[Query]] parameters. Interpret the response as an
+      * element of type `R`.
       */
-    def get[T, Q, R](path: Path[T], query: Query[Q])(t: T, q: Q)(implicit decoder: Decoder[R]): Task[R]
+    def get[T, Q, R](path: Path[T], query: Query[Q])(t: T, q: Q)(using decoder: Decoder[R]): Task[R]
 
-    /**
-      * Makes a GET http call to the given [[Path]].
-      * Interpret the response as an element of type `R`.
+    /** Makes a GET http call to the given [[Path]]. Interpret the response as an element of type `R`.
       */
-    def get[R](path: Path[Unit])(implicit decoder: Decoder[R]): Task[R]
+    def get[R](path: Path[Unit])(using decoder: Decoder[R]): Task[R]
 
-    /**
-      * Makes a GET http call to the given [[Path]] with the given [[Query]] parameters.
-      * Interpret the response as an element of type `R`.
+    /** Makes a GET http call to the given [[Path]] with the given [[Query]] parameters. Interpret the response as an
+      * element of type `R`.
       */
-    def get[Q, R](path: Path[Unit], query: Query[Q])(q: Q)(implicit decoder: Decoder[R]): Task[R]
+    def get[Q, R](path: Path[Unit], query: Query[Q])(q: Q)(using decoder: Decoder[R]): Task[R]
 
-    /**
-      * Makes a GET http call to the given [[Path]] and return the status code.
+    /** Makes a GET http call to the given [[Path]] and return the status code.
       */
     def getStatus(path: Path[Unit]): Task[Int]
 
-    /**
-      * Makes a POST http call to the given [[Path]] with the given [[Query]] parameters, without body.
-      * Interpret the response as an element of type `R`.
+    /** Makes a POST http call to the given [[Path]] with the given [[Query]] parameters, without body. Interpret the
+      * response as an element of type `R`.
       */
-    def post[Q, R](path: Path[Unit], query: Query[Q])(q: Q)(implicit decoder: Decoder[R]): Task[R]
+    def post[Q, R](path: Path[Unit], query: Query[Q])(q: Q)(using decoder: Decoder[R]): Task[R]
 
-    /**
-      * Makes a POST http call to the given [[Path]] with the given [[Query]] parameters, without body.
-      * Ignores the response body, and returns the status code instead.
+    /** Makes a POST http call to the given [[Path]] with the given [[Query]] parameters, without body. Ignores the
+      * response body, and returns the status code instead.
       */
     def postIgnore[Q](path: Path[Unit], query: Query[Q])(q: Q): Task[Int]
 
-    /**
-      * Makes a POST http call to the given [[Path]] with the given body of type `B`.
-      * Ignores the response body, and returns the status code instead.
+    /** Makes a POST http call to the given [[Path]] with the given body of type `B`. Ignores the response body, and
+      * returns the status code instead.
       */
-    def postIgnore[B](path: Path[Unit], body: B)(implicit encoder: Encoder[B]): Task[Int]
+    def postIgnore[B](path: Path[Unit], body: B)(using encoder: Encoder[B]): Task[Int]
 
-    /**
-      * Makes a POST http call to the given [[Path]] with the given [[Query]] parameters and with the given body.
+    /** Makes a POST http call to the given [[Path]] with the given [[Query]] parameters and with the given body.
       * Interpret the response as an element of type `R`.
       */
     def post[B, Q, R](path: Path[Unit], query: Query[Q], body: B)(
         q: Q
-    )(implicit decoder: Decoder[R], encoder: Encoder[B]): Task[R]
+    )(using decoder: Decoder[R], encoder: Encoder[B]): Task[R]
 
-    /**
-      * Makes a POST http call to the given [[Path]] with the given body of type `B`.
-      * Interprets the response as an element of type `R`.
+    /** Makes a POST http call to the given [[Path]] with the given body of type `B`. Interprets the response as an
+      * element of type `R`.
       */
-    final def post[B, R](path: Path[Unit], body: B)(implicit encoder: Encoder[B], decoder: Decoder[R]): Task[R] =
-      post[B, Unit, R](path, emptyParam, body)(())
+    final def post[B, R](path: Path[Unit], body: B)(using encoder: Encoder[B], decoder: Decoder[R]): Task[R] =
+      post[B, Unit, R](path, ignore, body)(())
 
-    /**
-      * Makes a POST http call to the given [[Path]] with the given [[Query]] parameters and with the given body.
+    /** Makes a POST http call to the given [[Path]] with the given [[Query]] parameters and with the given body.
       * Ignores the response body, and returns the status code instead.
       */
     def postIgnore[B, Q](path: Path[Unit], query: Query[Q], body: B)(q: Q)(implicit encoder: Encoder[B]): Task[Int]
 
     /** Similar to `get` but with a custom host and port. */
-    def getElsewhere[Q, R](path: Path[Unit], query: Query[Q], host: String, port: Int)(q: Q)(
-        implicit decoder: Decoder[R]
+    def getElsewhere[Q, R](path: Path[Unit], query: Query[Q], host: String, port: Int)(q: Q)(using
+        decoder: Decoder[R]
     ): Task[R]
 
     /** Similar to `post` but with a custom host and port. */
     def postElsewhere[B, Q, R](path: Path[Unit], query: Query[Q], body: B, host: String, port: Int)(
         q: Q
-    )(implicit decoder: Decoder[R], encoder: Encoder[B]): Task[R]
+    )(using decoder: Decoder[R], encoder: Encoder[B]): Task[R]
 
-    /**
-      * Sends an OPTIONS http call to the specify path, host and port.
+    /** Sends an OPTIONS http call to the specify path, host and port.
       */
     def optionsElsewhere(path: Path[Unit], host: String, port: Int): Task[Int]
 

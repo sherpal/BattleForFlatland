@@ -51,7 +51,7 @@ final case class AddBigGuies(id: GameAction.Id, time: Long, idsAndPositions: Lis
     * action. This is used by the AI manager to have one "action" per [[BigGuy]].
     */
   def splitToSingleAddBigGuies: List[AddBigGuies.AddBigGuy] =
-    idsAndPositions.map(_._1).map(AddBigGuies.AddBigGuy)
+    idsAndPositions.map(_._1).map(AddBigGuies.AddBigGuy(_))
 
 }
 

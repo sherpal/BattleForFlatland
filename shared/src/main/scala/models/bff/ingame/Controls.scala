@@ -3,15 +3,16 @@ package models.bff.ingame
 import models.bff.ingame.Controls.InputCode
 import models.syntax.Pointed
 import gamelogic.gameextras.GameMarker
-import io.circe.Encoder
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 
-/**
-  * Gathers all possible inputs that the user assigned.
-  * The [[InputCode]]s in argument have the knowledge of what device is the source of the input.
+/** Gathers all possible inputs that the user assigned. The [[InputCode]]s in argument have the knowledge of what device
+  * is the source of the input.
   *
-  * @param markerOnTargetKeys Map from the [[InputCode]] to the marker that will be put on current target
-  * @param markerOnPositionKeys Map from the [[InputCode]] to the marker that will be put on the current
-  *                             mouse position.
+  * @param markerOnTargetKeys
+  *   Map from the [[InputCode]] to the marker that will be put on current target
+  * @param markerOnPositionKeys
+  *   Map from the [[InputCode]] to the marker that will be put on the current mouse position.
   */
 final case class Controls(
     upKey: InputCode,
@@ -24,10 +25,10 @@ final case class Controls(
 ) {
 
   lazy val controlMap: Map[InputCode, UserInput] = Map(
-    upKey -> UserInput.Up,
-    downKey -> UserInput.Down,
-    leftKey -> UserInput.Left,
-    rightKey -> UserInput.Right,
+    upKey         -> UserInput.Up,
+    downKey       -> UserInput.Down,
+    leftKey       -> UserInput.Left,
+    rightKey      -> UserInput.Right,
     nextTargetKey -> UserInput.NextTarget
   ) ++ abilityKeys.zipWithIndex.map { case (code, idx) => code -> UserInput.AbilityInput(idx) }.toMap ++
     gameMarkerControls.controlMap
@@ -86,18 +87,30 @@ object Controls {
     def label                    = s"Button $code"
   }
 
-  implicit val pointed: Pointed[Controls] = Pointed.factory(
+  given Pointed[Controls] = Pointed.factory(
     Controls(
       KeyCode("KeyW"),
       KeyCode("KeyS"),
       KeyCode("KeyA"),
       KeyCode("KeyD"),
       KeyCode("Tab"),
-      (1 to 10).map(_ % 10).map("Digit" + _).map(KeyCode).toList,
+      (1 to 10).map(_ % 10).map("Digit" + _).map(KeyCode(_)).toList,
       Pointed[GameMarkerControls].unit
     )
   )
 
   val storageKey = "controls"
+
+  private given Encoder[KeyInputModifier] = deriveEncoder
+  private given Decoder[KeyInputModifier] = deriveDecoder
+
+  private given Encoder[InputCode] = deriveEncoder
+  private given Decoder[InputCode] = deriveDecoder
+
+  private given Encoder[GameMarkerControls] = deriveEncoder
+  private given Decoder[GameMarkerControls] = deriveDecoder
+
+  given Encoder[Controls] = deriveEncoder
+  given Decoder[Controls] = deriveDecoder
 
 }

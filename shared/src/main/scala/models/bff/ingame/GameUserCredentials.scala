@@ -19,5 +19,5 @@ object GameUserCredentials {
   implicit val fooDecoder: Decoder[GameUserCredentials] = deriveDecoder[GameUserCredentials]
   implicit val fooEncoder: Encoder[GameUserCredentials] = deriveEncoder[GameUserCredentials]
 
-  final def tupled: ((String, String, String)) => GameUserCredentials = (apply _).tupled
+  final def tupled: ((String, String, String)) => GameUserCredentials = (apply(_, _, _)).tupled
 }

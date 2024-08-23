@@ -227,7 +227,7 @@ final class ActionCollector(
     case Some((gs, actions)) =>
       gs.applyActions(actions.takeWhile(_.time <= time))
     case None =>
-      println("beuh", time)
+      println(("beuh", time))
       throw TooOldActionException(time.toString)
   }
 

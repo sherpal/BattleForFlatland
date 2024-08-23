@@ -41,7 +41,7 @@ package object login {
     } yield statusCode)
       .refineOrDie(ErrorADT.onlyErrorADT)
 
-  final val logout: ZIO[Routing with HttpClient, ErrorADT, Unit] =
+  final val logout: ZIO[Routing & HttpClient, ErrorADT, Unit] =
     for {
       _ <- postIgnore(models.users.Routes.logout, "").refineOrDie(ErrorADT.onlyErrorADT)
       _ <- moveTo(RouteDefinitions.loginRoute)

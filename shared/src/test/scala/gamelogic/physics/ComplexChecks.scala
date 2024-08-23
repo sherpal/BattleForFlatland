@@ -50,8 +50,8 @@ object ComplexChecks extends Properties("Complex properties") {
       val orthogonal = z.orthogonal
       all(
         z.modulus == orthogonal.modulus,
-        (z scalarProduct orthogonal) == 0,
-        (z crossProduct orthogonal) > 0
+        (z.scalarProduct(orthogonal)) == 0,
+        (z.crossProduct(orthogonal)) > 0
       )
 
   }

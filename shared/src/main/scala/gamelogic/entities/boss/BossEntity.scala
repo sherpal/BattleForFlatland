@@ -52,7 +52,7 @@ trait BossEntity extends LivingEntity with MovingBody with WithAbilities with Wi
 
 object BossEntity {
 
-  private def allBossesFactories: List[BossFactory[_ <: BossEntity]] = BossFactory.factoriesByBossName.values.toList
+  private def allBossesFactories: List[BossFactory[? <: BossEntity]] = BossFactory.factoriesByBossName.values.toList
 
   final def allBossesNames: List[String] = allBossesFactories.map(_.name)
 

@@ -7,7 +7,9 @@ import models.bff.outofgame.gameconfig.GameConfiguration
 import models.syntax.Validated
 import models.users.User
 import models.validators.FieldsValidator
-import models.validators.StringValidators._
+import models.validators.StringValidators.*
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 
 final case class MenuGame(
     gameId: String,
@@ -18,18 +20,17 @@ final case class MenuGame(
     gameConfiguration: GameConfiguration
 ) {
 
-  /**
-    * Returns this [[MenuGame]] where the password has been "forgotten". The class still knows whether there is a
+  /** Returns this [[MenuGame]] where the password has been "forgotten". The class still knows whether there is a
     * password (if it's `Some("")`) but loses the information.
     */
   def forgetPassword: MenuGame = copy(
     maybeHashedPassword = maybeHashedPassword.map(_ => ""),
-    gameCreator         = gameCreator.forgetPassword
+    gameCreator = gameCreator.forgetPassword
   )
 
   def onlyCreatorName: MenuGame = copy(
     maybeHashedPassword = maybeHashedPassword.map(_ => ""),
-    gameCreator         = gameCreator.onlyName
+    gameCreator = gameCreator.onlyName
   )
 
   def gameConfigurationIsValid: Boolean = gameConfiguration.isValid
@@ -45,6 +46,9 @@ object MenuGame {
     )
   )
 
-  implicit def validated: Validated[MenuGame, ErrorADT] = Validated.factory(validator)
+  given Validated[MenuGame, ErrorADT] = Validated.factory(validator)
+
+  given Encoder[MenuGame] = deriveEncoder
+  given Decoder[MenuGame] = deriveDecoder
 
 }

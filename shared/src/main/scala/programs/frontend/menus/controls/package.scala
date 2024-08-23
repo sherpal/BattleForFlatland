@@ -10,7 +10,7 @@ import services.logging.Logging
 package object controls {
 
   /** Retrieve the [[Controls]] from the local storage if it exists, or the default one otherwise. */
-  val retrieveControls: ZIO[Logging with LocalStorage, Nothing, Controls] = for {
+  val retrieveControls: ZIO[Logging & LocalStorage, Nothing, Controls] = for {
     maybeFromLocalStorage <- retrieveFrom[Controls](KeyboardControls.storageKey)
       .catchAll(
         t =>

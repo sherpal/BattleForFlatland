@@ -28,7 +28,7 @@ trait ServerAction {
       val (lastCollector, secondOutput) =
         that.apply(nextCollector, nowGenerator)
 
-      (lastCollector, firstOutput merge secondOutput)
+      (lastCollector, firstOutput .merge (secondOutput))
     }
 
     new ServerAction {

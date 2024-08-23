@@ -9,14 +9,14 @@ package object physics {
 
   def regularPolygonGen(nbrSides: Int): Gen[ConvexPolygon] =
     for {
-      radius <- Gen.choose(1.0, 1000.0)
+      radius     <- Gen.choose(1.0, 1000.0)
       startAngle <- angleGen
     } yield Shape.regularPolygon(nbrSides, radius, startAngle)
 
   def regularPolygonWithSideNbrBetween(low: Int, high: Int): Gen[ConvexPolygon] =
     for {
       nbrSides <- Gen.choose(low, high)
-      polygon <- regularPolygonGen(nbrSides)
+      polygon  <- regularPolygonGen(nbrSides)
     } yield polygon
 
   val complexGen: Gen[Complex] = for {
@@ -31,12 +31,12 @@ package object physics {
     } yield Complex(real, imag)
 
   val quadrilateralGen: Gen[Polygon] = for {
-    inFirstQuadrant <- complexGenFrom(Gen.choose(0.01, 1000), Gen.choose(0.01, 1000))
-    inSecondQuadrant <- complexGenFrom(Gen.choose(0.01, 1000).map(-_), Gen.choose(0.01, 1000))
-    inThirdQuadrant <- complexGenFrom(Gen.choose(0.01, 1000).map(-_), Gen.choose(0.01, 1000).map(-_))
-    inFourthQuadrant <- complexGenFrom(Gen.choose(0.01, 1000), Gen.choose(0.01, 1000).map(-_))
-    translation <- complexGen
-    rotation <- angleGen.map(Complex.rotation)
+    inFirstQuadrant  <- complexGenFrom(Gen.choose(0.01, 1000.0), Gen.choose(0.01, 1000.0))
+    inSecondQuadrant <- complexGenFrom(Gen.choose(0.01, 1000.0).map(-_), Gen.choose(0.01, 1000.0))
+    inThirdQuadrant  <- complexGenFrom(Gen.choose(0.01, 1000.0).map(-_), Gen.choose(0.01, 1000.0).map(-_))
+    inFourthQuadrant <- complexGenFrom(Gen.choose(0.01, 1000.0), Gen.choose(0.01, 1000.0).map(-_))
+    translation      <- complexGen
+    rotation         <- angleGen.map(Complex.rotation)
   } yield Polygon(
     Vector(inFirstQuadrant, inSecondQuadrant, inThirdQuadrant, inFourthQuadrant).map(_ * rotation + translation)
   )

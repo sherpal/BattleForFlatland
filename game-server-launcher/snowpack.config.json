@@ -1,7 +1,0 @@
-{
-  "mount": {
-    "public": "/",
-    "target/scala-2.13/game-server-launcher-fastopt": "/"
-  },
-  "buildOptions": {}
-}

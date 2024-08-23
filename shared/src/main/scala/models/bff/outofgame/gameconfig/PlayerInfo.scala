@@ -4,6 +4,7 @@ import models.bff.outofgame.PlayerClasses
 import models.bff.outofgame.gameconfig.PlayerInfo.ValidPlayerInfo
 import models.bff.outofgame.gameconfig.PlayerStatus.Ready
 import utils.misc.RGBColour
+import models.syntax.Pointed
 
 final case class PlayerInfo(
     playerName: PlayerName,
@@ -23,10 +24,20 @@ final case class PlayerInfo(
 }
 
 object PlayerInfo {
-  import io.circe._
-  import io.circe.generic.semiauto._
-  implicit val fooDecoder: Decoder[PlayerInfo] = deriveDecoder[PlayerInfo]
-  implicit val fooEncoder: Encoder[PlayerInfo] = deriveEncoder[PlayerInfo]
+  import io.circe.*
+  import io.circe.generic.semiauto.*
+  given Decoder[PlayerInfo] = deriveDecoder[PlayerInfo]
+  given Encoder[PlayerInfo] = deriveEncoder[PlayerInfo]
+
+  given Pointed[PlayerInfo] = Pointed.factory(
+    PlayerInfo(
+      Pointed[PlayerName].unit,
+      Pointed[Option[PlayerClasses]].unit,
+      Pointed[Option[RGBColour]].unit,
+      Pointed[PlayerStatus].unit,
+      Pointed[PlayerType].unit
+    )
+  )
 
   final case class ValidPlayerInfo(
       playerName: PlayerName,
@@ -35,6 +46,11 @@ object PlayerInfo {
       playerType: PlayerType
   ) {
     def status: PlayerStatus = Ready
+  }
+
+  object ValidPlayerInfo {
+    given Encoder[ValidPlayerInfo] = deriveEncoder
+    given Decoder[ValidPlayerInfo] = deriveDecoder
   }
 
 }

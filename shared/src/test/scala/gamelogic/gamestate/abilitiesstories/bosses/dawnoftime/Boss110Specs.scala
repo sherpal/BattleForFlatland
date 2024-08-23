@@ -12,7 +12,6 @@ import gamelogic.gamestate.gameactions.UseAbility
 import gamelogic.abilities.triangle.Stun
 import gamelogic.gamestate.gameactions.MovingBodyMoves
 import gamelogic.entities.boss.boss102.BossHound
-import shapeless.ops.fin
 import gamelogic.physics.Complex
 import testutils.ActionComposer
 import gamelogic.abilities.Ability
@@ -41,24 +40,23 @@ final class Boss110Specs extends StoryTeller {
   def getCreepingShadow(gs: GameState, entityId: Entity.Id): Option[CreepingShadow] =
     gs.entities.get(entityId).collect { case cs: CreepingShadow => cs }
 
-  def assertCorrectRadius(gs: GameState, entityId: Entity.Id, radius: Double) = {
+  inline def assertCorrectRadius(gs: GameState, entityId: Entity.Id, radius: Double) = {
     val maybeCreepingShadow = getCreepingShadow(gs, entityId)
     assert(maybeCreepingShadow.nonEmpty)
     val creepingShadow = maybeCreepingShadow.get
     assertEquals(creepingShadow.radius, radius)
   }
 
-  /**
-    * [[CreepingShadow]] tests
+  /** [[CreepingShadow]] tests
     */
   test("CreepingShadow change radius") {
     val addCreepingShadow = addCreepingShadowAction(0)
-    val changeRadius      = changeRadiusAction(1, addCreepingShadow.entityId, 1)
+    val changeRadius      = changeRadiusAction(1, addCreepingShadow.entityId, 2)
 
     val composer = ActionComposer.empty >> start >> addCreepingShadow >>>> { (gs: GameState) =>
-      assertCorrectRadius(gs, addCreepingShadow.entityId, 0)
-    } >> changeRadius >>>> { (gs: GameState) =>
       assertCorrectRadius(gs, addCreepingShadow.entityId, 1)
+    } >> changeRadius >>>> { (gs: GameState) =>
+      assertCorrectRadius(gs, addCreepingShadow.entityId, 2)
     }
 
     composer(initialGameState)

@@ -1,5 +1,4 @@
 package services.crypto
-
 import java.util.UUID
 
 import org.mindrot.jbcrypt.BCrypt
@@ -13,9 +12,8 @@ object Crypto {
 
     def checkPassword(password: String, hashedPassword: HashedPassword): UIO[Boolean]
 
-    /**
-      * Validate the provided `maybePassword` against the `maybeHashedPassword`.
-      * If `maybeHashedPassword` is None, then the password is assumed to be *not* required and always validated.
+    /** Validate the provided `maybePassword` against the `maybeHashedPassword`. If `maybeHashedPassword` is None, then
+      * the password is assumed to be *not* required and always validated.
       */
     final def checkPasswordIfRequired(
         maybePassword: Option[String],
@@ -34,7 +32,7 @@ object Crypto {
 
   final val live: ZLayer[Any, Nothing, Crypto] = ZLayer.succeed(new Service {
     def hashPassword(password: String): UIO[HashedPassword] =
-      ZIO.succeed(BCrypt.hashpw(password, BCrypt.gensalt(13))).map(HashedPassword)
+      ZIO.succeed(BCrypt.hashpw(password, BCrypt.gensalt(13))).map(HashedPassword(_))
 
     def checkPassword(password: String, hashedPassword: HashedPassword): UIO[Boolean] =
       ZIO.succeed(BCrypt.checkpw(password, hashedPassword.pw))

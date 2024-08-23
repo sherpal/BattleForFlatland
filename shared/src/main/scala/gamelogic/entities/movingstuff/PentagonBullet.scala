@@ -7,8 +7,7 @@ import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.Circle
 
-/**
-  * A [[PentagonBullet]] is spawned by the ability of the [[gamelogic.entities.classes.Pentagon]]. It moves on a strait
+/** A [[PentagonBullet]] is spawned by the ability of the [[gamelogic.entities.classes.Pentagon]]. It moves on a strait
   * line for a given range until it hits an enemy. The hit enemy takes an amount of damage equal to the `damage`
   * property.
   */
@@ -40,7 +39,7 @@ final case class PentagonBullet(
 
   def moving: Boolean = true
 
-  def collideEnemy(gameState: GameState, currentTime: Long): Option[LivingEntity with MovingBody] =
+  def collideEnemy(gameState: GameState, currentTime: Long): Option[LivingEntity & MovingBody] =
     gameState.allLivingEntities
       .filter(entity => !gameState.areTheyFromSameTeam(entity.id, id).getOrElse(true))
       .find(_.collides(this, currentTime))

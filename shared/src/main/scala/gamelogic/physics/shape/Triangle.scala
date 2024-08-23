@@ -6,7 +6,7 @@ final class Triangle(val x0: Double, val y0: Double, val x1: Double, val y1: Dou
 
   val vertices: Vector[Complex] = Vector(Complex(x0, y0), Complex(x1, y1), Complex(x2, y2))
 
-  val det: Double = Complex(x1 - x0, y1 - y0) crossProduct Complex(x2 - x0, y2 - y0)
+  val det: Double = Complex(x1 - x0, y1 - y0).crossProduct(Complex(x2 - x0, y2 - y0))
 
   @inline def overlapDisk(that: Circle, center: Complex, rot: Double = 0, translation: Complex = 0): Boolean = {
     val transformedVertices = vertices.map(_ * Complex.rotation(rot) + translation)

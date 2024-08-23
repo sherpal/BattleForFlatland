@@ -19,7 +19,7 @@ trait GameStateTransformer extends (GameState => GameState) {
 }
 
 object GameStateTransformer {
-  def identityTransformer: GameStateTransformer = identity[GameState]
+  def identityTransformer: GameStateTransformer = (gs: GameState) => gs
 
   implicit val monoid: Monoid[GameStateTransformer] = new Monoid[GameStateTransformer] {
     def empty: GameStateTransformer = identityTransformer

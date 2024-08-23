@@ -13,7 +13,7 @@ import zio.{IO, UIO, ZIO}
 
 package object ziohelpers {
 
-  type FrontendGlobalEnv = Clock with HttpClient with LocalStorage with Logging with Routing with Toaster
+  type FrontendGlobalEnv = Clock & HttpClient & LocalStorage & Logging & Routing & Toaster
 
   /**
     * Returns [[Unit]] if `mustFail` is false, and fail with `e` otherwise.

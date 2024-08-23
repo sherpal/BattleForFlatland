@@ -1,26 +1,27 @@
 package models.bff.outofgame.gameconfig
 
-import io.circe.generic.auto._
-import io.circe.syntax._
+import io.circe.syntax.*
 import models.bff.outofgame.gameconfig.GameConfiguration.ValidGameConfiguration
 import models.bff.outofgame.gameconfig.PlayerInfo.ValidPlayerInfo
 import models.syntax.Pointed
 import gamelogic.docs.BossMetadata
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 
-/**
-  * The [[models.bff.outofgame.gameconfig.GameConfiguration]] gathers all information about the configuration of the
+/** The [[models.bff.outofgame.gameconfig.GameConfiguration]] gathers all information about the configuration of the
   * game that players are about to play.
   *
   * Among these configuration options, we'll have
-  * - which class each player is going to use
-  * - the boss that players want to face
-  * - the colour every player chooses
-  * - ...
+  *   - which class each player is going to use
+  *   - the boss that players want to face
+  *   - the colour every player chooses
+  *   - ...
   *
-  * In the database, this information will simply be inserted as the JSON (or other encoder) so that we don't need
-  * to model it using SQL tables. In the future, this could perhaps be handled using Elastic Search or MongoDB.
+  * In the database, this information will simply be inserted as the JSON (or other encoder) so that we don't need to
+  * model it using SQL tables. In the future, this could perhaps be handled using Elastic Search or MongoDB.
   *
-  * @param playersInfo Map from player name to their information.
+  * @param playersInfo
+  *   Map from player name to their information.
   */
 final case class GameConfiguration(
     playersInfo: Map[String, PlayerInfo],
@@ -43,10 +44,9 @@ final case class GameConfiguration(
 
   def withBossName(bossName: String): GameConfiguration = copy(maybeBossName = Some(bossName))
 
-  /**
-    * Removes all current [[PlayerType.ArtificialIntelligence]], moves all
-    * [[PlayerType.Human]] to [[PlayerType.Observer]] and create a [[PlayerType.ArtificialIntelligence]]
-    * for each class in the [[BossMetadata]] description
+  /** Removes all current [[PlayerType.ArtificialIntelligence]], moves all [[PlayerType.Human]] to
+    * [[PlayerType.Observer]] and create a [[PlayerType.ArtificialIntelligence]] for each class in the [[BossMetadata]]
+    * description
     */
   def aisOnly(bossName: String): GameConfiguration =
     (for {
@@ -57,9 +57,7 @@ final case class GameConfiguration(
         .map { case (name, info) => (name, info.copy(playerType = PlayerType.Observer)) }
     } yield newPlayers ++ aiComposition.toMap).fold(this)(newPlayers => copy(playersInfo = newPlayers))
 
-  /**
-    * Removes [[PlayerType.ArtificialIntelligence]] and restore all [[PlayerType.Observer]]
-    * as [[PlayerType.Human]].
+  /** Removes [[PlayerType.ArtificialIntelligence]] and restore all [[PlayerType.Observer]] as [[PlayerType.Human]].
     */
   def removeAis: GameConfiguration =
     copy(playersInfo = playersInfo.collect {
@@ -92,5 +90,13 @@ object GameConfiguration {
   ) {
     def json: String = this.asJson.noSpaces
   }
+
+  object ValidGameConfiguration {
+    given Decoder[ValidGameConfiguration] = deriveDecoder
+    given Encoder[ValidGameConfiguration] = deriveEncoder
+  }
+
+  given Decoder[GameConfiguration] = deriveDecoder
+  given Encoder[GameConfiguration] = deriveEncoder
 
 }

@@ -4,6 +4,7 @@ data
 .vscode
 .bsp
 temp
+null/
 
 .DS_Store
 .idea

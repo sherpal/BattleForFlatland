@@ -1,15 +1,13 @@
 package errors
 
-import errors.HTTPResultType._
-import io.circe.generic.extras.Configuration
+import errors.HTTPResultType.*
 import io.circe.{Decoder, Encoder, Json}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
-/**
-  * Parent of all errors that are handled in both the frontend and the backend.
+/** Parent of all errors that are handled in both the frontend and the backend.
   *
-  * This ADT is meant to give more meaningful errors in ZIO error channel, by looking
-  * at smaller smallest parent class when resolving errors.
-  *
+  * This ADT is meant to give more meaningful errors in ZIO error channel, by looking at smaller smallest parent class
+  * when resolving errors.
   */
 sealed trait ErrorADT extends Throwable {
   def httpErrorType: HTTPResultType
@@ -19,8 +17,8 @@ sealed trait ErrorADT extends Throwable {
 
 object ErrorADT {
 
-  final val onlyErrorADT: PartialFunction[Throwable, ErrorADT] = {
-    case e: ErrorADT => e
+  final val onlyErrorADT: PartialFunction[Throwable, ErrorADT] = { case e: ErrorADT =>
+    e
   }
 
   type ErrorOr[T] = Either[ErrorADT, T]
@@ -155,23 +153,21 @@ object ErrorADT {
   sealed trait ValidatorError extends ErrorADT {
     def httpErrorType: HTTPResultType = BadRequest
   }
-  sealed trait NumericValidatorError extends ValidatorError
-  case class NonZero(value: String) extends NumericValidatorError
-  case class NotBiggerThan(value: String, threshold: String) extends NumericValidatorError
+  sealed trait NumericValidatorError                          extends ValidatorError
+  case class NonZero(value: String)                           extends NumericValidatorError
+  case class NotBiggerThan(value: String, threshold: String)  extends NumericValidatorError
   case class NotSmallerThan(value: String, threshold: String) extends NumericValidatorError
-  case class Negative(value: String) extends NumericValidatorError
-  sealed trait StringValidatorError extends ValidatorError
-  case object StringIsEmpty extends StringValidatorError
-  case class StringIsTooShort(str: String, threshold: Int) extends StringValidatorError
-  case class ContainsNonLowercaseAlphabet(str: String) extends StringValidatorError
-  case class ShouldContain(substr: String, str: String) extends StringValidatorError
-  case class ShouldNotContain(substr: String, str: String) extends StringValidatorError
+  case class Negative(value: String)                          extends NumericValidatorError
+  sealed trait StringValidatorError                           extends ValidatorError
+  case object StringIsEmpty                                   extends StringValidatorError
+  case class StringIsTooShort(str: String, threshold: Int)    extends StringValidatorError
+  case class ContainsNonLowercaseAlphabet(str: String)        extends StringValidatorError
+  case class ShouldContain(substr: String, str: String)       extends StringValidatorError
+  case class ShouldNotContain(substr: String, str: String)    extends StringValidatorError
 
-  import io.circe.generic.extras.semiauto._
-  implicit val genDevConfig: Configuration =
-    Configuration.default.withDiscriminator("what_am_i")
+  given Decoder[StringValidatorError] = deriveDecoder
 
-  implicit def decoder: Decoder[ErrorADT] = deriveConfiguredDecoder
-  implicit def encoder: Encoder[ErrorADT] = deriveConfiguredEncoder
+//  given Decoder[ErrorADT] = io.circe.generic.semiauto.deriveDecoder
+//  given Encoder[ErrorADT] = io.circe.generic.semiauto.deriveEncoder
 
 }

@@ -158,16 +158,16 @@ final class GameState(
 
   def entityById(entityId: Entity.Id): Option[Entity] = entities.get(entityId)
 
-  def allTargetableEntities: Iterator[MovingBody with LivingEntity] =
-    entities.valuesIterator.collect(filterT[LivingEntity with MovingBody])
+  def allTargetableEntities: Iterator[MovingBody & LivingEntity] =
+    entities.valuesIterator.collect(filterT[LivingEntity & MovingBody])
 
   // Is there something better?
   def withAbilityEntitiesById(entityId: Entity.Id): Option[WithAbilities] = entityByIdAs[WithAbilities](entityId)
 
   def livingEntityById(entityId: Entity.Id): Option[LivingEntity] = entityByIdAs[LivingEntity](entityId)
 
-  def allLivingEntities: Iterator[LivingEntity with MovingBody] =
-    entities.valuesIterator.collect { case entity: LivingEntity with MovingBody => entity }
+  def allLivingEntities: Iterator[LivingEntity & MovingBody] =
+    entities.valuesIterator.collect { case entity: (LivingEntity & MovingBody) => entity }
 
   def withThreatEntityById(entityId: Entity.Id): Option[WithThreat] = entityByIdAs[WithThreat](entityId)
 
@@ -178,8 +178,8 @@ final class GameState(
   def bodyEntityById(entityId: Entity.Id): Option[Body] =
     movingBodyEntityById(entityId)
 
-  def livingEntityAndMovingBodyById(entityId: Entity.Id): Option[MovingBody with LivingEntity] =
-    entityByIdAs[MovingBody with LivingEntity](entityId)
+  def livingEntityAndMovingBodyById(entityId: Entity.Id): Option[MovingBody & LivingEntity] =
+    entityByIdAs[MovingBody & LivingEntity](entityId)
 
   def withTargetEntityById(entityId: Entity.Id): Option[WithTarget] =
     entityByIdAs[WithTarget](entityId)

@@ -1,16 +1,16 @@
 package communication
 
 import boopickle.CompositePickler
-import boopickle.Default._
-import gamelogic.abilities._
+import boopickle.Default.*
+import gamelogic.abilities.*
 import gamelogic.gamestate.GameAction
-import gamelogic.gamestate.gameactions._
+import gamelogic.gamestate.gameactions.*
 import models.bff.ingame.InGameWSProtocol
-import models.bff.ingame.InGameWSProtocol._
+import models.bff.ingame.InGameWSProtocol.*
 
 object BFFPicklers {
 
-  implicit val abilityPickler: Pickler[Ability] = CompositePickler[Ability]
+  implicit val abilityPickler: Pickler[Ability] = compositePickler[Ability]
     .addConcreteType[boss.boss101.BigDot]
     .addConcreteType[boss.boss101.BigHit]
     .addConcreteType[boss.boss101.SmallHit]
@@ -43,7 +43,7 @@ object BFFPicklers {
     .addConcreteType[AutoAttack]
     .addConcreteType[SimpleBullet]
 
-  implicit val gameActionPickler: Pickler[GameAction] = CompositePickler[GameAction]
+  implicit val gameActionPickler: Pickler[GameAction] = compositePickler[GameAction]
     .addConcreteType[boss102.AddBossHound]
     .addConcreteType[boss102.PutDamageZone]
     .addConcreteType[boss102.PutLivingDamageZone]
@@ -85,7 +85,7 @@ object BFFPicklers {
     .addConcreteType[UpdateTimestamp]
     .addConcreteType[UseAbility]
 
-  implicit val ingameWebsocketPickler: Pickler[InGameWSProtocol] = CompositePickler[InGameWSProtocol]
+  implicit val ingameWebsocketPickler: Pickler[InGameWSProtocol] = compositePickler[InGameWSProtocol]
     .addConcreteType[HeartBeat.type]
     .addConcreteType[Ping]
     .addConcreteType[Pong]

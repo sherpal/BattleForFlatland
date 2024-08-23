@@ -48,7 +48,7 @@ sealed trait Validator[-T, +E] {
     * @tparam A type for the new validator
     * @return a validator for type `A`
     */
-  final def contraMap[A](f: A => T): Validator[A, E] = validator((validate _).compose(f))
+  final def contraMap[A](f: A => T): Validator[A, E] = validator((validate(_)).compose(f))
 
   /**
     * Same as `contraMap`, but allows to generate several T's at once.

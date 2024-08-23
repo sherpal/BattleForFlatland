@@ -43,7 +43,7 @@ trait Graph {
   ): Option[List[Complex]]
 
   /** Usual distance in the plane. */
-  val euclideanDistance: (Complex, Complex) => Double = _ distanceTo _
+  val euclideanDistance: (Complex, Complex) => Double = _.distanceTo(_)
 
   /** Applies the A* algorithm with the euclidean distance. See `a_*` for details. */
   def euclideanA_*(start: Complex, end: Complex): Option[List[Complex]] = a_*(start, end, euclideanDistance)

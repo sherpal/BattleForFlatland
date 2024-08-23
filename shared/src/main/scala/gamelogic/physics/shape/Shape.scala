@@ -27,14 +27,14 @@ trait Shape {
 object Shape {
 
   def segmentKind(z0: Complex, z1: Complex, z2: Complex): Int = {
-    val det = (z1 - z0) crossProduct (z2 - z1)
+    val det = (z1 - z0).crossProduct(z2 - z1)
 
-    if (det > 0) { // convex corner
-      if (z0.im < z1.im && z2.im < z1.im) 1 // no need of horizontal segment
+    if (det > 0) {                               // convex corner
+      if (z0.im < z1.im && z2.im < z1.im) 1      // no need of horizontal segment
       else if (z0.im > z1.im && z2.im > z1.im) 2 // full horizontal segment
       else if (z0.im < z1.im && z2.im > z1.im) 3 // horizontal segment to the left
-      else 4 // horizontal segment to the right
-    } else { // concave corner
+      else 4                                     // horizontal segment to the right
+    } else {                                     // concave corner
       if (z0.im > z1.im && z2.im > z1.im) 1
       else if (z0.im < z1.im && z2.im < z1.im) 2
       else if (z0.im > z1.im && z2.im < z1.im) 3
@@ -42,16 +42,16 @@ object Shape {
     }
   }
 
-  def triangulateMonotonePolygon(vertices: Vector[Complex]): List[Triangle] = {
+  def triangulateMonotonePolygon(vertices: Vector[Complex]): Vector[Triangle] = {
     @scala.annotation.tailrec
     def triangulationAcc(vertices: Vector[Complex], acc: List[Triangle]): List[Triangle] =
       if (vertices.length == 3) Triangle(vertices.head, vertices(1), vertices.last) :: acc
       else {
-        val convexCorner = vertices.indices.find(j => {
+        val convexCorner = vertices.indices.find { j =>
           val prev = if (j > 0) j - 1 else vertices.length - 1
           val next = if (j < vertices.length - 1) j + 1 else 0
-          ((vertices(j) - vertices(prev)) crossProduct (vertices(next) - vertices(j))) > 0
-        })
+          ((vertices(j) - vertices(prev)).crossProduct(vertices(next) - vertices(j))) > 0
+        }
 
         convexCorner match {
           case None =>
@@ -67,7 +67,7 @@ object Shape {
         }
       }
 
-    triangulationAcc(vertices, List[Triangle]())
+    triangulationAcc(vertices, List[Triangle]()).toVector
   }
 
   private final class Corner(val z: Complex, val next: Complex, val prev: Complex, val cornerIndex: Int) {
@@ -97,8 +97,8 @@ object Shape {
             )
 
         val (convex, reflex) = corners.partition(_.det > 0)
-        val ears             = convex.filter(v => !reflex.exists(c => (!v.isVertex(c.z)) && v.triangle.contains(c.z.re, c.z.im)))
-        val process          = ears.minBy(_.angle)
+        val ears    = convex.filter(v => !reflex.exists(c => (!v.isVertex(c.z)) && v.triangle.contains(c.z.re, c.z.im)))
+        val process = ears.minBy(_.angle)
 
         val (beforeCorner, afterCorner) = vs.splitAt(process.cornerIndex)
 
@@ -120,10 +120,8 @@ object Shape {
     (0 until nbrSides).map(j => translation + radius * Complex.exp(Complex.i * 2 * math.Pi * j / nbrSides)).toVector
   )
 
-  /**
-    * Returns the intersection point of the two segments
-    * [x11 + i y11, x12 + i y12] and [x21 + i y21, x22 + i y22],
-    * or None if it does not exist.
+  /** Returns the intersection point of the two segments [x11 + i y11, x12 + i y12] and [x21 + i y21, x22 + i y22], or
+    * None if it does not exist.
     */
   def intersectionPoint(
       x11: Double,
@@ -161,28 +159,25 @@ object Shape {
     }
   }
 
-  /**
-    * If it exists, returns the intersection of segments [z1, z2] and [w1, w2].
+  /** If it exists, returns the intersection of segments [z1, z2] and [w1, w2].
     */
   @inline def intersectionPoint(z1: Complex, z2: Complex, w1: Complex, w2: Complex): Option[Complex] =
     intersectionPoint(z1.re, z1.im, z2.re, z2.im, w1.re, w1.im, w2.re, w2.im)
 
-  /**
-    * Returns the point of the segment [z1, z2] the closest to z.
+  /** Returns the point of the segment [z1, z2] the closest to z.
     *
     * We first create a segment that is perpendicular to the segment [z1, z2], whose middle is z and its length is twice
     * the min between the distance to z1 and z2. (Taking the min is fine since the distance to the closest point to z
-    * has to be smaller than the distance to both z1 and z2.)
-    * That way, if that segment intersect [z1, z2], it is the closest point. Otherwise, we need to take z1 or z2,
-    * whichever is closer to z.
+    * has to be smaller than the distance to both z1 and z2.) That way, if that segment intersect [z1, z2], it is the
+    * closest point. Otherwise, we need to take z1 or z2, whichever is closer to z.
     */
   def closestToSegment(segment: (Complex, Complex), z: Complex): Complex = {
     val (z1, z2) = segment
     if (z1 == z2) z1
     else {
 
-      val distanceToZ1 = z distanceTo z1
-      val distanceToZ2 = z distanceTo z2
+      val distanceToZ1 = z.distanceTo(z1)
+      val distanceToZ2 = z.distanceTo(z2)
 
       val zDisplacement = (distanceToZ1 min distanceToZ2) * (z2 - z1).orthogonal.normalized
 
@@ -192,10 +187,7 @@ object Shape {
     }
   }
 
-  /**
-    * Returns whether the two segments
-    * [x11 + i y11, x12 + i y12] and [x21 + i y21, x22 + i y22]
-    * intersect.
+  /** Returns whether the two segments [x11 + i y11, x12 + i y12] and [x21 + i y21, x22 + i y22] intersect.
     */
   def intersectingSegments(
       x11: Double,
@@ -222,22 +214,19 @@ object Shape {
     else coef1 <= 0 && coef2 <= 0 && coef1 >= det && coef2 >= det
   }
 
-  /**
-    * Returns whether the segments [z1, z2] and [w1, w2] intersect.
+  /** Returns whether the segments [z1, z2] and [w1, w2] intersect.
     */
   def intersectingSegments(z1: Complex, z2: Complex, w1: Complex, w2: Complex): Boolean =
     intersectingSegments(z1.re, z1.im, z2.re, z2.im, w1.re, w1.im, w2.re, w2.im)
 
-  /**
-    * Returns the intersection point of the two lines passing respectively through z1 and z2 with direction vectors
+  /** Returns the intersection point of the two lines passing respectively through z1 and z2 with direction vectors
     * respectively dir1 and dir2.
     *
-    * This is done by solving the system
-    * z1 + t dir1 = z2 + t dir2
+    * This is done by solving the system z1 + t dir1 = z2 + t dir2
     */
   def linesIntersection(z1: Complex, z2: Complex, dir1: Complex, dir2: Complex): Complex = {
     val z = z2 - z1
-    val t = (dir2.im * z.re - dir2.re * z.im) / (dir1 crossProduct dir2)
+    val t = (dir2.im * z.re - dir2.re * z.im) / (dir1.crossProduct(dir2))
     z1 + t * dir1
   }
 

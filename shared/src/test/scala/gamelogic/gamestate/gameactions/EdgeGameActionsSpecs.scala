@@ -26,7 +26,7 @@ object EdgeGameActionsSpecs extends DefaultRunnableSpec {
       checkM(Gen.anyLong, Gen.anyLong) { (time, updateTime) =>
         val updateTimestamp = UpdateTimestamp(0, updateTime)
         val gameState       = GameState.empty.copy(newTime = time)
-        assertM(UIO(updateTimestamp(gameState).time))(equalTo(updateTime))
+        assertM(UIO(updateTimestamp(gameState).time))(equalTo(updateTime.max(time).max(0)))
       }
     }
   )

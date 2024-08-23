@@ -60,7 +60,7 @@ final class Circle(val radius: Double) extends Curved {
     val dirMod  = dir.modulus
     val unitVec = dir / dirMod
 
-    val scalarProduct = (translation - z1) scalarProduct unitVec
+    val scalarProduct = (translation - z1).scalarProduct(unitVec)
 
     0 <= scalarProduct && scalarProduct <= dirMod && {
       val projection           = z1 + unitVec * scalarProduct

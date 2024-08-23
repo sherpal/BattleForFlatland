@@ -2,7 +2,6 @@ package models.bff.ingame
 
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction
-import io.circe.generic.extras.Configuration
 import io.circe.{Decoder, Encoder}
 
 sealed trait InGameWSProtocol
@@ -15,14 +14,13 @@ object InGameWSProtocol {
   /** Messages going to the server from the client */
   sealed trait Outgoing extends InGameWSProtocol
 
-  /**
-    * Received from time to time to keep the connection open. Probably useless given that game messages are constantly
+  /** Received from time to time to keep the connection open. Probably useless given that game messages are constantly
     * sent.
     */
   case object HeartBeat extends Incoming
 
   /** A small Ping-Pong protocole is used before beginning the game to sync the clocks between client and server. */
-  case class Ping(sendingTime: Long) extends Outgoing
+  case class Ping(sendingTime: Long)                                  extends Outgoing
   case class Pong(originalSendingTime: Long, midwayDistantTime: Long) extends Incoming
 
   /** Sent when the user is connected and the web socket is open */
@@ -34,7 +32,7 @@ object InGameWSProtocol {
   /** Sent by a player to actually start the game at the very beginning. */
   case object LetsBegin extends Outgoing
 
-  case class GameActionWrapper(gameActions: List[GameAction]) extends Outgoing
+  case class GameActionWrapper(gameActions: List[GameAction])                           extends Outgoing
   case class RemoveActions(oldestTime: Long, idsOfActionsToRemove: List[GameAction.Id]) extends Incoming
   case class AddAndRemoveActions(
       actionsToAdd: List[GameAction],
@@ -48,10 +46,6 @@ object InGameWSProtocol {
   /** Received before beginning the game to know where the boss will start. */
   case class StartingBossPosition(x: Double, y: Double) extends Incoming
 
-  import io.circe.generic.extras.semiauto._
-  implicit val genDevConfig: Configuration =
-    Configuration.default.withDiscriminator("what_am_i_in_game")
-
-  implicit def decoder: Decoder[InGameWSProtocol] = deriveConfiguredDecoder
-  implicit def encoder: Encoder[InGameWSProtocol] = deriveConfiguredEncoder
+  given Decoder[InGameWSProtocol] = io.circe.generic.semiauto.deriveDecoder
+  given Encoder[InGameWSProtocol] = io.circe.generic.semiauto.deriveEncoder
 }
