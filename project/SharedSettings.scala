@@ -7,7 +7,7 @@ object SharedSettings {
 
   val circeVersion = "0.14.9"
   val catsVersion  = "2.1.2"
-  val zioVersion   = "1.0.18"
+  val zioVersion   = "2.1.7"
 
   def apply(): Seq[Def.Setting[_]] = settings(
     libraryDependencies ++= Seq(

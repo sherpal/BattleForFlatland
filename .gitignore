@@ -10,6 +10,7 @@ null/
 .idea
 
 frontend/node_modules
+frontend/scala-metadata.js
 game-server-launcher/node_modules
 game-server-launcher/build
 

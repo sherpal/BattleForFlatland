@@ -1,0 +1,19 @@
+{
+  "name": "battle-for-flatland",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "3.2.7",
+    "vite-plugin-html": "3.2.0",
+    "http-proxy": "1.18.1"
+  },
+  "dependencies": {
+    "@ui5/webcomponents": "2.0.0",
+    "@ui5/webcomponents-fiori": "2.0.0",
+    "@ui5/webcomponents-icons": "2.0.0"
+  }
+}

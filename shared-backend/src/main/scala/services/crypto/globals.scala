@@ -1,19 +1,16 @@
 package services.crypto
 
-import services.crypto.Crypto.Service
-import zio.{Has, URIO, ZIO}
+import zio.{URIO, ZIO}
 
-type Crypto = Has[Crypto.Service]
-
-def hashPassword(password: String): URIO[Crypto, HashedPassword] = ZIO.accessM(_.get[Service].hashPassword(password))
+def hashPassword(password: String): URIO[Crypto, HashedPassword] = ZIO.serviceWithZIO[Crypto](_.hashPassword(password))
 
 def checkPassword(password: String, hashedPassword: HashedPassword): URIO[Crypto, Boolean] =
-  ZIO.accessM(_.get[Service].checkPassword(password, hashedPassword))
+  ZIO.serviceWithZIO[Crypto](_.checkPassword(password, hashedPassword))
 
 def checkPasswordIfRequired(
     maybePassword: Option[String],
     maybeHashedPassword: Option[HashedPassword]
 ): URIO[Crypto, Boolean] =
-  ZIO.accessM(_.get[Service].checkPasswordIfRequired(maybePassword, maybeHashedPassword))
+  ZIO.serviceWithZIO[Crypto](_.checkPasswordIfRequired(maybePassword, maybeHashedPassword))
 
-val uuid: URIO[Crypto, String] = ZIO.accessM(_.get[Service].uuid)
+val uuid: URIO[Crypto, String] = ZIO.serviceWithZIO[Crypto](_.uuid)

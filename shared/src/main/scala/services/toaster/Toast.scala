@@ -4,8 +4,7 @@ import zio.{URIO, ZIO}
 
 final class Toast {
 
-  /**
-    * Toast an info with the given modifiers.
+  /** Toast an info with the given modifiers.
     *
     * @example
     * {{{
@@ -14,10 +13,9 @@ final class Toast {
     * }}}
     */
   def info(content: String, modifiers: ToasterModifier*): URIO[Toaster, Unit] =
-    ZIO.accessM(_.get[Toaster.Service].info(content, ToasterModifier.seqBuild(modifiers)))
+    ZIO.serviceWithZIO[Toaster](_.info(content, ToasterModifier.seqBuild(modifiers)))
 
-  /**
-    * Toast an success with the given modifiers.
+  /** Toast an success with the given modifiers.
     *
     * @example
     * {{{
@@ -26,10 +24,9 @@ final class Toast {
     * }}}
     */
   def success(content: String, modifiers: ToasterModifier*): URIO[Toaster, Unit] =
-    ZIO.accessM(_.get[Toaster.Service].success(content, ToasterModifier.seqBuild(modifiers)))
+    ZIO.serviceWithZIO[Toaster](_.success(content, ToasterModifier.seqBuild(modifiers)))
 
-  /**
-    * Toast an warning with the given modifiers.
+  /** Toast an warning with the given modifiers.
     *
     * @example
     * {{{
@@ -38,10 +35,9 @@ final class Toast {
     * }}}
     */
   def warn(content: String, modifiers: ToasterModifier*): URIO[Toaster, Unit] =
-    ZIO.accessM(_.get[Toaster.Service].warn(content, ToasterModifier.seqBuild(modifiers)))
+    ZIO.serviceWithZIO[Toaster](_.warn(content, ToasterModifier.seqBuild(modifiers)))
 
-  /**
-    * Toast an error with the given modifiers.
+  /** Toast an error with the given modifiers.
     *
     * @example
     * {{{
@@ -50,6 +46,6 @@ final class Toast {
     * }}}
     */
   def error(content: String, modifiers: ToasterModifier*): URIO[Toaster, Unit] =
-    ZIO.accessM(_.get[Toaster.Service].error(content, ToasterModifier.seqBuild(modifiers)))
+    ZIO.serviceWithZIO[Toaster](_.error(content, ToasterModifier.seqBuild(modifiers)))
 
 }
