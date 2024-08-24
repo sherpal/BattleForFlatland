@@ -31,6 +31,8 @@ trait Crypto {
 object Crypto {
 
   val live: ZLayer[Any, Nothing, Crypto] = ZLayer.fromZIO(ZIO.succeed(new Crypto {
+    println("Initializing Crypto service...")
+
     def hashPassword(password: String): UIO[HashedPassword] =
       ZIO.succeed(BCrypt.hashpw(password, BCrypt.gensalt(13))).map(HashedPassword(_))
 

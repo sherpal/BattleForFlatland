@@ -3,27 +3,26 @@ package gamelogic.gamestate.statetransformers
 import gamelogic.gamestate.gameactions.{EndGame, GameStart}
 import gamelogic.gamestate.{GameState, ImmutableActionCollector}
 import zio.UIO
-import zio.test.DefaultRunnableSpec
-import zio.test.Assertion._
-import zio.test._
+import zio.test.ZIOSpecDefault
+import zio.test.Assertion.*
+import zio.test.*
 
-object GameStateTransformerSpecs extends DefaultRunnableSpec {
+object GameStateTransformerSpecs extends ZIOSpecDefault {
 
   def spec = suite("Game state transformers")(
-    testM("Starting and ending game at once should give same result") {
+    test("Starting and ending game at once should give same result") {
       val gameState = GameState.empty
       val gameStart = GameStart(0, 1)
       val endGame   = EndGame(1, 2)
 
-      assertM(UIO(gameState.applyActions(List(gameStart, endGame)).endTime))(
-        equalTo(
+      assertTrue(
+        gameState.applyActions(List(gameStart, endGame)).endTime ==
           List(gameStart, endGame)
             .map(_.createGameStateTransformer(gameState))
             .foldLeft(
               GameStateTransformer.identityTransformer
             )(_ ++ _)(gameState)
             .endTime
-        )
       )
 
     }

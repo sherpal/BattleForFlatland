@@ -1,32 +1,32 @@
 package gamelogic.gamestate.gameactions
 
 import gamelogic.gamestate.GameState
-import zio.UIO
-import zio.test.DefaultRunnableSpec
-import zio.test.Assertion._
-import zio.test._
+import zio.ZIO
+import zio.test.ZIOSpecDefault
+import zio.test.Assertion.*
+import zio.test.*
 
-object EdgeGameActionsSpecs extends DefaultRunnableSpec {
+object EdgeGameActionsSpecs extends ZIOSpecDefault {
 
-  def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] = suite("Edge game actions")(
-    testM("Game must be started after GameStart action") {
-      checkM(Gen.long(0, Long.MaxValue), Gen.long(0, Long.MaxValue)) { (time, startingTime) =>
+  def spec = suite("Edge game actions")(
+    test("Game must be started after GameStart action") {
+      check(Gen.long(0, Long.MaxValue), Gen.long(0, Long.MaxValue)) { (time, startingTime) =>
         val gameStart = GameStart(0, startingTime)
         val gameState = GameState.empty.copy(newTime = time)
-        assertM(UIO(gameStart(gameState).started))(equalTo(true))
+        ZIO.succeed(assertTrue(gameStart(gameState).started))
       }
     },
-    testM("Game must be ended after EndGame action") {
+    test("Game must be ended after EndGame action") {
       val gameEnd   = EndGame(0, 1)
       val gameState = GameState.empty
 
-      assertM(UIO(gameEnd(gameState).ended))(equalTo(true))
+      ZIO.succeed(assertTrue(gameEnd(gameState).ended))
     },
-    testM("Applying a time update on a game state changes its time") {
-      checkM(Gen.anyLong, Gen.anyLong) { (time, updateTime) =>
+    test("Applying a time update on a game state changes its time") {
+      check(Gen.long, Gen.long) { (time, updateTime) =>
         val updateTimestamp = UpdateTimestamp(0, updateTime)
         val gameState       = GameState.empty.copy(newTime = time)
-        assertM(UIO(updateTimestamp(gameState).time))(equalTo(updateTime.max(time).max(0)))
+        ZIO.succeed(assertTrue(updateTimestamp(gameState).time == updateTime.max(time).max(0)))
       }
     }
   )
