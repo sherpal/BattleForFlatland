@@ -31,7 +31,6 @@ val scalaCompilerOptions = List(
   "-feature",
   "-Xfatal-warnings"
 //  "-unchecked",
-  // "-Xfatal-warnings",
 //  "-Xlint",
 //  "-Ywarn-numeric-widen",
 //  "-Ywarn-value-discard"
@@ -64,7 +63,6 @@ lazy val server = project
   .in(file("./server"))
   .settings(
     libraryDependencies ++= List(
-      // cask as server (other choices are zio-http, http4s, akka-http, play...)
       "com.lihaoyi" %% "cask" % "0.9.1"
     ),
     assembly / mainClass       := Some("server.Server"),

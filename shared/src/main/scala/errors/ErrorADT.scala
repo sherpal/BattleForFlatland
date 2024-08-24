@@ -54,10 +54,6 @@ object ErrorADT {
     error.getMessage + "\n" + error.getStackTrace.map(_.toString).map("\t" + _).mkString("\n")
   )
 
-  case class ReadingConfigError(message: String) extends ErrorADT {
-    def httpErrorType: HTTPResultType = Internal
-  }
-
   sealed trait GameLogicError extends ErrorADT
   case class TooOldActionException(msg: String) extends GameLogicError {
     override def httpErrorType: HTTPResultType = Internal
@@ -165,9 +161,24 @@ object ErrorADT {
   case class ShouldContain(substr: String, str: String)       extends StringValidatorError
   case class ShouldNotContain(substr: String, str: String)    extends StringValidatorError
 
-  given Decoder[StringValidatorError] = deriveDecoder
+  given Decoder[RawInternalError]    = deriveDecoder
+  given Encoder[RawInternalError]    = deriveEncoder
+  given Decoder[RawNotFound]         = deriveDecoder
+  given Encoder[RawNotFound]         = deriveEncoder
+  given Decoder[FrontendError]       = deriveDecoder
+  given Encoder[FrontendError]       = deriveEncoder
+  given Decoder[CirceDecodingError]  = deriveDecoder
+  given Encoder[CirceDecodingError]  = deriveEncoder
+  given Decoder[GameLogicError]      = deriveDecoder
+  given Encoder[GameLogicError]      = deriveEncoder
+  given Decoder[BackendError]        = deriveDecoder
+  given Encoder[BackendError]        = deriveEncoder
+  given Decoder[AuthenticationError] = deriveDecoder
+  given Encoder[AuthenticationError] = deriveEncoder
+  given Decoder[ValidatorError]      = deriveDecoder
+  given Encoder[ValidatorError]      = deriveEncoder
 
-//  given Decoder[ErrorADT] = io.circe.generic.semiauto.deriveDecoder
-//  given Encoder[ErrorADT] = io.circe.generic.semiauto.deriveEncoder
+  given Decoder[ErrorADT] = deriveDecoder
+  given Encoder[ErrorADT] = deriveEncoder
 
 }
