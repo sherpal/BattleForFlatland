@@ -16,7 +16,7 @@ import scala.scalajs.js.JSConverters.*
 
 object FHttpClient {
 
-  def serviceLive: HttpClient = new HttpClient {
+  private def serviceLive(fetcher: Fetcher): HttpClient = new HttpClient {
     def maybeCsrfToken: UIO[Option[String]] = ZIO.succeed(
       dom.document.cookie
         .split(";")
@@ -68,7 +68,7 @@ object FHttpClient {
 
           ri
         }
-        response <- ZIO.fromPromiseJS(dom.Fetch.fetch(url, requestInit))
+        response <- ZIO.fromPromiseJS(fetcher.fetch(url, requestInit))
         text     <- ZIO.fromPromiseJS(response.text())
         status   <- ZIO.succeed(response.status)
         _ <- ZIO.unless(response.ok) {
@@ -123,14 +123,10 @@ object FHttpClient {
 
   }
 
-  val live = ZLayer.fromZIO(
-    zio.Console
-      .printLine(
-        "Initializing Frontend Http Client"
-      )
-      .orDie *> ZIO.succeed(
-      serviceLive
-    )
-  )
+  val live = ZLayer.fromZIO(for {
+    _       <- zio.Console.printLine("Initializing Frontend Http Client").orDie
+    fetcher <- ZIO.succeed(Fetcher.domFetcher)
+    service <- ZIO.succeed(serviceLive(fetcher))
+  } yield service)
 
 }

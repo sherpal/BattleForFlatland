@@ -7,8 +7,11 @@ import cask.router.Result
 import zio.*
 import zio.Exit.Success
 import zio.Exit.Failure
+import menus.data.User
+import io.circe.syntax.EncoderOps
+import errors.ErrorADT
 
-object Server extends cask.MainRoutes {
+object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] {
 
   val layer = ZLayer.make[BackendEnv](
     services.crypto.Crypto.live
@@ -18,13 +21,6 @@ object Server extends cask.MainRoutes {
     Unsafe.unsafe { implicit unsafe =>
       Runtime.unsafe.fromLayer(layer)
     }
-
-  def runEffect[R >: BackendEnv, E <: Throwable, A](effect: ZIO[R, E, A]): A =
-    Unsafe.unsafe { implicit unsafe =>
-      runtime.unsafe.run(effect)
-    } match
-      case Success(value) => value
-      case Failure(cause) => throw cause.squashTrace
 
   override def port: Int = Option(java.lang.System.getProperty("port")).fold(9000)(_.toInt)
 
@@ -40,19 +36,27 @@ object Server extends cask.MainRoutes {
       List("Content-Type" -> "text/html; charset=utf-8")
     )
 
+  @caskz.getJ[Option[User]]("/api/me")
+  def me(request: cask.Request) =
+    ZIO.succeed(request.cookies.get("session").map(session => User(session.value)))
+
+  @caskz.post[String]("/api/login")
+  def login(request: cask.Request) = for {
+    user <- ZIO.fromEither(decode[User](request.text()))
+  } yield cask.Response("", 200, Seq(), Seq(cask.Cookie("session", user.name)))
+
   @cask.get("/api")
   def hello() = "Hello World!"
 
-  @cask.get("/api/ping")
-  def ping() = "PONG2"
+  @caskz.get[String]("/api/ping/:name")
+  def ping(name: String) = ZIO.succeed(cask.Response("PONG: " ++ name))
 
-  @cask.post("/api/do-thing")
-  def doThing(request: cask.Request) = runEffect(
+  @caskz.post[String]("/api/do-thing")
+  def doThing(request: cask.Request) =
     for {
       body        <- ZIO.succeed(request.text())
       encodedBody <- services.crypto.hashPassword(body)
-    } yield encodedBody.pw
-  )
+    } yield cask.Response(encodedBody.pw)
 
   @StaticResourcesWithContentType("/static")
   def staticResourceRoutes() = "static"
