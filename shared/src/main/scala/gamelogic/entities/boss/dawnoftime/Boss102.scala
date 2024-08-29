@@ -22,6 +22,8 @@ import gamelogic.gamestate.gameactions.RemoveEntity
 import gamelogic.entities.boss.boss102.DamageZone
 import gamelogic.buffs.Buff
 import gamelogic.gamestate.gameactions.RemoveBuff
+import gamelogic.docs.BossMetadata
+import models.bff.outofgame.PlayerClasses
 
 final case class Boss102(
     id: Entity.Id,
@@ -52,8 +54,22 @@ final case class Boss102(
   def maxResourceAmount: Double      = 0.0
   def resourceAmount: ResourceAmount = ResourceAmount(0, NoResource)
 
-  def move(time: Long, position: Complex, direction: Angle, rotation: Angle, speed: Double, moving: Boolean): Boss102 =
-    copy(time = time, pos = position, direction = direction, rotation = rotation, speed = speed, moving = moving)
+  def move(
+      time: Long,
+      position: Complex,
+      direction: Angle,
+      rotation: Angle,
+      speed: Double,
+      moving: Boolean
+  ): Boss102 =
+    copy(
+      time = time,
+      pos = position,
+      direction = direction,
+      rotation = rotation,
+      speed = speed,
+      moving = moving
+    )
 
   protected def patchLifeTotal(newLife: Double): Boss102 =
     copy(life = newLife)
@@ -61,10 +77,14 @@ final case class Boss102(
   def teamId: Entity.TeamId = Entity.teams.mobTeam
 
   def changeDamageThreats(threatId: Id, delta: ThreatAmount): Boss102 =
-    copy(damageThreats = damageThreats + (threatId -> (damageThreats.getOrElse(threatId, 0.0) + delta)))
+    copy(damageThreats =
+      damageThreats + (threatId -> (damageThreats.getOrElse(threatId, 0.0) + delta))
+    )
 
   def changeHealingThreats(threatId: Id, delta: ThreatAmount): Boss102 =
-    copy(healingThreats = healingThreats + (threatId -> (healingThreats.getOrElse(threatId, 0.0) + delta)))
+    copy(healingThreats =
+      healingThreats + (threatId -> (healingThreats.getOrElse(threatId, 0.0) + delta))
+    )
 
   def changeTarget(newTargetId: Id): Boss102 = copy(targetId = newTargetId)
 
@@ -74,7 +94,7 @@ final case class Boss102(
     Ability.boss102PutDamageZones -> "Damage zones",
     Ability.boss102SpawnBossHound -> "Spawn Hound",
     Ability.putLivingDamageZoneId -> "Living damage zone",
-    Ability.autoAttackId -> "Auto attack"
+    Ability.autoAttackId          -> "Auto attack"
   )
 
   def maybeAutoAttack(time: Long, gameState: GameState): Option[AutoAttack] =
@@ -93,9 +113,11 @@ final case class Boss102(
 
 }
 
-object Boss102 extends BossFactory[Boss102] {
+object Boss102 extends BossFactory[Boss102] with BossMetadata {
 
   import Complex.i
+
+  override def maybeAIComposition: Option[List[PlayerClasses]] = None
 
   final val shape: Circle = new Circle(30.0)
 
@@ -114,8 +136,8 @@ object Boss102 extends BossFactory[Boss102] {
   def initialBoss(entityId: Entity.Id, time: Long): Boss102 =
     Pointed[Boss102].unit
       .copy(
-        id    = entityId,
-        time  = time,
+        id = entityId,
+        time = time,
         speed = fullSpeed,
         relevantUsedAbilities = Map(
           Ability.boss102PutDamageZones -> Pointed[PutDamageZones].unit.copy(
@@ -125,11 +147,12 @@ object Boss102 extends BossFactory[Boss102] {
             time = time - SpawnHound.cooldown + SpawnHound.timeToFirstAbility
           ),
           Ability.putLivingDamageZoneId -> Pointed[PutLivingDamageZoneOnTarget].unit.copy(
-            time = time - PutLivingDamageZoneOnTarget.cooldown + PutLivingDamageZoneOnTarget.timeToFirstAbility
+            time =
+              time - PutLivingDamageZoneOnTarget.cooldown + PutLivingDamageZoneOnTarget.timeToFirstAbility
           )
         ),
         maxLife = maxLife,
-        life    = maxLife
+        life = maxLife
       )
 
   def initialBossActions(
@@ -140,21 +163,23 @@ object Boss102 extends BossFactory[Boss102] {
     healAndDamageAwareActions(entityId, time, idGeneratorContainer)
 
   val size = 350.0
-  def gameBoundariesActions(time: Long, idGeneratorContainer: IdGeneratorContainer): List[CreateObstacle] =
+  def gameBoundariesActions(
+      time: Long,
+      idGeneratorContainer: IdGeneratorContainer
+  ): List[CreateObstacle] =
     List[(Complex, (Complex, Complex))](
       (size, (-i * size, i * size)),
       (-size, (-i * size, i * size)),
       (-i * size, (-size, size)),
       (i * size, (-size, size))
-    ).map {
-      case (position, (z1, z2)) =>
-        CreateObstacle(
-          idGeneratorContainer.gameActionIdGenerator(),
-          time,
-          idGeneratorContainer.entityIdGenerator(),
-          position,
-          Obstacle.segmentObstacleVertices(z1, z2, 10)
-        )
+    ).map { case (position, (z1, z2)) =>
+      CreateObstacle(
+        idGeneratorContainer.gameActionIdGenerator(),
+        time,
+        idGeneratorContainer.entityIdGenerator(),
+        position,
+        Obstacle.segmentObstacleVertices(z1, z2, 10)
+      )
     }
 
   def stagingBossActions(time: Long, idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
@@ -178,11 +203,16 @@ object Boss102 extends BossFactory[Boss102] {
       idGeneratorContainer: IdGeneratorContainer
   ): List[GameAction] =
     gameState.entities.values.collect {
-      case hound: BossHound => RemoveEntity(idGeneratorContainer.gameActionIdGenerator(), time, hound.id)
-      case zone: DamageZone => RemoveEntity(idGeneratorContainer.gameActionIdGenerator(), time, zone.id)
+      case hound: BossHound =>
+        RemoveEntity(idGeneratorContainer.gameActionIdGenerator(), time, hound.id)
+      case zone: DamageZone =>
+        RemoveEntity(idGeneratorContainer.gameActionIdGenerator(), time, zone.id)
     }.toList ++ gameState.allBuffs.collect {
       case buff: Buff
-          if List(Buff.boss102DamageZoneBuff, Buff.boss102LivingDamageZone) contains buff.resourceIdentifier =>
+          if List(
+            Buff.boss102DamageZoneBuff,
+            Buff.boss102LivingDamageZone
+          ) contains buff.resourceIdentifier =>
         RemoveBuff(idGeneratorContainer.gameActionIdGenerator(), time, buff.bearerId, buff.buffId)
     }
 }

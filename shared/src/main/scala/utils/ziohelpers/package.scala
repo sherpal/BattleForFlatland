@@ -6,13 +6,12 @@ import models.validators.{FieldsValidator, Validator}
 import services.http.HttpClient
 import services.localstorage.LocalStorage
 import services.logging.Logging
-import services.routing.Routing
 import services.toaster.Toaster
 import zio.{IO, UIO, ZIO}
 
 package object ziohelpers {
 
-  type FrontendGlobalEnv = HttpClient & LocalStorage & Logging & Routing & Toaster
+  type FrontendGlobalEnv = HttpClient & LocalStorage & Logging & Toaster
 
   /** Returns [[Unit]] if `mustFail` is false, and fail with `e` otherwise.
     */

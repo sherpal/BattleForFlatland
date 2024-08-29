@@ -34,7 +34,7 @@ val scalaCompilerOptions = List(
 //  "-Xlint",
 //  "-Ywarn-numeric-widen",
 //  "-Ywarn-value-discard"
-  //"-Ywarn-dead-code"
+  // "-Ywarn-dead-code"
 )
 
 ThisBuild / scalacOptions := scalaCompilerOptions

@@ -13,13 +13,13 @@ final class PostFilled[R] private[http] () {
       path: Path[Unit],
       query: Query[Q],
       body: B
-  )(q: Q)(implicit decoder: Decoder[R], encoder: Encoder[B]): ZIO[HttpClient, Throwable, R] =
+  )(q: Q)(using Decoder[R], Encoder[B]): ZIO[HttpClient, Throwable, R] =
     ZIO.serviceWithZIO[HttpClient](_.post[R](path, query, body)(q))
 
   def apply[B](
       path: Path[Unit],
       body: B
-  )(implicit decoder: Decoder[R], encoder: Encoder[B]): ZIO[HttpClient, Throwable, R] =
+  )(using Decoder[R], Encoder[B]): ZIO[HttpClient, Throwable, R] =
     ZIO.serviceWithZIO[HttpClient](_.post[R](path, body))
 
 }

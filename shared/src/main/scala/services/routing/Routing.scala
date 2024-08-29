@@ -9,4 +9,6 @@ trait Routing {
   def moveTo[Q](path: PathSegment[Unit, ?], query: QueryParameters[Q, ?])(q: Q): UIO[Unit] = moveTo(path ? query)(q)
 
   def moveTo[Q](pathAndQuery: PathSegmentWithQueryParams[Unit, ?, Q, ?])(q: Q): UIO[Unit]
+
+  def currentUrlMatches(matcher: urldsl.language.UrlPart[?, ?]): UIO[Boolean]
 }

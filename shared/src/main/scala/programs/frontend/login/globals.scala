@@ -1,12 +1,11 @@
 package programs.frontend.login
 
 import errors.ErrorADT
-import io.circe.generic.auto._
+//import io.circe.generic.auto.*
 import models.users.{LoginUser, NewUser, RouteDefinitions, User}
 import models.validators.FieldsValidator
-import services.http._
-import services.routing._
-import urldsl.language.QueryParameters.dummyErrorImpl._
+import services.http.*
+import urldsl.language.QueryParameters.dummyErrorImpl.*
 import urldsl.vocabulary.Printer
 import utils.ziohelpers.fieldsValidateOrFail
 import zio.{UIO, URIO, ZIO}
@@ -38,12 +37,6 @@ def register(
     statusCode <- postIgnore(path, newUser)
   } yield statusCode)
     .refineOrDie(ErrorADT.onlyErrorADT)
-
-val logout: ZIO[Routing & HttpClient, ErrorADT, Unit] =
-  for {
-    _ <- postIgnore(models.users.Routes.logout, "").refineOrDie(ErrorADT.onlyErrorADT)
-    _ <- moveTo(RouteDefinitions.loginRoute)
-  } yield ()
 
 val me: ZIO[HttpClient, ErrorADT, User] = get[User](models.users.Routes.me).refineOrDie(ErrorADT.onlyErrorADT)
 

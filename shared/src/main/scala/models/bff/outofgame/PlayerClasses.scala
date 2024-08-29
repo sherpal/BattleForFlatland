@@ -8,6 +8,8 @@ import scala.util.Try
 /** Classes that a user can chose from. */
 sealed trait PlayerClasses {
   def builder: PlayerClassBuilder
+
+  final def value = toString
 }
 
 object PlayerClasses {
@@ -27,11 +29,11 @@ object PlayerClasses {
 
   final val allChoices: List[PlayerClasses] = List(Triangle, Square, Pentagon, Hexagon)
 
-  def playerClassByName(name: String): Option[PlayerClasses] = allChoices.find(_.toString == name)
+  def playerClassByName(name: String): Option[PlayerClasses] = allChoices.find(_.value == name)
 
   implicit val circeDecoder: Decoder[PlayerClasses] =
     Decoder.decodeString.emapTry(str => Try(playerClassByName(str).get))
 
-  implicit val circeEncoder: Encoder[PlayerClasses] = Encoder.encodeString.contramap(_.toString)
+  implicit val circeEncoder: Encoder[PlayerClasses] = Encoder.encodeString.contramap(_.value)
 
 }

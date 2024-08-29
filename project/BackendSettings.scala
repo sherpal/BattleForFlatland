@@ -3,7 +3,7 @@ import sbt.Def.settings
 import sbt.Keys.libraryDependencies
 
 object BackendSettings {
-  val zioVersion = "1.0.0-RC18-2"
+  val zioVersion = SharedSettings.zioVersion
 
   def testsDeps(): Seq[Def.Setting[_]] = settings(
     libraryDependencies ++= Seq(

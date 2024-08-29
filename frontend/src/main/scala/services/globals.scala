@@ -1,3 +1,5 @@
 package services
 
-type FrontendEnv = services.http.HttpClient
+type FrontendEnv = services.http.HttpClient & services.routing.Routing &
+  services.errorreporting.ErrorReporting & services.menugames.MenuGames &
+  services.localstorage.LocalStorage

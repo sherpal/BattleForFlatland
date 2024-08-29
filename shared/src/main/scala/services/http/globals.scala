@@ -15,12 +15,12 @@ def post[R]: PostFilled[R] = new PostFilled[R]
 def postIgnore[Q](path: Path[Unit], query: Query[Q])(q: Q): ZIO[HttpClient, Throwable, Int] =
   ZIO.serviceWithZIO[HttpClient](_.postIgnore(path, query)(q))
 
-def postIgnore[B](path: Path[Unit], body: B)(implicit encoder: Encoder[B]): ZIO[HttpClient, Throwable, Int] =
+def postIgnore[B](path: Path[Unit], body: B)(using Encoder[B]): ZIO[HttpClient, Throwable, Int] =
   ZIO.serviceWithZIO[HttpClient](_.postIgnore(path, body))
 
 def postIgnore[B, Q](path: Path[Unit], query: Query[Q], body: B)(
     q: Q
-)(implicit encoder: Encoder[B]): ZIO[HttpClient, Throwable, Int] =
+)(using Encoder[B]): ZIO[HttpClient, Throwable, Int] =
   ZIO.serviceWithZIO[HttpClient](_.postIgnore(path, query, body)(q))
 
 /** Similar to [[get]], but returns `default` when the status code is not 2xx.

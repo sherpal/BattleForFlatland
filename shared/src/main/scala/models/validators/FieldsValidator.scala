@@ -1,5 +1,7 @@
 package models.validators
 
+import zio.ZIO
+
 final class FieldsValidator[-T, +E] private (val fields: Map[String, Validator[T, E]]) {
 
   def validate(t: T): Map[String, List[E]] = fields.view.mapValues(_(t)).filter(_._2.nonEmpty).toMap
@@ -17,6 +19,9 @@ final class FieldsValidator[-T, +E] private (val fields: Map[String, Validator[T
     fields.view.mapValues(_.maybeContraMap(f, error._2).bypassValidator(f(_: U).isEmpty)).toMap +
       (error._1 -> Validator.allowAllValidator.maybeContraMap(f, error._2))
   )
+
+  def validateZIO(t: T): ZIO[Any, Nothing, Option[Map[String, List[E]]]] =
+    ZIO.succeed(validate(t)).map(errors => Option.unless(errors.isEmpty)(errors))
 
   def toValidator: Validator[T, E] = fields.values.foldLeft[Validator[T, E]](Validator.allowAllValidator)(_ ++ _)
 
