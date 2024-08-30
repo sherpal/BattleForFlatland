@@ -42,7 +42,10 @@ object GameSettings {
 
     val gameConfigUpdateBus = new EventBus[GameConfiguration.GameConfigMetadata]
     val gameConfigUpdateEvents = gameConfigUpdateBus.events.flatMapSwitchZIO(gameConfig =>
-      services.menugames.changeGameConfig(gameId, gameConfig)
+      for {
+        gameConfigChanged <- services.menugames.changeGameConfig(gameId, gameConfig)
+        _                 <- services.localstorage.storeAt("game-config", gameConfig).ignore
+      } yield gameConfigChanged
     )
 
     val dataRefreshSocket = JsonWebSocket[DataUpdated, Unit, String](
@@ -60,8 +63,8 @@ object GameSettings {
       dataRefreshEvents.flatMapSwitchZIO(_ => menugames.gameInfo(gameId).either)
 
     val gameDoesNotExistAnymoreEvents = maybeDataRefreshEvents.collect { case Left(err) => err }
-
-    val gameDataEvents = maybeDataRefreshEvents.collect { case Right(data) => data }
+    val gameDataEvents                = maybeDataRefreshEvents.collect { case Right(data) => data }
+    val playerNotInGameEvents         = gameDataEvents.map(_.containsPlayer(user)).map(!_)
 
     def playerUpdateFailureDialog = div(
       Dialog(
@@ -76,14 +79,22 @@ object GameSettings {
 
     def gameDeletedDialog = {
       val closeBus = new EventBus[Unit]
+      val problemEvents = EventStream.merge["game-removed" | "not-in-game"](
+        gameDoesNotExistAnymoreEvents.mapTo("game-removed"),
+        playerNotInGameEvents.filter(identity).mapTo("not-in-game")
+      )
       Dialog(
-        _.open <-- EventStream
-          .merge(gameDoesNotExistAnymoreEvents.mapTo(true), closeBus.events.mapTo(false)),
+        _.open <-- EventStream.merge(problemEvents.mapTo(true), closeBus.events.mapTo(false)),
         _.slots.header := Bar(_.slots.startContent := Title.h2("Game was closed.")),
         Text(
-          s"The game ($gameId) was closed by its creator (or a cataclysmic effect removed it from the database)."
+          child.text <-- problemEvents.map {
+            case "game-removed" =>
+              s"The game ($gameId) was closed by its creator (or a cataclysmic effect removed it from the database)."
+            case "not-in-game" =>
+              "You have been kicked out of the game (or maybe you were never in it and end up here by mistake)."
+          }
         ),
-        Text("You will be redirected to the menus."),
+        Text(marginTop := "0.5em", "You will be redirected to the menus."),
         _.slots.footer := Bar(
           _.slots.endContent := Button(
             "Back to menu",
@@ -101,7 +112,7 @@ object GameSettings {
 
     // boss selection essentially
     def gameMetadata = div(
-      child <-- gameDataEvents.map { game =>
+      child <-- gameDataEvents.distinct.map { game =>
         val amICreator      = game.game.gameCreator == user
         val currentConfig   = game.game.gameConfiguration
         val currentBossName = currentConfig.bossName
@@ -123,6 +134,17 @@ object GameSettings {
                     bossName,
                     _.selected := (currentBossName == bossName)
                   )
+                ),
+                onMountZIO(
+                  services.localstorage
+                    .retrieveFrom[GameConfiguration.GameConfigMetadata]("game-config")
+                    .catchAll(_ => ZIO.none)
+                    .map(_.filter(_ != currentConfig.metadata))
+                    .flatMap {
+                      case None => ZIO.unit
+                      case Some(metadata) =>
+                        ZIO.succeed(gameConfigUpdateBus.writer.onNext(metadata))
+                    }
                 )
               )
             else Label(currentBossName)
@@ -137,19 +159,21 @@ object GameSettings {
       _.slots.columns := TableCompat.column("Class"),
       _.slots.columns := TableCompat.column("Colour"),
       _.slots.columns := TableCompat.column("Ready"),
-      _.slots.columns := TableCompat.column("Actions"),
+      _.slots.columns <-- gameDataEvents
+        .map(_.game.gameCreator == user)
+        .map(Option.when(_)(TableCompat.column("Actions")).toSeq),
       children <-- gameDataEvents
-        .map(
-          _.game.gameConfiguration.playersInfo.values.toVector
-            .map(info => (info, info.playerName.name == user.name))
+        .map(game =>
+          game.game.gameConfiguration.playersInfo.values.toVector
+            .map(info => (info, info.playerName.name == user.name, user == game.game.gameCreator))
             .zipWithIndex
             .sortBy {
-              case ((_, true), _) => -1
-              case (_, index)     => index
+              case ((_, true, _), _) => -1
+              case (_, index)        => index
             }
             .map(_._1)
         )
-        .split(_._1.playerName) { case (name, (_, isMe), playerInfoWithIsMeSignal) =>
+        .split(_._1.playerName) { case (name, (_, isMe, amIGameCreator), playerInfoWithIsMeSignal) =>
           val playerInfoSignal = playerInfoWithIsMeSignal.map(_._1)
           TableCompat.row(
             children <-- playerInfoSignal.map { playerInfo =>
@@ -228,23 +252,21 @@ object GameSettings {
                       _.name := (if playerInfo.isReady then IconName.accept else IconName.decline),
                       color  := (if playerInfo.isReady then "green" else "red")
                     )
-                ),
-                TableCompat.row.cell(
-                  child.maybe <-- gameDataEvents
-                    .map(_.game.gameCreator == user && !isMe)
-                    .map(Option.when(_) {
-
-                      Button(
-                        _.iconOnly := true,
-                        _.icon     := IconName.delete,
-                        _.events.onClick --> Observer.fromZIO[Any](_ =>
-                          services.menugames.kickPlayer(gameId, playerInfo.playerName.name).unit
-                        )
-                      )
-
-                    })
                 )
-              )
+              ) ++ Option
+                .when(amIGameCreator && !isMe)(
+                  TableCompat.row.cell(
+                    Button(
+                      _.tooltip  := s"Remove ${playerInfo.playerName.name} from this game",
+                      _.iconOnly := true,
+                      _.icon     := IconName.delete,
+                      _.events.onClick --> Observer.fromZIO[Any](_ =>
+                        services.menugames.kickPlayer(gameId, playerInfo.playerName.name).unit
+                      )
+                    )
+                  )
+                )
+                .toVector
             }
           )
         }
