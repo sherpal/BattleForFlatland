@@ -29,6 +29,13 @@ class MenuGameRoutes()(using
 ) extends cask.Routes
     with WithZIOEndpoints[BackendEnv] {
 
+  Unsafe.unsafe(implicit unsafe => runtime.unsafe.runOrFork(programs.userConnectedWatcher)) match {
+    case Left(_)                =>
+    case Right(Exit.Success(_)) => throw IllegalStateException(s"Connection check fiber exitted")
+    case Right(Exit.Failure(cause)) =>
+      throw IllegalStateException("Connection check exitted with failure", cause.squashTrace)
+  }
+
   @caskz.getJ[Vector[MenuGameWithPlayers]]("api/bff/games")
   def games() = menugames.menuGames.map(_.map(_.forgetPassword))
 
@@ -103,13 +110,10 @@ class MenuGameRoutes()(using
       case None => unauthenticatedResponse
       case Some(user) =>
         cask.WsHandler { channel =>
-          println(
-            s"Received web socket connection for ${gameId.getOrElse("all games")} for ${user.name}"
-          )
           var isOpen    = AtomicBoolean(true)
           val isOpenZIO = ZIO.succeed(isOpen.get())
 
-          val registerEvents = events.registerEvents(isOpenZIO) {
+          val registerEvents = events.registerEvents[events.Event.GameDataRefreshed](isOpenZIO) {
             case events.Event.GameDataRefreshed(maybeGameId)
                 // we are interested in this event if
                 // - gameId is None, because that means we are in the list-games ui
@@ -123,12 +127,21 @@ class MenuGameRoutes()(using
                   )
                 )
                 .unit
+            case events.Event.GameDataRefreshed(_) => ZIO.unit // not interested
           }
-          runEffect(registerEvents)
+          val dispatchUserConnected = gameId
+            .map(id => events.dispatchEvent(events.Event.UserConnectedSocket(user, id)))
+            .getOrElse(ZIO.unit)
+          runEffect(registerEvents *> dispatchUserConnected)
           cask.WsActor {
             case cask.Ws.Text(_) =>
               println(s"Received some text, going to ignore...")
-            case _: cask.Ws.Close => isOpen.set(false)
+            case _: cask.Ws.Close =>
+              isOpen.set(false)
+              gameId.foreach(id =>
+                runEffect(events.dispatchEvent(events.Event.UserSocketDisconnected(user, id)))
+              )
+
           }
         }
 

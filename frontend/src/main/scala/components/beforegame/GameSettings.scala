@@ -29,7 +29,23 @@ import models.bff.outofgame.gameconfig.PlayerStatus.NotReady
 
 object GameSettings {
 
-  def apply(user: User, gameId: String)(using zio.Runtime[FrontendEnv]): HtmlElement = {
+  def withReconnects(user: User, gameId: String)(using Runtime[FrontendEnv]): HtmlElement = {
+    val refreshNeededBus = new EventBus[Unit]
+
+    div(
+      child <-- refreshNeededBus.events
+        .tapEach(_ => println("Need refreshing, doing in 5..."))
+        .delay(5000)
+        .startWith(())
+        .mapTo(
+          apply(user, gameId, refreshNeededBus.writer)
+        )
+    )
+  }
+
+  def apply(user: User, gameId: String, refreshNeedObs: Observer[Unit])(using
+      zio.Runtime[FrontendEnv]
+  ): HtmlElement = {
     val playerUpdateBus = new EventBus[PlayerInfo]
     val playerUpdateEvents = playerUpdateBus.events.flatMapSwitchZIO(info =>
       for {
@@ -331,7 +347,8 @@ object GameSettings {
           case None             => ZIO.unit
           case Some(playerInfo) => ZIO.succeed(playerUpdateBus.writer.onNext(playerInfo))
         }
-      } yield ())
+      } yield ()),
+      dataRefreshSocket.closedSignal.changes.filter(identity).mapToUnit --> refreshNeedObs
     )
   }
 

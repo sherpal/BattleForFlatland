@@ -36,7 +36,7 @@ object MainPage {
                 ),
                 Route(
                   (services.routing.base / models.bff.Routes.inGame) ? models.bff.Routes.gameIdParam,
-                  (_, gameId) => GameSettings(user, gameId)
+                  (_, gameId) => GameSettings.withReconnects(user, gameId)
                 ),
                 Route(
                   services.routing.base / endOfSegments,

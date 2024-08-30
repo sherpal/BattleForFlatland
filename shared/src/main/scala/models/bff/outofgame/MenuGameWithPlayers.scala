@@ -21,6 +21,8 @@ final case class MenuGameWithPlayers(game: MenuGame, players: Vector[User]) {
   def removePlayer(playerName: String): MenuGameWithPlayers =
     copy(game = game.removePlayer(playerName), players = players.filterNot(_.name == playerName))
 
+  def isGameCreator(user: User): Boolean = game.gameCreator == user
+
 }
 
 object MenuGameWithPlayers {
