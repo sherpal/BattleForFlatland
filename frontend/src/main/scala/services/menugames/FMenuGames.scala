@@ -20,6 +20,12 @@ private[menugames] class FMenuGames(http: services.http.HttpClient) extends Menu
   override def menuGames: ZIO[Any, Nothing, Vector[MenuGameWithPlayers]] =
     http.get[Vector[MenuGameWithPlayers]](models.bff.Routes.allGames).orDie
 
+  override def launchGame(gameId: String): ZIO[Any, Nothing, Either[ErrorADT, Boolean]] =
+    http
+      .post[APIResponse[Boolean]](models.bff.Routes.startGame, GameIdFormData(gameId))
+      .orDie
+      .map(_.toEither)
+
   override def createGame(
       gameName: String
   ): ZIO[Any, Nothing, Either[ErrorADT, MenuGameWithPlayers]] =

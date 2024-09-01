@@ -9,6 +9,9 @@ import models.bff.outofgame.gameconfig.GameConfiguration
 def menuGames: ZIO[MenuGames, Nothing, Vector[MenuGameWithPlayers]] =
   ZIO.serviceWithZIO[MenuGames](_.menuGames)
 
+def launchGame(gameId: String): ZIO[MenuGames, Nothing, Either[ErrorADT, Boolean]] =
+  ZIO.serviceWithZIO[MenuGames](_.launchGame(gameId))
+
 def createGame(
     gameName: String
 ): ZIO[MenuGames, Nothing, Either[ErrorADT, MenuGameWithPlayers]] =

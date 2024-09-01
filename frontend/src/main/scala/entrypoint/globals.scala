@@ -16,6 +16,7 @@ import services.FrontendEnv
 import components.login.Login
 import components.beforegame.MainPage
 import services.routing
+import components.duringgame.DuringGameMainPage
 
 @main def run(): Unit = {
   println("Hello Battle for Flatland!")
@@ -44,6 +45,10 @@ import services.routing
         child <-- Routes
           .firstOf(
             Route(routing.base / models.users.Routes.login / endOfSegments, () => Login(checkMe)),
+            Route(
+              (routing.base / models.bff.Routes.gamePlayingRoot) ? models.bff.Routes.gameIdParam,
+              (_, gameId) => DuringGameMainPage(checkMe, gameId)
+            ),
             Route(routing.base, () => MainPage(checkMe))
           )
           .map(

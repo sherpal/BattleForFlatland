@@ -20,7 +20,8 @@ object BackendSettings {
       "org.mindrot" % "jbcrypt" % "0.3m",
       // Database driver
       "org.postgresql" % "postgresql" % "42.2.5",
-      "com.lihaoyi"   %% "os-lib"     % "0.10.4"
+      "com.lihaoyi"   %% "os-lib"     % "0.10.4",
+      "com.lihaoyi"   %% "requests"   % "0.9.0"
     )
   )
 

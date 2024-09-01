@@ -144,6 +144,11 @@ object ErrorADT {
 
     def repr: String = s"Game with id $gameId does not exist."
   }
+  case class GameAlreadyLaunched(gameId: String) extends MenuGameError {
+    def httpErrorType: HTTPResultType = BadRequest
+
+    def repr: String = s"Game with id $gameId is already launched."
+  }
   case class YouAreNotCreator(userName: String) extends MenuGameError {
     def httpErrorType: HTTPResultType = Forbidden
 

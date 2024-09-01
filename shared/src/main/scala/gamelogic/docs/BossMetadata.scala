@@ -70,6 +70,4 @@ object BossMetadata {
 
   inline def allBossNames = BossFactory.factoriesByBossName.keys.toVector.sorted
 
-  println(allBossNames)
-
 }

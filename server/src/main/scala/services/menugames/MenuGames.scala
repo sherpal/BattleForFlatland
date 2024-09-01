@@ -6,6 +6,7 @@ import menus.data.User
 import errors.ErrorADT
 import models.bff.outofgame.gameconfig.PlayerInfo
 import models.bff.outofgame.gameconfig.GameConfiguration
+import menus.data.AllGameCredentials
 
 trait MenuGames {
 
@@ -42,6 +43,18 @@ trait MenuGames {
       gameMetadata: GameConfiguration.GameConfigMetadata
   ): ZIO[Any, Nothing, Either[ErrorADT, MenuGameWithPlayers]]
 
+  def launchGame(
+      requester: User,
+      gameId: String
+  ): ZIO[Any, Nothing, Either[ErrorADT, Unit]]
+
+  def retrieveAllGameCredentials(
+      gameId: String,
+      secret: String
+  ): ZIO[Any, Nothing, Either[ErrorADT, AllGameCredentials]]
+
+  def gameEnded(gameId: String, secret: String): ZIO[Any, Nothing, Unit]
+
 }
 
 object MenuGames {
@@ -51,9 +64,10 @@ object MenuGames {
     semaphore    <- Semaphore.make(1L)
     crypto       <- ZIO.service[services.crypto.Crypto]
     localstorage <- ZIO.service[services.localstorage.LocalStorage]
+    events       <- ZIO.service[services.events.Events]
     storedGames  <- localstorage.retrieveFrom[Vector[MenuGameWithPlayers]](storageKey)
     _            <- gamesRef.set(storedGames.getOrElse(Vector.empty))
-    menuGames = BMenuGames(gamesRef, semaphore, crypto, localstorage)
+    menuGames = BMenuGames(gamesRef, semaphore, crypto, localstorage, events)
   } yield (menuGames: MenuGames))
 
   private[menugames] inline def storageKey: services.localstorage.LocalStorage.Key = "menu-games"

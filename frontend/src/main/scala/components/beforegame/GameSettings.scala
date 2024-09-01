@@ -10,7 +10,7 @@ import utils.laminarzio.*
 import be.doeraene.webcomponents.ui5.configkeys.ButtonDesign
 import scala.scalajs.js
 import utils.websocket.JsonWebSocket
-import menus.data.DataUpdated
+import menus.data.MenuGameComm
 import com.raquo.airstream.ownership.Owner
 import models.bff.outofgame.MenuGameWithPlayers
 import be.doeraene.webcomponents.ui5.configkeys.IconName
@@ -26,6 +26,9 @@ import models.bff.outofgame.gameconfig.GameConfiguration
 import zio.*
 import models.bff.outofgame.gameconfig.PlayerStatus.Ready
 import models.bff.outofgame.gameconfig.PlayerStatus.NotReady
+import errors.ErrorADT
+import java.util.concurrent.TimeUnit
+import models.bff.ingame.GameUserCredentials
 
 object GameSettings {
 
@@ -56,6 +59,16 @@ object GameSettings {
 
     val playerUpdateFailures = playerUpdateEvents.collect { case Left(error) => error }
 
+    val launchGameBus    = new EventBus[Unit]
+    val launchGameEvents = launchGameBus.events.flatMapSwitchZIO(_ => menugames.launchGame(gameId))
+    val launchGameFailuresEvents = launchGameEvents.collect { case Left(err) => err }
+    val gameIsLaunchingSignal = EventStream
+      .merge(
+        launchGameBus.events.mapTo(true),
+        launchGameFailuresEvents.mapTo(false)
+      )
+      .startWith(false)
+
     val gameConfigUpdateBus = new EventBus[GameConfiguration.GameConfigMetadata]
     val gameConfigUpdateEvents = gameConfigUpdateBus.events.flatMapSwitchZIO(gameConfig =>
       for {
@@ -64,16 +77,21 @@ object GameSettings {
       } yield gameConfigChanged
     )
 
-    val dataRefreshSocket = JsonWebSocket[DataUpdated, Unit, String](
+    val dataRefreshSocket = JsonWebSocket[MenuGameComm, Unit, String](
       models.bff.Routes.gameJoinedWS,
       models.bff.Routes.gameIdParam,
       gameId
     )
     val dataRefreshEvents = EventStream.merge(
       dataRefreshSocket.openEvents.mapToUnit,
-      dataRefreshSocket.inEvents.debugLog(_ => true).mapToUnit,
+      dataRefreshSocket.inEvents.collect { case MenuGameComm.DataUpdated() => () },
       playerUpdateFailures.mapToUnit
     )
+    val gameIsStartingSignal = dataRefreshSocket.inEvents
+      .collect { case MenuGameComm.GameStarted() =>
+        true
+      }
+      .startWith(false)
 
     val maybeDataRefreshEvents =
       dataRefreshEvents.flatMapSwitchZIO(_ => menugames.gameInfo(gameId).either)
@@ -82,46 +100,90 @@ object GameSettings {
     val gameDataEvents                = maybeDataRefreshEvents.collect { case Right(data) => data }
     val playerNotInGameEvents         = gameDataEvents.map(_.containsPlayer(user)).map(!_)
 
-    def playerUpdateFailureDialog = div(
-      Dialog(
-        _.open <-- playerUpdateFailures.mapTo(true),
-        IllustratedMessage(
-          _.name          := IllustratedMessageType.ErrorScreen,
-          _.titleText     := "Error while changing your settings",
-          _.subtitleText <-- playerUpdateFailures.startWithNone.map(_.fold("")(_.repr))
+    def playerUpdateFailureDialog =
+      val closeBus = new EventBus[Unit]
+      div(
+        Dialog(
+          _.open <-- EventStream.merge(
+            playerUpdateFailures
+              .filter {
+                case _: ErrorADT.GameDoesNotExist => false
+                case _                            => true
+              }
+              .mapTo(true),
+            closeBus.events.mapTo(false)
+          ),
+          IllustratedMessage(
+            _.name          := IllustratedMessageType.ErrorScreen,
+            _.titleText     := "Error while changing your settings",
+            _.subtitleText <-- playerUpdateFailures.startWithNone.map(_.fold("")(_.repr))
+          ),
+          _.slots.footer := Bar(
+            _.slots.endContent := Button("Close", _.events.onClick.mapToUnit --> closeBus.writer)
+          )
         )
       )
-    )
 
-    def gameDeletedDialog = {
+    def gameProblemsDialog = {
       val closeBus = new EventBus[Unit]
-      val problemEvents = EventStream.merge["game-removed" | "not-in-game"](
-        gameDoesNotExistAnymoreEvents.mapTo("game-removed"),
-        playerNotInGameEvents.filter(identity).mapTo("not-in-game")
+      sealed trait Problem
+      case object GameRemoved                   extends Problem
+      case object NotInGame                     extends Problem
+      case class GameLaunchIssue(err: ErrorADT) extends Problem
+      val problemEvents = EventStream.merge[Problem](
+        gameDoesNotExistAnymoreEvents.mapTo(GameRemoved),
+        playerNotInGameEvents.filter(identity).mapTo(NotInGame),
+        launchGameFailuresEvents.map(GameLaunchIssue(_))
       )
       Dialog(
         _.open <-- EventStream.merge(problemEvents.mapTo(true), closeBus.events.mapTo(false)),
-        _.slots.header := Bar(_.slots.startContent := Title.h2("Game was closed.")),
-        Text(
-          child.text <-- problemEvents.map {
-            case "game-removed" =>
-              s"The game ($gameId) was closed by its creator (or a cataclysmic effect removed it from the database)."
-            case "not-in-game" =>
-              "You have been kicked out of the game (or maybe you were never in it and end up here by mistake)."
-          }
+        _.slots.header := Bar(
+          _.slots.startContent := Title.h2(
+            child.text <-- problemEvents.map {
+              case GameRemoved        => "Game does not exist (anymore)"
+              case NotInGame          => "You should not be here"
+              case _: GameLaunchIssue => "Game Launch issue 😱"
+            }
+          )
         ),
-        Text(marginTop := "0.5em", "You will be redirected to the menus."),
+        child <-- problemEvents.map {
+          case GameRemoved =>
+            div(
+              Text(
+                s"The game ($gameId) was closed by its creator (or a cataclysmic effect removed it from the database). Or perhaps it never existed, who knows?"
+              ),
+              Text(marginTop := "0.5em", "You will be redirected to the menus.")
+            )
+          case NotInGame =>
+            div(
+              Text(
+                "You have been kicked out of the game (or maybe you were never in it and end up here by mistake)."
+              ),
+              Text(marginTop := "0.5em", "You will be shown the way out towards the menus.")
+            )
+          case GameLaunchIssue(err) =>
+            div(Text("There was an issue."), pre(err.repr))
+        },
         _.slots.footer := Bar(
-          _.slots.endContent := Button(
-            "Back to menu",
-            _.events.onClick.mapToUnit --> closeBus.writer,
-            _.design := ButtonDesign.Emphasized
-          )
-        ),
-        _.events.onClose.mapTo(()) --> Observer.fromZIO[Any](_ =>
-          zio.Console.printLine("back to menus...").orDie *> services.routing.moveTo(
-            MainPage.allGames
-          )
+          _.slots.endContent <-- problemEvents.map {
+            case NotInGame | GameRemoved =>
+              Button(
+                "Back to menu",
+                _.events.onClick.mapToUnit --> closeBus.writer,
+                _.design := ButtonDesign.Emphasized,
+                _.events.onClick.mapToUnit --> Observer.fromZIO[Any](_ =>
+                  services.routing.moveTo(
+                    MainPage.allGames
+                  )
+                )
+              )
+            case GameLaunchIssue(err) =>
+              Button(
+                "Close",
+                _.events.onClick.mapToUnit --> closeBus.writer,
+                _.design := ButtonDesign.Emphasized
+              )
+          }
         )
       )
     }
@@ -319,37 +381,73 @@ object GameSettings {
       )
     }
 
+    def launchGameButton(toastObserver: Observer[String])(game: MenuGameWithPlayers) =
+      Button(
+        _.disabled <-- gameIsLaunchingSignal,
+        "Launch game!",
+        _.events.onClick
+          .filter(_ => !game.game.gameConfigurationIsValid)
+          .mapTo("Can't start the game, check remaining issues above") --> toastObserver,
+        _.events.onClick
+          .filter(_ => game.game.gameConfigurationIsValid)
+          .mapToUnit --> launchGameBus.writer,
+        _.design := ButtonDesign.Positive
+      )
+
+    // emit to this bus to show a toast. use sparsely
+    val toastBus = new EventBus[String]
+
     div(
-      dataRefreshSocket.modifier,
-      s"Settings for game $gameId",
-      gameMetadata,
-      displayPlayers,
-      readyToGo,
-      Bar(
-        _.slots.endContent := leaveGameButton,
-        _.slots.endContent <-- gameDataEvents.filter(_.game.gameCreator == user).map { game =>
-          Button(
-            _.disabled := !game.game.gameConfigurationIsValid,
-            "Launch game!",
-            _.events.onClick --> Observer[Any](_ => println("The game should launch!")),
-            _.design := ButtonDesign.Positive
+      width := "100%",
+      BusyIndicator(
+        width     := "100%",
+        _.active <-- gameIsStartingSignal,
+        _.delay   := scala.concurrent.duration.FiniteDuration(10, TimeUnit.MILLISECONDS),
+        _.text    := "Game is starting, please wait for setup to finish...",
+        div(
+          width := "100%",
+          Toast(_.showFromTextEvents(toastBus.events)),
+          dataRefreshSocket.modifier,
+          s"Settings for game $gameId",
+          gameMetadata,
+          displayPlayers,
+          readyToGo,
+          Bar(
+            _.slots.endContent := leaveGameButton,
+            _.slots.endContent <-- gameDataEvents
+              .filter(_.game.gameCreator == user)
+              .map(launchGameButton(toastBus.writer))
+          ),
+          gameProblemsDialog,
+          playerUpdateFailureDialog,
+          onMountZIO(for {
+            storedPlayerInfo <- services.localstorage
+              .retrieveFrom[PlayerInfo]("player-info")
+              .catchAll(t => Console.printError(t).ignore.as(None))
+            maybePlayerInfoToSet = storedPlayerInfo.map(_.withReadyState(NotReady))
+            _ <- maybePlayerInfoToSet match {
+              case None             => ZIO.unit
+              case Some(playerInfo) => ZIO.succeed(playerUpdateBus.writer.onNext(playerInfo))
+            }
+          } yield ()),
+          dataRefreshSocket.closedSignal.changes.filter(identity).mapToUnit --> refreshNeedObs,
+          dataRefreshSocket.inEvents.collect {
+            case MenuGameComm.HereAreYourCredentials(gameId, secret) =>
+              GameUserCredentials(user.name, gameId, secret)
+          } --> Observer.fromZIO[GameUserCredentials](creds =>
+            for {
+              _ <- ZIO.succeed(println(creds))
+              _ <- services.localstorage.storeAt(credentialsStorageKey, creds).orDie
+              _ <- services.routing.moveTo(
+                (services.routing.base / models.bff.Routes.inGame) ? models.bff.Routes.gameIdParam
+              )(gameId)
+            } yield ()
           )
-        }
-      ),
-      gameDeletedDialog,
-      playerUpdateFailureDialog,
-      onMountZIO(for {
-        storedPlayerInfo <- services.localstorage
-          .retrieveFrom[PlayerInfo]("player-info")
-          .catchAll(t => Console.printError(t).ignore.as(None))
-        maybePlayerInfoToSet = storedPlayerInfo.map(_.withReadyState(NotReady))
-        _ <- maybePlayerInfoToSet match {
-          case None             => ZIO.unit
-          case Some(playerInfo) => ZIO.succeed(playerUpdateBus.writer.onNext(playerInfo))
-        }
-      } yield ()),
-      dataRefreshSocket.closedSignal.changes.filter(identity).mapToUnit --> refreshNeedObs
+        )
+      )
     )
   }
+
+  val credentialsStorageKey = "game-credentials"
 
 }

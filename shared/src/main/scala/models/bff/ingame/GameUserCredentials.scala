@@ -16,10 +16,9 @@ package models.bff.ingame
 final case class GameUserCredentials(userName: String, gameId: String, userSecret: String)
 
 object GameUserCredentials {
-  import io.circe._
-  import io.circe.generic.semiauto._
-  implicit val fooDecoder: Decoder[GameUserCredentials] = deriveDecoder[GameUserCredentials]
-  implicit val fooEncoder: Encoder[GameUserCredentials] = deriveEncoder[GameUserCredentials]
+  import io.circe.Codec
+  import io.circe.generic.semiauto.deriveCodec
+  given Codec[GameUserCredentials] = deriveCodec
 
   final def tupled: ((String, String, String)) => GameUserCredentials = (apply(_, _, _)).tupled
 }

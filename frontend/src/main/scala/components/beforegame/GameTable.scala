@@ -13,14 +13,14 @@ import be.doeraene.webcomponents.ui5.configkeys.IconName
 import scala.languageFeature.experimental
 import be.doeraene.webcomponents.ui5.configkeys.ButtonDesign
 import utils.websocket.JsonWebSocket
-import menus.data.DataUpdated
+import menus.data.MenuGameComm
 import services.menugames.{menuGames, createGame}
 import be.doeraene.webcomponents.ui5.configkeys.ValueState
 
 object GameTable {
 
   def apply(user: User)(using Runtime[FrontendEnv]): HtmlElement = {
-    val dataRefreshSocket = JsonWebSocket[DataUpdated, Unit](
+    val dataRefreshSocket = JsonWebSocket[MenuGameComm, Unit](
       models.bff.Routes.gameJoinedWS
     )
     val dataRefreshEvents = EventStream.merge(
@@ -30,12 +30,12 @@ object GameTable {
     val dataSignal =
       dataRefreshEvents.flatMapSwitchZIO(_ => services.menugames.menuGames).startWithNone
     val gameYouAreInSignal =
-      dataSignal.map(_.map(_.find(_.containsPlayer(user))))
+      dataSignal.map(_.map(_.filterNot(_.started).find(_.containsPlayer(user))))
 
     val joinGameBus = new EventBus[(MenuGameWithPlayers, Boolean)]
 
     val joinGameUrl =
-      (services.routing.base / models.bff.Routes.inGame) ? models.bff.Routes.gameIdParam
+      (services.routing.base / models.bff.Routes.inGameSettings) ? models.bff.Routes.gameIdParam
 
     val joinNewGameEvents = joinGameBus.events
       .collect { case (game, false) => game }
@@ -114,7 +114,7 @@ object GameTable {
           )
         ),
         createdGameEvents.map(_.id) --> Observer.fromZIO[String](gameId =>
-          services.routing.moveTo(services.routing.base / models.bff.Routes.inGame, models.bff.Routes.gameIdParam)(gameId)
+          services.routing.moveTo(services.routing.base / models.bff.Routes.inGameSettings, models.bff.Routes.gameIdParam)(gameId)
         )
       )
     }
@@ -133,6 +133,7 @@ object GameTable {
         _.slots.columns := TableCompat.column("Actions"),
         children <-- dataSignal
           .map(_.getOrElse(Vector.empty))
+          .map(_.filterNot(_.started))
           .map(_.map { game =>
             TableCompat.row(
               _.cell(game.id),

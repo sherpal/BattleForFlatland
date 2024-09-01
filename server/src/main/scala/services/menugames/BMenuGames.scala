@@ -13,15 +13,81 @@ import models.syntax.Pointed
 import scala.concurrent.duration.Duration
 import gamelogic.docs.BossMetadata
 import models.bff.outofgame.gameconfig.GameConfiguration.GameConfigMetadata
+import menus.data.GameCredentials
+import models.bff.ingame.GameUserCredentials
+import menus.data.AllGameCredentials
 
 private[menugames] class BMenuGames(
     gamesRef: Ref[Vector[MenuGameWithPlayers]],
     gameUpdatesSemaphore: Semaphore,
     crypto: services.crypto.Crypto,
-    storage: services.localstorage.LocalStorage
+    storage: services.localstorage.LocalStorage,
+    events: services.events.Events
 ) extends MenuGames {
 
   override def menuGames: ZIO[Any, Nothing, Vector[MenuGameWithPlayers]] = gamesRef.get
+
+  override def launchGame(
+      requester: User,
+      gameId: String
+  ): ZIO[Any, Nothing, Either[ErrorADT, Unit]] = updateGamesZIO(currentGames =>
+    for {
+      // todo: create all game credentials for all players
+      storageKey      <- ZIO.succeed(gameCredentialsStoringKey(gameId))
+      game            <- gameWithId(gameId, currentGames)
+      alreadyLaunched <- ZIO.succeed(game.started)
+      _               <- ZIO.when(alreadyLaunched)(ZIO.fail(ErrorADT.GameAlreadyLaunched(gameId)))
+      _ <- ZIO
+        .unless(game.isGameCreator(requester))(ZIO.fail(ErrorADT.YouAreNotCreator(requester.name)))
+      secret          <- ZIO.succeed(java.util.UUID.randomUUID().toString)
+      credsUrl        <- ZIO.succeed("http://localhost:9000/api/bff/internal/get-all-credentials")
+      gameCredentials <- ZIO.succeed(GameCredentials(gameId, secret))
+      userCredentials = game.players.map { user =>
+        GameUserCredentials(user.name, gameId, java.util.UUID.randomUUID().toString)
+      }
+      allGameCredentials = AllGameCredentials(gameCredentials, userCredentials)
+      _ <- storage
+        .storeAtFor(storageKey, allGameCredentials, Duration.Inf)
+        .flatMapError(throwable =>
+          ZIO.succeed(throwable.printStackTrace()) *> ZIO.succeed(
+            ErrorADT
+              .RawInternalError(throwable.getMessage)
+          )
+        )
+      _ <- ZIO
+        .attemptBlocking {
+          requests.post(
+            "http://localhost:22223/run-game-server",
+            params = Map("gameId" -> game.id, "gameSecret" -> secret, "credentialsUrl" -> credsUrl)
+          )
+        }
+        .flatMapError(throwable =>
+          ZIO.succeed(throwable.printStackTrace()) *> ZIO.succeed(
+            ErrorADT.RawInternalError(throwable.getMessage)
+          )
+        )
+      _ <- events.dispatchEvent(services.events.Event.GameCredentials(allGameCredentials))
+      _ <- setAndStoreGames(patchGame(game.start, currentGames))
+    } yield ()
+  ).either
+
+  override def retrieveAllGameCredentials(
+      gameId: String,
+      secret: String
+  ): ZIO[Any, Nothing, Either[ErrorADT, AllGameCredentials]] = (for {
+    gameInfo <- storage
+      .retrieveFrom[AllGameCredentials](gameCredentialsStoringKey(gameId))
+      .catchAll(_ => ZIO.none)
+      .someOrFail(ErrorADT.CouldNotFetchTokenFromGameServer)
+    _ <- ZIO.unless(secret == gameInfo.secret)(ZIO.fail(ErrorADT.WrongGameCredentials))
+  } yield gameInfo).either
+
+  override def gameEnded(gameId: String, secret: String): ZIO[Any, Nothing, Unit] = for {
+    gameInfo <- storage
+      .retrieveFrom[AllGameCredentials](gameCredentialsStoringKey(gameId))
+      .catchAll(_ => ZIO.none)
+    _ <- ZIO.when(gameInfo.exists(_.secret == secret))(deleteGame(gameId))
+  } yield ()
 
   override def createGame(
       gameName: String,
@@ -61,7 +127,7 @@ private[menugames] class BMenuGames(
       _ <- maybeValidationErrors
         .map(errors => ZIO.fail(ErrorADT.MultipleErrorsMap(errors)))
         .getOrElse(ZIO.unit)
-      menuGameWithPlayers = MenuGameWithPlayers(menuGame, Vector(gameCreator))
+      menuGameWithPlayers = MenuGameWithPlayers(menuGame, Vector(gameCreator), false)
       _ <- updateAndStoreGames(_ :+ menuGameWithPlayers)
     } yield menuGameWithPlayers
   ).either
@@ -72,11 +138,8 @@ private[menugames] class BMenuGames(
   override def joinGame(user: User, gameId: String, maybePassword: Option[String]) =
     updateGamesZIO(currentGames =>
       for {
-        _ <- playerIsAlreadyPlayingCheck(currentGames, user)
-        game <- currentGames
-          .find(_.id == gameId)
-          .map(ZIO.succeed(_))
-          .getOrElse(ZIO.fail(ErrorADT.GameDoesNotExist(gameId)))
+        _    <- playerIsAlreadyPlayingCheck(currentGames, user)
+        game <- gameWithId(gameId, currentGames)
         hashedPassword <- maybePassword
           .map(pw => crypto.hashPassword(pw).asSome)
           .getOrElse(ZIO.none)
@@ -170,6 +233,8 @@ private[menugames] class BMenuGames(
     .find(_.id == gameId)
     .map(ZIO.succeed(_))
     .getOrElse(ZIO.fail(ErrorADT.GameDoesNotExist(gameId)))
+
+  private def gameCredentialsStoringKey(gameId: String) = s"game-credentials-$gameId"
 
 }
 

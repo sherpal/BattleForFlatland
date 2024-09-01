@@ -10,6 +10,8 @@ trait MenuGames {
 
   def menuGames: ZIO[Any, Nothing, Vector[MenuGameWithPlayers]]
 
+  def launchGame(gameId: String): ZIO[Any, Nothing, Either[ErrorADT, Boolean]]
+
   def createGame(
       gameName: String
   ): ZIO[Any, Nothing, Either[ErrorADT, MenuGameWithPlayers]]

@@ -4,14 +4,16 @@ import menus.data.User
 import io.circe.Codec
 import models.bff.outofgame.gameconfig.PlayerInfo
 
-final case class MenuGameWithPlayers(game: MenuGame, players: Vector[User]) {
+final case class MenuGameWithPlayers(game: MenuGame, players: Vector[User], started: Boolean) {
 
   def id: String = game.gameId
 
   def forgetPassword: MenuGameWithPlayers = copy(game = game.forgetPassword)
 
+  def start: MenuGameWithPlayers = copy(started = true)
+
   def onlyPlayerNames: MenuGameWithPlayers =
-    MenuGameWithPlayers(game.onlyCreatorName, players)
+    MenuGameWithPlayers(game.onlyCreatorName, players, started)
 
   def containsPlayer(player: User): Boolean = players.contains[User](player)
 

@@ -3,7 +3,6 @@ package programs.frontend.games
 import errors.ErrorADT
 import io.circe.generic.auto.*
 import models.bff.Routes.*
-import models.bff.ingame.GameUserCredentials
 import models.bff.outofgame.{MenuGame, MenuGameWithPlayers}
 import models.common.PasswordWrapper
 import models.users.RouteDefinitions.*
@@ -13,6 +12,7 @@ import services.routing.*
 import utils.ziohelpers.unsuccessfulStatusCode
 import zio.stream.*
 import zio.*
+import models.bff.ingame.GameUserCredentials
 
 val streamExpl = ZStream.fromSchedule(Schedule.spaced(2.seconds))
 
@@ -23,9 +23,13 @@ val loadGames: ZStream[HttpClient & Clock, Nothing, Either[ErrorADT, List[MenuGa
   .fromSchedule(Schedule.spaced(5.seconds))
   .flatMap(_ => ZStream.fromZIO(downloadGames.either))
 
-def createNewGame(game: MenuGame): ZIO[HttpClient, Throwable, String] = post[String](newMenuGame, game)
+def createNewGame(game: MenuGame): ZIO[HttpClient, Throwable, String] =
+  post[String](newMenuGame, game)
 
-def joinGameProgram(game: MenuGame, maybePassword: PasswordWrapper): ZIO[Routing & HttpClient, Throwable, Int] =
+def joinGameProgram(
+    game: MenuGame,
+    maybePassword: PasswordWrapper
+): ZIO[Routing & HttpClient, Throwable, Int] =
   for {
     statusCode <- postIgnore(joinGame, joinGameParam, maybePassword)(game.gameId)
     _          <- unsuccessfulStatusCode(statusCode)
@@ -40,13 +44,15 @@ val amIAmPlayingSomewhere: ZIO[Routing & HttpClient, Throwable, Unit] = for {
   }
 } yield ()
 
-/** Fetch game information. If there is an error in the process, currently we assume that any error means that the
-  * client should go back to the home page. // todo: store the error using the storage service // todo: refinement of
-  * behaviour depending on the actual error.
+/** Fetch game information. If there is an error in the process, currently we assume that any error
+  * means that the client should go back to the home page. // todo: store the error using the
+  * storage service // todo: refinement of behaviour depending on the actual error.
   * @return
   *   the game information wrapped into an Option if it succeed, None otherwise.
   */
-def fetchGameInfo(gameId: String): URIO[Routing & Logging & HttpClient, Option[MenuGameWithPlayers]] =
+def fetchGameInfo(
+    gameId: String
+): URIO[Routing & Logging & HttpClient, Option[MenuGameWithPlayers]] =
   get[MenuGameWithPlayers](gameInfo, gameIdParam)(gameId)
     .flatMapError(error =>
       for {

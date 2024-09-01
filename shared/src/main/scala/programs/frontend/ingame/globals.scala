@@ -4,12 +4,12 @@ import java.util.concurrent.TimeUnit
 
 import errors.ErrorADT
 import models.bff.Routes
-import models.bff.ingame.GameUserCredentials
 import models.bff.ingame.InGameWSProtocol.{Ping, Pong}
 import models.users.User
-import services.http._
+import services.http.*
 import utils.ziohelpers.unsuccessfulStatusCode
 import zio.{UIO, ZIO}
+import models.bff.ingame.GameUserCredentials
 
 /** Computes the the delta difference between this system time and the server system time.
   */

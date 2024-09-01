@@ -1,4 +1,4 @@
-package models.bff.ingame
+package menus.data
 
 import models.bff.outofgame.MenuGameWithPlayers
 

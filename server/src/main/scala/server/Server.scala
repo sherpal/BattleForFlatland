@@ -26,7 +26,10 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
       Runtime.unsafe.fromLayer(layer)
     }
 
-  override def allRoutes: Seq[Routes] = Vector(this, MenuGameRoutes()(using runtime))
+  override def allRoutes: Seq[Routes] = {
+    given Runtime[BackendEnv] = runtime
+    Vector(this, MenuGameRoutes(), GameLaunchingRoutes())
+  }
 
   override def port: Int = Option(java.lang.System.getProperty("port")).fold(9000)(_.toInt)
 

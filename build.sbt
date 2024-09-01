@@ -74,6 +74,17 @@ def esModule = Def.settings(scalaJSLinkerConfig ~= {
   _.withModuleKind(ModuleKind.ESModule)
 })
 
+lazy val `game-server-launcher` = project
+  .in(file("./game-server-launcher"))
+  .settings(
+    libraryDependencies ++= List(
+      "com.lihaoyi" %% "cask" % "0.9.1"
+    ),
+    assembly / mainClass       := Some("server.Server"),
+    assembly / assemblyJarName := "game-server-launcher.jar"
+  )
+  .dependsOn(`shared-backend`)
+
 lazy val frontend = project
   .in(file("./frontend"))
   .enablePlugins(ScalaJSPlugin)

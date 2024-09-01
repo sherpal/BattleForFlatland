@@ -17,21 +17,18 @@ val userConnectedWatcher = {
     connectedUserRef <- Ref.make(Map.empty[(User, String), UserData])
     _ <- events.registerEvents[UserConnectedSocket](ZIO.succeed(true)) {
       case UserConnectedSocket(user, gameId) =>
-        connectedUserRef
-          .update(_ + ((user, gameId) -> UserData(user, gameId))) *> Console
-          .printLine(s"Connection from ${user.name}")
-          .ignore
+        connectedUserRef.update(_ + ((user, gameId) -> UserData(user, gameId)))
     }
     _ <- events.registerEvents[UserSocketDisconnected](ZIO.succeed(true)) {
       case UserSocketDisconnected(user, gameId) =>
-        Console.printLine(s"${user.name} socket is disconnected from $gameId").ignore *>
-          connectedUserRef.update(_.updatedWith((user, gameId)) {
-            case None           => Some(UserData(user, gameId, 1))
-            case Some(userData) => Some(userData.againSeenDisconnected)
-          })
+        connectedUserRef.update(_.updatedWith((user, gameId)) {
+          case None           => Some(UserData(user, gameId, 1))
+          case Some(userData) => Some(userData.againSeenDisconnected)
+        })
     }
     connectionCheck = for {
-      currentGames   <- menugames.menuGames
+      currentGames <- menugames.menuGames
+      // todo: what to do with started games?
       connectedUsers <- connectedUserRef.get
       _ <- ZIO.foreach(
         connectedUsers.keys.filterNot((user, _) => currentGames.exists(_.containsPlayer(user)))

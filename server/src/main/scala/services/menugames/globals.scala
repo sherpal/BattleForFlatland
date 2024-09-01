@@ -6,6 +6,7 @@ import menus.data.User
 import errors.ErrorADT
 import models.bff.outofgame.gameconfig.PlayerInfo
 import models.bff.outofgame.gameconfig.GameConfiguration
+import menus.data.AllGameCredentials
 
 def menuGames: ZIO[MenuGames, Nothing, Vector[MenuGameWithPlayers]] =
   ZIO.serviceWithZIO[MenuGames](_.menuGames)
@@ -46,3 +47,15 @@ def changeGameMetadata(
     gameMetadata: GameConfiguration.GameConfigMetadata
 ): ZIO[MenuGames, Nothing, Either[ErrorADT, MenuGameWithPlayers]] =
   ZIO.serviceWithZIO[MenuGames](_.changeGameMetadata(requester, gameId, gameMetadata))
+
+def launchGame(
+    requester: User,
+    gameId: String
+): ZIO[MenuGames, Nothing, Either[ErrorADT, Unit]] =
+  ZIO.serviceWithZIO[MenuGames](_.launchGame(requester, gameId))
+
+def retrieveAllGameCredentials(
+    gameId: String,
+    secret: String
+): ZIO[MenuGames, Nothing, Either[ErrorADT, AllGameCredentials]] =
+  ZIO.serviceWithZIO[MenuGames](_.retrieveAllGameCredentials(gameId, secret))

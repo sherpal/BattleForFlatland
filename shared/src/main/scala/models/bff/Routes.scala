@@ -24,11 +24,14 @@ object Routes {
   final val changePlayerInfo = bff / "change-player-info" // post
   final val changeGameConfig = bff / "change-game-config" // post
 
+  final val gamePlayingRoot = bff / "game-playing"
+  final val inGame          = gamePlayingRoot / "in-game" // route (get)
+
   final val preFlightGameServer = root / "pre-flight"              // options
   final val gameServerToken     = root / "fetch-game-server-token" // post
   final val joinGameServer      = root / "connect"                 // ws
-  final val inGame              = root / "in-game"                 // route (get)
   final val inGameCancel        = inGame / "cancel-game"           // post
+  final val inGameSettings      = root / "game-settings"           // route (get)
 
   final val gameIdParam          = param[String]("gameId")
   final val tokenParam           = param[String]("token")

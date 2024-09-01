@@ -14,7 +14,7 @@ import menus.data.CreateGameFormData
 import models.bff.outofgame.gameconfig.PlayerInfo
 import menus.data.ChangePlayerInfoFormData
 import io.circe.Encoder
-import menus.data.DataUpdated
+import menus.data.MenuGameComm
 import services.events
 import java.util.concurrent.atomic.AtomicBoolean
 import models.bff.outofgame.gameconfig.GameConfiguration
@@ -38,6 +38,15 @@ class MenuGameRoutes()(using
 
   @caskz.getJ[Vector[MenuGameWithPlayers]]("api/bff/games")
   def games() = menugames.menuGames.map(_.map(_.forgetPassword))
+
+  @loggedIn()
+  @readBody[GameIdFormData]
+  @caskz.postJ[APIResponse[Boolean]]("api/bff/start-game")
+  def launchGame()(body: GameIdFormData)(user: User) = (for {
+    _      <- events.dispatchEvent(events.Event.GameStarted(body.gameId))
+    result <- menugames.launchGame(user, body.gameId)
+    _      <- ZIO.fromEither(result)
+  } yield true).either.map(APIResponse.fromEither)
 
   @loggedIn()
   @readBody[JoinGameFormData]
@@ -113,22 +122,43 @@ class MenuGameRoutes()(using
           var isOpen    = AtomicBoolean(true)
           val isOpenZIO = ZIO.succeed(isOpen.get())
 
-          val registerEvents = events.registerEvents[events.Event.GameDataRefreshed](isOpenZIO) {
-            case events.Event.GameDataRefreshed(maybeGameId)
-                // we are interested in this event if
-                // - gameId is None, because that means we are in the list-games ui
-                // - maybeGameId is None, because then it could be any game, including the one we care about
-                // - maybeGameId is the exact gameId I care about
-                if gameId.forall(id => maybeGameId.forall(_ == id)) =>
-              ZIO
-                .whenZIO(isOpenZIO)(
-                  ZIO.succeed(
-                    channel.send(cask.Ws.Text(Encoder[DataUpdated].apply(DataUpdated()).noSpaces))
-                  )
-                )
-                .unit
-            case events.Event.GameDataRefreshed(_) => ZIO.unit // not interested
-          }
+          def sendMsg(msg: MenuGameComm) = ZIO.succeed(
+            channel.send(
+              cask.Ws.Text(
+                Encoder[MenuGameComm].apply(msg).noSpaces
+              )
+            )
+          )
+
+          val registerEvents = events
+            .registerEvents[
+              events.Event.GameDataRefreshed | events.Event.GameStarted |
+                events.Event.GameCredentials
+            ](isOpenZIO) {
+              case events.Event.GameDataRefreshed(maybeGameId)
+                  // we are interested in this event if
+                  // - gameId is None, because that means we are in the list-games ui
+                  // - maybeGameId is None, because then it could be any game, including the one we care about
+                  // - maybeGameId is the exact gameId I care about
+                  if gameId.forall(id => maybeGameId.forall(_ == id)) =>
+                ZIO.whenZIO(isOpenZIO)(sendMsg(MenuGameComm.DataUpdated())).unit
+              case events.Event.GameStarted(gameId) =>
+                sendMsg(MenuGameComm.GameStarted())
+              case events.Event.GameCredentials(creds) =>
+                creds.allGameUserCredentials.find(_.userName == user.name) match {
+                  case Some(userCreds) =>
+                    sendMsg(
+                      MenuGameComm.HereAreYourCredentials(userCreds.gameId, userCreds.userSecret)
+                    )
+                  case None =>
+                    ZIO.die(
+                      IllegalStateException(
+                        s"I received all game credentials but it did not contain the info ${user.name}."
+                      )
+                    )
+                }
+              case events.Event.GameDataRefreshed(_) => ZIO.unit // not interested
+            }
           val dispatchUserConnected = gameId
             .map(id => events.dispatchEvent(events.Event.UserConnectedSocket(user, id)))
             .getOrElse(ZIO.unit)
