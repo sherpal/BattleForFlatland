@@ -55,7 +55,12 @@ import components.duringgame.DuringGameMainPage
             _.getOrElse(
               IllustratedMessage(
                 _.name      := IllustratedMessageType.Tent,
-                _.titleText := "You seem to be lost."
+                _.titleText := "You seem to be lost.",
+                _.slots.subtitle := Text(
+                  "Don't worry, you can simply click ",
+                  components.router.Link(root)("here"),
+                  "."
+                )
               )
             )
           )

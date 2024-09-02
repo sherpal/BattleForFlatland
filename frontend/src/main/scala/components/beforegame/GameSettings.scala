@@ -29,6 +29,7 @@ import models.bff.outofgame.gameconfig.PlayerStatus.NotReady
 import errors.ErrorADT
 import java.util.concurrent.TimeUnit
 import models.bff.ingame.GameUserCredentials
+import services.localstorage.LocalStorage
 
 object GameSettings {
 
@@ -53,7 +54,7 @@ object GameSettings {
     val playerUpdateEvents = playerUpdateBus.events.flatMapSwitchZIO(info =>
       for {
         result <- services.menugames.changePlayerInfo(gameId, info)
-        _ <- ZIO.when(result.isRight)(services.localstorage.storeAt("player-info", info).ignore)
+        _      <- ZIO.when(result.isRight)(playerInfoKey.store(info).ignore)
       } yield result
     )
 
@@ -73,7 +74,7 @@ object GameSettings {
     val gameConfigUpdateEvents = gameConfigUpdateBus.events.flatMapSwitchZIO(gameConfig =>
       for {
         gameConfigChanged <- services.menugames.changeGameConfig(gameId, gameConfig)
-        _                 <- services.localstorage.storeAt("game-config", gameConfig).ignore
+        _                 <- gameConfigKey.store(gameConfig).ignore
       } yield gameConfigChanged
     )
 
@@ -214,8 +215,7 @@ object GameSettings {
                   )
                 ),
                 onMountZIO(
-                  services.localstorage
-                    .retrieveFrom[GameConfiguration.GameConfigMetadata]("game-config")
+                  gameConfigKey.retrieve
                     .catchAll(_ => ZIO.none)
                     .map(_.filter(_ != currentConfig.metadata))
                     .flatMap {
@@ -421,8 +421,7 @@ object GameSettings {
           gameProblemsDialog,
           playerUpdateFailureDialog,
           onMountZIO(for {
-            storedPlayerInfo <- services.localstorage
-              .retrieveFrom[PlayerInfo]("player-info")
+            storedPlayerInfo <- playerInfoKey.retrieve
               .catchAll(t => Console.printError(t).ignore.as(None))
             maybePlayerInfoToSet = storedPlayerInfo.map(_.withReadyState(NotReady))
             _ <- maybePlayerInfoToSet match {
@@ -432,12 +431,13 @@ object GameSettings {
           } yield ()),
           dataRefreshSocket.closedSignal.changes.filter(identity).mapToUnit --> refreshNeedObs,
           dataRefreshSocket.inEvents.collect {
-            case MenuGameComm.HereAreYourCredentials(gameId, secret) =>
-              GameUserCredentials(user.name, gameId, secret)
-          } --> Observer.fromZIO[GameUserCredentials](creds =>
+            case MenuGameComm.HereAreYourCredentials(gameId, secret, port) =>
+              (GameUserCredentials(user.name, gameId, secret), port)
+          } --> Observer.fromZIO[(GameUserCredentials, Int)]((creds, port) =>
             for {
               _ <- ZIO.succeed(println(creds))
-              _ <- services.localstorage.storeAt(credentialsStorageKey, creds).orDie
+              _ <- credentialsStorageKey.store(creds).orDie
+              _ <- gamePortKey.store(port).orDie
               _ <- services.routing.moveTo(
                 (services.routing.base / models.bff.Routes.inGame) ? models.bff.Routes.gameIdParam
               )(gameId)
@@ -448,6 +448,10 @@ object GameSettings {
     )
   }
 
-  val credentialsStorageKey = "game-credentials"
+  val credentialsStorageKey = LocalStorage.key[GameUserCredentials]("game-credentials")
+  val gamePortKey           = LocalStorage.key[Int]("game-server-port")
+
+  private val playerInfoKey = LocalStorage.key[PlayerInfo]("player-info")
+  private val gameConfigKey = LocalStorage.key[GameConfiguration.GameConfigMetadata]("game-config")
 
 }

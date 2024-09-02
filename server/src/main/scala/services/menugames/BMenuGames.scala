@@ -16,6 +16,8 @@ import models.bff.outofgame.gameconfig.GameConfiguration.GameConfigMetadata
 import menus.data.GameCredentials
 import models.bff.ingame.GameUserCredentials
 import menus.data.AllGameCredentials
+import services.localstorage.LocalStorage
+import menus.data.GameCredentialsWithGameInfo
 
 private[menugames] class BMenuGames(
     gamesRef: Ref[Vector[MenuGameWithPlayers]],
@@ -41,13 +43,18 @@ private[menugames] class BMenuGames(
         .unless(game.isGameCreator(requester))(ZIO.fail(ErrorADT.YouAreNotCreator(requester.name)))
       secret          <- ZIO.succeed(java.util.UUID.randomUUID().toString)
       credsUrl        <- ZIO.succeed("http://localhost:9000/api/bff/internal/get-all-credentials")
+      serverReadyUrl  <- ZIO.succeed("http://localhost:9000/api/bff/internal/game-server-ready")
       gameCredentials <- ZIO.succeed(GameCredentials(gameId, secret))
       userCredentials = game.players.map { user =>
         GameUserCredentials(user.name, gameId, java.util.UUID.randomUUID().toString)
       }
       allGameCredentials = AllGameCredentials(gameCredentials, userCredentials)
       _ <- storage
-        .storeAtFor(storageKey, allGameCredentials, Duration.Inf)
+        .storeAtFor(
+          storageKey,
+          GameCredentialsWithGameInfo(allGameCredentials, game.start),
+          Duration.Inf
+        )
         .flatMapError(throwable =>
           ZIO.succeed(throwable.printStackTrace()) *> ZIO.succeed(
             ErrorADT
@@ -58,7 +65,12 @@ private[menugames] class BMenuGames(
         .attemptBlocking {
           requests.post(
             "http://localhost:22223/run-game-server",
-            params = Map("gameId" -> game.id, "gameSecret" -> secret, "credentialsUrl" -> credsUrl)
+            params = Map(
+              "gameId"             -> game.id,
+              "gameSecret"         -> secret,
+              "credentialsUrl"     -> credsUrl,
+              "gameServerReadyUrl" -> serverReadyUrl
+            )
           )
         }
         .flatMapError(throwable =>
@@ -66,7 +78,6 @@ private[menugames] class BMenuGames(
             ErrorADT.RawInternalError(throwable.getMessage)
           )
         )
-      _ <- events.dispatchEvent(services.events.Event.GameCredentials(allGameCredentials))
       _ <- setAndStoreGames(patchGame(game.start, currentGames))
     } yield ()
   ).either
@@ -74,9 +85,9 @@ private[menugames] class BMenuGames(
   override def retrieveAllGameCredentials(
       gameId: String,
       secret: String
-  ): ZIO[Any, Nothing, Either[ErrorADT, AllGameCredentials]] = (for {
+  ): ZIO[Any, Nothing, Either[ErrorADT, GameCredentialsWithGameInfo]] = (for {
     gameInfo <- storage
-      .retrieveFrom[AllGameCredentials](gameCredentialsStoringKey(gameId))
+      .retrieveFrom(gameCredentialsStoringKey(gameId))
       .catchAll(_ => ZIO.none)
       .someOrFail(ErrorADT.CouldNotFetchTokenFromGameServer)
     _ <- ZIO.unless(secret == gameInfo.secret)(ZIO.fail(ErrorADT.WrongGameCredentials))
@@ -84,7 +95,7 @@ private[menugames] class BMenuGames(
 
   override def gameEnded(gameId: String, secret: String): ZIO[Any, Nothing, Unit] = for {
     gameInfo <- storage
-      .retrieveFrom[AllGameCredentials](gameCredentialsStoringKey(gameId))
+      .retrieveFrom(gameCredentialsStoringKey(gameId))
       .catchAll(_ => ZIO.none)
     _ <- ZIO.when(gameInfo.exists(_.secret == secret))(deleteGame(gameId))
   } yield ()
@@ -234,7 +245,8 @@ private[menugames] class BMenuGames(
     .map(ZIO.succeed(_))
     .getOrElse(ZIO.fail(ErrorADT.GameDoesNotExist(gameId)))
 
-  private def gameCredentialsStoringKey(gameId: String) = s"game-credentials-$gameId"
+  private def gameCredentialsStoringKey(gameId: String) =
+    LocalStorage.key[GameCredentialsWithGameInfo](s"game-credentials-$gameId")
 
 }
 

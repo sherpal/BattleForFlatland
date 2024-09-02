@@ -18,11 +18,11 @@ object DuringGameMainPage {
       me <- checkMe
         .someOrFail(IllegalStateException("You are not connected here, something went wrong!"))
         .orDie
-      credentials <- localstorage
-        .retrieveFrom[GameUserCredentials](
-          GameSettings.credentialsStorageKey
-        )
+      credentials <- GameSettings.credentialsStorageKey.retrieve
         .someOrFail(IllegalStateException(s"No GameUserCredentials could be retrieved!"))
+        .orDie
+      port <- GameSettings.gamePortKey.retrieve
+        .someOrFail(IllegalStateException("No game-server port could be retrieved."))
         .orDie
       _ <- ZIO.unless(credentials.gameId == gameId)(
         ZIO.die(
@@ -31,13 +31,16 @@ object DuringGameMainPage {
           )
         )
       )
-    } yield (me, credentials)
+    } yield (me, credentials, port)
 
     div(child <-- EventStream.fromValue(()).flatMapSwitchZIO(_ => loadFixedData).map(withFixedData))
   }
-  private def withFixedData(user: User, credentials: GameUserCredentials): HtmlElement =
+  private def withFixedData(user: User, credentials: GameUserCredentials, port: Int)(using
+      Runtime[FrontendEnv]
+  ): HtmlElement =
     div(
-      s"$user -- $credentials"
+      s"$user -- $credentials",
+      GamePlaying(credentials.gameId, user, credentials.userSecret, port)
     )
 
 }

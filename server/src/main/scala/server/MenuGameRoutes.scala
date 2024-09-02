@@ -144,11 +144,15 @@ class MenuGameRoutes()(using
                 ZIO.whenZIO(isOpenZIO)(sendMsg(MenuGameComm.DataUpdated())).unit
               case events.Event.GameStarted(gameId) =>
                 sendMsg(MenuGameComm.GameStarted())
-              case events.Event.GameCredentials(creds) =>
+              case events.Event.GameCredentials(creds, port) =>
                 creds.allGameUserCredentials.find(_.userName == user.name) match {
                   case Some(userCreds) =>
                     sendMsg(
-                      MenuGameComm.HereAreYourCredentials(userCreds.gameId, userCreds.userSecret)
+                      MenuGameComm.HereAreYourCredentials(
+                        userCreds.gameId,
+                        userCreds.userSecret,
+                        port
+                      )
                     )
                   case None =>
                     ZIO.die(

@@ -38,7 +38,8 @@ object SharedSettings {
 
   def jsSettings: Seq[Def.Setting[_]] = settings(
     libraryDependencies ++= Seq(
-      "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.6.0"
+      "io.github.cquiroz" %%% "scala-java-time-tzdb"      % "2.6.0",
+      ("org.scala-js"     %%% "scalajs-java-securerandom" % "1.0.0").cross(CrossVersion.for3Use2_13)
     )
   )
 

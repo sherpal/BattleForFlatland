@@ -85,6 +85,17 @@ lazy val `game-server-launcher` = project
   )
   .dependsOn(`shared-backend`)
 
+lazy val `game-server` = project
+  .in(file("./game-server"))
+  .settings(
+    libraryDependencies ++= List(
+      "com.lihaoyi" %% "cask" % "0.9.1"
+    ),
+    assembly / mainClass       := Some("server.Server"),
+    assembly / assemblyJarName := "game-server.jar"
+  )
+  .dependsOn(`shared-backend`)
+
 lazy val frontend = project
   .in(file("./frontend"))
   .enablePlugins(ScalaJSPlugin)

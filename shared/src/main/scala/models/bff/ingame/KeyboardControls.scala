@@ -2,6 +2,7 @@ package models.bff.ingame
 
 import models.bff.ingame.KeyboardControls.KeyCode
 import models.syntax.Pointed
+import services.localstorage.LocalStorage
 
 final case class KeyboardControls(
     upKey: KeyCode,
@@ -12,11 +13,13 @@ final case class KeyboardControls(
 ) {
 
   lazy val controlMap: Map[KeyCode, UserInput] = Map(
-    upKey -> UserInput.Up,
-    downKey -> UserInput.Down,
-    leftKey -> UserInput.Left,
+    upKey    -> UserInput.Up,
+    downKey  -> UserInput.Down,
+    leftKey  -> UserInput.Left,
     rightKey -> UserInput.Right
-  ) ++ abilityKeys.zipWithIndex.map { case (code, idx) => code -> UserInput.AbilityInput(idx) }.toMap
+  ) ++ abilityKeys.zipWithIndex.map { case (code, idx) =>
+    code -> UserInput.AbilityInput(idx)
+  }.toMap
 
   /** Maybe returns a control key which is assigned twice. */
   def maybeMultipleKey: Option[KeyCode] =
@@ -25,7 +28,9 @@ final case class KeyboardControls(
       .find(_._2.length > 1)
       .map(_._1)
 
-  /** Retrieve the [[UserInput]] for this keyCode, or the [[UserInput.Unknown]] if it is not defined. */
+  /** Retrieve the [[UserInput]] for this keyCode, or the [[UserInput.Unknown]] if it is not
+    * defined.
+    */
   def getOrUnknown(keyCode: KeyCode): UserInput =
     controlMap.getOrElse(keyCode, UserInput.Unknown(Controls.KeyCode(keyCode)))
 
@@ -45,6 +50,6 @@ object KeyboardControls {
     )
   )
 
-  val storageKey = "controls"
+  val storageKey = LocalStorage.key[Controls]("controls")
 
 }

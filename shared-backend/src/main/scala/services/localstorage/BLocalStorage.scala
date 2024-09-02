@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets
 
 class BLocalStorage(fileUpdateSemaphore: Semaphore, folder: os.Path) extends LocalStorage {
 
-  override protected def storeStoredItemAt[A](key: Key, storedItem: StoredItem[A])(using
+  override protected def storeStoredItemAt[A](key: Key[A], storedItem: StoredItem[A])(using
       encoder: Encoder[A]
   ): ZIO[Any, Throwable, Unit] = fileUpdateSemaphore.withPermit(ZIO.attemptBlockingIO {
     val filePath = keyToPath(key)
@@ -17,7 +17,7 @@ class BLocalStorage(fileUpdateSemaphore: Semaphore, folder: os.Path) extends Loc
     os.write(filePath, Encoder[StoredItem[A]].apply(storedItem).spaces2)
   })
 
-  override protected def retrieveStoredItemFrom[A](key: Key)(using
+  override protected def retrieveStoredItemFrom[A](key: Key[A])(using
       decoder: Decoder[A]
   ): ZIO[Any, Throwable, Option[StoredItem[A]]] = fileUpdateSemaphore
     .withPermit(ZIO.attemptBlockingIO {
@@ -33,11 +33,11 @@ class BLocalStorage(fileUpdateSemaphore: Semaphore, folder: os.Path) extends Loc
     })
     .absolve
 
-  override def clearKey(key: Key): ZIO[Any, Throwable, Unit] = ???
+  override def clearKey[T](key: Key[T]): ZIO[Any, Throwable, Unit] = ???
 
-  private def keyToPath(key: Key): os.Path = {
+  private def keyToPath[T](key: Key[T]): os.Path = {
     val encodedKey =
-      java.util.Base64.getEncoder.encodeToString(key.getBytes(StandardCharsets.UTF_8))
+      java.util.Base64.getEncoder.encodeToString(key.value.getBytes(StandardCharsets.UTF_8))
     folder / (encodedKey ++ ".json")
   }
 

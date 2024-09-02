@@ -9,7 +9,7 @@ import services.logging.Logging
 
 /** Retrieve the [[Controls]] from the local storage if it exists, or the default one otherwise. */
 val retrieveControls: ZIO[Logging & LocalStorage, Nothing, Controls] = for {
-  maybeFromLocalStorage <- retrieveFrom[Controls](KeyboardControls.storageKey)
+  maybeFromLocalStorage <- KeyboardControls.storageKey.retrieve
     .catchAll(t =>
       services.logging.log.error(s"Failed to retrieve controls: ${t.getMessage}") *> ZIO
         .some(Pointed[Controls].unit)
@@ -19,6 +19,6 @@ val retrieveControls: ZIO[Logging & LocalStorage, Nothing, Controls] = for {
 
 /** Stores the given [[Controls]] and returns it. */
 def storeControls(controls: Controls): ZIO[LocalStorage, Throwable, Controls] =
-  storeAt(KeyboardControls.storageKey, controls) *> ZIO.succeed(controls)
+  KeyboardControls.storageKey.store(controls) *> ZIO.succeed(controls)
 
 val resetControls = clearKey(Controls.storageKey)

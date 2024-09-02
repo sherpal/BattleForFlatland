@@ -5,9 +5,10 @@ import models.syntax.Pointed
 import gamelogic.gameextras.GameMarker
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import services.localstorage.LocalStorage
 
-/** Gathers all possible inputs that the user assigned. The [[InputCode]]s in argument have the knowledge of what device
-  * is the source of the input.
+/** Gathers all possible inputs that the user assigned. The [[InputCode]]s in argument have the
+  * knowledge of what device is the source of the input.
   *
   * @param markerOnTargetKeys
   *   Map from the [[InputCode]] to the marker that will be put on current target
@@ -30,7 +31,9 @@ final case class Controls(
     leftKey       -> UserInput.Left,
     rightKey      -> UserInput.Right,
     nextTargetKey -> UserInput.NextTarget
-  ) ++ abilityKeys.zipWithIndex.map { case (code, idx) => code -> UserInput.AbilityInput(idx) }.toMap ++
+  ) ++ abilityKeys.zipWithIndex.map { case (code, idx) =>
+    code -> UserInput.AbilityInput(idx)
+  }.toMap ++
     gameMarkerControls.controlMap
 
   def allKeysInMultiple: List[InputCode] =
@@ -43,8 +46,11 @@ final case class Controls(
   /** Maybe returns a control key which is assigned twice. */
   def maybeMultipleKey: Option[InputCode] = allKeysInMultiple.headOption
 
-  /** Retrieve the [[UserInput]] for this keyCode, or the [[UserInput.Unknown]] if it is not defined. */
-  def getOrUnknown(keyCode: InputCode): UserInput = controlMap.getOrElse(keyCode, UserInput.Unknown(keyCode))
+  /** Retrieve the [[UserInput]] for this keyCode, or the [[UserInput.Unknown]] if it is not
+    * defined.
+    */
+  def getOrUnknown(keyCode: InputCode): UserInput =
+    controlMap.getOrElse(keyCode, UserInput.Unknown(keyCode))
 }
 
 object Controls {
@@ -99,7 +105,7 @@ object Controls {
     )
   )
 
-  val storageKey = "controls"
+  val storageKey = LocalStorage.key[Controls]("controls")
 
   private given Encoder[KeyInputModifier] = deriveEncoder
   private given Decoder[KeyInputModifier] = deriveDecoder

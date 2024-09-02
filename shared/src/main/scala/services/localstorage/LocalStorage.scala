@@ -32,18 +32,19 @@ trait LocalStorage {
       } yield StoredItem(a, timestamp)
     }
 
-  /** Stores the given `storedItem` at the `key` position using the concrete underlying storage system.
+  /** Stores the given `storedItem` at the `key` position using the concrete underlying storage
+    * system.
     */
-  protected def storeStoredItemAt[A](key: Key, storedItem: StoredItem[A])(using
+  protected def storeStoredItemAt[A](key: Key[A], storedItem: StoredItem[A])(using
       encoder: Encoder[A]
   ): ZIO[Any, Throwable, Unit]
 
-  /** Retrieves the element from the underlying storage system at position `key` and tries to interpret it as an element
-    * of type `A`.
+  /** Retrieves the element from the underlying storage system at position `key` and tries to
+    * interpret it as an element of type `A`.
     *
     * Fails with an [[io.circe.Error]] if decoding failed.
     */
-  protected def retrieveStoredItemFrom[A](key: Key)(using
+  protected def retrieveStoredItemFrom[A](key: Key[A])(using
       decoder: Decoder[A]
   ): ZIO[Any, Throwable, Option[StoredItem[A]]]
 
@@ -55,7 +56,7 @@ trait LocalStorage {
     * @param duration
     *   how much time this element should be considered as stored before being discarded.
     */
-  final def storeAtFor[A](key: Key, element: A, duration: Duration)(using
+  final def storeAtFor[A](key: Key[A], element: A, duration: Duration)(using
       encoder: Encoder[A]
   ): ZIO[Any, Throwable, Unit] =
     for {
@@ -67,8 +68,8 @@ trait LocalStorage {
       _ <- storeStoredItemAt(key, storedItem)
     } yield ()
 
-  /** Try to retrieve an element of type A from the local storage. If the element is expired as specified when it was
-    * first inserted, returns None.
+  /** Try to retrieve an element of type A from the local storage. If the element is expired as
+    * specified when it was first inserted, returns None.
     *
     * Fails with an [[io.circe.Error]] if the element at place `key` was not of type `A`.
     *
@@ -77,7 +78,7 @@ trait LocalStorage {
     * @tparam A
     *   type of element to decode
     */
-  final def retrieveFrom[A](key: Key)(using
+  final def retrieveFrom[A](key: Key[A])(using
       decoder: Decoder[A]
   ): ZIO[Any, Throwable, Option[A]] =
     for {
@@ -93,10 +94,26 @@ trait LocalStorage {
       } yield storedElement.a
     } yield maybeElement
 
-  def clearKey(key: Key): ZIO[Any, Throwable, Unit]
+  def clearKey[T](key: Key[T]): ZIO[Any, Throwable, Unit]
 
 }
 
 object LocalStorage {
-  type Key = String
+
+  /** Keys to store information in the local storage.
+    *
+    * Type parameter corresponds to the kind of object stored at that key
+    */
+  opaque type Key[T] = String
+  def key[T](value: String): Key[T] = value
+
+  object Key {
+    extension [T](key: Key[T]) {
+      def value: String = key
+
+      def store(t: T)(using Encoder[T]) = storeAt(key, t)
+
+      def retrieve(using Decoder[T]) = retrieveFrom(key)
+    }
+  }
 }

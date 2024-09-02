@@ -18,5 +18,5 @@ object Event {
     *
     * WebSocket connections then need to forward the correct user credentials to the clients
     */
-  case class GameCredentials(creds: AllGameCredentials) extends Event
+  case class GameCredentials(creds: AllGameCredentials, gameServerPort: Int) extends Event
 }

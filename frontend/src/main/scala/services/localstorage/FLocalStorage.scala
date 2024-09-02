@@ -10,19 +10,19 @@ class FLocalStorage extends LocalStorage {
 
   private class ElementAbsentException extends Exception
 
-  protected def storeStoredItemAt[A](key: Key, storedItem: StoredItem[A])(implicit
+  protected def storeStoredItemAt[A](key: Key[A], storedItem: StoredItem[A])(implicit
       encoder: Encoder[A]
   ): ZIO[Any, Throwable, Unit] = ZIO.succeed {
-    dom.window.localStorage.setItem(key, Encoder[StoredItem[A]].apply(storedItem).noSpaces)
+    dom.window.localStorage.setItem(key.value, Encoder[StoredItem[A]].apply(storedItem).noSpaces)
   }
 
-  protected def retrieveStoredItemFrom[A](key: Key)(implicit
-      decoder: Decoder[A]
-  ): ZIO[Any, Throwable, Option[StoredItem[A]]] =
+  protected def retrieveStoredItemFrom[A](
+      key: Key[A]
+  )(using Decoder[A]): ZIO[Any, Throwable, Option[StoredItem[A]]] =
     (for {
       rawContent <- ZIO
         .fromOption {
-          Option(dom.window.localStorage.getItem(key))
+          Option(dom.window.localStorage.getItem(key.value))
         }
         .orElseFail(new ElementAbsentException)
       element <- ZIO.fromEither(decode[StoredItem[A]](rawContent))
@@ -30,8 +30,8 @@ class FLocalStorage extends LocalStorage {
       ZIO.none
     }
 
-  def clearKey(key: Key): ZIO[Any, Throwable, Unit] =
-    ZIO.succeed(dom.window.localStorage.removeItem(key))
+  def clearKey[A](key: Key[A]): ZIO[Any, Throwable, Unit] =
+    ZIO.succeed(dom.window.localStorage.removeItem(key.value))
 }
 
 object FLocalStorage {

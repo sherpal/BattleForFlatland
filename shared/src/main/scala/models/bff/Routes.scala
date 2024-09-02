@@ -2,6 +2,7 @@ package models.bff
 
 import urldsl.language.PathSegment.dummyErrorImpl.*
 import urldsl.language.QueryParameters.dummyErrorImpl.*
+import models.bff.ingame.GameUserCredentials
 
 object Routes {
 
@@ -33,8 +34,14 @@ object Routes {
   final val inGameCancel        = inGame / "cancel-game"           // post
   final val inGameSettings      = root / "game-settings"           // route (get)
 
-  final val gameIdParam          = param[String]("gameId")
-  final val tokenParam           = param[String]("token")
-  final val userIdAndTokenParams = param[String]("userId") & tokenParam
+  final val gameIdParam = param[String]("gameId")
+  final val secretParam = param[String]("secret")
+  final val gameUserCredentialsParam =
+    (param[String]("userName") & gameIdParam & secretParam).as[GameUserCredentials](using
+      urldsl.vocabulary.Codec.factory[(String, String, String), GameUserCredentials](
+        GameUserCredentials(_, _, _),
+        creds => (creds.userName, creds.gameId, creds.userSecret)
+      )
+    )
 
 }
