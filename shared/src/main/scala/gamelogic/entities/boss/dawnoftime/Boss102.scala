@@ -159,15 +159,15 @@ object Boss102 extends BossFactory[Boss102] with BossMetadata {
       entityId: Entity.Id,
       time: Long,
       idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] =
+  ): Vector[GameAction] =
     healAndDamageAwareActions(entityId, time, idGeneratorContainer)
 
   val size = 350.0
   def gameBoundariesActions(
       time: Long,
       idGeneratorContainer: IdGeneratorContainer
-  ): List[CreateObstacle] =
-    List[(Complex, (Complex, Complex))](
+  ): Vector[CreateObstacle] =
+    Vector[(Complex, (Complex, Complex))](
       (size, (-i * size, i * size)),
       (-size, (-i * size, i * size)),
       (-i * size, (-size, size)),
@@ -182,7 +182,10 @@ object Boss102 extends BossFactory[Boss102] with BossMetadata {
       )
     }
 
-  def stagingBossActions(time: Long, idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
+  def stagingBossActions(
+      time: Long,
+      idGeneratorContainer: IdGeneratorContainer
+  ): Vector[GameAction] =
     gameBoundariesActions(time, idGeneratorContainer)
 
   def playersStartingPosition: Complex = -100 * i
@@ -201,15 +204,15 @@ object Boss102 extends BossFactory[Boss102] with BossMetadata {
       gameState: GameState,
       time: Long,
       idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] =
+  ): Vector[GameAction] =
     gameState.entities.values.collect {
       case hound: BossHound =>
         RemoveEntity(idGeneratorContainer.gameActionIdGenerator(), time, hound.id)
       case zone: DamageZone =>
         RemoveEntity(idGeneratorContainer.gameActionIdGenerator(), time, zone.id)
-    }.toList ++ gameState.allBuffs.collect {
+    }.toVector ++ gameState.allBuffs.collect {
       case buff: Buff
-          if List(
+          if Vector(
             Buff.boss102DamageZoneBuff,
             Buff.boss102LivingDamageZone
           ) contains buff.resourceIdentifier =>

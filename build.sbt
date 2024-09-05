@@ -92,7 +92,8 @@ lazy val `game-server` = project
       "com.lihaoyi" %% "cask" % "0.9.1"
     ),
     assembly / mainClass       := Some("server.Server"),
-    assembly / assemblyJarName := "game-server.jar"
+    assembly / assemblyJarName := "game-server.jar",
+    SharedSettings()
   )
   .dependsOn(`shared-backend`)
 

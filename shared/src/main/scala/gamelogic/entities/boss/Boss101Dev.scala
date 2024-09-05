@@ -137,11 +137,14 @@ object Boss101Dev extends BossFactory[Boss101Dev] with BossMetadata {
       entityId: Id,
       time: Long,
       idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] =
+  ): Vector[GameAction] =
     healAndDamageAwareActions(entityId, time, idGeneratorContainer)
 
-  def stagingBossActions(time: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
-    List(
+  def stagingBossActions(
+      time: Id,
+      idGeneratorContainer: IdGeneratorContainer
+  ): Vector[GameAction] =
+    Vector(
       CreateObstacle(
         0L,
         time,
@@ -155,7 +158,7 @@ object Boss101Dev extends BossFactory[Boss101Dev] with BossMetadata {
       gameState: GameState,
       time: Long,
       idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] =
+  ): Vector[GameAction] =
     gameState.allBuffs.collect {
       case bigDot: Buff if bigDot.resourceIdentifier == Buff.boss101BigDotIdentifier =>
         RemoveBuff(
@@ -164,7 +167,7 @@ object Boss101Dev extends BossFactory[Boss101Dev] with BossMetadata {
           bigDot.bearerId,
           bigDot.buffId
         )
-    }.toList
+    }.toVector
 
   def playersStartingPosition: Complex = -100 * Complex.i
 }

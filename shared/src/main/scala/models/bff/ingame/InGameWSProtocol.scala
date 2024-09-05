@@ -29,8 +29,14 @@ object InGameWSProtocol {
   case class Pong(originalSendingTime: Long, midwayDistantTime: Long, pingId: String)
       extends Incoming
 
+  /** Sent when player connects, to know all players involved */
+  case class AllPlayers(names: Vector[String]) extends Incoming
+
   /** Sent when the user is connected and the web socket is open */
   case class Ready(userName: String) extends Outgoing
+
+  /** Sent to everyone to annonce browser on player readyness. */
+  case class BuddyIsReady(userName: String) extends Incoming
 
   /** Sent when the user received their entity id, and all assets have been loaded. */
   case class ReadyToStart(userName: String) extends Outgoing
@@ -38,14 +44,22 @@ object InGameWSProtocol {
   /** Sent by a player to actually start the game at the very beginning. */
   case object LetsBegin extends Outgoing
 
-  case class GameActionWrapper(gameActions: List[GameAction]) extends Outgoing
-  case class RemoveActions(oldestTime: Long, idsOfActionsToRemove: List[GameAction.Id])
+  case class GameActionWrapper(gameActions: Vector[GameAction]) extends Outgoing
+  case class RemoveActions(oldestTime: Long, idsOfActionsToRemove: Vector[GameAction.Id])
       extends Incoming
   case class AddAndRemoveActions(
-      actionsToAdd: List[GameAction],
+      actionsToAdd: Vector[GameAction],
       oldestTimeToRemove: Long,
-      idsOfActionsToRemove: List[GameAction.Id]
+      idsOfActionsToRemove: Vector[GameAction.Id]
   ) extends Incoming
+  object AddAndRemoveActions {
+    inline def fromGameLogic(update: gamelogic.gamestate.AddAndRemoveActions): AddAndRemoveActions =
+      AddAndRemoveActions(
+        update.actionsToAdd,
+        update.oldestTimeToRemove,
+        update.idsOfActionsToRemove
+      )
+  }
 
   /** Received just before the beginning of the game so that the client knows what entity they
     * control.

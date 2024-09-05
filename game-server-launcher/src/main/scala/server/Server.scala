@@ -5,13 +5,28 @@ import menus.data.APIResponse
 import menus.data.AllGameCredentials
 import errors.ErrorADT
 import menus.data.GameCredentialsWithGameInfo
+import java.util.concurrent.atomic.AtomicReference
 
 object Server extends cask.MainRoutes {
 
   override def port: Int = 22223
 
+  val gameProcesses = AtomicReference(Map.empty[String, os.SubProcess])
+
   @cask.get("/health-check")
   def hello() = "ok"
+
+  @cask.post("/stop-game")
+  def stopGame(gameId: String) = {
+    val gameProcessesNow = gameProcesses.getAndUpdate(_ - gameId)
+    gameProcessesNow.get(gameId) match {
+      case None => cask.Response(s"No game with id $gameId", statusCode = 404)
+      case Some(process) =>
+        println(s"Killing process ${process} from game id $gameId")
+        process.destroyForcibly()
+        cask.Response("ok")
+    }
+  }
 
   @cask.post("/run-game-server")
   def doThing(
@@ -52,15 +67,17 @@ object Server extends cask.MainRoutes {
         cask.Response(errMessage, statusCode = 400)
       case Right(gameInfo) =>
         println(s"Launching game >>>>")
-        // todo
-        os.proc(
-          "java",
-          "-jar",
-          "game-server/target/scala-3.5.0/game-server.jar",
-          gameServerReadyUrl,
-          22222, // todo: un-hardcode this in the future...
-          GameCredentialsWithGameInfo.encode(gameInfo)
-        ).spawn(stdout = os.Inherit)
+        val process = os
+          .proc(
+            "java",
+            "-jar",
+            "game-server/target/scala-3.5.0/game-server.jar",
+            gameServerReadyUrl,
+            22222, // todo: un-hardcode this in the future...
+            GameCredentialsWithGameInfo.encode(gameInfo)
+          )
+          .spawn(stdout = os.Inherit)
+        gameProcesses.getAndUpdate(_ + (gameId -> process))
         cask.Response("ok")
     }
   }

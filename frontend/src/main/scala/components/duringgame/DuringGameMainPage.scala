@@ -8,6 +8,8 @@ import models.bff.ingame.GameUserCredentials
 import services.*
 import components.beforegame.GameSettings
 import utils.laminarzio.*
+import gamelogic.entities.Entity
+import gamelogic.physics.Complex
 
 object DuringGameMainPage {
 
@@ -32,7 +34,6 @@ object DuringGameMainPage {
         )
       )
     } yield (me, credentials, port)
-
     div(child <-- EventStream.fromValue(()).flatMapSwitchZIO(_ => loadFixedData).map(withFixedData))
   }
   private def withFixedData(user: User, credentials: GameUserCredentials, port: Int)(using

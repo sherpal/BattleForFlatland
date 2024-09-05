@@ -5,6 +5,7 @@ import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions._
 import gamelogic.gamestate.statetransformers.GameStateTransformer
 import io.circe.{Decoder, Encoder, Json}
+import gamelogic.utils.GameActionIdGenerator
 
 trait GameAction extends Ordered[GameAction] {
 
@@ -13,33 +14,31 @@ trait GameAction extends Ordered[GameAction] {
   /** Time at which the action occurred (in millis) */
   val time: Long
 
-  /**
-    * Describes how this action affects a given GameState.
+  /** Describes how this action affects a given GameState.
     *
-    * This is done by first applying all transformation from [[gamelogic.buffs.PassiveBuff]] to this action, then
-    * folding over all created actions.
+    * This is done by first applying all transformation from [[gamelogic.buffs.PassiveBuff]] to this
+    * action, then folding over all created actions.
     *
-    * We can't use monoid aggregation here otherwise all action transformers are created with the first game state
-    * and not the folded ones.
+    * We can't use monoid aggregation here otherwise all action transformers are created with the
+    * first game state and not the folded ones.
     */
   final def apply(gameState: GameState): GameState =
     gameState.applyActionChangers(this).foldLeft(gameState) { (currentGameState, nextAction) =>
       nextAction.createAndApplyGameStateTransformer(currentGameState)
     }
 
-  /**
-    * Creates the [[gamelogic.gamestate.statetransformers.GameStateTransformer]] that will effectively affect the game.
-    * If more than one building block must be used, you can compose them using their `++` method.
+  /** Creates the [[gamelogic.gamestate.statetransformers.GameStateTransformer]] that will
+    * effectively affect the game. If more than one building block must be used, you can compose
+    * them using their `++` method.
     */
   def createGameStateTransformer(gameState: GameState): GameStateTransformer
 
   def createAndApplyGameStateTransformer(gameState: GameState): GameState =
     createGameStateTransformer(gameState)(gameState)
 
-  /**
-    * Returns whether this action is legal at that particular point in time, i.e., for that
-    * [[gamelogic.gamestate.GameState]].
-    * If the action is not legal, it returns an error message saying why.
+  /** Returns whether this action is legal at that particular point in time, i.e., for that
+    * [[gamelogic.gamestate.GameState]]. If the action is not legal, it returns an error message
+    * saying why.
     */
   def isLegal(gameState: GameState): Option[String]
 
@@ -50,6 +49,9 @@ trait GameAction extends Ordered[GameAction] {
   }
 
   def changeId(newId: GameAction.Id): GameAction
+
+  inline def changeIdWithGen()(using gen: GameActionIdGenerator): GameAction =
+    changeId(gen.nextId())
 
 }
 
@@ -65,7 +67,9 @@ object GameAction {
   import io.circe.generic.auto._
   import io.circe.syntax._
 
-  private def customEncode[A <: GameAction](a: A, name: String)(implicit encoder: Encoder[A]): Json =
+  private def customEncode[A <: GameAction](a: A, name: String)(implicit
+      encoder: Encoder[A]
+  ): Json =
     a.asJson.mapObject(_.add("action_name", Json.fromString(name)))
 
   implicit val encoder: Encoder[GameAction] = Encoder.instance {
@@ -101,7 +105,9 @@ object GameAction {
     case x: UseAbility                       => customEncode(x, "UseAbility")
   }
 
-  private def customDecoder[A <: GameAction](name: String)(implicit decoder: Decoder[A]): Decoder[GameAction] =
+  private def customDecoder[A <: GameAction](name: String)(implicit
+      decoder: Decoder[A]
+  ): Decoder[GameAction] =
     decoder.validate(_.get[String]("action_name").contains(name), s"Not a $name instance").widen
 
   implicit val decoder: Decoder[GameAction] = List[Decoder[GameAction]](

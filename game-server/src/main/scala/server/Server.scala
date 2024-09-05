@@ -9,18 +9,13 @@ import communication.BFFPicklers
 import boopickle.Default.*
 import models.bff.ingame.InGameWSProtocol
 import java.nio.ByteBuffer
-import models.bff.ingame.InGameWSProtocol.HeartBeat
-import models.bff.ingame.InGameWSProtocol.Ping
-import models.bff.ingame.InGameWSProtocol.Pong
-import models.bff.ingame.InGameWSProtocol.Ready
-import models.bff.ingame.InGameWSProtocol.ReadyToStart
-import models.bff.ingame.InGameWSProtocol.LetsBegin
-import models.bff.ingame.InGameWSProtocol.GameActionWrapper
-import models.bff.ingame.InGameWSProtocol.RemoveActions
-import models.bff.ingame.InGameWSProtocol.AddAndRemoveActions
-import models.bff.ingame.InGameWSProtocol.YourEntityIdIs
-import models.bff.ingame.InGameWSProtocol.StartingBossPosition
+import models.bff.ingame.InGameWSProtocol.*
 import io.undertow.Undertow
+import application.*
+import models.bff.outofgame.MenuGameWithPlayers
+import gamelogic.gamestate.GameAction
+import gamelogic.utils.IdGeneratorContainer
+import concurrent.*
 
 object Server extends cask.MainRoutes {
 
@@ -29,7 +24,26 @@ object Server extends cask.MainRoutes {
   private var _allGameInfo: GameCredentialsWithGameInfo = scala.compiletime.uninitialized
   inline def allGameInfo                                = _allGameInfo
 
-  val connectedPlayers = AtomicReference(Vector.empty[ConnectedPlayerInfo])
+  val connectedPlayers                   = AtomicReference(Vector.empty[ConnectedPlayerInfo])
+  var actionTranslator: ActionTranslator = scala.compiletime.uninitialized
+  var gameMaster: GameMaster             = scala.compiletime.uninitialized
+
+  def initGameManagers(
+      connectedPlayers: Vector[ConnectedPlayerInfo]
+  ): Unit = {
+    println("Everyone is ready, instantiating Game Managers...")
+    if allGameInfo == null then {
+      throw IllegalStateException("All Game Info must be initialized at this point.")
+    }
+
+    actionTranslator = ActionTranslator(connectedPlayers, ActionBuffer[GameAction]())
+    given IdGeneratorContainer = IdGeneratorContainer.initialIdGeneratorContainer
+    gameMaster = GameMaster(
+      actionTranslator,
+      allGameInfo.gameInfo,
+      connectedPlayers.map(player => player.userName -> player).toMap
+    )
+  }
 
   override def port: Int = _runOnPort
 
@@ -111,27 +125,38 @@ object Server extends cask.MainRoutes {
             connectedPlayers.updateAndGet(
               _ :+ ConnectedPlayerInfo(sendMessage, playerInfo, isReady = false)
             )
+            sendMessage(InGameWSProtocol.AllPlayers(allGameInfo.gameInfo.players.map(_.name)))
             cask.WsActor {
               case cask.Ws.Binary(bytes) =>
                 val message = Unpickle[InGameWSProtocol].fromBytes(ByteBuffer.wrap(bytes))
-                // todo
                 message match
-                  case GameActionWrapper(gameActions) => ??? // todo
-                  case ping: Ping =>
-                    println(ping)
-                    sendMessage(ping.pong(System.currentTimeMillis()))
+                  case GameActionWrapper(gameActions) =>
+                    // no check that action translator is not null, we accept our fate if that happens
+                    // a check is one extra computation, and there is no reason for that
+                    actionTranslator.newGameActions(userName, gameActions)
+                  case ping: Ping => sendMessage(ping.pong(System.currentTimeMillis()))
                   case Ready(userName) =>
                     println(s"$userName is ready!")
                     val newConnectedPlayers = connectedPlayers.updateAndGet(_.map {
                       case info if info.userName == userName => info.copy(isReady = true)
                       case info                              => info
                     })
+                    newConnectedPlayers.foreach(_.send(BuddyIsReady(userName)))
                     if newConnectedPlayers.forall(_.isReady) then {
-                      println("Everyone is ready, need to go to next part of the plan...")
+                      initGameManagers(newConnectedPlayers)
                     }
-                    ??? // todo
-                  case ReadyToStart(userId) => ??? // todo
-                  case LetsBegin            => ??? // todo
+                  case ReadyToStart(userName) =>
+                    if gameMaster == null then {
+                      println(
+                        s"Received ready to start from $userName before game master is ready, going to ignore..."
+                      )
+                    } else gameMaster.newPlayerIsReady(userName)
+                  case LetsBegin =>
+                    if gameMaster == null then {
+                      println(
+                        "Received LetsBegin but Game Master is null. Going to ignore..."
+                      )
+                    } else gameMaster.letsBegin()
                   case in: InGameWSProtocol.Incoming =>
                     println(s"Received $in, going to ignore...")
               case cask.Ws.Text(data) =>

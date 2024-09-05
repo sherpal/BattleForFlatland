@@ -19,33 +19,40 @@ trait BossFactory[Boss <: BossEntity] {
   /** Returns where the boss will initially start. */
   final def bossStartingPosition: Complex = initialBoss(0L, 0L).pos
 
-  /**
-    * Describes all actions to take immediately after creating the boss.
-    * These actions will most probably contain the heal aware and threat aware buffs.
+  /** Describes all actions to take immediately after creating the boss. These actions will most
+    * probably contain the heal aware and threat aware buffs.
     *
-    * @param entityId id of the boss that was created.
+    * @param entityId
+    *   id of the boss that was created.
     */
-  def initialBossActions(entityId: Entity.Id, time: Long, idGeneratorContainer: IdGeneratorContainer): List[GameAction]
+  def initialBossActions(
+      entityId: Entity.Id,
+      time: Long,
+      idGeneratorContainer: IdGeneratorContainer
+  ): Vector[GameAction]
 
-  /**
-    * Describes all actions to take at the origin of time.
-    * This can be used, for example, to add obstacles to the game at the very beginning.
+  /** Describes all actions to take at the origin of time. This can be used, for example, to add
+    * obstacles to the game at the very beginning.
     */
-  def stagingBossActions(time: Long, idGeneratorContainer: IdGeneratorContainer): List[GameAction]
+  def stagingBossActions(
+      time: Long,
+      idGeneratorContainer: IdGeneratorContainer
+  ): Vector[GameAction]
 
-  /**
-    * Describes all actions to take when the boss dies at the end of the game.
-    * Typically, this can be used to clean up some remaining things, and probably
-    * prevent players from dying because of a remaining debuff or remaining adds.
+  /** Describes all actions to take when the boss dies at the end of the game. Typically, this can
+    * be used to clean up some remaining things, and probably prevent players from dying because of
+    * a remaining debuff or remaining adds.
     *
-    * @param gameState [[GameState]] when the game ends
-    * @param time time when the game ends.
+    * @param gameState
+    *   [[GameState]] when the game ends
+    * @param time
+    *   time when the game ends.
     */
   def whenBossDiesActions(
       gameState: GameState,
       time: Long,
       idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction]
+  ): Vector[GameAction]
 
   /** Where the players should be created. */
   def playersStartingPosition: Complex
@@ -53,16 +60,31 @@ trait BossFactory[Boss <: BossEntity] {
   /** Name of the boss. */
   def name: String
 
-  /**
-    * Returns the two actions so that the boss have the healing and damage aware buff for actions.
+  /** Returns the two actions so that the boss have the healing and damage aware buff for actions.
     */
   final def healAndDamageAwareActions(
       entityId: Id,
       time: Long,
       idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] = List(
-    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, entityId, time, Buff.healingThreatAware),
-    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, entityId, time, Buff.damageThreatAware)
+  ): Vector[GameAction] = Vector(
+    PutSimpleBuff(
+      0L,
+      time,
+      idGeneratorContainer.buffIdGenerator(),
+      entityId,
+      entityId,
+      time,
+      Buff.healingThreatAware
+    ),
+    PutSimpleBuff(
+      0L,
+      time,
+      idGeneratorContainer.buffIdGenerator(),
+      entityId,
+      entityId,
+      time,
+      Buff.damageThreatAware
+    )
   )
 
 }

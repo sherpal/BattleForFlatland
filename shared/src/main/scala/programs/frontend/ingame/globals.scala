@@ -57,6 +57,6 @@ def synchronizeClock(
 
 def cancelGame(creds: GameUserCredentials): ZIO[HttpClient, ErrorADT, Unit] =
   (for {
-    code <- postIgnore(Routes.inGameCancel, creds)
+    code <- postIgnore(Routes.inGameCancel, Routes.gameIdParam)(creds.gameId)
     _    <- unsuccessfulStatusCode(code)
   } yield ()).refineOrDie(ErrorADT.onlyErrorADT)

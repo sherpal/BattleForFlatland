@@ -1,7 +1,6 @@
 package gamelogic.utils
 
-/**
-  * Contains all the generators that are used for the different kind of ids during the game.
+/** Contains all the generators that are used for the different kind of ids during the game.
   */
 final case class IdGeneratorContainer(
     entityIdGenerator: EntityIdGenerator,
@@ -13,10 +12,10 @@ final case class IdGeneratorContainer(
 object IdGeneratorContainer {
 
   def initialIdGeneratorContainer: IdGeneratorContainer = IdGeneratorContainer(
-    new EntityIdGenerator(0L),
-    new GameActionIdGenerator(0L),
-    new BuffIdGenerator(0L),
-    new AbilityUseIdGenerator(0L)
+    EntityIdGenerator(0L),
+    GameActionIdGenerator(0L),
+    BuffIdGenerator(0L),
+    AbilityUseIdGenerator(0L)
   )
 
 }

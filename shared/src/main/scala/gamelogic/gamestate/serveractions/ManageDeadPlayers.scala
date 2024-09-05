@@ -4,8 +4,8 @@ import gamelogic.gamestate.gameactions.RemoveEntity
 import gamelogic.utils.IdGeneratorContainer
 
 final class ManageDeadPlayers extends ServerAction {
-  def apply(currentState: ActionGatherer, nowGenerator: () => Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
+  def apply(currentState: ActionGatherer, nowGenerator: () => Long)(implicit
+      idGeneratorContainer: IdGeneratorContainer
   ): (ActionGatherer, ServerAction.ServerActionOutput) = {
     val now = nowGenerator()
 
@@ -19,7 +19,7 @@ final class ManageDeadPlayers extends ServerAction {
           _
         )
       )
-      .toList
+      .toVector
 
     val (nextCollector, oldestTime, idsToRemove) = currentState.masterAddAndRemoveActions(actions)
 

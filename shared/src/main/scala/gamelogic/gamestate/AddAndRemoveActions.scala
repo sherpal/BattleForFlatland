@@ -1,10 +1,12 @@
 package gamelogic.gamestate
 
-/**
-  * Some kind of "meta" action that tells what actions have been added to the game state, and what actions are removed
+/** Some kind of "meta" action that tells what actions have been added to the game state, and what
+  * actions are removed
   */
 final case class AddAndRemoveActions(
-    actionsToAdd: List[GameAction],
+    actionsToAdd: Vector[GameAction],
     oldestTimeToRemove: Long,
-    idsOfActionsToRemove: List[GameAction.Id]
-)
+    idsOfActionsToRemove: Vector[GameAction.Id]
+) {
+  def nonEmpty: Boolean = actionsToAdd.nonEmpty || idsOfActionsToRemove.nonEmpty
+}

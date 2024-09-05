@@ -28,5 +28,16 @@ class GameLaunchingRoutes()(using
     _ <- events.dispatchEvent(events.Event.GameCredentials(gameInfo.allGameCredentials, port))
   } yield true).either.map(APIResponse.fromEither)
 
+  @cask.post("api/bff/game-playing/in-game/cancel-game")
+  def stopGame(gameId: String) = {
+    val stopGameResponse = requests.post(
+      "http://localhost:22223/stop-game",
+      params = Map(
+        "gameId" -> gameId
+      )
+    )
+    stopGameResponse.statusCode
+  }
+
   initialize()
 }

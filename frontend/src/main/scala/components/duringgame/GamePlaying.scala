@@ -60,6 +60,10 @@ object GamePlaying {
         }
         .take(1)
 
+    val allPlayersEvents = gameSocket.inEvents.collect { case event: InGameWSProtocol.AllPlayers =>
+      event
+    }
+
     val clockSyncReportBus                   = new EventBus[ClockSynchronizationReport]
     val deltaWithServerEvents                = clockSyncReportBus.events.map(_.deltaAsLong)
     val clockSyncReportProgressPercentageBus = new EventBus[Int]
@@ -97,8 +101,7 @@ object GamePlaying {
                 .zipLeft(ZIO.succeed(gameSocket.outWriter.onNext(Ready(user.name))))
             ) --> clockSyncReportBus.writer
         ),
-        clockSyncReportBus.events.map(_.printableString) --> Observer[String](println(_)),
-        gameSocket.modifier
+        clockSyncReportBus.events.map(_.printableString) --> Observer[String](println(_))
       )
 
     def clockSyncProgressBar = div(
@@ -110,18 +113,23 @@ object GamePlaying {
       )
     )
 
+    // (entity id of user, starting pos of boss, time delta with server)
+    val setupDataBus = new EventBus[(Entity.Id, Complex, Long)]
+
+    // setup data component that will disappear when initial info have been collected
+    def setupDataComponent = div(
+      clockSyncProgressBar,
+      child <-- allPlayersEvents.map(_.names.mkString(", ")).map(Text(_)),
+      playerIdEvents
+        .combineWith(bossStartingPositionEvents, deltaWithServerEvents) --> setupDataBus.writer,
+      gameProtocolModifier
+    )
+
     div(
       className := "GamePlaying",
-      child.maybe <-- clockSyncReportProgressPercentageSignal
-        .map(_ < 100)
-        .distinct
-        .map(Option.when(_)(clockSyncProgressBar)),
-      child <-- playerIdEvents
-        .combineWith(bossStartingPositionEvents, deltaWithServerEvents)
-        .map { (id, bossPosition, delta) =>
-          ???
-        // GameViewContainer(user, id, bossPosition, $actionsFromServer, gameSocket.outWriter, delta)
-        },
+      child.maybe <-- setupDataBus.events
+        .mapTo(Option.empty[HtmlElement])
+        .startWith(Some(setupDataComponent)),
       child <-- gameSocket.closedSignal
         .map(!_)
         .map(
@@ -134,7 +142,6 @@ object GamePlaying {
             )
           else emptyNode
         ),
-      gameProtocolModifier,
       gameSocket.closedSignal.changes.filter(identity) --> Observer[Any](_ =>
         dom.console.warn("Socket connection closed")
       ),
@@ -149,7 +156,13 @@ object GamePlaying {
           )
         )
       ),
-      gameSocket.errorEvents --> Observer[Any](x => dom.console.warn(x))
+      gameSocket.errorEvents --> Observer[Any](x => dom.console.warn(x)),
+      gameSocket.modifier,
+      setupDataBus.events --> Observer[Any](x => println(x)),
+      setupDataBus.events --> Observer[Any] { _ =>
+        println("Sending that i'm ready to start")
+        gameSocket.outWriter.onNext(InGameWSProtocol.ReadyToStart(user.name))
+      }
     )
   }
 }
