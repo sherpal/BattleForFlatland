@@ -19,11 +19,15 @@ final case class SpawnSmallGuies(useId: Ability.UseId, time: Long, casterId: Ent
 
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(0.0, Resource.NoResource)
 
-  def createActions(gameState: GameState)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] = SpawnSmallGuies.startingPositions.map { position =>
-    AddSmallGuy(idGeneratorContainer.gameActionIdGenerator(), time, idGeneratorContainer.entityIdGenerator(), position)
-  }
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
+    SpawnSmallGuies.startingPositions.map { position =>
+      AddSmallGuy(
+        genActionId(),
+        time,
+        genEntityId(),
+        position
+      )
+    }
 
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): SpawnSmallGuies =
     copy(time = newTime, useId = newId)
@@ -44,7 +48,8 @@ object SpawnSmallGuies extends AbilityMetadata {
 
   import Complex.i
 
-  val startingPositions: List[Complex] = List(-i, i).map(_ * 50).map(_ - Boss110.halfWidth * 4 / 5)
+  val startingPositions: Vector[Complex] =
+    Vector(-i, i).map(_ * 50).map(_ - Boss110.halfWidth * 4 / 5)
 
   def abilityId: Ability.AbilityId = Ability.boss110SpawnSmallGuies
 

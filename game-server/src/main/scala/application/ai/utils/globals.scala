@@ -79,7 +79,7 @@ def aiMovementToTargetWithGraph(
         case start :: next :: _ =>
           val toTarget = next - start
           MovingBodyMoves(
-            0L,
+            GameAction.Id.zero,
             time,
             entityId,
             currentPosition,
@@ -91,7 +91,7 @@ def aiMovementToTargetWithGraph(
         case _ =>
           // didn't find a path, we simply idle
           MovingBodyMoves(
-            0L,
+            GameAction.Id.zero,
             time,
             entityId,
             currentPosition,
@@ -131,7 +131,7 @@ def aiMovementToTarget(
   if (distanceToTarget > maxDistance)
     Some(
       MovingBodyMoves(
-        0L,
+        GameAction.Id.zero,
         time,
         entityId,
         currentPosition,
@@ -144,7 +144,7 @@ def aiMovementToTarget(
   else if (distanceToTarget < radius)
     Some(
       MovingBodyMoves(
-        0L,
+        GameAction.Id.zero,
         time,
         entityId,
         currentPosition,
@@ -157,7 +157,7 @@ def aiMovementToTarget(
   else if (currentlyMoving || currentRotation != toTarget.arg)
     Some(
       MovingBodyMoves(
-        0L,
+        GameAction.Id.zero,
         time,
         entityId,
         currentPosition,
@@ -184,7 +184,7 @@ def findTarget(me: WithThreat & WithPosition, currentGameState: GameState): Opti
     )
 
 def changeTarget(me: WithTarget, targetId: Entity.Id, time: Long): Option[ChangeTarget] =
-  Option.unless(targetId == me.targetId)(ChangeTarget(0L, time, me.id, targetId))
+  Option.unless(targetId == me.targetId)(ChangeTarget(GameAction.Id.zero, time, me.id, targetId))
 
 def maybeAbilityUsage[T <: Ability](
     me: WithAbilities,

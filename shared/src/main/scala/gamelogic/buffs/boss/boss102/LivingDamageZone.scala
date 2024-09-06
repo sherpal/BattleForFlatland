@@ -8,8 +8,8 @@ import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-/**
-  * The [[LivingDamageZone]] deals damage to all allies of the bearer (except themselves) within the specified range.
+/** The [[LivingDamageZone]] deals damage to all allies of the bearer (except themselves) within the
+  * specified range.
   */
 final case class LivingDamageZone(
     buffId: Buff.Id,
@@ -19,14 +19,14 @@ final case class LivingDamageZone(
     damage: Double,
     sourceId: Entity.Id
 ) extends TickerBuff {
-  def tickEffect(gameState: GameState, time: Long, idGenerator: IdGeneratorContainer): List[GameAction] =
-    gameState.livingEntityAndMovingBodyById(bearerId).fold(List[GameAction]()) { bearer =>
+  def tickEffect(gameState: GameState, time: Long)(using IdGeneratorContainer): Vector[GameAction] =
+    gameState.livingEntityAndMovingBodyById(bearerId).fold(Vector[GameAction]()) { bearer =>
       gameState.allLivingEntities
         .filter(_.teamId == bearer.teamId)
         .filterNot(_.id == bearer.id)
         .filter(ally => (ally.currentPosition(time) - bearer.pos).modulus < LivingDamageZone.range)
-        .map(ally => EntityTakesDamage(idGenerator.gameActionIdGenerator(), time, ally.id, damage, sourceId))
-        .toList
+        .map(ally => EntityTakesDamage(genActionId(), time, ally.id, damage, sourceId))
+        .toVector
     }
 
   val tickRate: Long = LivingDamageZone.tickRate
@@ -37,9 +37,9 @@ final case class LivingDamageZone(
 
   def resourceIdentifier: ResourceIdentifier = Buff.boss102LivingDamageZone
 
-  def endingAction(gameState: GameState, time: Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] = Nil
+  def endingAction(gameState: GameState, time: Long)(using
+      IdGeneratorContainer
+  ): Vector[GameAction] = Vector.empty
 }
 
 object LivingDamageZone {

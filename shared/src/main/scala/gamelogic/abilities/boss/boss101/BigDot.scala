@@ -21,24 +21,23 @@ final case class BigDot(useId: Ability.UseId, time: Long, casterId: Entity.Id, t
 
   def cost: Resource.ResourceAmount = ResourceAmount(0, NoResource)
 
-  def createActions(
-      gameState: GameState
-  )(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
-    List(
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
+    Vector(
       PutConstantDot(
-        0L,
+        genActionId(),
         time,
         targetId,
         casterId,
         BigDot.damageOnTick,
         BigDot.duration,
         BigDot.tickRate,
-        idGeneratorContainer.buffIdGenerator(),
+        genBuffId(),
         Buff.boss101BigDotIdentifier
       )
     )
 
-  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
+  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
+    copy(time = newTime, useId = newId)
 
   def range: Distance = Boss101.rangeRange
 

@@ -8,26 +8,29 @@ import gamelogic.gamestate.gameactions.EntityStartsCasting
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-/**
-  * Multiply all damages done by the [[gamelogic.abilities.triangle.DirectHit]] by multiplying its damage by
-  * `UpgradeDirectHit.damageIncrease`.
-  * This buff is cumulative.
+/** Multiply all damages done by the [[gamelogic.abilities.triangle.DirectHit]] by multiplying its
+  * damage by `UpgradeDirectHit.damageIncrease`. This buff is cumulative.
   */
-final case class UpgradeDirectHit(buffId: Buff.Id, bearerId: Entity.Id, sourceId: Entity.Id, appearanceTime: Long)
-    extends PassiveBuff {
+final case class UpgradeDirectHit(
+    buffId: Buff.Id,
+    bearerId: Entity.Id,
+    sourceId: Entity.Id,
+    appearanceTime: Long
+) extends PassiveBuff {
 
-  def endingAction(gameState: GameState, time: Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] = Nil
+  def endingAction(gameState: GameState, time: Long)(using
+      IdGeneratorContainer
+  ): Vector[GameAction] = Vector.empty
 
-  def actionTransformer(gameAction: GameAction): List[GameAction] = gameAction match {
+  def actionTransformer(gameAction: GameAction): Vector[GameAction] = gameAction match {
     case action @ EntityStartsCasting(_, _, _, ability) if ability.casterId == bearerId =>
-      action.copy(ability = ability match {
-        case ability: DirectHit => ability.copy(damage = (ability.damage * UpgradeDirectHit.damageIncrease).toInt)
-        case _                  => ability
-      }) :: Nil
+      Vector(action.copy(ability = ability match {
+        case ability: DirectHit =>
+          ability.copy(damage = (ability.damage * UpgradeDirectHit.damageIncrease).toInt)
+        case _ => ability
+      }))
 
-    case _ => gameAction :: Nil
+    case _ => Vector(gameAction)
   }
 
   def duration: Long = UpgradeDirectHit.duration

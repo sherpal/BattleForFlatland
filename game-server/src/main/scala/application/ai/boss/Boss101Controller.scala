@@ -40,7 +40,7 @@ class Boss101Controller extends AIController[Boss101, SpawnBoss] {
         /** changing target */
         val maybeChangeTarget = changeTarget(me, target.id, startTime)
 
-        val bigHit = BigHit(0L, startTime, myId, target.id)
+        val bigHit = BigHit(Ability.UseId.zero, startTime, myId, target.id)
 
         val maybeUseAnAbility =
           Option
@@ -51,7 +51,7 @@ class Boss101Controller extends AIController[Boss101, SpawnBoss] {
             ) {
               Vector(
                 MovingBodyMoves(
-                  0L,
+                  GameAction.Id.zero,
                   startTime,
                   myId,
                   currentPosition,
@@ -60,14 +60,14 @@ class Boss101Controller extends AIController[Boss101, SpawnBoss] {
                   me.speed,
                   moving = false
                 ),
-                EntityStartsCasting(0L, startTime, bigHit.castingTime, bigHit)
+                EntityStartsCasting(GameAction.Id.zero, startTime, bigHit.castingTime, bigHit)
               )
 
             }
             .orElse(
               Some(
                 BigDot(
-                  0L,
+                  Ability.UseId.zero,
                   startTime,
                   me.id,
                   // targeting someone at random besides the target
@@ -78,14 +78,18 @@ class Boss101Controller extends AIController[Boss101, SpawnBoss] {
                     .getOrElse(target.id)
                 )
               ).filter(ability => me.canUseAbilityBoolean(ability, startTime)).map { ability =>
-                List(EntityStartsCasting(0L, startTime, ability.castingTime, ability))
+                List(
+                  EntityStartsCasting(GameAction.Id.zero, startTime, ability.castingTime, ability)
+                )
               }
             )
             .orElse(
               Some(
-                SmallHit(0L, startTime, me.id, target.id, SmallHit.damageAmount)
+                SmallHit(Ability.UseId.zero, startTime, me.id, target.id, SmallHit.damageAmount)
               ).filter(ability => me.canUseAbilityBoolean(ability, startTime)).map { ability =>
-                List(EntityStartsCasting(0L, startTime, ability.castingTime, ability))
+                List(
+                  EntityStartsCasting(GameAction.Id.zero, startTime, ability.castingTime, ability)
+                )
               }
             )
 

@@ -27,15 +27,17 @@ import gamelogic.entities.boss.boss110.CreepingShadow
 
 final class Boss110Specs extends StoryTeller {
 
+  val bossId = Entity.Id.zero
+
   def addCreepingShadowAction(time: Long): AddCreepingShadow = AddCreepingShadow(
-    idGenerator.gameActionIdGenerator(),
+    genActionId(),
     time,
-    idGenerator.entityIdGenerator(),
-    0
+    genEntityId(),
+    bossId
   )
 
   def changeRadiusAction(time: Long, entityId: Entity.Id, radius: Double): EntityRadiusChange =
-    EntityRadiusChange(idGenerator.gameActionIdGenerator(), time, entityId, radius)
+    EntityRadiusChange(genActionId(), time, entityId, radius)
 
   def getCreepingShadow(gs: GameState, entityId: Entity.Id): Option[CreepingShadow] =
     gs.entities.get(entityId).collect { case cs: CreepingShadow => cs }
@@ -67,8 +69,9 @@ final class Boss110Specs extends StoryTeller {
     val changeRadius      = changeRadiusAction(1, addCreepingShadow.entityId, 1)
     val moving            = entityMoves(2, addCreepingShadow.entityId, 0, 1, 0, 0, moving = true)
 
-    val composer = ActionComposer.empty >> start >> addCreepingShadow >> changeRadius >>>> { (gs: GameState) =>
-      assertCorrectRadius(gs, addCreepingShadow.entityId, changeRadius.radius)
+    val composer = ActionComposer.empty >> start >> addCreepingShadow >> changeRadius >>>> {
+      (gs: GameState) =>
+        assertCorrectRadius(gs, addCreepingShadow.entityId, changeRadius.radius)
     } >> moving >>>> { (gs: GameState) =>
       assertCorrectRadius(gs, addCreepingShadow.entityId, changeRadius.radius)
       val cs = getCreepingShadow(gs, addCreepingShadow.entityId).get // get is safe
@@ -78,7 +81,8 @@ final class Boss110Specs extends StoryTeller {
 
     composer(initialGameState)
 
-    val gsWithShadow = addCreepingShadow.createGameStateTransformer(initialGameState)(initialGameState)
+    val gsWithShadow =
+      addCreepingShadow.createGameStateTransformer(initialGameState)(initialGameState)
     val totalStateTransformer = changeRadius.createGameStateTransformer(gsWithShadow) ++ moving
       .createGameStateTransformer(gsWithShadow)
 

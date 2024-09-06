@@ -20,8 +20,8 @@ class PreGameBehaviour(using IdGeneratorContainer) extends GameMasterBehaviour {
     /** Adding a [[gamelogic.gamestate.gameactions.UpdateTimestamp]] so that there are actions even
       * if no body does anything. (Otherwise the game can crash at launch)
       */
-    val sortedActions = (UpdateTimestamp(0L, now) +: pendingActions).sorted
-      .map(_.changeId(idGeneratorContainer.gameActionIdGenerator()))
+    val sortedActions = (UpdateTimestamp(GameAction.Id.zero, now) +: pendingActions).sorted
+      .map(_.changeIdWithGen())
       .toVector
 
     val (nextCollector, oldestTimeToRemove, idsToRemove) =

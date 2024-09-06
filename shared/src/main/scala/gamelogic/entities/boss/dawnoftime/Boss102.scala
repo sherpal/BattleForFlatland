@@ -100,7 +100,7 @@ final case class Boss102(
   def maybeAutoAttack(time: Long, gameState: GameState): Option[AutoAttack] =
     Some(
       AutoAttack(
-        0L,
+        Ability.UseId.zero,
         time,
         id,
         targetId,
@@ -131,7 +131,7 @@ object Boss102 extends BossFactory[Boss102] with BossMetadata {
   final val autoAttackDamage: Double = 10.0
   final val autoAttackTickRate: Long = 3000L
 
-  @inline final def fullSpeed: Double = 300.0
+  inline def fullSpeed: Double = 300.0
 
   def initialBoss(entityId: Entity.Id, time: Long): Boss102 =
     Pointed[Boss102].unit
@@ -157,16 +157,14 @@ object Boss102 extends BossFactory[Boss102] with BossMetadata {
 
   def initialBossActions(
       entityId: Entity.Id,
-      time: Long,
-      idGeneratorContainer: IdGeneratorContainer
-  ): Vector[GameAction] =
-    healAndDamageAwareActions(entityId, time, idGeneratorContainer)
+      time: Long
+  )(using IdGeneratorContainer): Vector[GameAction] =
+    healAndDamageAwareActions(entityId, time)
 
   val size = 350.0
   def gameBoundariesActions(
-      time: Long,
-      idGeneratorContainer: IdGeneratorContainer
-  ): Vector[CreateObstacle] =
+      time: Long
+  )(using IdGeneratorContainer): Vector[CreateObstacle] =
     Vector[(Complex, (Complex, Complex))](
       (size, (-i * size, i * size)),
       (-size, (-i * size, i * size)),
@@ -174,19 +172,18 @@ object Boss102 extends BossFactory[Boss102] with BossMetadata {
       (i * size, (-size, size))
     ).map { case (position, (z1, z2)) =>
       CreateObstacle(
-        idGeneratorContainer.gameActionIdGenerator(),
+        genActionId(),
         time,
-        idGeneratorContainer.entityIdGenerator(),
+        genEntityId(),
         position,
         Obstacle.segmentObstacleVertices(z1, z2, 10)
       )
     }
 
   def stagingBossActions(
-      time: Long,
-      idGeneratorContainer: IdGeneratorContainer
-  ): Vector[GameAction] =
-    gameBoundariesActions(time, idGeneratorContainer)
+      time: Long
+  )(using IdGeneratorContainer): Vector[GameAction] =
+    gameBoundariesActions(time)
 
   def playersStartingPosition: Complex = -100 * i
 
@@ -202,20 +199,19 @@ object Boss102 extends BossFactory[Boss102] with BossMetadata {
 
   def whenBossDiesActions(
       gameState: GameState,
-      time: Long,
-      idGeneratorContainer: IdGeneratorContainer
-  ): Vector[GameAction] =
+      time: Long
+  )(using IdGeneratorContainer): Vector[GameAction] =
     gameState.entities.values.collect {
       case hound: BossHound =>
-        RemoveEntity(idGeneratorContainer.gameActionIdGenerator(), time, hound.id)
+        RemoveEntity(genActionId(), time, hound.id)
       case zone: DamageZone =>
-        RemoveEntity(idGeneratorContainer.gameActionIdGenerator(), time, zone.id)
+        RemoveEntity(genActionId(), time, zone.id)
     }.toVector ++ gameState.allBuffs.collect {
       case buff: Buff
           if Vector(
             Buff.boss102DamageZoneBuff,
             Buff.boss102LivingDamageZone
           ) contains buff.resourceIdentifier =>
-        RemoveBuff(idGeneratorContainer.gameActionIdGenerator(), time, buff.bearerId, buff.buffId)
+        RemoveBuff(genActionId(), time, buff.bearerId, buff.buffId)
     }
 }

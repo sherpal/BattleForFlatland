@@ -11,7 +11,7 @@ import gamelogic.utils.IdGeneratorContainer
   * the exact times and without delays.
   */
 final class ManageTickerBuffs extends ServerAction {
-  def apply(currentState: ActionGatherer, nowGenerator: () => Long)(implicit
+  def apply(currentState: ActionGatherer, nowGenerator: () => Long)(using
       idGeneratorContainer: IdGeneratorContainer
   ): (ActionGatherer, ServerAction.ServerActionOutput) = {
     val startTime = nowGenerator()
@@ -23,11 +23,11 @@ final class ManageTickerBuffs extends ServerAction {
       .filter(ticker => startTime - ticker.lastTickTime >= ticker.tickRate)
       .flatMap(ticker =>
         TickerBuffTicks(
-          idGeneratorContainer.gameActionIdGenerator(),
+          genActionId(),
           startTime, // ticker.lastTickTime + ticker.tickRate, // latter is more precise but causes bug at launch
           ticker.buffId,
           ticker.bearerId
-        ) +: ticker.tickEffect(gameState, startTime, idGeneratorContainer)
+        ) +: ticker.tickEffect(gameState, startTime)
       )
       .toVector
 

@@ -19,6 +19,8 @@ import gamelogic.gamestate.gameactions.{GameStart, SpawnBoss}
 import gamelogic.gamestate.AddAndRemoveActions
 import application.ai.AIManager
 import scala.concurrent.ExecutionContext
+import gamelogic.entities.Entity
+import gamelogic.utils.IdsProducer
 
 class GameMaster(
     actionTranslator: ActionTranslator,
@@ -26,7 +28,8 @@ class GameMaster(
     playerMap: Map[String, ConnectedPlayerInfo]
 )(using
     idGeneratorContainer: IdGeneratorContainer
-)(using ExecutionContext) {
+)(using ExecutionContext)
+    extends IdsProducer {
 
   def bossName = gameInfo.game.gameConfiguration.bossName
 
@@ -102,13 +105,13 @@ class GameMaster(
 
           log.info("Creating NewPlayer actions")
           val newPlayerActions = gameConfiguration.playersInfo.values.map { info =>
-            val playerId = idGeneratorContainer.entityIdGenerator()
+            val playerId = genEntityId()
             (
               refsByName.get(info.playerName),
-              if (info.playerType.playing) playerId else -1,
+              if (info.playerType.playing) playerId else Entity.Id.dummy,
               Option.when(info.playerType.playing)(
                 AddPlayerByClass(
-                  0L,
+                  idGeneratorContainer.actionId(),
                   timeNow - 2,
                   playerId,
                   playersPosition,
@@ -116,7 +119,7 @@ class GameMaster(
                   info.playerColour.intColour,
                   info.playerName.name
                 ) +: info.playerClass.builder
-                  .startingActions(timeNow - 1, playerId, idGeneratorContainer)
+                  .startingActions(timeNow - 1, playerId)
               ),
               info.playerName
             )
@@ -126,7 +129,7 @@ class GameMaster(
           log.info("Creating Boss Creation actions")
           val bossCreationActions = BossFactory.factoriesByBossName
             .get(gameInfo.game.gameConfiguration.bossName)
-            .fold(Vector.empty[GameAction])(_.stagingBossActions(timeNow, idGeneratorContainer))
+            .fold(Vector.empty[GameAction])(_.stagingBossActions(timeNow))
 
           log.info(s"Boss creation action at $timeNow")
 
@@ -175,17 +178,23 @@ class GameMaster(
         // compute initial actions (spawning boss with its initial actions and other related stuff)
         val timeNow = now
         val bossCreationActions = {
-          val bossId = idGeneratorContainer.entityIdGenerator()
-          SpawnBoss(0L, timeNow - 2, bossId, bossName) +: BossFactory.factoriesByBossName
+          val bossId = genEntityId()
+          SpawnBoss(
+            idGeneratorContainer.actionId(),
+            timeNow - 2,
+            bossId,
+            bossName
+          ) +: BossFactory.factoriesByBossName
             .get(bossName)
             .fold(Vector.empty[GameAction])(
-              _.initialBossActions(bossId, timeNow - 1, idGeneratorContainer)
+              _.initialBossActions(bossId, timeNow - 1)
             )
             .toVector
         }
         val bossFactories = BossFactory.factoriesByBossName.get(bossName).toVector
 
-        val newPendingActions = bossCreationActions :+ GameStart(0L, now)
+        val newPendingActions =
+          bossCreationActions :+ GameStart(idGeneratorContainer.actionId(), now)
         actionBuffer.addActions(newPendingActions)
 
         val inGameBehaviour = InGameBehaviour()
@@ -198,7 +207,7 @@ class GameMaster(
         val endOfGameActions =
           BossFactory
             .factoriesByBossName(gameInfo.game.gameConfiguration.bossName)
-            .whenBossDiesActions(actionGatherer.currentGameState, now, idGeneratorContainer)
+            .whenBossDiesActions(actionGatherer.currentGameState, now)
 
         val (endOfGameCollector, oldestTimeToRemove, idsToRemove) =
           actionGatherer.masterAddAndRemoveActions(endOfGameActions)

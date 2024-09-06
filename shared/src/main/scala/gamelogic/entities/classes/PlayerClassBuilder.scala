@@ -5,18 +5,22 @@ import gamelogic.entities.Entity
 import gamelogic.entities.Resource.ResourceAmount
 import gamelogic.gamestate.GameAction
 import gamelogic.physics.shape.Polygon
-import gamelogic.utils.IdGeneratorContainer
+import gamelogic.utils.{IdGeneratorContainer, IdsProducer}
 
-trait PlayerClassBuilder {
+trait PlayerClassBuilder extends IdsProducer {
 
-  /**
-    * Actions to apply when the corresponding player is created.
+  /** Actions to apply when the corresponding player is created.
     *
-    * @param time time at which the actions take place
-    * @param entityId id of the newly created entity
-    * @param idGeneratorContainer id generator for actions requiring it.
+    * @param time
+    *   time at which the actions take place
+    * @param entityId
+    *   id of the newly created entity
+    * @param idGeneratorContainer
+    *   id generator for actions requiring it.
     */
-  def startingActions(time: Long, entityId: Entity.Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction]
+  def startingActions(time: Long, entityId: Entity.Id)(using
+      IdGeneratorContainer
+  ): Vector[GameAction]
 
   /** The sets of all abilities available to this class. */
   def abilities: Set[Ability.AbilityId]

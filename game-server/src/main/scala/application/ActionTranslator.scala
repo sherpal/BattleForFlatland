@@ -27,7 +27,6 @@ class ActionTranslator(
       info.send(InGameWSProtocol.AddAndRemoveActions.fromGameLogic(update))
     }
     actionsSubscribers.foreach(_(update))
-    println(s"Dispatching ${update.actionsToAdd}")
   }
 
   def dispatchGameState(gameState: GameState): Unit =

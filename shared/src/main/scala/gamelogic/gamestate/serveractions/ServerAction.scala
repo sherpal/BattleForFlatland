@@ -4,8 +4,9 @@ import gamelogic.gamestate.serveractions.ServerAction.ServerActionOutput
 import gamelogic.gamestate.{ActionGatherer, GameAction}
 import gamelogic.utils.IdGeneratorContainer
 import gamelogic.gamestate.ActionGatherer
+import gamelogic.utils.IdsProducer
 
-trait ServerAction {
+trait ServerAction extends IdsProducer {
 
   def apply(
       currentState: ActionGatherer,
@@ -41,7 +42,7 @@ object ServerAction {
   final case class ServerActionOutput(
       createdActions: Vector[GameAction],
       oldestTimeToRemove: Long,
-      idsOfIdsToRemove: Vector[Long]
+      idsOfIdsToRemove: Vector[GameAction.Id]
   ) {
     def merge(that: ServerActionOutput): ServerActionOutput = ServerActionOutput(
       createdActions ++ that.createdActions,

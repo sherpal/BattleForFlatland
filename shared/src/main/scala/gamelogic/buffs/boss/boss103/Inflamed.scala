@@ -15,14 +15,13 @@ final case class Inflamed(
     lastTickTime: Long,
     sourceId: Entity.Id
 ) extends TickerBuff {
-  def tickEffect(gameState: GameState, time: Long, idGenerator: IdGeneratorContainer): List[GameAction] =
-    List(
+  def tickEffect(gameState: GameState, time: Long)(using IdGeneratorContainer): Vector[GameAction] =
+    Vector(
       EntityTakesDamage(
-        id       = idGenerator.gameActionIdGenerator(),
-        time     = time,
+        id = genActionId(),
+        time = time,
         entityId = bearerId,
-        amount =
-          Inflamed.baseDamage * math.round((time - appearanceTime).toDouble / tickRate),
+        amount = Inflamed.baseDamage * math.round((time - appearanceTime).toDouble / tickRate),
         sourceId = sourceId
       )
     )
@@ -35,9 +34,9 @@ final case class Inflamed(
 
   def resourceIdentifier: ResourceIdentifier = Buff.boss103Inflamed
 
-  def endingAction(gameState: GameState, time: Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] = Nil
+  def endingAction(gameState: GameState, time: Long)(using
+      IdGeneratorContainer
+  ): Vector[GameAction] = Vector.empty
 
   override def canBeDispelled: Boolean = true
 }
@@ -46,9 +45,8 @@ object Inflamed {
 
   val tickRate: Long = 2000L
 
-  /**
-    * Last tick will deal 80 damage which nearly kills the target.
-    * This leaves a small chance to player to survive even if they mess up.
+  /** Last tick will deal 80 damage which nearly kills the target. This leaves a small chance to
+    * player to survive even if they mess up.
     */
   val duration: Long = 8000L
 

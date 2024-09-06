@@ -9,10 +9,10 @@ import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-/**
-  * Puts the [[gamelogic.buffs.abilities.classes.UpgradeDirectHit]] on the caster.
+/** Puts the [[gamelogic.buffs.abilities.classes.UpgradeDirectHit]] on the caster.
   */
-final case class UpgradeDirectHit(useId: Ability.UseId, time: Long, casterId: Entity.Id) extends Ability {
+final case class UpgradeDirectHit(useId: Ability.UseId, time: Long, casterId: Entity.Id)
+    extends Ability {
   def abilityId: AbilityId = Ability.triangleUpgradeDirectHit
 
   def cooldown: Long = 0L
@@ -21,18 +21,21 @@ final case class UpgradeDirectHit(useId: Ability.UseId, time: Long, casterId: En
 
   def cost: Resource.ResourceAmount = UpgradeDirectHit.cost
 
-  def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
-    PutSimpleBuff(
-      idGeneratorContainer.gameActionIdGenerator(),
-      time,
-      idGeneratorContainer.buffIdGenerator(),
-      casterId,
-      casterId,
-      time,
-      Buff.triangleUpgradeDirectHit
-    ) :: Nil
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
+    Vector(
+      PutSimpleBuff(
+        genActionId(),
+        time,
+        genBuffId(),
+        casterId,
+        casterId,
+        time,
+        Buff.triangleUpgradeDirectHit
+      )
+    )
 
-  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
+  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
+    copy(time = newTime, useId = newId)
 
   def canBeCast(gameState: GameState, time: Long): None.type = None
 }

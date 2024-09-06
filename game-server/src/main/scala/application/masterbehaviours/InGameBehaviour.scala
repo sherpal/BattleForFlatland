@@ -21,8 +21,6 @@ class InGameBehaviour(using IdGeneratorContainer) extends GameMasterBehaviour {
     ManagePentagonBullets() ++
     ManageDeadAIs()
 
-  private given GameActionIdGenerator = summon[IdGeneratorContainer].gameActionIdGenerator
-
   override def loop(
       startTime: Long,
       pendingActions: Vector[GameAction],

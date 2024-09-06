@@ -81,9 +81,10 @@ class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTran
 
     aiControllers.filterInPlace((id, _) => allEntityIds.contains(id))
 
-    aiControllers.foreach((id, controller) =>
-      controller.computeActions(id, gameState, graphManager.graphs)
-    )
+    aiControllers.foreach { (id, controller) =>
+      val controllerActions = controller.computeActions(id, gameState, graphManager.graphs)
+      actionTranslator.aiNewGameActions(controllerActions)
+    }
   }
 
 }

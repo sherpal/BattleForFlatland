@@ -8,15 +8,27 @@ import gamelogic.gamestate.gameactions.EntityResourceChanges
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-/**
-  * Never ending buff which grants its bearer 10 energy every second.
+/** Never ending buff which grants its bearer 10 energy every second.
   *
   * This is a buff that the [[gamelogic.entities.classes.Triangle]] has by default.
   */
-final case class EnergyFiller(buffId: Buff.Id, bearerId: Entity.Id, appearanceTime: Long, lastTickTime: Long)
-    extends TickerBuff {
-  def tickEffect(gameState: GameState, time: Long, entityIdGenerator: IdGeneratorContainer): List[GameAction] = List(
-    EntityResourceChanges(0L, time, bearerId, EnergyFiller.energyRefillPerSecond, Energy)
+final case class EnergyFiller(
+    buffId: Buff.Id,
+    bearerId: Entity.Id,
+    appearanceTime: Long,
+    lastTickTime: Long
+) extends TickerBuff {
+  def tickEffect(
+      gameState: GameState,
+      time: Long
+  )(using IdGeneratorContainer): Vector[GameAction] = Vector(
+    EntityResourceChanges(
+      genActionId(),
+      time,
+      bearerId,
+      EnergyFiller.energyRefillPerSecond,
+      Energy
+    )
   )
 
   val tickRate: Long = 1000L
@@ -27,9 +39,9 @@ final case class EnergyFiller(buffId: Buff.Id, bearerId: Entity.Id, appearanceTi
 
   def resourceIdentifier: ResourceIdentifier = Buff.energyFiller
 
-  def endingAction(gameState: GameState, time: Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] = Nil
+  def endingAction(gameState: GameState, time: Long)(using
+      IdGeneratorContainer
+  ): Vector[GameAction] = Vector.empty
 }
 
 object EnergyFiller {

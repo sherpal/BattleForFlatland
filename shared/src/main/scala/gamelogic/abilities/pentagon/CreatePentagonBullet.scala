@@ -10,8 +10,8 @@ import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
 
-/**
-  * Spawn a [[gamelogic.entities.movingstuff.PentagonBullet]] at the player's position, in the given direction.
+/** Spawn a [[gamelogic.entities.movingstuff.PentagonBullet]] at the player's position, in the given
+  * direction.
   *
   * Will deal damage equal to the specified amount.
   */
@@ -32,11 +32,11 @@ case class CreatePentagonBullet(
 
   def cost: Resource.ResourceAmount = CreatePentagonBullet.cost
 
-  def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] = Vector(
     NewPentagonBullet(
-      idGeneratorContainer.gameActionIdGenerator(),
+      genActionId(),
       time,
-      idGeneratorContainer.entityIdGenerator(),
+      genEntityId(),
       startingPosition,
       PentagonBullet.defaultSpeed,
       direction,
@@ -48,7 +48,8 @@ case class CreatePentagonBullet(
     )
   )
 
-  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
+  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
+    copy(time = newTime, useId = newId)
 
   def canBeCast(gameState: GameState, time: Long): None.type = None
 }

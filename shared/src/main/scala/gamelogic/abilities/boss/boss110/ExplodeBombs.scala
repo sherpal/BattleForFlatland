@@ -11,9 +11,8 @@ import gamelogic.entities.boss.boss110.BombPod
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.gameactions.RemoveEntity
 
-/**
-  * Check that each bomb pod touches exactly one player. If not, they explode and they
-  * kill everybody (dealing them 1000 damage). Otherwise, they do nothing.
+/** Check that each bomb pod touches exactly one player. If not, they explode and they kill
+  * everybody (dealing them 1000 damage). Otherwise, they do nothing.
   */
 final case class ExplodeBombs(useId: Ability.UseId, time: Long, casterId: Entity.Id)
     extends Ability
@@ -23,20 +22,19 @@ final case class ExplodeBombs(useId: Ability.UseId, time: Long, casterId: Entity
 
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(0.0, Resource.NoResource)
 
-  def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] = {
-    val bombs = gameState.entities.values.collect { case bomb: BombPod if bomb.powderMonkeyId == casterId => bomb }.toList
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] = {
+    val bombs = gameState.entities.values.collect {
+      case bomb: BombPod if bomb.powderMonkeyId == casterId => bomb
+    }.toVector
 
     val players = gameState.players.values
 
     bombs
       .find(bomb => players.count(_.collides(bomb, time)) != 1)
-      .toList
-      .flatMap(
-        _ =>
-          players.map(
-            player => EntityTakesDamage(idGeneratorContainer.gameActionIdGenerator(), time, player.id, 1000, casterId)
-          )
-      ) ++ bombs.map(bomb => RemoveEntity(idGeneratorContainer.gameActionIdGenerator(), time, bomb.id))
+      .toVector
+      .flatMap(_ =>
+        players.map(player => EntityTakesDamage(genActionId(), time, player.id, 1000, casterId))
+      ) ++ bombs.map(bomb => RemoveEntity(genActionId(), time, bomb.id))
   }
 
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): Ability =

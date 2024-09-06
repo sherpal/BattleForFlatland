@@ -4,8 +4,8 @@ import java.time.LocalDateTime
 
 import magnolia1.*
 
-/** A Pointed type `A` is a type for which there exists at least one element. This is the case for all types except
-  * Nothing, but not all types have a special point.
+/** A Pointed type `A` is a type for which there exists at least one element. This is the case for
+  * all types except Nothing, but not all types have a special point.
   */
 trait Pointed[A] {
   def unit: A
@@ -35,6 +35,7 @@ object Pointed extends AutoDerivation[Pointed] {
   given Pointed[Boolean]                           = factory(false) // This is though.
 
   given [A]: Pointed[List[A]]      = factory(Nil)
+  given [A]: Pointed[Vector[A]]    = factory(Vector.empty)
   given [K, V]: Pointed[Map[K, V]] = factory(Map())
   given [A]: Pointed[Option[A]]    = factory(None)
 

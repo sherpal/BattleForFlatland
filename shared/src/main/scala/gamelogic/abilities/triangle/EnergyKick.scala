@@ -11,15 +11,18 @@ import gamelogic.entities.Resource.Energy
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.gameactions.EntityResourceChanges
 
-/**
-  * Gives back some energy to the caster, while dealing small damages to the target.
+/** Gives back some energy to the caster, while dealing small damages to the target.
   *
   * This is what is called a "filler" in the field: an ability that the player can always do when
   * they have nothing else to do. Otherwise a [[gamelogic.entities.classes.Triangle]] spends most of
   * their time waiting for energy, which is no fun.
   */
-final case class EnergyKick(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
-    extends WithTargetAbility {
+final case class EnergyKick(
+    useId: Ability.UseId,
+    time: Long,
+    casterId: Entity.Id,
+    targetId: Entity.Id
+) extends WithTargetAbility {
 
   def abilityId: Ability.AbilityId = Ability.triangleEnergyKick
 
@@ -29,10 +32,10 @@ final case class EnergyKick(useId: Ability.UseId, time: Long, casterId: Entity.I
 
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(0.0, Energy)
 
-  def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
-    EntityTakesDamage(idGeneratorContainer.gameActionIdGenerator(), time, targetId, EnergyKick.damage, casterId),
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] = Vector(
+    EntityTakesDamage(genActionId(), time, targetId, EnergyKick.damage, casterId),
     EntityResourceChanges(
-      idGeneratorContainer.gameActionIdGenerator(),
+      genActionId(),
       time,
       casterId,
       EnergyKick.energyGain,

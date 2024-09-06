@@ -14,21 +14,21 @@ import gamelogic.entities.boss.Boss101
 import gamelogic.gamestate.gameactions.MovingBodyMoves
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.physics.Complex
+import gamelogic.utils.IdsProducer
 
-/**
-  * Contains lots of facility methods for game action stories specs.
+/** Contains lots of facility methods for game action stories specs.
   */
-trait StoryTeller extends munit.FunSuite {
-  implicit val idGenerator: IdGeneratorContainer = IdGeneratorContainer.initialIdGeneratorContainer
+trait StoryTeller extends munit.FunSuite with IdsProducer {
+  given IdGeneratorContainer = IdGeneratorContainer.initialIdGeneratorContainer
 
-  def gameStart(time: Long): GameStart = GameStart(idGenerator.gameActionIdGenerator(), time)
+  def gameStart(time: Long): GameStart = GameStart(genActionId(), time)
   def addHound(time: Long): AddBossHound =
-    AddBossHound(idGenerator.gameActionIdGenerator(), time, idGenerator.entityIdGenerator(), 0)
+    AddBossHound(genActionId(), time, genEntityId(), 0)
   def addPlayer(time: Long): AddPlayerByClass =
     AddPlayerByClass(
-      idGenerator.gameActionIdGenerator(),
+      genActionId(),
       time,
-      idGenerator.entityIdGenerator(),
+      genEntityId(),
       0,
       PlayerClasses.Triangle,
       0,
@@ -36,16 +36,21 @@ trait StoryTeller extends munit.FunSuite {
     )
   def addHexagon(time: Long): AddPlayerByClass =
     AddPlayerByClass(
-      idGenerator.gameActionIdGenerator(),
+      genActionId(),
       time,
-      idGenerator.entityIdGenerator(),
+      genEntityId(),
       0,
       PlayerClasses.Hexagon,
-      0xFF0000,
+      0xff0000,
       "TheHexagon"
     )
   def addBoss101(time: Long): SpawnBoss =
-    SpawnBoss(idGenerator.gameActionIdGenerator(), time, idGenerator.entityIdGenerator(), Boss101.name)
+    SpawnBoss(
+      genActionId(),
+      time,
+      genEntityId(),
+      Boss101.name
+    )
 
   def entityMoves(
       time: Long,
@@ -56,12 +61,27 @@ trait StoryTeller extends munit.FunSuite {
       speed: Double,
       moving: Boolean
   ): MovingBodyMoves =
-    MovingBodyMoves(idGenerator.gameActionIdGenerator(), time, entityId, position, direction, rotation, speed, moving)
+    MovingBodyMoves(
+      genActionId(),
+      time,
+      entityId,
+      position,
+      direction,
+      rotation,
+      speed,
+      moving
+    )
 
-  def nextUseId() = idGenerator.abilityUseIdGenerator()
+  def nextUseId() = genAbilityUseId()
 
   def useAbilityFromAbility(ability: Ability): UseAbility =
-    UseAbility(idGenerator.gameActionIdGenerator(), ability.time, ability.casterId, ability.useId, ability)
+    UseAbility(
+      genActionId(),
+      ability.time,
+      ability.casterId,
+      ability.useId,
+      ability
+    )
 
   val initialGameState = GameState.empty
   val start            = gameStart(1)

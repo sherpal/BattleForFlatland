@@ -5,7 +5,6 @@ import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.boss.boss101.{BigDot, BigHit, SmallHit}
 import gamelogic.entities.Entity
-import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
@@ -47,8 +46,8 @@ final case class Boss101(
     life: Double,
     maxLife: Double,
     relevantUsedAbilities: Map[AbilityId, Ability],
-    healingThreats: Map[Id, ThreatAmount],
-    damageThreats: Map[Id, ThreatAmount]
+    healingThreats: Map[Entity.Id, ThreatAmount],
+    damageThreats: Map[Entity.Id, ThreatAmount]
 ) extends BossEntity {
 
   def name: String = Boss101.name
@@ -87,17 +86,17 @@ final case class Boss101(
 
   def teamId: Entity.TeamId = Entity.teams.mobTeam
 
-  def changeDamageThreats(threatId: Id, delta: ThreatAmount): Boss101 =
+  def changeDamageThreats(threatId: Entity.Id, delta: ThreatAmount): Boss101 =
     copy(damageThreats =
       damageThreats + (threatId -> (damageThreats.getOrElse(threatId, 0.0) + delta))
     )
 
-  def changeHealingThreats(threatId: Id, delta: ThreatAmount): Boss101 =
+  def changeHealingThreats(threatId: Entity.Id, delta: ThreatAmount): Boss101 =
     copy(healingThreats =
       healingThreats + (threatId -> (healingThreats.getOrElse(threatId, 0.0) + delta))
     )
 
-  def changeTarget(newTargetId: Id): Boss101 = copy(targetId = newTargetId)
+  def changeTarget(newTargetId: Entity.Id): Boss101 = copy(targetId = newTargetId)
 
   protected def patchResourceAmount(newResourceAmount: ResourceAmount): Boss101 = this
 
@@ -153,21 +152,17 @@ object Boss101 extends BossFactory[Boss101] with BossMetadata {
       )
 
   def initialBossActions(
-      entityId: Id,
-      time: Long,
-      idGeneratorContainer: IdGeneratorContainer
-  ): Vector[GameAction] =
-    healAndDamageAwareActions(entityId, time, idGeneratorContainer)
+      entityId: Entity.Id,
+      time: Long
+  )(using IdGeneratorContainer): Vector[GameAction] =
+    healAndDamageAwareActions(entityId, time)
 
-  def stagingBossActions(
-      time: Id,
-      idGeneratorContainer: IdGeneratorContainer
-  ): Vector[GameAction] =
+  def stagingBossActions(time: Long)(using IdGeneratorContainer): Vector[GameAction] =
     Vector(
       CreateObstacle(
-        0L,
+        GameAction.Id.zero,
         time,
-        idGeneratorContainer.entityIdGenerator(),
+        genEntityId(),
         Complex(0, 200),
         Shape.regularPolygon(4, 50).vertices
       )
@@ -175,17 +170,11 @@ object Boss101 extends BossFactory[Boss101] with BossMetadata {
 
   def whenBossDiesActions(
       gameState: GameState,
-      time: Long,
-      idGeneratorContainer: IdGeneratorContainer
-  ): Vector[GameAction] =
+      time: Long
+  )(using IdGeneratorContainer): Vector[GameAction] =
     gameState.allBuffs.collect {
       case bigDot: Buff if bigDot.resourceIdentifier == Buff.boss101BigDotIdentifier =>
-        RemoveBuff(
-          idGeneratorContainer.gameActionIdGenerator(),
-          time,
-          bigDot.bearerId,
-          bigDot.buffId
-        )
+        RemoveBuff(genActionId(), time, bigDot.bearerId, bigDot.buffId)
     }.toVector
 
   def playersStartingPosition: Complex = -100 * Complex.i

@@ -31,9 +31,10 @@ final class TriangleStunSpecs extends StoryTeller {
 
     val stun = Stun(nextUseId(), 4, addingPlayer.entityId, addingBoss.entityId)
 
-    val composer = ActionComposer.empty >> start >> addingBoss >> addingPlayer >>>> { (gs: GameState) =>
-      assertEquals(stun.isInRangeAndInSight(gs, 3), None)
-      assertEquals(stun.canBeCast(gs, 3), Some("Target can't be stunned"))
+    val composer = ActionComposer.empty >> start >> addingBoss >> addingPlayer >>>> {
+      (gs: GameState) =>
+        assertEquals(stun.isInRangeAndInSight(gs, 3), None)
+        assertEquals(stun.canBeCast(gs, 3), Some("Target can't be stunned"))
     }
 
     composer(initialGameState)
@@ -44,10 +45,10 @@ final class TriangleStunSpecs extends StoryTeller {
     val addingFoe    = addHexagon(2)
 
     val foeStartsCasting = EntityStartsCasting(
-      idGenerator.gameActionIdGenerator(),
+      genActionId(),
       3,
       3L,
-      FlashHeal(idGenerator.abilityUseIdGenerator(), 3, addingFoe.entityId, addingFoe.entityId)
+      FlashHeal(genAbilityUseId(), 3, addingFoe.entityId, addingFoe.entityId)
     )
 
     val ability = Stun(nextUseId(), 4, addingPlayer.entityId, addingFoe.entityId)
@@ -76,7 +77,7 @@ final class TriangleStunSpecs extends StoryTeller {
     val stunUse = useAbilityFromAbility(ability)
 
     val houndTakesDamage =
-      EntityTakesDamage(idGenerator.gameActionIdGenerator(), 4, addingHound.entityId, 10, addingPlayer.entityId)
+      EntityTakesDamage(genActionId(), 4, addingHound.entityId, 10, addingPlayer.entityId)
 
     val composer = ActionComposer.empty >>
       start >>
@@ -122,7 +123,11 @@ final class TriangleStunSpecs extends StoryTeller {
     val composer = ActionComposer.empty >>
       start >>
       addingFirstHound >> addingSecondHound >> addingPlayer >>>>
-      assertEntitiesPresent(addingPlayer.entityId, addingFirstHound.entityId, addingSecondHound.entityId) >>>
+      assertEntitiesPresent(
+        addingPlayer.entityId,
+        addingFirstHound.entityId,
+        addingSecondHound.entityId
+      ) >>>
       ((gs: GameState) => ability.createActions(gs)) >> firstStunUse >>>
       ((gs: GameState) => ability2.createActions(gs)) >> secondStunUse >>>> { (gs: GameState) =>
         gs.movingBodyEntityById(addingFirstHound.entityId) match {
@@ -160,7 +165,7 @@ final class TriangleStunSpecs extends StoryTeller {
     val ability         = Stun(useId, 3, addingPlayer.entityId, addingHound.entityId)
     val playerStunHound = useAbilityFromAbility(ability)
     val houndMoves =
-      MovingBodyMoves(idGenerator.gameActionIdGenerator(), 4, addingHound.entityId, 1, 0, 0, BossHound.fullSpeed, true)
+      MovingBodyMoves(genActionId(), 4, addingHound.entityId, 1, 0, 0, BossHound.fullSpeed, true)
 
     val composer = ActionComposer.empty >>
       start >>

@@ -7,11 +7,11 @@ import gamelogic.entities.WithPosition.Angle
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Circle, Shape}
 
-/**
-  * Represents a small living entity with a given position and direction towards which this entity is heading.
+/** Represents a small living entity with a given position and direction towards which this entity
+  * is heading.
   */
 final case class DummyLivingEntity(
-    id: Long,
+    id: Entity.Id,
     time: Long,
     pos: Complex,
     direction: Double,

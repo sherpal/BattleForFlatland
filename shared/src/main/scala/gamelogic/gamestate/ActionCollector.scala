@@ -62,7 +62,7 @@ final class ActionCollector(
     *   The most ancient time at which actions were removed, and the list of the ids of actions that
     *   were removed
     */
-  def addAndRemoveActions(actions: Vector[GameAction]): (Long, Vector[Long]) =
+  def addAndRemoveActions(actions: Vector[GameAction]): (Long, Vector[GameAction.Id]) =
     if (actions.isEmpty) {
       (currentGameState.time, Vector.empty)
     } else {
@@ -87,9 +87,10 @@ final class ActionCollector(
         actionsFrom(oldestTime),
         actions,
         Vector.empty
-      ).foldLeft((gameStateUpTo(oldestTime), Vector[Long]())) { case ((state, toRemove), action) =>
-        if (shouldKeepAction(action, state)) (action(state), toRemove)
-        else (state, action.id +: toRemove)
+      ).foldLeft((gameStateUpTo(oldestTime), Vector.empty[GameAction.Id])) {
+        case ((state, toRemove), action) =>
+          if (shouldKeepAction(action, state)) (action(state), toRemove)
+          else (state, action.id +: toRemove)
       }._2
         .reverse
 
@@ -106,7 +107,7 @@ final class ActionCollector(
     */
   def removeActions(
       oldestTime: Long,
-      actionIds: Vector[Long],
+      actionIds: Vector[GameAction.Id],
       shouldUpdateGameState: Boolean = true
   ): Unit = {
 

@@ -17,22 +17,23 @@ final case class Enrage(useId: Ability.UseId, time: Long, casterId: Entity.Id) e
 
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(0.0, Resource.Rage)
 
-  def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
-    List(
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
+    Vector(
       PutConstantDot(
-        idGeneratorContainer.gameActionIdGenerator(),
+        genActionId(),
         time,
         casterId,
         casterId,
         Enrage.damageOnTick,
         Enrage.duration,
         Enrage.tickRate,
-        idGeneratorContainer.buffIdGenerator(),
+        genBuffId(),
         Buff.squareEnrage
       )
     )
 
-  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
+  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
+    copy(time = newTime, useId = newId)
 
   def canBeCast(gameState: GameState, time: Long): None.type = None
 }

@@ -3,7 +3,7 @@ package gamelogic.entities.classes
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.buffs.Buff
-import gamelogic.entities.Entity.Id
+import gamelogic.entities.Entity
 import gamelogic.entities.Resource.{Energy, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.{Entity, Resource}
@@ -13,11 +13,10 @@ import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 import gamelogic.utils.IdGeneratorContainer
 
-/**
-  * The [[Triangle]] is the melee dps class in BFF. It attacks close its enemies.
+/** The [[Triangle]] is the melee dps class in BFF. It attacks close its enemies.
   *
-  * The [[Triangle]] has an energy bar that is replenish very often (10 seconds to replenish it entirely), but most of
-  * the attacks uses a lot amount of them.
+  * The [[Triangle]] has an energy bar that is replenish very often (10 seconds to replenish it
+  * entirely), but most of the attacks uses a lot amount of them.
   */
 final case class Triangle(
     id: Entity.Id,
@@ -46,19 +45,19 @@ final case class Triangle(
       speed: Double,
       moving: Boolean
   ): Triangle = copy(
-    time      = time,
-    pos       = position,
+    time = time,
+    pos = position,
     direction = direction,
-    rotation  = rotation,
-    speed     = speed,
-    moving    = moving
+    rotation = rotation,
+    speed = speed,
+    moving = moving
   )
 
   def abilities: Set[AbilityId] = Triangle.abilities
 
   def useAbility(ability: Ability): Triangle = copy(
     relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability),
-    resourceAmount        = resourceAmount - ability.cost
+    resourceAmount = resourceAmount - ability.cost
   )
 
   protected def patchResourceAmount(newResourceAmount: Resource.ResourceAmount): Triangle =
@@ -84,7 +83,18 @@ object Triangle extends PlayerClassBuilder {
     Ability.triangleStun
   )
 
-  def startingActions(time: Id, entityId: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
-    PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, entityId, time, Buff.energyFiller)
+  def startingActions(
+      time: Long,
+      entityId: Entity.Id
+  )(using IdGeneratorContainer): Vector[GameAction] = Vector(
+    PutSimpleBuff(
+      GameAction.Id.zero,
+      time,
+      genBuffId(),
+      entityId,
+      entityId,
+      time,
+      Buff.energyFiller
+    )
   )
 }

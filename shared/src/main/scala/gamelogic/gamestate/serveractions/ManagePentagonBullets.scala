@@ -4,8 +4,8 @@ import gamelogic.gamestate.{ActionGatherer, GameAction}
 import gamelogic.utils.IdGeneratorContainer
 
 final class ManagePentagonBullets extends ServerAction {
-  def apply(currentState: ActionGatherer, nowGenerator: () => Long)(implicit
-      idGeneratorContainer: IdGeneratorContainer
+  def apply(currentState: ActionGatherer, nowGenerator: () => Long)(using
+      IdGeneratorContainer
   ): (ActionGatherer, ServerAction.ServerActionOutput) = {
 
     val startTime = nowGenerator()
@@ -13,18 +13,18 @@ final class ManagePentagonBullets extends ServerAction {
 
     val actions: Vector[GameAction] = gameState.pentagonBullets.flatMap { case (entityId, bullet) =>
       if (bullet.currentPosition(startTime) - bullet.pos).modulus > bullet.range then {
-        RemoveEntity(idGeneratorContainer.gameActionIdGenerator(), startTime, entityId) :: Nil
+        RemoveEntity(genActionId(), startTime, entityId) :: Nil
       } else
         bullet.collideEnemy(gameState, startTime) match {
           case Some(enemy) =>
             EntityTakesDamage(
-              idGeneratorContainer.gameActionIdGenerator(),
+              genActionId(),
               startTime,
               enemy.id,
               bullet.damage,
               bullet.ownerId
             ) :: RemoveEntity(
-              idGeneratorContainer.gameActionIdGenerator(),
+              genActionId(),
               startTime,
               entityId
             ) :: Nil

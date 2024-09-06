@@ -8,13 +8,16 @@ import gamelogic.gamestate.gameactions.RemoveBuff
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-/**
-  * Removes all dispel-able buffs from the friendly target.
+/** Removes all dispel-able buffs from the friendly target.
   *
   * Note that it also remove all friendly buffs, so that you need to use this somehow carefully.
   */
-final case class PentaDispel(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
-    extends WithTargetAbility {
+final case class PentaDispel(
+    useId: Ability.UseId,
+    time: Long,
+    casterId: Entity.Id,
+    targetId: Entity.Id
+) extends WithTargetAbility {
   def range: Distance = WithTargetAbility.healRange
 
   def abilityId: AbilityId = Ability.pentagonDispelId
@@ -25,22 +28,22 @@ final case class PentaDispel(useId: Ability.UseId, time: Long, casterId: Entity.
 
   def cost: Resource.ResourceAmount = PentaDispel.cost
 
-  def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
     gameState
       .allBuffsOfEntity(targetId)
       .filter(_.canBeDispelled)
-      .map(
-        buff =>
-          RemoveBuff(
-            id       = idGeneratorContainer.gameActionIdGenerator(),
-            time     = time,
-            bearerId = buff.bearerId,
-            buffId   = buff.buffId
-          )
+      .map(buff =>
+        RemoveBuff(
+          id = genActionId(),
+          time = time,
+          bearerId = buff.bearerId,
+          buffId = buff.buffId
+        )
       )
-      .toList
+      .toVector
 
-  def copyWithNewTimeAndId(newTime: Long, newId: UseId): PentaDispel = copy(time = newTime, useId = newId)
+  def copyWithNewTimeAndId(newTime: Long, newId: UseId): PentaDispel =
+    copy(time = newTime, useId = newId)
 
   def canBeCast(gameState: GameState, time: Long): Option[String] =
     canBeCastFriendlyOnly(gameState) orElse isInRangeAndInSight(gameState, time)

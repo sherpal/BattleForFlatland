@@ -128,9 +128,10 @@ final class ImmutableActionCollector private (
         actionsFrom(oldestTime),
         actionsToAdd.sorted,
         Vector.empty
-      ).foldLeft((gameStateUpTo(oldestTime), Vector[Long]())) { case ((state, toRemove), action) =>
-        if (shouldKeepAction(action, state)) (action(state), toRemove)
-        else (state, action.id +: toRemove)
+      ).foldLeft((gameStateUpTo(oldestTime), Vector[GameAction.Id]())) {
+        case ((state, toRemove), action) =>
+          if (shouldKeepAction(action, state)) (action(state), toRemove)
+          else (state, action.id +: toRemove)
       }._2
         .reverse
 

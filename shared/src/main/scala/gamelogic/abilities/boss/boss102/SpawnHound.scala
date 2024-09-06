@@ -9,24 +9,31 @@ import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
 
-final case class SpawnHound(useId: Ability.UseId, time: Long, casterId: Entity.Id, position: Complex)
-    extends Ability
+final case class SpawnHound(
+    useId: Ability.UseId,
+    time: Long,
+    casterId: Entity.Id,
+    position: Complex
+) extends Ability
     with AbilityInfoFromMetadata[SpawnHound.type] {
   def metadata = SpawnHound
 
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(0.0, Resource.NoResource)
 
-  def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
-    List(
+  def createActions(
+      gameState: GameState
+  )(implicit idGeneratorContainer: IdGeneratorContainer): Vector[GameAction] =
+    Vector(
       AddBossHound(
-        idGeneratorContainer.gameActionIdGenerator(),
+        genActionId(),
         time,
-        idGeneratorContainer.entityIdGenerator(),
+        genEntityId(),
         position
       )
     )
 
-  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
+  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
+    copy(time = newTime, useId = newId)
 
   def canBeCast(gameState: GameState, time: Long): None.type = None
 }

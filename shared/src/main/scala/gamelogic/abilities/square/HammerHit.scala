@@ -9,8 +9,12 @@ import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-final case class HammerHit(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
-    extends WithTargetAbility {
+final case class HammerHit(
+    useId: Ability.UseId,
+    time: Long,
+    casterId: Entity.Id,
+    targetId: Entity.Id
+) extends WithTargetAbility {
   def range: Distance = WithTargetAbility.meleeRange
 
   val abilityId: AbilityId = Ability.squareHammerHit
@@ -19,12 +23,13 @@ final case class HammerHit(useId: Ability.UseId, time: Long, casterId: Entity.Id
 
   def cost: Resource.ResourceAmount = ResourceAmount(20, Rage)
 
-  def createActions(
-      gameState: GameState
-  )(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
-    List(EntityTakesDamage(0L, time, targetId, HammerHit.damage, casterId))
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
+    Vector(
+      EntityTakesDamage(genActionId(), time, targetId, HammerHit.damage, casterId)
+    )
 
-  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
+  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
+    copy(time = newTime, useId = newId)
 
   def canBeCast(gameState: GameState, time: Long): Option[String] =
     canBeCastEnemyOnly(gameState) orElse isInRangeAndInSight(gameState, time)

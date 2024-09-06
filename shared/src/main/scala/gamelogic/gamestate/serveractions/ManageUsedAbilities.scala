@@ -18,15 +18,15 @@ final class ManageUsedAbilities extends ServerAction {
       .filter(castingInfo => startTime - castingInfo.startedTime >= castingInfo.ability.castingTime)
       .map(castingInfo =>
         UseAbility(
-          idGeneratorContainer.gameActionIdGenerator(),
+          idGeneratorContainer.actionId(),
           startTime,
           castingInfo.casterId,
-          idGeneratorContainer.abilityUseIdGenerator(),
+          idGeneratorContainer.abilityUseId(),
           castingInfo.ability
-            .copyWithNewTimeAndId(startTime, idGeneratorContainer.abilityUseIdGenerator())
+            .copyWithNewTimeAndId(startTime, idGeneratorContainer.abilityUseId())
         )
       )
-      .flatMap(usage => usage :: usage.ability.createActions(gameState))
+      .flatMap(usage => usage +: usage.ability.createActions(gameState))
       .toVector
 
     val (nextCollector, oldestTime, idsToRemove) =

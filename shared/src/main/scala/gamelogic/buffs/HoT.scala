@@ -2,7 +2,6 @@ package gamelogic.buffs
 
 import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.entities.Entity
-import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.gameactions.EntityGetsHealed
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
@@ -12,17 +11,21 @@ trait HoT extends TickerBuff {
   /** Entity responsible for putting the HoT on the target */
   val sourceId: Entity.Id
 
-  /**
-    * Function specifying the heal that will be done after the `timeSinceBeginning`.
+  /** Function specifying the heal that will be done after the `timeSinceBeginning`.
     */
   def healPerTick(timeSinceBeginning: Long): Double
 
   final def tickEffect(
       gameState: GameState,
-      time: Long,
-      IdGenerator: IdGeneratorContainer
-  ): List[GameAction] = List(
-    EntityGetsHealed(0L, time, bearerId, healPerTick(time - appearanceTime), sourceId)
+      time: Long
+  )(using IdGeneratorContainer): Vector[GameAction] = Vector(
+    EntityGetsHealed(
+      genActionId(),
+      time,
+      bearerId,
+      healPerTick(time - appearanceTime),
+      sourceId
+    )
   )
 
 }
@@ -40,11 +43,11 @@ object HoT {
       _appearanceTime: Long,
       _resourceIdentifier: ResourceIdentifier
   ): HoT = new HoT {
-    val buffId: Id = _buffId
+    val buffId: Buff.Id = _buffId
 
-    val sourceId: Id = _sourceId
+    val sourceId: Entity.Id = _sourceId
 
-    def healPerTick(timeSinceBeginning: Id): Double = healOnTick
+    def healPerTick(timeSinceBeginning: Long): Double = healOnTick
 
     def resourceIdentifier: ResourceIdentifier = _resourceIdentifier
 
@@ -53,7 +56,7 @@ object HoT {
     val duration: Long       = _duration
     val appearanceTime: Long = _appearanceTime
     val lastTickTime: Long   = currentTime // should a ticker tick when it pops? I don't think so
-    def changeLastTickTime(time: Id): TickerBuff = constantHot(
+    def changeLastTickTime(time: Long): TickerBuff = constantHot(
       time,
       targetId,
       _buffId,
@@ -65,9 +68,9 @@ object HoT {
       _resourceIdentifier
     )
 
-    def endingAction(gameState: GameState, time: Id)(
-        implicit idGeneratorContainer: IdGeneratorContainer
-    ): List[GameAction] = Nil
+    def endingAction(gameState: GameState, time: Long)(using
+        IdGeneratorContainer
+    ): Vector[GameAction] = Vector.empty
   }
 
 }

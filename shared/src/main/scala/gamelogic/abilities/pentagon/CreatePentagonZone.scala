@@ -28,27 +28,32 @@ case class CreatePentagonZone(
 
   def cost: Resource.ResourceAmount = CreatePentagonZone.cost
 
-  def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
-    List(
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
+    Vector(
       PutPentagonZone(
-        idGeneratorContainer.gameActionIdGenerator(),
+        genActionId(),
         time,
-        idGeneratorContainer.entityIdGenerator(),
+        genEntityId(),
         position,
         rotation,
         damage,
         casterId,
         colour,
-        idGeneratorContainer.buffIdGenerator()
+        genBuffId()
       )
     )
 
-  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
+  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
+    copy(time = newTime, useId = newId)
 
   def canBeCast(gameState: GameState, time: Long): Option[String] =
     (for {
-      player <- gameState.players.get(casterId).toRight(s"Player $casterId does not exist (probably dead)")
-      _      <- Option.unless((player.pos - position).modulus < CreatePentagonZone.range)("Not in range").toLeft(())
+      player <- gameState.players
+        .get(casterId)
+        .toRight(s"Player $casterId does not exist (probably dead)")
+      _ <- Option
+        .unless((player.pos - position).modulus < CreatePentagonZone.range)("Not in range")
+        .toLeft(())
     } yield ()).swap.toOption
 }
 

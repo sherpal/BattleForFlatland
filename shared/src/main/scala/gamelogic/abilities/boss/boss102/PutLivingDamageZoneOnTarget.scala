@@ -11,26 +11,31 @@ import gamelogic.gamestate.gameactions.boss102.PutLivingDamageZone
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-final case class PutLivingDamageZoneOnTarget(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
-    extends WithTargetAbility
+final case class PutLivingDamageZoneOnTarget(
+    useId: Ability.UseId,
+    time: Long,
+    casterId: Entity.Id,
+    targetId: Entity.Id
+) extends WithTargetAbility
     with AbilityInfoFromMetadata[PutLivingDamageZoneOnTarget.type] {
   def metadata = PutLivingDamageZoneOnTarget
 
   def cost: Resource.ResourceAmount = PutLivingDamageZoneOnTarget.cost
 
-  def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
-    List(
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
+    Vector(
       PutLivingDamageZone(
-        idGeneratorContainer.gameActionIdGenerator(),
+        genActionId(),
         time,
-        idGeneratorContainer.buffIdGenerator(),
+        genBuffId(),
         targetId,
         PutLivingDamageZoneOnTarget.damage,
         casterId
       )
     )
 
-  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
+  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
+    copy(time = newTime, useId = newId)
 
   def canBeCast(gameState: GameState, time: Long): None.type = None
 
@@ -41,11 +46,12 @@ object PutLivingDamageZoneOnTarget extends AbilityMetadata {
 
   def name = "Living Damage Zone"
 
-  @inline final def cooldown: Long                = LivingDamageZone.duration / 2
-  @inline final def castingTime: Long             = 0L
-  @inline final def cost: Resource.ResourceAmount = Resource.ResourceAmount(0.0, Resource.NoResource)
-  @inline final def damage: Double                = 30.0
-  @inline final def timeToFirstAbility: Long      = 15000L
+  @inline final def cooldown: Long    = LivingDamageZone.duration / 2
+  @inline final def castingTime: Long = 0L
+  @inline final def cost: Resource.ResourceAmount =
+    Resource.ResourceAmount(0.0, Resource.NoResource)
+  @inline final def damage: Double           = 30.0
+  @inline final def timeToFirstAbility: Long = 15000L
 
   def abilityId: Ability.AbilityId = Ability.putLivingDamageZoneId
 

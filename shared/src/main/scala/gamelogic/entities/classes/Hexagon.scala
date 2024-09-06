@@ -13,13 +13,12 @@ import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 import gamelogic.utils.IdGeneratorContainer
 
-/**
-  * The [[gamelogic.entities.classes.Hexagon]] is the healer class available to players.
+/** The [[gamelogic.entities.classes.Hexagon]] is the healer class available to players.
   *
   * Obviously, it is represented as a Hexagon in the game.
   */
 final case class Hexagon(
-    id: Long,
+    id: Entity.Id,
     time: Long,
     pos: Complex,
     direction: Angle,
@@ -41,7 +40,7 @@ final case class Hexagon(
 
   def useAbility(ability: Ability): Hexagon = copy(
     relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability),
-    resourceAmount        = resourceAmount - ability.cost
+    resourceAmount = resourceAmount - ability.cost
   )
 
   def shape: Polygon = Hexagon.shape
@@ -54,7 +53,14 @@ final case class Hexagon(
       speed: Double,
       moving: Boolean
   ): Hexagon =
-    copy(time = time, pos = position, direction = direction, rotation = rotation, speed = speed, moving = moving)
+    copy(
+      time = time,
+      pos = position,
+      direction = direction,
+      rotation = rotation,
+      speed = speed,
+      moving = moving
+    )
 
   def teamId: Entity.TeamId = Entity.teams.playerTeam
 
@@ -65,11 +71,14 @@ final case class Hexagon(
 object Hexagon extends PlayerClassBuilder {
   def initialResourceAmount: ResourceAmount = ResourceAmount(500, Mana)
 
-  def startingActions(time: Long, entityId: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
+  def startingActions(
+      time: Long,
+      entityId: Id
+  )(using IdGeneratorContainer): Vector[GameAction] = Vector(
     PutSimpleBuff(
-      idGeneratorContainer.gameActionIdGenerator(),
+      genActionId(),
       time,
-      idGeneratorContainer.buffIdGenerator(),
+      genBuffId(),
       entityId,
       entityId,
       time,
@@ -77,7 +86,8 @@ object Hexagon extends PlayerClassBuilder {
     )
   )
 
-  def abilities: Set[Ability.AbilityId] = Set(Ability.hexagonFlashHealId, Ability.hexagonHexagonHotId)
+  def abilities: Set[Ability.AbilityId] =
+    Set(Ability.hexagonFlashHealId, Ability.hexagonHexagonHotId)
 
   def shape: Polygon = Shape.regularPolygon(6, Constants.playerRadius)
 

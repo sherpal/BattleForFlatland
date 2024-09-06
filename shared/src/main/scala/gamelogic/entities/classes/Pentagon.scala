@@ -37,30 +37,45 @@ final case class Pentagon(
 
   def useAbility(ability: Ability): Pentagon = copy(
     relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability),
-    resourceAmount        = resourceAmount - ability.cost
+    resourceAmount = resourceAmount - ability.cost
   )
 
   protected def patchResourceAmount(newResourceAmount: ResourceAmount): Pentagon =
     copy(resourceAmount = newResourceAmount)
 
-  def move(time: Long, position: Complex, direction: Angle, rotation: Angle, speed: Double, moving: Boolean): Pentagon =
-    copy(time = time, pos = position, direction = direction, rotation = rotation, speed = speed, moving = moving)
+  def move(
+      time: Long,
+      position: Complex,
+      direction: Angle,
+      rotation: Angle,
+      speed: Double,
+      moving: Boolean
+  ): Pentagon =
+    copy(
+      time = time,
+      pos = position,
+      direction = direction,
+      rotation = rotation,
+      speed = speed,
+      moving = moving
+    )
 
   def teamId: TeamId = Entity.teams.playerTeam
 }
 
 object Pentagon extends PlayerClassBuilder {
-  def startingActions(time: Long, entityId: Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
-    PutSimpleBuff(
-      idGeneratorContainer.gameActionIdGenerator(),
-      time,
-      idGeneratorContainer.buffIdGenerator(),
-      entityId,
-      entityId,
-      time,
-      Buff.manaFiller
+  def startingActions(time: Long, entityId: Id)(using IdGeneratorContainer): Vector[GameAction] =
+    Vector(
+      PutSimpleBuff(
+        genActionId(),
+        time,
+        genBuffId(),
+        entityId,
+        entityId,
+        time,
+        Buff.manaFiller
+      )
     )
-  )
 
   final val abilities: Set[Ability.AbilityId] =
     Set(Ability.pentagonPentagonBullet, Ability.createPentagonZoneId, Ability.pentagonDispelId)

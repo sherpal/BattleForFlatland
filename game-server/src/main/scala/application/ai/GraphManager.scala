@@ -44,7 +44,7 @@ class GraphManager(initialRadiuses: Iterable[Double]) {
 
   def addNewObstacle(action: CreateObstacle, gameState: GameState): Unit =
     pathFindersInfo.mapValuesInPlace((radius, pathFinderInfo) =>
-      pathFinderInfo.addObstacles(gameState.obstacles.get(action.id))
+      pathFinderInfo.addObstacles(gameState.obstacles.get(action.obstacleId))
     )
 
   def maybeRemoveObstacle(action: RemoveEntity): Unit =

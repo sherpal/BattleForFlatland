@@ -6,6 +6,9 @@ import gamelogic.gamestate.gameactions._
 import gamelogic.gamestate.statetransformers.GameStateTransformer
 import io.circe.{Decoder, Encoder, Json}
 import gamelogic.utils.GameActionIdGenerator
+import io.circe.Codec
+import boopickle.Pickler
+import gamelogic.utils.IdGeneratorContainer
 
 trait GameAction extends Ordered[GameAction] {
 
@@ -44,14 +47,14 @@ trait GameAction extends Ordered[GameAction] {
 
   /** We compare ids if the time are the same so that there never is ambiguity. */
   final def compare(that: GameAction): Int = this.time compare that.time match {
-    case 0 => this.id compare that.id
+    case 0 => this.id.value compare that.id.value
     case x => x
   }
 
   def changeId(newId: GameAction.Id): GameAction
 
-  inline def changeIdWithGen()(using gen: GameActionIdGenerator): GameAction =
-    changeId(gen.nextId())
+  inline def changeIdWithGen()(using gen: IdGeneratorContainer): GameAction =
+    changeId(gen.actionId())
 
 }
 
@@ -61,7 +64,9 @@ object GameAction {
     def entityId: Entity.Id
   }
 
-  type Id = Long
+  opaque type Id = Long
+
+  object Id extends gamelogic.utils.OpaqueLongCompanion[Id]
 
   import cats.syntax.functor._
   import io.circe.generic.auto._
@@ -72,7 +77,7 @@ object GameAction {
   ): Json =
     a.asJson.mapObject(_.add("action_name", Json.fromString(name)))
 
-  implicit val encoder: Encoder[GameAction] = Encoder.instance {
+  given Encoder[GameAction] = Encoder.instance {
     case x: boss102.AddBossHound             => customEncode(x, "boss102.AddBossHound")
     case x: boss102.PutDamageZone            => customEncode(x, "boss102.PutDamageZone")
     case x: boss102.PutLivingDamageZone      => customEncode(x, "boss102.PutLivingDamageZone")
@@ -110,7 +115,7 @@ object GameAction {
   ): Decoder[GameAction] =
     decoder.validate(_.get[String]("action_name").contains(name), s"Not a $name instance").widen
 
-  implicit val decoder: Decoder[GameAction] = List[Decoder[GameAction]](
+  given Decoder[GameAction] = List[Decoder[GameAction]](
     customDecoder[boss102.AddBossHound]("boss102.AddBossHound"),
     customDecoder[boss102.PutDamageZone]("boss102.PutDamageZone"),
     customDecoder[boss102.PutLivingDamageZone]("boss102.PutLivingDamageZone"),

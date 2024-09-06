@@ -8,23 +8,33 @@ import gamelogic.gamestate.gameactions.{EntityTakesDamage, RemoveEntity}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-final case class DamageZoneTick(buffId: Buff.Id, bearerId: Entity.Id, appearanceTime: Long, lastTickTime: Long)
-    extends TickerBuff {
-  def tickEffect(gameState: GameState, time: Long, idGenerator: IdGeneratorContainer): List[GameAction] =
-    gameState.entities.get(bearerId).collect { case zone: DamageZone => zone }.fold(List[GameAction]()) { zone =>
-      gameState.players.valuesIterator
-        .filter(_.collides(zone, time))
-        .map { player =>
-          EntityTakesDamage(
-            idGenerator.gameActionIdGenerator(),
-            time,
-            player.id,
-            DamageZoneTick.damageOnTick,
-            zone.sourceId
-          )
-        }
-        .toList
-    }
+final case class DamageZoneTick(
+    buffId: Buff.Id,
+    bearerId: Entity.Id,
+    appearanceTime: Long,
+    lastTickTime: Long
+) extends TickerBuff {
+  def tickEffect(
+      gameState: GameState,
+      time: Long
+  )(using IdGeneratorContainer): Vector[GameAction] =
+    gameState.entities
+      .get(bearerId)
+      .collect { case zone: DamageZone => zone }
+      .fold(Vector[GameAction]()) { zone =>
+        gameState.players.valuesIterator
+          .filter(_.collides(zone, time))
+          .map { player =>
+            EntityTakesDamage(
+              genActionId(),
+              time,
+              player.id,
+              DamageZoneTick.damageOnTick,
+              zone.sourceId
+            )
+          }
+          .toVector
+      }
 
   val tickRate: Long = DamageZoneTick.tickRate
 
@@ -34,10 +44,10 @@ final case class DamageZoneTick(buffId: Buff.Id, bearerId: Entity.Id, appearance
 
   def resourceIdentifier: ResourceIdentifier = Buff.boss102DamageZoneBuff
 
-  def endingAction(gameState: GameState, time: Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] =
-    List(RemoveEntity(idGeneratorContainer.gameActionIdGenerator(), time, bearerId))
+  def endingAction(gameState: GameState, time: Long)(using
+      IdGeneratorContainer
+  ): Vector[GameAction] =
+    Vector(RemoveEntity(genActionId(), time, bearerId))
 }
 
 object DamageZoneTick {

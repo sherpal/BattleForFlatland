@@ -19,13 +19,11 @@ final case class SimpleBullet(
   val cooldown: Long       = 0L
   val castingTime: Long    = 1500L
 
-  def createActions(
-      gameState: GameState
-  )(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] = Vector(
     NewSimpleBullet(
-      0L,
+      genActionId(),
       time,
-      idGeneratorContainer.entityIdGenerator(),
+      genEntityId(),
       startingPosition,
       SimpleBullet.speed,
       direction,
@@ -39,7 +37,7 @@ final case class SimpleBullet(
 
   val cost: ResourceAmount = ResourceAmount(0.0, NoResource)
 
-  def canBeCast(gameState: GameState, time: UseId): None.type = None
+  def canBeCast(gameState: GameState, time: Long): None.type = None
 }
 
 object SimpleBullet {

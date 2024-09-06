@@ -40,7 +40,14 @@ final case class BigGuy(
       speed: Double,
       moving: Boolean
   ): BigGuy =
-    copy(time = time, pos = position, direction = direction, rotation = rotation, speed = speed, moving = moving)
+    copy(
+      time = time,
+      pos = position,
+      direction = direction,
+      rotation = rotation,
+      speed = speed,
+      moving = moving
+    )
 
   def maxLife: Double = BigGuy.maxLife
 
@@ -62,8 +69,7 @@ final case class BigGuy(
 
   def useAbility(ability: Ability): BigGuy =
     copy(
-      relevantUsedAbilities =
-        relevantUsedAbilities + (ability.abilityId -> ability)
+      relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability)
     )
 
   def resourceAmount: Resource.ResourceAmount = Resource.noResourceAmount
@@ -75,7 +81,7 @@ final case class BigGuy(
   def maybeAutoAttack(time: Long): Option[AutoAttack] =
     Some(
       AutoAttack(
-        0L,
+        Ability.UseId.zero,
         time,
         id,
         targetId,

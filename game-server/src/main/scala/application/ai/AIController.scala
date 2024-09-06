@@ -27,7 +27,7 @@ trait AIController[
 
   extension (maybeAbility: Option[Ability]) {
     def startCasting: Option[EntityStartsCasting] = maybeAbility.map(ability =>
-      EntityStartsCasting(0L, ability.time, ability.castingTime, ability)
+      EntityStartsCasting(GameAction.Id.zero, ability.time, ability.castingTime, ability)
     )
   }
 

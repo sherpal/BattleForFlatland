@@ -123,7 +123,7 @@ final case class Boss110(
   def maybeAutoAttack(time: Long, gameState: GameState): Option[AutoAttack] =
     Some(
       AutoAttack(
-        0L,
+        Ability.UseId.zero,
         time,
         id,
         targetId,
@@ -198,17 +198,10 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
 
   def initialBossActions(
       entityId: gamelogic.entities.Entity.Id,
-      time: Long,
-      idGeneratorContainer: gamelogic.utils.IdGeneratorContainer
-  ): Vector[gamelogic.gamestate.GameAction] =
-    healAndDamageAwareActions(entityId, time, idGeneratorContainer) ++ Vector(
-      AddCreepingShadow(
-        idGeneratorContainer.gameActionIdGenerator(),
-        time,
-        idGeneratorContainer.entityIdGenerator(),
-        entityId
-      )
-    )
+      time: Long
+  )(using IdGeneratorContainer): Vector[gamelogic.gamestate.GameAction] =
+    healAndDamageAwareActions(entityId, time) ++
+      Vector(AddCreepingShadow(genActionId(), time, genEntityId(), entityId))
 
   val name: String = "Boss 110"
 
@@ -218,9 +211,8 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
   val halfHeight = 300
 
   def gameBoundariesActions(
-      time: Long,
-      idGeneratorContainer: IdGeneratorContainer
-  ): Vector[CreateObstacle] =
+      time: Long
+  )(using IdGeneratorContainer): Vector[CreateObstacle] =
     Vector[(Complex, (Complex, Complex))](
       (halfWidth, (-i * halfHeight, i * halfHeight)),
       (-halfWidth, (-i * halfHeight, i * halfHeight)),
@@ -228,31 +220,29 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
       (i * halfHeight, (-halfWidth, halfWidth))
     ).map { case (position, (z1, z2)) =>
       CreateObstacle(
-        idGeneratorContainer.gameActionIdGenerator(),
+        genActionId(),
         time,
-        idGeneratorContainer.entityIdGenerator(),
+        genEntityId(),
         position,
         Obstacle.segmentObstacleVertices(z1, z2, 10)
       )
     }
 
-  def stagingBossActions(
-      time: Long,
-      idGeneratorContainer: gamelogic.utils.IdGeneratorContainer
+  def stagingBossActions(time: Long)(using
+      IdGeneratorContainer
   ): Vector[gamelogic.gamestate.GameAction] =
-    gameBoundariesActions(time, idGeneratorContainer)
+    gameBoundariesActions(time)
 
   def whenBossDiesActions(
       gameState: gamelogic.gamestate.GameState,
-      time: Long,
-      idGeneratorContainer: gamelogic.utils.IdGeneratorContainer
-  ): Vector[gamelogic.gamestate.GameAction] =
+      time: Long
+  )(using IdGeneratorContainer): Vector[gamelogic.gamestate.GameAction] =
     gameState.entities.values
       .collect {
         case bigGuy: BigGuy => bigGuy
         case bomb: BombPod  => bomb
       }
-      .map(entity => RemoveEntity(idGeneratorContainer.gameActionIdGenerator(), time, entity.id))
+      .map(entity => RemoveEntity(genActionId(), time, entity.id))
       .toVector
 
   final val abilities: Set[Ability.AbilityId] =

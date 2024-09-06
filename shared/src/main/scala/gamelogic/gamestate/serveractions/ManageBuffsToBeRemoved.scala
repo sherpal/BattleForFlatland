@@ -10,8 +10,8 @@ final class ManageBuffsToBeRemoved extends ServerAction {
   private def removeBuffAction(actionId: GameAction.Id, buff: Buff): RemoveBuff =
     RemoveBuff(actionId, buff.appearanceTime + buff.duration, buff.bearerId, buff.buffId)
 
-  def apply(currentState: ActionGatherer, nowGenerator: () => Long)(implicit
-      idGeneratorContainer: IdGeneratorContainer
+  def apply(currentState: ActionGatherer, nowGenerator: () => Long)(using
+      IdGeneratorContainer
   ): (ActionGatherer, ServerAction.ServerActionOutput) = {
     val startTime = nowGenerator()
     val gameState = currentState.currentGameState
@@ -20,7 +20,7 @@ final class ManageBuffsToBeRemoved extends ServerAction {
       .filter(_.isFinite)
       .filter(buff => startTime - buff.appearanceTime > buff.duration)
       .flatMap { buff =>
-        removeBuffAction(idGeneratorContainer.gameActionIdGenerator(), buff) :: buff.endingAction(
+        removeBuffAction(genActionId(), buff) +: buff.endingAction(
           gameState,
           startTime
         )
