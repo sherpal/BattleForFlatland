@@ -16,6 +16,8 @@ import models.bff.outofgame.MenuGameWithPlayers
 import gamelogic.gamestate.GameAction
 import gamelogic.utils.IdGeneratorContainer
 import concurrent.*
+import io.circe.Encoder
+import models.bff.ingame.ServerPerformanceSummary
 
 object Server extends cask.MainRoutes {
 
@@ -85,6 +87,18 @@ object Server extends cask.MainRoutes {
 
   @cask.get("/health-check")
   def healthCheck() = "ok"
+
+  @cask.websocket("/ws/performance-summary-updates")
+  def performanceSummaryUpdates() = cask.WsHandler { channel =>
+    cask.WsActor { case cask.Ws.Text(_) =>
+      if gameMaster != null then
+        channel.send(
+          cask.Ws.Text(
+            Encoder[Option[ServerPerformanceSummary]].apply(gameMaster.performanceSummary).noSpaces
+          )
+        )
+    }
+  }
 
   @cask.websocket("/ws/connect")
   def connectToGame(

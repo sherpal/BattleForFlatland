@@ -29,7 +29,8 @@ class GameMaster(
 )(using
     idGeneratorContainer: IdGeneratorContainer
 )(using ExecutionContext)
-    extends IdsProducer {
+    extends IdsProducer
+    with TimeManager {
 
   def bossName = gameInfo.game.gameConfiguration.bossName
 
@@ -165,15 +166,25 @@ class GameMaster(
 
   private var runningThread: Option[Thread] = Option.empty
 
+  private val performanceMonitor = PerformanceMonitor()
+
+  def performanceSummary = performanceMonitor.retrieveSummary
+
   private def run(): Unit = {
     val thread = new Thread(new Runnable {
       def run(): Unit = {
+        var lastLoopTime = 0L
+
         println("LFG!!!")
         val preGameBehaviour = PreGameBehaviour()
 
         // looping the pre game behaviour until players start the game
+        lastLoopTime = now
         while (!shouldBegin.get)
-          preGameBehaviour.completeLoop()
+          preGameBehaviour.completeLoop(lastLoopTime)
+          val newLoopTime = now
+          performanceMonitor.addInfo(newLoopTime - lastLoopTime)
+          lastLoopTime = newLoopTime
 
         // compute initial actions (spawning boss with its initial actions and other related stuff)
         val timeNow = now
@@ -200,8 +211,12 @@ class GameMaster(
         val inGameBehaviour = InGameBehaviour()
 
         // looping the in game behaviour until the game stops
+        lastLoopTime = now
         while (!actionGatherer.currentGameState.ended)
-          inGameBehaviour.completeLoop()
+          inGameBehaviour.completeLoop(lastLoopTime)
+          val newLoopTime = now
+          performanceMonitor.addInfo(newLoopTime - lastLoopTime)
+          lastLoopTime = newLoopTime
 
         // applying and of game actions
         val endOfGameActions =
@@ -230,7 +245,7 @@ class GameMaster(
   }
 
   extension (behaviour: GameMasterBehaviour) {
-    private def completeLoop(): Unit = {
+    private def completeLoop(startTime: Long): Unit = {
       val (output, newGatherer) = behaviour.loop(now, actionBuffer.flush(), actionGatherer)
       actionGatherer = newGatherer
       if output.createdActions.nonEmpty || output.idsOfIdsToRemove.nonEmpty then {
@@ -242,11 +257,11 @@ class GameMaster(
           )
         )
       }
-      Thread.sleep(3)
+      val endTime = now
+      sleep(8 - (endTime - startTime))
     }
 
   }
 
   start()
-
 }

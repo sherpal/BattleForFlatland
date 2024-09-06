@@ -14,10 +14,11 @@ import gamelogic.entities.boss.*
 import gamelogic.entities.boss.dawnoftime.*
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
+import application.TimeManager
 
 class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTranslator)(using
     ExecutionContext
-) {
+) extends TimeManager {
   actionTranslator.subscribe(handleNewActions)
 
   private inline def currentGameState: GameState = gameStateProvider()
@@ -35,7 +36,7 @@ class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTran
         val gameState = currentGameState
         gameEnded = gameState.ended
         loop(currentGameState)
-        Thread.sleep(3)
+        sleep(5)
     }.onComplete {
       case scala.util.Success(_) => println("AIManager loop ended")
       case scala.util.Failure(throwable) =>
