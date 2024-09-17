@@ -9,4 +9,14 @@ final case class AddAndRemoveActions(
     idsOfActionsToRemove: Vector[GameAction.Id]
 ) {
   def nonEmpty: Boolean = actionsToAdd.nonEmpty || idsOfActionsToRemove.nonEmpty
+
+  def composeWithNext(that: AddAndRemoveActions): AddAndRemoveActions = AddAndRemoveActions(
+    this.actionsToAdd ++ that.actionsToAdd,
+    this.oldestTimeToRemove min that.oldestTimeToRemove,
+    this.idsOfActionsToRemove ++ that.idsOfActionsToRemove
+  )
+}
+
+object AddAndRemoveActions {
+  val empty = AddAndRemoveActions(Vector.empty, Long.MaxValue, Vector.empty)
 }

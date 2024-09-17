@@ -33,7 +33,10 @@ class BLocalStorage(fileUpdateSemaphore: Semaphore, folder: os.Path) extends Loc
     })
     .absolve
 
-  override def clearKey[T](key: Key[T]): ZIO[Any, Throwable, Unit] = ???
+  override def clearKey[T](key: Key[T]): ZIO[Any, Throwable, Unit] = ZIO.attemptBlockingIO {
+    val path = keyToPath(key)
+    os.remove(path, checkExists = false)
+  }
 
   private def keyToPath[T](key: Key[T]): os.Path = {
     val encodedKey =

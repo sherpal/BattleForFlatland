@@ -41,6 +41,9 @@ object InGameWSProtocol {
   /** Sent when the user received their entity id, and all assets have been loaded. */
   case class ReadyToStart(userName: String) extends Outgoing
 
+  /** Sent when every user is ready to start (they are ready to display game). */
+  case object EveryoneIsReady extends Incoming
+
   /** Sent by a player to actually start the game at the very beginning. */
   case object LetsBegin extends Outgoing
 

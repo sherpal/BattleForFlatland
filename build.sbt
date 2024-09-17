@@ -97,13 +97,18 @@ lazy val `game-server` = project
   )
   .dependsOn(`shared-backend`)
 
+val indigoVersion = "0.17.0"
+
 lazy val frontend = project
   .in(file("./frontend"))
   .enablePlugins(ScalaJSPlugin)
   .settings(
     libraryDependencies ++= List(
-      "com.raquo"   %%% "laminar"            % "17.0.0",
-      "be.doeraene" %%% "web-components-ui5" % "2.0.0-RC2"
+      "com.raquo"       %%% "laminar"            % "17.0.0",
+      "be.doeraene"     %%% "web-components-ui5" % "2.0.0-RC2",
+      "io.indigoengine" %%% "indigo"             % indigoVersion,
+      "io.indigoengine" %%% "indigo-extras"      % indigoVersion,
+      "io.indigoengine" %%% "indigo-json-circe"  % indigoVersion
     ),
     esModule,
     scalaJSUseMainModuleInitializer := true

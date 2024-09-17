@@ -63,6 +63,8 @@ class GameMaster(
       // every one is ready, we can enter "pre game" mode
       aiManager.start()
       run()
+      log.info("Warning all players that everyone is ready")
+      playerMap.values.foreach(_.send(InGameWSProtocol.EveryoneIsReady))
     }
   }
 

@@ -100,5 +100,6 @@ object BFFPicklers {
       .addConcreteType[StartingBossPosition]
       .addConcreteType[BuddyIsReady]
       .addConcreteType[AllPlayers]
+      .addConcreteType[EveryoneIsReady.type]
 
 }

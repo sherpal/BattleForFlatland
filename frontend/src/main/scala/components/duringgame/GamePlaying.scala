@@ -159,9 +159,25 @@ object GamePlaying {
       gameSocket.errorEvents --> Observer[Any](x => dom.console.warn(x)),
       gameSocket.modifier,
       setupDataBus.events --> Observer[Any](x => println(x)),
-      setupDataBus.events --> Observer[Any] { _ =>
-        println("Sending that i'm ready to start")
-        gameSocket.outWriter.onNext(InGameWSProtocol.ReadyToStart(user.name))
+      child <-- setupDataBus.events.map { (playerId, bossStartingPosition, deltaWithServer) =>
+        GameViewContainer(
+          user,
+          playerId,
+          bossStartingPosition,
+          gameSocket.inEvents.collect { case actions: InGameWSProtocol.AddAndRemoveActions =>
+            gamelogic.gamestate.AddAndRemoveActions(
+              actions.actionsToAdd,
+              actions.oldestTimeToRemove,
+              actions.idsOfActionsToRemove
+            )
+          },
+          gameSocket.inEvents.collect { case InGameWSProtocol.EveryoneIsReady =>
+            ()
+          },
+          gameSocket.outWriter,
+          deltaWithServer,
+          gameId
+        )
       }
     )
   }
