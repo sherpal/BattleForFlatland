@@ -20,13 +20,14 @@ import game.events.CustomIndigoEvents
 
 /** Next steps:
   *
-  *   - use the camera to center drawing on the player
-  *   - use controls defined by user (UI is missing!)
-  *   - button to launch the game
-  *   - handle when player is dead
-  *   - send game actions other than moving (using abilities, mostly)
-  *   - draw the UI (player frame, all player frames, target frames, boss frame, damage threat)
-  *   - draw the effects
+  *   - [x] use the camera to center drawing on the player
+  *   - [ ] use controls defined by user (UI is missing!)
+  *   - [ ] button to launch the game
+  *   - [ ] handle when player is dead
+  *   - [ ] send game actions other than moving (using abilities, mostly)
+  *   - [ ] draw the UI (player frame, all player frames, target frames, boss frame, damage threat)
+  *   - [ ] draw the effects
+  *   - [ ] scale camera to best fit
   */
 class InGameScene(
     myId: Entity.Id,
@@ -35,7 +36,7 @@ class InGameScene(
     deltaWithServer: Seconds
 ) extends Scene[InGameScene.StartupData, IndigoModel, IndigoViewModel] {
   type SceneModel     = InGameScene.InGameModel
-  type SceneViewModel = Unit
+  type SceneViewModel = IndigoViewModel
 
   override def subSystems: Set[SubSystem[IndigoModel]] = Set.empty
 
@@ -57,32 +58,37 @@ class InGameScene(
       Complex(x, y)
     }
 
-    val gameState = model.actionGatherer.currentGameState.applyActions(model.unconfirmedActions)
+    val gameState = viewModel.gameState
 
     Outcome(
       SceneUpdateFragment(
-        Batch.fromJSArray(
-          Shape
-            .Box(
-              bounds,
-              Fill.Color(RGBA.Black),
-              Stroke(4, RGBA.Blue)
-            )
-            .withDepth(Depth.far) +:
-            TextBox("We are in the game, woot!", 400, 30)
-              .withFontFamily(FontFamily.cursive)
-              .withColor(RGBA.White)
-              .withFontSize(Pixels(16))
-              .withStroke(TextStroke(RGBA.Red, Pixels(1)))
-              .withPosition(Point(10, 100)) +:
-            gameState.players.values.toJSArray.map { player =>
-              Shape.Circle(
-                center = gameToLocal(player.pos),
-                radius = player.shape.radius.toInt,
-                fill = Fill.Color(RGBA.fromColorInts(player.rgb._1, player.rgb._2, player.rgb._3)),
-                stroke = Stroke.apply(2, RGBA.White)
+        Layer(
+          Batch.fromJSArray(
+            Shape
+              .Box(
+                bounds,
+                Fill.Color(RGBA.Black),
+                Stroke(4, RGBA.Blue)
               )
-            }
+              .withDepth(Depth.far) +:
+              gameState.players.values.toJSArray.map { player =>
+                Shape.Circle(
+                  center = gameToLocal(player.pos),
+                  radius = player.shape.radius.toInt,
+                  fill =
+                    Fill.Color(RGBA.fromColorInts(player.rgb._1, player.rgb._2, player.rgb._3)),
+                  stroke = Stroke.apply(2, RGBA.White)
+                )
+              }
+          )
+        ).withCamera(Camera.LookAt(gameToLocal(viewModel.currentCameraPosition))),
+        Layer(
+          TextBox("We are in the game, woot!", 400, 30)
+            .withFontFamily(FontFamily.cursive)
+            .withColor(RGBA.White)
+            .withFontSize(Pixels(16))
+            .withStroke(TextStroke(RGBA.Red, Pixels(1)))
+            .withPosition(Point(10, 100))
         )
       )
     )
@@ -143,7 +149,7 @@ class InGameScene(
 
   override def eventFilters: EventFilters = EventFilters.AllowAll
 
-  override def viewModelLens: Lens[IndigoViewModel, SceneViewModel] = Lens(_ => (), (a, _) => a)
+  override def viewModelLens: Lens[IndigoViewModel, SceneViewModel] = Lens(identity, (_, a) => a)
 
   override def name: SceneName = InGameScene.name
 
@@ -154,7 +160,16 @@ class InGameScene(
       context: SceneContext[StartupData],
       model: SceneModel,
       viewModel: SceneViewModel
-  ): GlobalEvent => Outcome[SceneViewModel] = _ => Outcome(viewModel)
+  ): GlobalEvent => Outcome[SceneViewModel] = {
+    case FrameTick =>
+      Outcome(
+        viewModel
+          .withUpToDateGameState(model.projectedGameState)
+          .newCameraPosition(myId, context.gameTime.delta)
+      )
+
+    case _ => Outcome(viewModel)
+  }
 
 }
 
@@ -170,6 +185,9 @@ object InGameScene {
         newUnconfirmedActions: Vector[GameAction]
     ): InGameModel =
       InGameModel(newActionGatherer, newUnconfirmedActions)
+
+    lazy val projectedGameState: GameState =
+      actionGatherer.currentGameState.applyActions(unconfirmedActions)
   }
 
   def initialModel(initialGameState: GameState): InGameModel = InGameModel(

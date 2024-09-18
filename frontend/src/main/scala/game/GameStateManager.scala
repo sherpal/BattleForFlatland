@@ -80,7 +80,13 @@ class GameStateManager(
       startupData: InGameScene.StartupData,
       model: IndigoModel
   ): Outcome[IndigoViewModel] =
-    Outcome(IndigoViewModel())
+    Outcome(
+      IndigoViewModel(
+        model.inGameState.actionGatherer.currentGameState
+          .applyActions(model.inGameState.unconfirmedActions),
+        Complex.zero
+      )
+    )
 
   override def setup(
       bootData: InGameScene.StartupData,
