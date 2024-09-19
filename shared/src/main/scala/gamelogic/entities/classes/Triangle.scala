@@ -12,6 +12,7 @@ import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 import gamelogic.utils.IdGeneratorContainer
+import models.bff.outofgame.PlayerClasses
 
 /** The [[Triangle]] is the melee dps class in BFF. It attacks close its enemies.
   *
@@ -33,7 +34,7 @@ final case class Triangle(
     resourceAmount: ResourceAmount,
     maxResourceAmount: Double,
     name: String
-) extends PlayerClass {
+) extends PlayerClass(PlayerClasses.Triangle) {
 
   def shape: Polygon = Triangle.shape
 

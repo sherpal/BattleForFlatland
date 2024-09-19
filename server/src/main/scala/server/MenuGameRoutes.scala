@@ -144,7 +144,8 @@ class MenuGameRoutes()(using
                 ZIO.whenZIO(isOpenZIO)(sendMsg(MenuGameComm.DataUpdated())).unit
               case events.Event.GameStarted(gameId) =>
                 sendMsg(MenuGameComm.GameStarted())
-              case events.Event.GameCredentials(creds, port) =>
+              case events.Event.GameCredentials(creds, port)
+                  if gameId.contains[String](creds.gameCredentials.gameId) =>
                 creds.allGameUserCredentials.find(_.userName == user.name) match {
                   case Some(userCreds) =>
                     sendMsg(
@@ -161,6 +162,7 @@ class MenuGameRoutes()(using
                       )
                     )
                 }
+              case _: events.Event.GameCredentials   => ZIO.unit // not interested
               case events.Event.GameDataRefreshed(_) => ZIO.unit // not interested
             }
           val dispatchUserConnected = gameId

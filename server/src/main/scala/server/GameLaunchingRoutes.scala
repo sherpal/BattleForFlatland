@@ -26,6 +26,7 @@ class GameLaunchingRoutes()(using
   def gameServerReady(ctx: cask.Request, gameId: String, secret: String, port: Int) = (for {
     gameInfo <- menugames.retrieveAllGameCredentials(gameId, secret).flatMap(ZIO.fromEither)
     _ <- events.dispatchEvent(events.Event.GameCredentials(gameInfo.allGameCredentials, port))
+    _ <- Console.printLine(s"game server ready for $gameId").orDie
   } yield true).either.map(APIResponse.fromEither)
 
   @cask.post("api/bff/game-playing/in-game/cancel-game")

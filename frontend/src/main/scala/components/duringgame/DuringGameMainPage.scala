@@ -39,9 +39,6 @@ object DuringGameMainPage {
   private def withFixedData(user: User, credentials: GameUserCredentials, port: Int)(using
       Runtime[FrontendEnv]
   ): HtmlElement =
-    div(
-      s"$user -- $credentials",
-      GamePlaying(credentials.gameId, user, credentials.userSecret, port)
-    )
+    div(GamePlaying(credentials.gameId, user, credentials.userSecret, port))
 
 }

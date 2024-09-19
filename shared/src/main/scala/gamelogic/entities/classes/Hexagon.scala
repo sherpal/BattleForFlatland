@@ -12,6 +12,7 @@ import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 import gamelogic.utils.IdGeneratorContainer
+import models.bff.outofgame.PlayerClasses
 
 /** The [[gamelogic.entities.classes.Hexagon]] is the healer class available to players.
   *
@@ -32,7 +33,7 @@ final case class Hexagon(
     resourceAmount: ResourceAmount,
     maxResourceAmount: Double,
     name: String
-) extends PlayerClass {
+) extends PlayerClass(PlayerClasses.Hexagon) {
 
   protected def patchLifeTotal(newLife: Double): LivingEntity = copy(life = newLife)
 

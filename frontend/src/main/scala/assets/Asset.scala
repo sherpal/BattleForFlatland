@@ -8,6 +8,7 @@ import scala.language.implicitConversions
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 import scala.util.Try
+import models.bff.outofgame.PlayerClasses
 
 class Asset(val path: String, val name: String) {
 
@@ -42,7 +43,7 @@ object Asset {
       Asset.markerAssetMap.values ++
       Asset.buffAssetMap.values ++
       Asset.abilityAssetMap.values ++
-      Asset.units
+      Asset.units ++ Asset.playerClassAssetMap.values
 
   final class AssetNotProperlyDefined(asset: Asset)
       extends Exception(
@@ -129,6 +130,13 @@ object Asset {
         val markerStar     = Asset("/assets/in-game/gui/markers/marker-star.png")
         val markerTriangle = Asset("/assets/in-game/gui/markers/marker-triangle.png")
       }
+
+      object players {
+        val triangle = Asset("/assets/in-game/gui/players/triangle.png")
+        val square   = Asset("/assets/in-game/gui/players/square.png")
+        val pentagon = Asset("/assets/in-game/gui/players/pentagon.png")
+        val hexagon  = Asset("/assets/in-game/gui/players/hexagon.png")
+      }
     }
   }
 
@@ -146,6 +154,13 @@ object Asset {
     Ability.pentagonPentagonBullet   -> ingame.gui.abilities.pentagonBullet,
     Ability.createPentagonZoneId     -> ingame.gui.abilities.pentagonZone,
     Ability.pentagonDispelId         -> ingame.gui.abilities.pentagonDispel
+  )
+
+  val playerClassAssetMap: Map[PlayerClasses, Asset] = Map(
+    PlayerClasses.Triangle -> ingame.gui.players.triangle,
+    PlayerClasses.Square   -> ingame.gui.players.square,
+    PlayerClasses.Pentagon -> ingame.gui.players.pentagon,
+    PlayerClasses.Hexagon  -> ingame.gui.players.hexagon
   )
 
   val buffAssetMap: Map[Buff.ResourceIdentifier, Asset] = Map(

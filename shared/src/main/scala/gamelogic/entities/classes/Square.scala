@@ -11,6 +11,7 @@ import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 import gamelogic.utils.IdGeneratorContainer
+import models.bff.outofgame.PlayerClasses
 
 /** The [[gamelogic.entities.classes.Square]] is the tank class available to players.
   */
@@ -29,7 +30,7 @@ final case class Square(
     resourceAmount: ResourceAmount,
     maxResourceAmount: Double,
     name: String
-) extends PlayerClass {
+) extends PlayerClass(PlayerClasses.Square) {
   protected def patchLifeTotal(newLife: Double): LivingEntity = copy(life = newLife)
 
   def abilities: Set[AbilityId] = Square.abilities

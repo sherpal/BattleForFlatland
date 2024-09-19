@@ -12,6 +12,7 @@ import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 import gamelogic.utils.IdGeneratorContainer
+import models.bff.outofgame.PlayerClasses
 
 final case class Pentagon(
     id: Entity.Id,
@@ -28,7 +29,7 @@ final case class Pentagon(
     resourceAmount: ResourceAmount,
     maxResourceAmount: Double,
     name: String
-) extends PlayerClass {
+) extends PlayerClass(PlayerClasses.Pentagon) {
   def shape: Polygon = Pentagon.shape
 
   protected def patchLifeTotal(newLife: Double): Pentagon = copy(life = newLife)

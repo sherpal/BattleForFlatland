@@ -231,6 +231,25 @@ object GameSettings {
       }
     )
 
+    val controlSettingsOpenerBus = new EventBus[Boolean]
+    def controlSettingsDialog = {
+      val resetBus = new EventBus[Unit]
+      Dialog(
+        _.showFromEvents(controlSettingsOpenerBus.events.filter(identity).mapToUnit),
+        _.closeFromEvents(controlSettingsOpenerBus.events.filterNot(identity).mapToUnit),
+        _.slots.header := Bar(_.slots.startContent := Title.h2("Control Settings")),
+        ControlSettings(resetBus.events),
+        _.slots.footer := Bar(
+          _.slots.endContent := Button("Reset", _.events.onClick.mapToUnit --> resetBus.writer),
+          _.slots.endContent := Button(
+            "Close",
+            _.design := ButtonDesign.Emphasized,
+            _.events.onClick.mapTo(false) --> controlSettingsOpenerBus.writer
+          )
+        )
+      )
+    }
+
     def displayPlayers: HtmlElement = TableCompat(
       _.mode          := TableMode.None,
       _.slots.columns := TableCompat.column("Name"),
@@ -398,6 +417,7 @@ object GameSettings {
     val toastBus = new EventBus[String]
 
     div(
+      controlSettingsDialog,
       width := "100%",
       BusyIndicator(
         width     := "100%",
@@ -413,6 +433,10 @@ object GameSettings {
           displayPlayers,
           readyToGo,
           Bar(
+            _.slots.endContent := Button(
+              "Control Settings",
+              _.events.onClick.mapTo(true) --> controlSettingsOpenerBus.writer
+            ),
             _.slots.endContent := leaveGameButton,
             _.slots.endContent <-- gameDataEvents
               .filter(_.game.gameCreator == user)

@@ -7,7 +7,8 @@ import scala.util.Try
 final case class Complex(re: Double, im: Double) {
   def +(other: Complex): Complex = Complex(re + other.re, im + other.im)
   def -(other: Complex): Complex = Complex(re - other.re, im - other.im)
-  def *(other: Complex): Complex = Complex(re * other.re - im * other.im, re * other.im + im * other.re)
+  def *(other: Complex): Complex =
+    Complex(re * other.re - im * other.im, re * other.im + im * other.re)
   def /(other: Complex): Complex = {
     val d = other.re * other.re + other.im * other.im
     Complex((re * other.re + im * other.im) / d, (-re * other.im + im * other.re) / d)
@@ -29,32 +30,33 @@ final case class Complex(re: Double, im: Double) {
     pow(this, other)
   }
 
-  @inline def **(other: Double): Complex  = Complex.exp(other * Complex.log(this))
-  @inline def **(other: Complex): Complex = Complex.exp(other * Complex.log(this))
+  inline def **(other: Double): Complex  = Complex.exp(other * Complex.log(this))
+  inline def **(other: Complex): Complex = Complex.exp(other * Complex.log(this))
 
-  @inline def pow(other: Int): Complex     = this ** other
-  @inline def pow(other: Double): Complex  = this ** other
-  @inline def pow(other: Complex): Complex = this ** other
+  inline def pow(other: Int): Complex     = this ** other
+  inline def pow(other: Double): Complex  = this ** other
+  inline def pow(other: Complex): Complex = this ** other
 
   /** Scalar product. */
-  @inline def |*|(that: Complex): Double           = this.re * that.re + this.im * that.im
-  @inline def scalarProduct(that: Complex): Double = this |*| that
+  inline def |*|(that: Complex): Double           = this.re * that.re + this.im * that.im
+  inline def scalarProduct(that: Complex): Double = this |*| that
 
-  @inline def crossProduct(that: Complex): Double = this.re * that.im - this.im * that.re
+  inline def crossProduct(that: Complex): Double = this.re * that.im - this.im * that.re
 
   def multiply(seq: Seq[Complex]): Seq[Complex] = for (z <- seq) yield this * z
 
-  @inline def modulus: Double = math.hypot(re, im)
+  inline def modulus: Double = math.hypot(re, im)
 
-  @inline def modulus2: Double = re * re + im * im
+  inline def modulus2: Double = re * re + im * im
 
-  @inline def conjugate: Complex = Complex(re, -im)
+  inline def conjugate: Complex = Complex(re, -im)
 
-  /**
-    * Returns the unique complex such that
-    * - this scalaProduct that == 0,
-    * - this crossProduct that > 0, and
-    * - |this| == |that|
+  inline def toIntComplex: Complex = Complex(math.floor(re), math.floor(im))
+
+  /** Returns the unique complex such that
+    *   - this scalaProduct that == 0,
+    *   - this crossProduct that > 0, and
+    *   - \|this| == |that|
     */
   def orthogonal: Complex = Complex(-im, re)
 
@@ -70,9 +72,9 @@ final case class Complex(re: Double, im: Double) {
 
   def unary_~ : Complex = Complex(re, -im)
 
-  @inline def unary_! : Double = modulus
+  inline def unary_! : Double = modulus
 
-  @inline def distanceTo(that: Complex): Double = (that - this).modulus
+  inline def distanceTo(that: Complex): Double = (that - this).modulus
 
   def isInfinite: Boolean = re.isInfinite || im.isInfinite
 
@@ -114,7 +116,8 @@ object Complex {
 
   def log(z: Complex): Complex = Complex(math.log(!z), z.arg) // principal branch of log
 
-  def log(z: Complex, branch: Double): Complex = Complex(math.log(!z), z.arg + (if (z.arg < branch) 2 * Pi else 0))
+  def log(z: Complex, branch: Double): Complex =
+    Complex(math.log(!z), z.arg + (if (z.arg < branch) 2 * Pi else 0))
 
   def sqrt(z: Complex): Complex = exp(log(z) / 2)
 
@@ -167,12 +170,12 @@ object Complex {
     def i: Complex = x * Complex.i
   }
 
-  /**
-    * Compares z1 and z2 by first looking at their modulus, then looking at their argument.
+  /** Compares z1 and z2 by first looking at their modulus, then looking at their argument.
     */
-  def polarOrder(z1: Complex, z2: Complex): Int = (z1.modulus compare z2.modulus, z1.arg compare z2.arg) match {
-    case (0, x) => x
-    case (x, _) => x
-  }
+  def polarOrder(z1: Complex, z2: Complex): Int =
+    (z1.modulus compare z2.modulus, z1.arg compare z2.arg) match {
+      case (0, x) => x
+      case (x, _) => x
+    }
 
 }

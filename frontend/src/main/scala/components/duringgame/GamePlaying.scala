@@ -20,6 +20,9 @@ import be.doeraene.webcomponents.ui5.*
 import services.FrontendEnv
 import be.doeraene.webcomponents.ui5.configkeys.ButtonDesign
 import models.bff.ingame.ClockSynchronizationReport
+import models.syntax.Pointed
+import models.bff.ingame.Controls
+import services.logging.log
 
 object GamePlaying {
   def apply(gameId: String, user: User, secret: String, port: Int)(using
@@ -125,8 +128,15 @@ object GamePlaying {
       gameProtocolModifier
     )
 
+    val controlsVar = Var(Pointed[Controls].unit)
+
     div(
       className := "GamePlaying",
+      onMountZIO(for {
+        controls <- programs.frontend.menus.controls.retrieveControls
+        _        <- ZIO.succeed(controlsVar.set(controls))
+        _        <- log.info("Controls are loaded.")
+      } yield ()),
       child.maybe <-- setupDataBus.events
         .mapTo(Option.empty[HtmlElement])
         .startWith(Some(setupDataComponent)),
@@ -159,26 +169,30 @@ object GamePlaying {
       gameSocket.errorEvents --> Observer[Any](x => dom.console.warn(x)),
       gameSocket.modifier,
       setupDataBus.events --> Observer[Any](x => println(x)),
-      child <-- setupDataBus.events.map { (playerId, bossStartingPosition, deltaWithServer) =>
-        GameViewContainer(
-          user,
-          playerId,
-          bossStartingPosition,
-          gameSocket.inEvents.collect { case actions: InGameWSProtocol.AddAndRemoveActions =>
-            gamelogic.gamestate.AddAndRemoveActions(
-              actions.actionsToAdd,
-              actions.oldestTimeToRemove,
-              actions.idsOfActionsToRemove
-            )
-          },
-          gameSocket.inEvents.collect { case InGameWSProtocol.EveryoneIsReady =>
-            ()
-          },
-          gameSocket.outWriter,
-          deltaWithServer,
-          gameId
-        )
-      }
+      child <-- setupDataBus.events
+        .withCurrentValueOf(controlsVar.signal)
+        .map { (playerId, bossStartingPosition, deltaWithServer, controls) =>
+          println("hello")
+          GameViewContainer(
+            user,
+            playerId,
+            bossStartingPosition,
+            gameSocket.inEvents.collect { case actions: InGameWSProtocol.AddAndRemoveActions =>
+              gamelogic.gamestate.AddAndRemoveActions(
+                actions.actionsToAdd,
+                actions.oldestTimeToRemove,
+                actions.idsOfActionsToRemove
+              )
+            },
+            gameSocket.inEvents.collect { case InGameWSProtocol.EveryoneIsReady =>
+              ()
+            },
+            gameSocket.outWriter,
+            deltaWithServer,
+            gameId,
+            controls
+          )
+        }
     )
   }
 }

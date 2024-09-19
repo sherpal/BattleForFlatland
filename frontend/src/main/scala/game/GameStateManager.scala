@@ -12,6 +12,7 @@ import gamelogic.physics.Complex
 import com.raquo.airstream.ownership.Owner
 import game.scenes.loading.LoadingScene
 import game.scenes.ingame.InGameScene
+import models.bff.ingame.Controls
 
 class GameStateManager(
     userName: String,
@@ -21,7 +22,8 @@ class GameStateManager(
     socketOutWriter: Observer[InGameWSProtocol.Outgoing],
     playerId: Entity.Id,
     bossStartingPosition: Complex,
-    deltaTimeWithServer: Seconds
+    deltaTimeWithServer: Seconds,
+    controls: Controls
 )(using Owner)
     extends IndigoGame[
       InGameScene.StartupData,
@@ -52,7 +54,8 @@ class GameStateManager(
         gameAction =>
           socketOutWriter.onNext(InGameWSProtocol.GameActionWrapper(Vector(gameAction))),
         backendCommWrapper,
-        deltaTimeWithServer
+        deltaTimeWithServer,
+        controls
       )
     )
 
@@ -81,10 +84,11 @@ class GameStateManager(
       model: IndigoModel
   ): Outcome[IndigoViewModel] =
     Outcome(
-      IndigoViewModel(
+      IndigoViewModel.initial(
         model.inGameState.actionGatherer.currentGameState
           .applyActions(model.inGameState.unconfirmedActions),
-        Complex.zero
+        bossStartingPosition,
+        startupData
       )
     )
 

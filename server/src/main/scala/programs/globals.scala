@@ -66,6 +66,6 @@ val userConnectedWatcher = {
       )
     } yield ()
     _ <- Clock.sleep(10.seconds)
-    _ <- connectionCheck.repeat(Schedule.spaced(30.seconds))
+    _ <- connectionCheck.repeat(Schedule.spaced(10.seconds))
   } yield ()
 }

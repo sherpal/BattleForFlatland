@@ -188,6 +188,8 @@ class GameMaster(
           performanceMonitor.addInfo(newLoopTime - lastLoopTime)
           lastLoopTime = newLoopTime
 
+        println("Woot, game begins!!!")
+
         // compute initial actions (spawning boss with its initial actions and other related stuff)
         val timeNow = now
         val bossCreationActions = {

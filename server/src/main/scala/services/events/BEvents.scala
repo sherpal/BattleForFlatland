@@ -17,12 +17,18 @@ private[events] class BEvents(
     .fromQueue(eventQueue, 1)
     .tap(event =>
       for {
+        _                    <- Console.printLine(s"Dispatching $event...").orDie
         currentSubscriptions <- subscriptionsRef.get
         numberOfCurrentSubscriptions = currentSubscriptions.length
         aliveSubscriptions <- ZIO.filter(currentSubscriptions)(
           _.alive.catchAllCause(_ => ZIO.succeed(false))
         )
-        _ <- ZIO.foreachDiscard(aliveSubscriptions)(_.handler(event))
+        _ <- ZIO.foreachDiscard(aliveSubscriptions)(
+          _.handler(event).catchAllCause { cause =>
+            println("howza! handler failed")
+            ZIO.succeed(cause.squash.printStackTrace())
+          }
+        )
         _ <- subscriptionsRef.update(subscriptionsNow =>
           // we can't simply set, in case a subscription was registered in the meantime
           aliveSubscriptions ++ subscriptionsNow.drop(numberOfCurrentSubscriptions)

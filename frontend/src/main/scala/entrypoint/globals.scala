@@ -26,7 +26,8 @@ import components.duringgame.DuringGameMainPage
     routing.FRouting.live,
     services.errorreporting.ErrorReporting.live,
     services.menugames.MenuGames.live,
-    services.localstorage.FLocalStorage.live
+    services.localstorage.FLocalStorage.live,
+    services.logging.FLogging.live
   )
 
   val runtimeF = Unsafe.unsafe { implicit unsafe =>
