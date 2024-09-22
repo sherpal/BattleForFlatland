@@ -10,6 +10,10 @@ import gamelogic.abilities.Ability.AbilityId
 import game.scenes.ingame.InGameScene
 import indigo.shared.events.MouseEvent.MouseDown
 import indigo.shared.events.MouseEvent.Click
+import game.ui.*
+import game.ui.components.grid.GridContainer
+import scala.scalajs.js.JSConverters.*
+import game.scenes.ingame.InGameScene.StartupData
 
 case class IndigoViewModel(
     startupData: InGameScene.StartupData,
@@ -18,7 +22,9 @@ case class IndigoViewModel(
     initialBossPosition: Complex,
     maybeTarget: Option[Entity],
     maybeChoosingAbilityPosition: Option[AbilityId],
-    localMousePos: Point
+    localMousePos: Point,
+    uiParent: UIParent[InGameScene.StartupData, IndigoViewModel],
+    cachedComponents: Component.CachedComponentsInfo
 ) {
 
   def withMousePos(pos: Point): IndigoViewModel = copy(
@@ -106,7 +112,8 @@ object IndigoViewModel {
   def initial(
       gameState: GameState,
       initialBossPosition: Complex,
-      startupData: InGameScene.StartupData
+      startupData: InGameScene.StartupData,
+      myId: Entity.Id
   ): IndigoViewModel =
     IndigoViewModel(
       startupData,
@@ -115,7 +122,20 @@ object IndigoViewModel {
       initialBossPosition,
       maybeTarget = Option.empty,
       maybeChoosingAbilityPosition = Option.empty,
-      localMousePos = Point.zero
+      localMousePos = Point.zero,
+      uiParent = UIParent[InGameScene.StartupData, IndigoViewModel](
+        { (context, viewModel) =>
+          given FrameContext[StartupData] = context
+          given IndigoViewModel           = viewModel
+          js.Array[Component](
+            game.ui.components.PlayerFrameContainer(Point(0, 150)),
+            game.ui.components.actionbar.ActionBar(myId)
+          )
+        },
+        startupData.bounds.width,
+        startupData.bounds.height
+      ),
+      cachedComponents = Component.CachedComponentsInfo.empty
     )
 
 }

@@ -159,7 +159,7 @@ object GamePlaying {
         Option.when(_)(
           Button(
             _.events.onClick --> { _ =>
-              dom.document.location.href = dom.document.location.origin
+              dom.document.location.href = dom.document.location.origin ++ "/static"
             },
             "Back to home",
             _.design := ButtonDesign.Emphasized
@@ -172,7 +172,6 @@ object GamePlaying {
       child <-- setupDataBus.events
         .withCurrentValueOf(controlsVar.signal)
         .map { (playerId, bossStartingPosition, deltaWithServer, controls) =>
-          println("hello")
           GameViewContainer(
             user,
             playerId,

@@ -88,7 +88,8 @@ class GameStateManager(
         model.inGameState.actionGatherer.currentGameState
           .applyActions(model.inGameState.unconfirmedActions),
         bossStartingPosition,
-        startupData
+        startupData,
+        playerId
       )
     )
 

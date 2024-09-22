@@ -4,6 +4,7 @@ import indigo.shared.events.GlobalEvent
 import gamelogic.gamestate.AddAndRemoveActions
 import gamelogic.gamestate.GameAction
 import gamelogic.abilities.Ability.AbilityId
+import gamelogic.entities.Entity
 
 trait CustomIndigoEvents extends GlobalEvent
 
@@ -24,6 +25,14 @@ object CustomIndigoEvents {
     case class ErrorMessage(message: String) extends GameEvent
 
     case class StartChoosingAbility(abilityId: AbilityId) extends GameEvent
+    case class ChooseTarget(entityId: Entity.Id)          extends GameEvent
+  }
+
+  sealed trait UIEvent extends CustomIndigoEvents
+  object UIEvent {
+
+    /** Emitted by the ui parent every half a second so components can decide to slowly change */
+    case class SlowFrameTick() extends UIEvent
   }
 
 }

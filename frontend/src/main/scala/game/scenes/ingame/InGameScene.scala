@@ -36,6 +36,7 @@ import game.handlers.CastAbilitiesHandler
   *   - [x] handle when player is dead
   *   - [x] send game actions other than moving (using abilities, mostly)
   *   - [ ] draw the UI (player frame, all player frames, target frames, boss frame, damage threat)
+  *   - [ ] draw other entities (bullets, damage zones, boss adds...)
   *   - [ ] draw the effects
   *   - [ ] scale camera to best fit
   */
@@ -73,7 +74,11 @@ class InGameScene(
       SceneUpdateFragment(
         Layer(
           Shape
-            .Box(context.startUpData.bounds, Fill.Color(RGBA.Black), Stroke(4, RGBA.Blue))
+            .Box(
+              context.startUpData.bounds,
+              Fill.Color(RGBA.fromColorInts(200, 200, 200)),
+              Stroke(1, RGBA.Blue)
+            )
             .withDepth(Depth.far)
         ),
         Layer(
@@ -95,56 +100,53 @@ class InGameScene(
               gameState.players.values.toJSArray.map { player =>
                 val asset = Asset.playerClassAssetMap(player.cls)
                 Graphic(
-                  Rectangle(Size(50)),
+                  Rectangle(asset.size),
                   2,
                   Material
                     .ImageEffects(asset.assetName)
                     .withTint(
                       RGBA.fromColorInts(player.rgb._1, player.rgb._2, player.rgb._3)
                     )
-                ).withPosition(
-                  context.gameToLocal(
-                    player.pos - player.shape.radius * math.sqrt(2) * Complex.rotation(
-                      player.rotation - math.Pi / 4
-                    )
-                  )
-                ).withRotation(Radians(-player.rotation))
-                  .withScale(Vector2(player.shape.radius / 25))
+                ).withPosition(context.gameToLocal(player.pos))
+                  .withRef(asset.center)
+                  .withRotation(Radians(-player.rotation))
+                  .withScale(asset.scaleTo(2 * player.shape.radius))
               } ++
               viewModel.maybeLaunchGameButton.getOrElse(js.Array())
           )
         ).withCamera(Camera.LookAt(context.gameToLocal(viewModel.currentCameraPosition))),
-        Layer(
-          text("We are in game, woot!", Point(10, 100)),
-          text(
-            s"Down keys are ${context.keyboard.keysDown.map(_.code).distinct.mkString(", ")}",
-            Point(10, 130)
-          ),
-          text(
-            s"Mouse position: ${viewModel.localMousePos} --- ${viewModel.worldMousePosition.toIntComplex}",
-            Point(10, 160)
-          ),
-          text(
-            s"Player pos: ${gameState.players.get(myId).map(_.pos.toIntComplex)}",
-            Point(10, 190)
-          ),
-          text(
-            s"Game bounds center: ${context.startUpData.bounds.center} --- $gameBoundsCenter",
-            Point(10, 220)
-          ),
-          text(
-            gameState.bosses.values.toVector
-              .map(boss => s"${boss.name}: ${boss.life.toInt}/${boss.maxLife.toInt}")
-              .mkString,
-            Point(10, context.startUpData.bounds.height - 60)
-          ),
-          text(
-            gameState.players.values.toVector
-              .map(player => s"${player.name}: ${player.life.toInt}/${player.maxLife.toInt}")
-              .mkString(" | "),
-            Point(10, context.startUpData.bounds.height - 30)
-          )
-        )
+        // Layer(
+        //   text("We are in game, woot!", Point(10, 100)),
+        //   text(
+        //     s"Down keys are ${context.keyboard.keysDown.map(_.code).distinct.mkString(", ")}",
+        //     Point(10, 130)
+        //   ),
+        //   text(
+        //     s"Mouse position: ${viewModel.localMousePos} --- ${viewModel.worldMousePosition.toIntComplex}",
+        //     Point(10, 160)
+        //   ),
+        //   text(
+        //     s"Player pos: ${gameState.players.get(myId).map(_.pos.toIntComplex)}",
+        //     Point(10, 190)
+        //   ),
+        //   text(
+        //     s"Game bounds center: ${context.startUpData.bounds.center} --- $gameBoundsCenter",
+        //     Point(10, 220)
+        //   ),
+        //   text(
+        //     gameState.bosses.values.toVector
+        //       .map(boss => s"${boss.name}: ${boss.life.toInt}/${boss.maxLife.toInt}")
+        //       .mkString,
+        //     Point(10, context.startUpData.bounds.height - 60)
+        //   ),
+        //   text(
+        //     gameState.players.values.toVector
+        //       .map(player => s"${player.name}: ${player.life.toInt}/${player.maxLife.toInt}")
+        //       .mkString(" | "),
+        //     Point(10, context.startUpData.bounds.height - 30)
+        //   )
+        // ),
+        Layer(Batch(viewModel.uiParent.presentAll(context.frameContext, viewModel)))
       )
     )
   }
@@ -203,7 +205,6 @@ class InGameScene(
 
     case CustomIndigoEvents.GameEvent.NewAction(action) if !action.isInstanceOf[UpdateTimestamp] =>
       // this is where we trigger animations effects
-      println(action)
       Outcome(model)
     case _ => Outcome(model)
   }
@@ -220,54 +221,70 @@ class InGameScene(
   override def updateViewModel(
       context: SceneContext[StartupData],
       model: SceneModel,
-      viewModel: SceneViewModel
-  ): GlobalEvent => Outcome[SceneViewModel] = {
-    case FrameTick =>
-      Outcome(
-        viewModel
-          .withUpToDateGameState(model.projectedGameState)
-          .newCameraPosition(myId, context.gameTime.delta)
+      modelBeforeUI: SceneViewModel
+  ): GlobalEvent => Outcome[SceneViewModel] = globalEvent =>
+    modelBeforeUI.uiParent
+      .changeViewModel(
+        context.frameContext,
+        modelBeforeUI,
+        (vm, ui) => vm.copy(uiParent = ui),
+        (vm, cache) => vm.copy(cachedComponents = cache),
+        _.cachedComponents,
+        globalEvent
       )
+      .flatMap(viewModel =>
+        globalEvent match {
+          case FrameTick =>
+            Outcome(
+              viewModel
+                .withUpToDateGameState(model.projectedGameState)
+                .newCameraPosition(myId, context.gameTime.delta)
+            )
 
-    case mouse: MouseEvent.Move =>
-      Outcome(viewModel.withMousePos(mouse.position))
+          case mouse: MouseEvent.Move =>
+            Outcome(viewModel.withMousePos(mouse.position))
 
-    case kbd: KeyboardEvent =>
-      Outcome(viewModel).addGlobalEvents(
-        Batch(
-          castAbilitiesHandler.handleKeyboardEvent(
-            kbd,
-            context,
-            model,
-            viewModel,
-            System.currentTimeMillis()
-          )
-        )
+          case kbd: KeyboardEvent =>
+            Outcome(viewModel).addGlobalEvents(
+              Batch(
+                castAbilitiesHandler.handleKeyboardEvent(
+                  kbd,
+                  context,
+                  model,
+                  viewModel,
+                  System.currentTimeMillis()
+                )
+              )
+            )
+
+          case click: Click
+              if viewModel
+                .doesMouseClickLaunchButton(click.position) =>
+            println("We should launch the game, woot!")
+
+            Outcome(viewModel)
+              .addGlobalEvents(CustomIndigoEvents.GameEvent.SendStartGame())
+
+          case click: Click =>
+            castAbilitiesHandler.handleClickEvent(
+              click,
+              viewModel.targetFromMouseClick(click),
+              System.currentTimeMillis()
+            )
+
+          case CustomIndigoEvents.GameEvent.StartChoosingAbility(abilityId) =>
+            Outcome(viewModel.withChoosingAbilityPosition(abilityId))
+
+          case CustomIndigoEvents.GameEvent.SendStartGame() =>
+            backendCommWrapper.sendMessageToBackend(InGameWSProtocol.LetsBegin)
+            Outcome(viewModel)
+          case CustomIndigoEvents.GameEvent.ChooseTarget(entityId) =>
+            Outcome(
+              viewModel.copy(maybeTarget = model.projectedGameState.entities.get(entityId))
+            )
+          case _ => Outcome(viewModel)
+        }
       )
-
-    case click: Click
-        if viewModel
-          .doesMouseClickLaunchButton(click.position) =>
-      println("We should launch the game, woot!")
-
-      Outcome(viewModel)
-        .addGlobalEvents(CustomIndigoEvents.GameEvent.SendStartGame())
-
-    case click: Click =>
-      castAbilitiesHandler.handleClickEvent(
-        click,
-        viewModel.targetFromMouseClick(click),
-        System.currentTimeMillis()
-      )
-
-    case CustomIndigoEvents.GameEvent.StartChoosingAbility(abilityId) =>
-      Outcome(viewModel.withChoosingAbilityPosition(abilityId))
-
-    case CustomIndigoEvents.GameEvent.SendStartGame() =>
-      backendCommWrapper.sendMessageToBackend(InGameWSProtocol.LetsBegin)
-      Outcome(viewModel)
-    case _ => Outcome(viewModel)
-  }
 
   extension (input: InputCode) {
     inline def isActionDown(context: SceneContext[StartupData]): Boolean = input match

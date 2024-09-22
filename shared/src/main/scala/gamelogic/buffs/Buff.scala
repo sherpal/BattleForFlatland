@@ -3,6 +3,10 @@ package gamelogic.buffs
 import gamelogic.entities.Entity
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.*
+import io.circe.Codec
+import io.circe.Encoder
+import io.circe.Decoder
+import boopickle.Pickler
 
 /** A [[gamelogic.buffs.Buff]] is an effect that is tight to a particular entity, for a given amount
   * of time.
@@ -45,6 +49,13 @@ trait Buff extends IdsProducer {
     */
   def canBeDispelled: Boolean = false
 
+  final def remainingPercentage(currentTime: Long): Double = if isFinite then {
+    val timeSinceAppeared = currentTime - appearanceTime
+    val remainingTime     = duration - timeSinceAppeared
+    val remainingPerc     = remainingTime.toDouble / duration
+    remainingPerc
+  } else 1.0
+
 }
 
 object Buff {
@@ -53,7 +64,13 @@ object Buff {
 
   object Id extends OpaqueLongCompanion[Id]
 
-  type ResourceIdentifier = Int
+  opaque type ResourceIdentifier = Int
+
+  object ResourceIdentifier {
+    given Codec[ResourceIdentifier] = Codec.from(Decoder.decodeInt, Encoder.encodeInt)
+
+    given Pickler[ResourceIdentifier] = boopickle.Default.intPickler
+  }
 
   private var lastId: ResourceIdentifier = 0
   def nextId(): ResourceIdentifier       = { lastId += 1; lastId }
