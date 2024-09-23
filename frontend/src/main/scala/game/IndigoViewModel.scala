@@ -14,6 +14,8 @@ import game.ui.*
 import game.ui.components.grid.GridContainer
 import scala.scalajs.js.JSConverters.*
 import game.scenes.ingame.InGameScene.StartupData
+import models.bff.outofgame.PlayerClasses
+import game.viewmodelmisc.Telemetry
 
 case class IndigoViewModel(
     startupData: InGameScene.StartupData,
@@ -24,7 +26,8 @@ case class IndigoViewModel(
     maybeChoosingAbilityPosition: Option[AbilityId],
     localMousePos: Point,
     uiParent: UIParent[InGameScene.StartupData, IndigoViewModel],
-    cachedComponents: Component.CachedComponentsInfo
+    cachedComponents: Component.CachedComponentsInfo,
+    telemetry: Telemetry
 ) {
 
   def withMousePos(pos: Point): IndigoViewModel = copy(
@@ -103,6 +106,10 @@ case class IndigoViewModel(
       )
     }
 
+  def addFPSDataPoint(delta: Seconds): IndigoViewModel = copy(
+    telemetry = telemetry.addFPSDataPoint(delta.toMillis.toLong)
+  )
+
   private val cameraSpeed: Double = 300.0
 
 }
@@ -129,13 +136,25 @@ object IndigoViewModel {
           given IndigoViewModel           = viewModel
           js.Array[Component](
             game.ui.components.PlayerFrameContainer(Point(0, 150)),
-            game.ui.components.actionbar.ActionBar(myId)
+            game.ui.components.actionbar.ActionBar(myId),
+            game.ui.components.TargetFrame(),
+            game.ui.components.PlayerFrame(
+              myId,
+              viewModel.gameState.players.get(myId).fold(PlayerClasses.Hexagon)(_.cls),
+              Anchor(AnchorPoint.TopRight, AnchorPoint.BottomCenter, Point(-10, -120))
+            ),
+            game.ui.components.FPSDisplay(Anchor.bottomLeft),
+            game.ui.components.PlayerCastBar(myId),
+            game.ui.components.BossCooldownsContainer(),
+            game.ui.components.BossThreadMeter(),
+            game.ui.components.BossFrame()
           )
         },
         startupData.bounds.width,
         startupData.bounds.height
       ),
-      cachedComponents = Component.CachedComponentsInfo.empty
+      cachedComponents = Component.CachedComponentsInfo.empty,
+      telemetry = Telemetry.empty
     )
 
 }

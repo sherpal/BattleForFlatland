@@ -12,6 +12,8 @@ import scala.scalajs.js
 import game.events.CustomIndigoEvents
 import game.ui.components.StatusBar
 
+import scala.scalajs.js.JSConverters.*
+
 final case class BuffIcon(
     entityId: Entity.Id,
     buff: Buff,
@@ -19,7 +21,7 @@ final case class BuffIcon(
     offset: Point = Point.zero
 )(using context: FrameContext[StartupData], viewModel: IndigoViewModel)
     extends Component {
-  val buffAsset = Asset.buffAssetMap(buff.resourceIdentifier)
+  val buffAsset = Asset.buffAssetMap.get(buff.resourceIdentifier)
 
   override val children: js.Array[Component] =
     if buff.isFinite then
@@ -41,17 +43,16 @@ final case class BuffIcon(
 
   override def height: Int = iconSize
 
-  override def visible: Boolean = true
+  override def visible: Boolean = buffAsset.isDefined
 
   override def present(bounds: Rectangle): js.Array[SceneNode] =
-    js.Array(
-      buffAsset
-        .indigoGraphic(
-          bounds.center,
-          None,
-          Radians.zero,
-          bounds.size
-        )
+    buffAsset.toJSArray.map(
+      _.indigoGraphic(
+        bounds.center,
+        None,
+        Radians.zero,
+        bounds.size
+      )
         .withDepth(Depth(4))
     )
 

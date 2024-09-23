@@ -6,7 +6,7 @@ import gamelogic.gamestate.GameState
 final class WithSimpleBullet(simpleBullet: SimpleBulletBody) extends GameStateTransformer {
   def apply(gameState: GameState): GameState =
     gameState.copy(
-      newTime  = simpleBullet.time,
+      time = simpleBullet.time,
       entities = gameState.simpleBullets + (simpleBullet.id -> simpleBullet)
     )
 }

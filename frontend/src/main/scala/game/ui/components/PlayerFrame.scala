@@ -3,11 +3,7 @@ package game.ui.components
 import game.scenes.ingame.InGameScene
 import game.IndigoViewModel
 import gamelogic.entities.Entity
-import game.ui.Component
-import indigo.GlobalEvent
-import game.ui.Anchor
 import indigo.shared.FrameContext
-import indigo.Rectangle
 import game.scenes.ingame.InGameScene.StartupData
 import indigo.*
 import game.ui.components.buffcontainers.BuffContainer
@@ -17,14 +13,21 @@ import models.bff.outofgame.PlayerClasses
 import assets.Asset
 import game.events.CustomIndigoEvents
 import indigo.shared.events.MouseEvent.Click
+import game.ui.*
 
 final case class PlayerFrame(
     playerId: Entity.Id,
-    playerClass: PlayerClasses
+    playerClass: PlayerClasses,
+    anchor: Anchor = Anchor.topLeft
 )(using context: FrameContext[StartupData], viewModel: IndigoViewModel)
     extends Component {
 
-  val maybePlayer = viewModel.gameState.players.get(playerId)
+  val maybeAlivePlayer = viewModel.gameState.players.get(playerId)
+  val maybeDeadPlayer  = viewModel.gameState.deadPlayers.get(playerId)
+
+  def idDead = maybeDeadPlayer.isDefined
+
+  val maybePlayer = maybeAlivePlayer.orElse(maybeDeadPlayer)
 
   private val theWidth  = 200
   private val theHeight = 55
@@ -34,17 +37,13 @@ final case class PlayerFrame(
 
   override def registerEvents(bounds: Rectangle): js.Array[Component.EventRegistration[?]] =
     js.Array(
-      Component.EventRegistration[Click](click =>
-        if bounds.isPointWithin(click.position) then
-          js.Array(CustomIndigoEvents.GameEvent.ChooseTarget(playerId))
-        else js.Array()
-      )
+      registerClickInBounds(bounds)(js.Array(CustomIndigoEvents.GameEvent.ChooseTarget(playerId)))
     )
 
   override def visible: Boolean = true
 
   override def present(bounds: Rectangle): js.Array[SceneNode] =
-    viewModel.gameState.players.get(playerId) match {
+    maybePlayer match {
       case None => js.Array()
       case Some(player) =>
         val playerImageAsset = Asset.playerClassAssetMap(player.cls)
@@ -61,55 +60,78 @@ final case class PlayerFrame(
             Some(RGBA.fromColorInts(player.rgb._1, player.rgb._2, player.rgb._3)),
             Radians.zero,
             Size(20)
-          ),
-          TextBox(player.name, theWidth, theHeight)
-            .withFontFamily(FontFamily.cursive)
-            .withColor(RGBA.White)
-            .withFontSize(Pixels(16))
-            .withStroke(TextStroke(RGBA.Red, Pixels(1)))
-            .withPosition(bounds.position + Point(20, 0)),
-          TextBox(
-            player.resourceAmount.amount.toInt.toString ++ "/" ++ player.maxResourceAmount.toInt.toString,
-            theWidth,
-            theHeight
           )
-            .withFontFamily(FontFamily.cursive)
-            .withColor(RGBA.White)
-            .withFontSize(Pixels(16))
-            .withStroke(TextStroke(RGBA.Red, Pixels(1)))
-            .withPosition(bounds.position + Point(20, 20))
         )
     }
 
-  override def anchor: Anchor = Anchor.topLeft
+  val lifeBar = new Container(180, 20, Anchor.topRight) {
 
-  def children: js.Array[Component] =
-    js.Array(
+    def children: js.Array[Component] = js.Array(
       StatusBar(
         maybePlayer.fold(0.0)(_.life),
         maybePlayer.fold(1.0)(_.maxLife),
         value => if value > 0.5 then RGBA.Green else if value > 0.2 then RGBA.Orange else RGBA.Red,
         Asset.ingame.gui.bars.lifeBarWenakari,
         StatusBar.Horizontal,
-        180,
-        20,
-        Anchor.topRight
+        this.width,
+        this.height,
+        Anchor.right
       ),
+      TextComponent(
+        maybePlayer.fold("Dead")(target => s"${target.life}/${target.maxLife}"),
+        Pixels(12),
+        Anchor.right.withOffset(Point(-2, 0)),
+        RGBA.Black,
+        this.width,
+        12,
+        textAlign = TextAlign.Right
+      )
+    )
+
+  }
+
+  val resourceBar = new Container(180, 15, anchor = Anchor.topRight.withOffset(Point(0, 20))) {
+    def children: js.Array[Component] = js.Array(
       StatusBar(
         maybePlayer.fold(0.0)(_.resourceAmount.amount),
         maybePlayer.fold(1.0)(_.maxResourceAmount),
         _ =>
-          maybePlayer
-            .fold(RGBA.White)(player =>
-              val resourceColour = player.resourceType.colour
-              RGBA.fromColorInts(resourceColour.red, resourceColour.green, resourceColour.blue)
-            ),
+          maybePlayer.fold(RGBA.White)(player =>
+            val resourceColour = player.resourceType.colour
+            RGBA.fromColorInts(resourceColour.red, resourceColour.green, resourceColour.blue)
+          ),
         Asset.ingame.gui.bars.minimalist,
         StatusBar.Horizontal,
-        180,
-        15,
-        Anchor.topRight.withOffset(Point(0, 20))
+        this.width,
+        this.height,
+        Anchor.left
       ),
-      BuffContainer(playerId, Anchor.topLeft.withOffset(Point(0, 35)))
+      TextComponent(
+        maybePlayer.fold("")(entity =>
+          s"${entity.resourceAmount.amount}/${entity.maxResourceAmount}"
+        ),
+        Pixels(8),
+        Anchor.right.withOffset(Point(-2, 0)),
+        RGBA.Black,
+        this.width,
+        8,
+        textAlign = TextAlign.Right
+      )
+    )
+  }
+
+  def children: js.Array[Component] =
+    js.Array(
+      lifeBar,
+      resourceBar,
+      BuffContainer(playerId, Anchor.topLeft.withOffset(Point(0, 35))),
+      TextComponent(
+        maybePlayer.fold("")(_.name),
+        Pixels(16),
+        Anchor.topLeft.withOffset(Point(20, 0)),
+        RGBA.Black,
+        width,
+        height
+      )
     )
 }

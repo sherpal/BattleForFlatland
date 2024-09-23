@@ -239,6 +239,7 @@ class InGameScene(
               viewModel
                 .withUpToDateGameState(model.projectedGameState)
                 .newCameraPosition(myId, context.gameTime.delta)
+                .addFPSDataPoint(context.delta)
             )
 
           case mouse: MouseEvent.Move =>

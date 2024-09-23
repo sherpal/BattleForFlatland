@@ -6,6 +6,8 @@ import game.ui.AnchorPoint.*
 import scala.reflect.Typeable
 
 import scala.scalajs.js
+import game.ui.Component.EventRegistration
+import indigo.shared.events.MouseEvent.Click
 
 trait Component {
 
@@ -70,7 +72,10 @@ trait Component {
     else js.Array()
   }
 
-  final def asComponent: Component = this
+  protected def registerClickInBounds(bounds: Rectangle)(
+      events: => js.Array[GlobalEvent]
+  ): EventRegistration[Click] =
+    EventRegistration(click => if bounds.isPointWithin(click.position) then events else js.Array())
 
 }
 

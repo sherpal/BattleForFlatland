@@ -17,9 +17,18 @@ case class PlayerFrameContainer(
     extends Component {
 
   def children: js.Array[Component] =
-    viewModel.gameState.players.toJSArray.sortBy(_._2.name).map { (playerId, player) =>
-      PlayerFrame(playerId, player.cls)
-    }
+    js.Array(
+      GridContainer(
+        GridContainer.Column,
+        20,
+        (viewModel.gameState.players ++ viewModel.gameState.deadPlayers).toJSArray
+          .sortBy(_._2.name)
+          .map { (playerId, player) =>
+            PlayerFrame(playerId, player.cls)
+          },
+        anchor = Anchor.topLeft
+      )
+    )
 
   override def width: Int = 200
 

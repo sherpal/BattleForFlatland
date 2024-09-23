@@ -11,9 +11,9 @@ import game.ui.components.grid.GridContainer.Column
 final case class GridContainer(
     direction: GridDirection,
     numberOfElementsInGridDirection: Int,
-    visible: Boolean,
     cellChildren: js.Array[Component],
-    anchor: Anchor
+    anchor: Anchor,
+    visible: Boolean = true
 ) extends Component {
 
   val cellWidth  = cellChildren.map(_.width).maxOption.getOrElse(0)
@@ -29,8 +29,8 @@ final case class GridContainer(
     case Column => numberOfCrossDirectionLines * cellWidth
 
   val height: Int = direction match
-    case Row    => numberOfCrossDirectionLines
-    case Column => numberOfElementsInGridDirection.min(cellChildren.length)
+    case Row    => numberOfCrossDirectionLines * cellWidth
+    case Column => numberOfElementsInGridDirection.min(cellChildren.length) * cellHeight
 
   lazy val children: js.Array[Component] = {
     val childrenArr = new js.Array[Component](cellChildren.length)

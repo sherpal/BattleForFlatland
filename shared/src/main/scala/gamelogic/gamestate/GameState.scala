@@ -23,45 +23,20 @@ import gamelogic.gameextras.{GameMarker, GameMarkerInfo}
   *
   * Ticker and passive buffs have very different behaviours, and that's why we separate them below.
   *
-  * /!\ Internal: [[GameState]] is deliberately *not* a case class because we put game state inside
-  * Airstream signals (in the frontend) and those test equality before emitting. Since we don't want
-  * that (a [[GameState]] always changes and is heavy to test equality), we don't make it a case
-  * class. The only drawbacks are that we need to implement the `copy` method ourselves and can't
-  * rely on magnolia to generate the [[models.syntax.Pointed]] instance.
-  *
   * @param time
   *   in millis
   */
-final class GameState(
-    val time: Long,
-    val startTime: Option[Long],
-    val endTime: Option[Long],
-    val castingEntityInfo: Map[Entity.Id, EntityCastingInfo],
-    val passiveBuffs: Map[Entity.Id, Map[Buff.Id, PassiveBuff]],
-    val tickerBuffs: Map[Entity.Id, Map[Buff.Id, TickerBuff]],
-    val entities: Map[Entity.Id, Entity],
-    val markersInfo: Map[GameMarker, GameMarkerInfo]
+final case class GameState(
+    time: Long,
+    startTime: Option[Long],
+    endTime: Option[Long],
+    castingEntityInfo: Map[Entity.Id, EntityCastingInfo],
+    passiveBuffs: Map[Entity.Id, Map[Buff.Id, PassiveBuff]],
+    tickerBuffs: Map[Entity.Id, Map[Buff.Id, TickerBuff]],
+    entities: Map[Entity.Id, Entity],
+    markersInfo: Map[GameMarker, GameMarkerInfo],
+    deadPlayers: Map[Entity.Id, PlayerClass]
 ) {
-
-  def copy(
-      newTime: Long = time,
-      startTime: Option[Long] = startTime,
-      endTime: Option[Long] = endTime,
-      castingEntityInfo: Map[Entity.Id, EntityCastingInfo] = castingEntityInfo,
-      passiveBuffs: Map[Entity.Id, Map[Buff.Id, PassiveBuff]] = passiveBuffs,
-      tickerBuffs: Map[Entity.Id, Map[Buff.Id, TickerBuff]] = tickerBuffs,
-      entities: Map[Entity.Id, Entity] = entities,
-      markersInfo: Map[GameMarker, GameMarkerInfo] = markersInfo
-  ): GameState = new GameState(
-    time max newTime,
-    startTime,
-    endTime,
-    castingEntityInfo,
-    passiveBuffs,
-    tickerBuffs,
-    entities,
-    markersInfo
-  )
 
   def started: Boolean = startTime.isDefined
   def ended: Boolean   = endTime.isDefined
@@ -170,6 +145,9 @@ final class GameState(
   def allTargetableEntities: Iterator[MovingBody & LivingEntity] =
     entities.valuesIterator.collect(filterT[LivingEntity & MovingBody])
 
+  def targetableEntityById(entityId: Entity.Id): Option[MovingBody & LivingEntity] =
+    entities.get(entityId).collect(filterT[MovingBody & LivingEntity])
+
   // Is there something better?
   def withAbilityEntitiesById(entityId: Entity.Id): Option[WithAbilities] =
     entityByIdAs[WithAbilities](entityId)
@@ -218,9 +196,9 @@ final class GameState(
     * better for performances.
     */
   def withObstacle(obstacle: Obstacle): GameState =
-    copy(newTime = obstacle.time max time, entities = entities + (obstacle.id -> obstacle))
+    copy(time = obstacle.time max time, entities = entities + (obstacle.id -> obstacle))
   def removeObstacle(obstacleId: Entity.Id, newTime: Long): GameState =
-    copy(entities = entities - obstacleId, newTime = time max newTime)
+    copy(entities = entities - obstacleId, time = time max newTime)
 
   /** Adds the information about the given [[GameMarker]]. If the [[GameMarker]] is already present,
     * replaces it.
@@ -242,7 +220,7 @@ final class GameState(
 object GameState {
 
   implicit def pointed: Pointed[GameState] = Pointed.factory(
-    new GameState(0L, None, None, Map(), Map(), Map(), Map(), Map())
+    new GameState(0L, None, None, Map(), Map(), Map(), Map(), Map(), Map())
   )
 
   def empty: GameState = Pointed[GameState].unit

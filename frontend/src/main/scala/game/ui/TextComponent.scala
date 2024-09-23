@@ -1,42 +1,31 @@
-// package game.ui
+package game.ui
 
-// import indigo.*
-// import scala.scalajs.js
+import indigo.*
+import scala.scalajs.js
+import game.ui.Component.EventRegistration
 
-// case class TextComponent[StartupData, ViewModel](
-//     text: (FrameContext[StartupData], ViewModel) => String,
-//     anchor: Anchor,
-//     width: Int,
-//     height: Int,
-//     visible: Boolean
-// ) extends Component[StartupData, ViewModel] {
+case class TextComponent(
+    text: String,
+    fontSize: Pixels,
+    anchor: Anchor,
+    color: RGBA,
+    width: Int,
+    height: Int,
+    textAlign: TextAlign = TextAlign.Left,
+    visible: Boolean = true
+) extends Component {
 
-//   def children: js.Array[Component[StartupData, ViewModel]] = js.Array() // No children
+  def children: js.Array[Component] = js.Array()
 
-//   def withChildren(
-//       newChildren: js.Array[Component[StartupData, ViewModel]]
-//   ): Component[StartupData, ViewModel] = this
+  def registerEvents(bounds: Rectangle): scala.scalajs.js.Array[EventRegistration[?]] = js.Array()
 
-//   def handleEvent: PartialFunction[
-//     (FrameContext[StartupData], ViewModel, GlobalEvent, Rectangle),
-//     HandleEventResult[
-//       StartupData,
-//       ViewModel
-//     ]
-//   ] =
-//     PartialFunction.empty
+  def present(bounds: Rectangle): js.Array[SceneNode] = js.Array(
+    TextBox(text, width, height)
+      .withFontFamily(FontFamily.cursive)
+      .withColor(color)
+      .withFontSize(fontSize)
+      .withPosition(bounds.position)
+      .modifyStyle(_.withAlign(textAlign))
+  )
 
-//   def present(
-//       context: FrameContext[StartupData],
-//       viewModel: ViewModel,
-//       bounds: Rectangle
-//   ): scala.scalajs.js.Array[SceneNode] = js.Array(
-//     TextBox(text(context, viewModel), width, height)
-//       .withFontFamily(FontFamily.cursive)
-//       .withColor(RGBA.White)
-//       .withFontSize(Pixels(16))
-//       .withStroke(TextStroke(RGBA.Red, Pixels(1)))
-//       .withPosition(bounds.position)
-//   )
-
-// }
+}
