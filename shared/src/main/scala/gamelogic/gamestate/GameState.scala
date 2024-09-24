@@ -124,13 +124,13 @@ final case class GameState(
   /** Creates a partial function which filters all [[gamelogic.entities.Entity]] of the specified
     * type `T`.
     */
-  def filterT[T <: Entity](implicit tag: ClassTag[T]): PartialFunction[Entity, T] = {
-    case entity: T => entity
+  def filterT[T <: Entity](using ClassTag[T]): PartialFunction[Entity, T] = { case entity: T =>
+    entity
   }
 
   /** Creates a Map from entity id to the corresponding entity, but only for those of type `T`.
     */
-  def allTEntities[T <: Entity](implicit tag: ClassTag[T]): Map[Entity.Id, T] =
+  def allTEntities[T <: Entity](using ClassTag[T]): Map[Entity.Id, T] =
     entities.collect { case (id, entity: T) => (id, entity) }
 
   lazy val players: Map[Id, PlayerClass]                   = allTEntities[PlayerClass]

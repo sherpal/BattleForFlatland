@@ -27,6 +27,9 @@ import assets.Asset
 import indigo.shared.events.MouseEvent.Click
 import models.bff.ingame.InGameWSProtocol
 import game.handlers.CastAbilitiesHandler
+import game.drawers.PentagonBulletsDrawer
+import gamelogic.abilities.pentagon.CreatePentagonZone
+import gamelogic.abilities.Ability
 
 /** Next steps:
   *
@@ -35,7 +38,7 @@ import game.handlers.CastAbilitiesHandler
   *   - [x] button to launch the game
   *   - [x] handle when player is dead
   *   - [x] send game actions other than moving (using abilities, mostly)
-  *   - [ ] draw the UI (player frame, all player frames, target frames, boss frame, damage threat)
+  *   - [x] draw the UI (player frame, all player frames, target frames, boss frame, damage threat)
   *   - [ ] draw other entities (bullets, damage zones, boss adds...)
   *   - [ ] draw the effects
   *   - [ ] scale camera to best fit
@@ -60,8 +63,8 @@ class InGameScene(
       viewModel: SceneViewModel
   ): Outcome[SceneUpdateFragment] = {
 
-    val gameState        = viewModel.gameState
-    val gameBoundsCenter = context.localToGame(context.startUpData.bounds.center)
+    val gameState = viewModel.gameState
+    val now       = System.currentTimeMillis()
 
     def text(message: String, point: Point) = TextBox(message, 400, 30)
       .withFontFamily(FontFamily.cursive)
@@ -96,6 +99,15 @@ class InGameScene(
                 Shape
                   .Circle(context.gameToLocal(0), 2, Fill.Color(RGBA.White))
                   .withDepth(Depth.far)
+              ) ++ PentagonBulletsDrawer.drawAll(
+                gameState,
+                viewModel.maybeChoosingAbilityPosition.collect {
+                  case Ability.createPentagonZoneId =>
+                    viewModel.localMousePosToWorld(context.mouse.position)
+                },
+                myId,
+                now,
+                context.gameToLocal
               ) ++
               gameState.players.values.toJSArray.map { player =>
                 val asset = Asset.playerClassAssetMap(player.cls)
@@ -111,41 +123,12 @@ class InGameScene(
                   .withRef(asset.center)
                   .withRotation(Radians(-player.rotation))
                   .withScale(asset.scaleTo(2 * player.shape.radius))
-              } ++
+              } ++ gameState.bosses.values.headOption.toJSArray
+                .map(game.drawers.bossspecificdrawers.drawerMapping)
+                .flatMap(_.drawAll(gameState, now, context.gameToLocal)) ++
               viewModel.maybeLaunchGameButton.getOrElse(js.Array())
           )
         ).withCamera(Camera.LookAt(context.gameToLocal(viewModel.currentCameraPosition))),
-        // Layer(
-        //   text("We are in game, woot!", Point(10, 100)),
-        //   text(
-        //     s"Down keys are ${context.keyboard.keysDown.map(_.code).distinct.mkString(", ")}",
-        //     Point(10, 130)
-        //   ),
-        //   text(
-        //     s"Mouse position: ${viewModel.localMousePos} --- ${viewModel.worldMousePosition.toIntComplex}",
-        //     Point(10, 160)
-        //   ),
-        //   text(
-        //     s"Player pos: ${gameState.players.get(myId).map(_.pos.toIntComplex)}",
-        //     Point(10, 190)
-        //   ),
-        //   text(
-        //     s"Game bounds center: ${context.startUpData.bounds.center} --- $gameBoundsCenter",
-        //     Point(10, 220)
-        //   ),
-        //   text(
-        //     gameState.bosses.values.toVector
-        //       .map(boss => s"${boss.name}: ${boss.life.toInt}/${boss.maxLife.toInt}")
-        //       .mkString,
-        //     Point(10, context.startUpData.bounds.height - 60)
-        //   ),
-        //   text(
-        //     gameState.players.values.toVector
-        //       .map(player => s"${player.name}: ${player.life.toInt}/${player.maxLife.toInt}")
-        //       .mkString(" | "),
-        //     Point(10, context.startUpData.bounds.height - 30)
-        //   )
-        // ),
         Layer(Batch(viewModel.uiParent.presentAll(context.frameContext, viewModel)))
       )
     )
@@ -159,7 +142,8 @@ class InGameScene(
       val gameMousePos                 = context.localToGame(context.mouse.position)
       val (newModel, triggeredActions) = backendCommWrapper.transform(model)
       val nowGameTime                  = context.gameTime.running
-      newModel.projectedGameState.players.get(myId) match {
+      val gameState                    = newModel.projectedGameState
+      gameState.players.get(myId) match {
         case Some(player) =>
           val playerX: Int =
             (if controls.rightKey.isActionDown(context) then 1 else 0) +
@@ -179,8 +163,11 @@ class InGameScene(
             System.currentTimeMillis() + deltaWithServer.toMillis.toLong,
             myId,
             maybePlayerDirection.fold(player.pos)(dir =>
-              player.pos + player.speed * context.gameTime.delta.toDouble * Complex
-                .rotation(dir)
+              player.lastValidPosition(
+                player.pos + player.speed * context.gameTime.delta.toDouble * Complex
+                  .rotation(dir),
+                gameState.obstacles.values
+              )
             ),
             maybePlayerDirection.getOrElse(0),
             rotation,
@@ -205,6 +192,11 @@ class InGameScene(
 
     case CustomIndigoEvents.GameEvent.NewAction(action) if !action.isInstanceOf[UpdateTimestamp] =>
       // this is where we trigger animations effects
+      action match {
+        case x @ UseAbility(id, time, casterId, useId, ability) =>
+          println(x)
+        case _ => ()
+      }
       Outcome(model)
     case _ => Outcome(model)
   }

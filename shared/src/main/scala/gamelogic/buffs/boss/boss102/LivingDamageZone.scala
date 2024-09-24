@@ -46,6 +46,6 @@ object LivingDamageZone {
 
   final val tickRate: Long = 1000L
   final val duration: Long = 60000L // cooldown will be half of this
-  final val range: Double  = Constants.playerRadius * 6
+  final val range: Double  = Constants.playerRadius * 4
 
 }

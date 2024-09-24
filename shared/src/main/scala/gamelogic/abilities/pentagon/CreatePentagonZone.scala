@@ -59,9 +59,9 @@ case class CreatePentagonZone(
 
 object CreatePentagonZone {
 
-  @inline final def cooldown: Long                = PentagonZone.duration
-  @inline final def cost: Resource.ResourceAmount = Resource.ResourceAmount(10.0, Resource.Mana)
-  @inline final def castingTime: Long             = 1500L
-  @inline final def range: Double                 = WithTargetAbility.healRange
+  inline def cooldown: Long                = PentagonZone.duration
+  inline def cost: Resource.ResourceAmount = Resource.ResourceAmount(10.0, Resource.Mana)
+  inline def castingTime: Long             = 1500L
+  inline def range: Double                 = WithTargetAbility.healRange
 
 }
