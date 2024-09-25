@@ -26,6 +26,14 @@ trait BossMetadata {
   /** Composition of a team form of all AIs. None if the boss does not support AIs. */
   def maybeAIComposition: Option[List[PlayerClasses]]
 
+  final def nextAvailableAI(currentClasses: Vector[PlayerClasses]): Option[PlayerClasses] =
+    maybeAIComposition.flatMap { aiConfiguration =>
+      val aiClassesCounts = aiConfiguration.groupMapReduce(identity)(_ => 1)(_ + _).toVector
+      aiClassesCounts.collectFirst {
+        case (cls, count) if currentClasses.count(_ == cls) < count => cls
+      }
+    }
+
   /** Returns maybe the composition where the left element in the tuples is the name given to the
     * player. Names follow a simple pattern of appending a by-class index to the name of the class.
     *

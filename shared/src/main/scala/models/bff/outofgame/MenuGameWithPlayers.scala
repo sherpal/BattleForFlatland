@@ -23,6 +23,8 @@ final case class MenuGameWithPlayers(game: MenuGame, players: Vector[User], star
   def removePlayer(playerName: String): MenuGameWithPlayers =
     copy(game = game.removePlayer(playerName), players = players.filterNot(_.name == playerName))
 
+  def removeAllAIs: MenuGameWithPlayers = copy(game = game.removeAllAIs)
+
   def isGameCreator(user: User): Boolean = game.gameCreator == user
 
 }

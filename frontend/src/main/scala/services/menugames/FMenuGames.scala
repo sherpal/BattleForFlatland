@@ -14,6 +14,8 @@ import models.bff.outofgame.gameconfig.GameConfiguration
 import menus.data.ChangeGameMetadataFormData
 import menus.data.GameIdFormData
 import menus.data.KickPlayerFormData
+import models.bff.outofgame.PlayerClasses
+import menus.data.RemoveAIFromGame
 
 private[menugames] class FMenuGames(http: services.http.HttpClient) extends MenuGames {
 
@@ -47,6 +49,26 @@ private[menugames] class FMenuGames(http: services.http.HttpClient) extends Menu
       )
       .orDie
       .map(_.toEither)
+
+  override def addAIToGame(gameId: String): ZIO[Any, Nothing, Either[ErrorADT, Boolean]] =
+    http
+      .post[APIResponse[Boolean]](
+        models.bff.Routes.addAIToGame,
+        GameIdFormData(gameId)
+      )
+      .orDie
+      .map(_.toEither)
+
+  override def removeAIFromGame(
+      gameId: String,
+      cls: PlayerClasses
+  ): ZIO[Any, Nothing, Either[ErrorADT, Boolean]] = http
+    .post[APIResponse[Boolean]](
+      models.bff.Routes.removeAIFromGame,
+      RemoveAIFromGame(gameId, cls)
+    )
+    .orDie
+    .map(_.toEither)
 
   override def leaveGame(gameId: String): ZIO[Any, Nothing, Either[ErrorADT, MenuGameWithPlayers]] =
     http

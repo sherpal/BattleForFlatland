@@ -144,6 +144,21 @@ object ErrorADT {
 
     def repr: String = s"Game with id $gameId does not exist."
   }
+  case class BossDoesNotExist(name: String) extends MenuGameError {
+    def httpErrorType: HTTPResultType = BadRequest
+
+    def repr: String = s"Boss $name does not exist."
+  }
+  case class BossDoesNotHaveAIImplemented(name: String) extends MenuGameError {
+    def httpErrorType: HTTPResultType = BadRequest
+
+    def repr: String = s"AIs are not implemented for boss $name"
+  }
+  case class NoMoreAIAvailable() extends MenuGameError {
+    def httpErrorType: HTTPResultType = BadRequest
+
+    def repr: String = s"No AI available left"
+  }
   case class GameAlreadyLaunched(gameId: String) extends MenuGameError {
     def httpErrorType: HTTPResultType = BadRequest
 

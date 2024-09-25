@@ -18,6 +18,8 @@ import models.bff.ingame.GameUserCredentials
 import menus.data.AllGameCredentials
 import services.localstorage.LocalStorage
 import menus.data.GameCredentialsWithGameInfo
+import models.bff.outofgame.PlayerClasses
+import utils.misc.RGBColour
 
 private[menugames] class BMenuGames(
     gamesRef: Ref[Vector[MenuGameWithPlayers]],
@@ -168,6 +170,71 @@ private[menugames] class BMenuGames(
       } yield updatedGames
     ).either
 
+  override def addAIToGame(gameId: String) =
+    updateGamesZIO(currentGames =>
+      for {
+        game <- gameWithId(gameId, currentGames)
+        bossMetadata <- ZIO
+          .succeed(BossMetadata.maybeMetadataByName(game.game.gameConfiguration.bossName))
+          .someOrFail(
+            ErrorADT.BossDoesNotExist(
+              s"Boss ${game.game.gameConfiguration.bossName} does not exist"
+            )
+          )
+        _ <- bossMetadata.maybeAIComposition match {
+          case Some(config) => ZIO.succeed(config.toVector)
+          case None         => ZIO.fail(ErrorADT.BossDoesNotHaveAIImplemented(bossMetadata.name))
+        }
+
+        players        = game.game.gameConfiguration.playersInfo.values.toVector
+        currentClasses = players.flatMap(_.maybePlayerClass)
+        nextAI         = bossMetadata.nextAvailableAI(currentClasses)
+        aiClass <- ZIO.succeed(nextAI).someOrFail(ErrorADT.NoMoreAIAvailable())
+        aiIndicesWithThisClass = players
+          .map(_.playerName)
+          .collect {
+            case PlayerName.AIPlayerName(cls, index) if cls == aiClass => index
+          }
+          .sorted
+        name = aiIndicesWithThisClass.zipWithIndex
+          .collectFirst {
+            case (aiIndex, indexInVector) if aiIndex != indexInVector => indexInVector
+          }
+          .map(PlayerName.AIPlayerName(aiClass, _))
+          .getOrElse(PlayerName.AIPlayerName(aiClass, aiIndicesWithThisClass.length))
+        updatedGame = game.withPlayer(
+          PlayerInfo(
+            name,
+            Some(aiClass),
+            Some(
+              RGBColour.someColours
+                .find(colour => !players.flatMap(_.maybePlayerColour).contains[RGBColour](colour))
+                .getOrElse(RGBColour.someColours.head)
+            ),
+            PlayerStatus.Ready,
+            PlayerType.ArtificialIntelligence
+          )
+        )
+        updatedGames = patchGame(updatedGame, currentGames)
+        _ <- setAndStoreGames(updatedGames)
+      } yield ()
+    ).either
+
+  override def removeAIFromGame(
+      gameId: String,
+      cls: PlayerClasses
+  ): ZIO[Any, Nothing, Either[ErrorADT, Unit]] = updateGamesZIO(currentGames =>
+    for {
+      game <- gameWithId(gameId, currentGames)
+      maybeFirstAI = game.game.gameConfiguration.playersInfo.values.collectFirst {
+        case PlayerInfo(playerName, _, _, _, PlayerType.ArtificialIntelligence) => playerName
+      }
+      updatedGame  = maybeFirstAI.fold(game)(playerName => game.removePlayer(playerName.name))
+      updatedGames = patchGame(updatedGame, currentGames)
+      _ <- setAndStoreGames(updatedGames)
+    } yield ()
+  ).either
+
   override def removePlayer(
       requester: User,
       gameId: String
@@ -206,10 +273,13 @@ private[menugames] class BMenuGames(
         _ <- ZIO.unless(game.game.gameCreator == requester)(
           ZIO.fail(ErrorADT.YouAreNotCreator(requester.name))
         )
+        bossChanged = game.game.gameConfiguration.bossName != gameMetadata.bossName
         updatedGame = game.copy(game =
           game.game.copy(gameConfiguration = game.game.gameConfiguration.withMetadata(gameMetadata))
         )
-        _ <- updateAndStoreGames(patchGame(updatedGame, _))
+        _ <- updateAndStoreGames(
+          patchGame(if bossChanged then updatedGame.removeAllAIs else updatedGame, _)
+        )
       } yield updatedGame
     ).either
 

@@ -18,9 +18,7 @@ import menus.data.MenuGameComm
 import services.events
 import java.util.concurrent.atomic.AtomicBoolean
 import models.bff.outofgame.gameconfig.GameConfiguration
-import menus.data.ChangeGameMetadataFormData
-import menus.data.GameIdFormData
-import menus.data.KickPlayerFormData
+import menus.data.*
 
 class MenuGameRoutes()(using
     val runtime: zio.Runtime[BackendEnv],
@@ -113,8 +111,28 @@ class MenuGameRoutes()(using
     )
   } yield updatedGame).map(APIResponse.fromEither)
 
+  @loggedIn()
+  @readBody[GameIdFormData]
+  @caskz.postJ[APIResponse[Boolean]]("api/bff/add-ai-to-game")
+  def addAIToGame()(body: GameIdFormData)(user: User) = (for {
+    result <- menugames.addAIToGame(body.gameId)
+    _ <- ZIO.when(result.isRight)(
+      events.dispatchEvent(events.Event.GameDataRefreshed(Some(body.gameId)))
+    )
+  } yield result.map(_ => true)).map(APIResponse.fromEither)
+
+  @loggedIn()
+  @readBody[GameIdFormData]
+  @caskz.postJ[APIResponse[Boolean]]("api/bff/remove-ai-from-game")
+  def removeAIFromGame()(body: RemoveAIFromGame)(user: User) = (for {
+    result <- menugames.removeAIFromGame(body.gameId, body.cls)
+    _ <- ZIO.when(result.isRight)(
+      events.dispatchEvent(events.Event.GameDataRefreshed(Some(body.gameId)))
+    )
+  } yield result.map(_ => true)).map(APIResponse.fromEither)
+
   @cask.websocket("/ws/bff/game-anti-chamber")
-  def showUserProfile(ctx: cask.Request, gameId: Option[String] = None): cask.WebsocketResult =
+  def gameAntiChamberWS(ctx: cask.Request, gameId: Option[String] = None): cask.WebsocketResult =
     maybeLoggedInUser(ctx) match {
       case None => unauthenticatedResponse
       case Some(user) =>

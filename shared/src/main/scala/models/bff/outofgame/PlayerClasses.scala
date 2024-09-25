@@ -31,9 +31,9 @@ object PlayerClasses {
 
   def playerClassByName(name: String): Option[PlayerClasses] = allChoices.find(_.value == name)
 
-  implicit val circeDecoder: Decoder[PlayerClasses] =
+  given Decoder[PlayerClasses] =
     Decoder.decodeString.emapTry(str => Try(playerClassByName(str).get))
 
-  implicit val circeEncoder: Encoder[PlayerClasses] = Encoder.encodeString.contramap(_.value)
+  given Encoder[PlayerClasses] = Encoder.encodeString.contramap(_.value)
 
 }

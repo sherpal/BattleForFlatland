@@ -8,6 +8,7 @@ import models.bff.outofgame.gameconfig.PlayerInfo
 import models.bff.outofgame.gameconfig.GameConfiguration
 import menus.data.AllGameCredentials
 import menus.data.GameCredentialsWithGameInfo
+import models.bff.outofgame.PlayerClasses
 
 def menuGames: ZIO[MenuGames, Nothing, Vector[MenuGameWithPlayers]] =
   ZIO.serviceWithZIO[MenuGames](_.menuGames)
@@ -28,6 +29,15 @@ def joinGame(
     maybePassword: Option[String]
 ): ZIO[MenuGames, Nothing, Either[ErrorADT, Vector[MenuGameWithPlayers]]] =
   ZIO.serviceWithZIO[MenuGames](_.joinGame(user, gameId, maybePassword))
+
+def addAIToGame(gameId: String): ZIO[MenuGames, Nothing, Either[ErrorADT, Unit]] =
+  ZIO.serviceWithZIO[MenuGames](_.addAIToGame(gameId))
+
+def removeAIFromGame(
+    gameId: String,
+    cls: PlayerClasses
+): ZIO[MenuGames, Nothing, Either[ErrorADT, Unit]] =
+  ZIO.serviceWithZIO[MenuGames](_.removeAIFromGame(gameId, cls))
 
 def removePlayer(
     requester: User,

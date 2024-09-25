@@ -11,6 +11,7 @@ import models.validators.StringValidators.*
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import models.bff.outofgame.gameconfig.PlayerInfo
+import models.bff.outofgame.gameconfig.PlayerType
 
 final case class MenuGame(
     gameId: String,
@@ -42,6 +43,14 @@ final case class MenuGame(
   def removePlayer(playerName: String): MenuGame = copy(
     gameConfiguration = gameConfiguration.copy(
       playersInfo = gameConfiguration.playersInfo - playerName
+    )
+  )
+
+  def removeAllAIs: MenuGame = copy(
+    gameConfiguration = gameConfiguration.copy(
+      playersInfo = gameConfiguration.playersInfo.collect {
+        case (name, info) if info.playerType != PlayerType.ArtificialIntelligence => (name, info)
+      }
     )
   )
 

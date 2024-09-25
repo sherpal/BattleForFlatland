@@ -30,6 +30,10 @@ import errors.ErrorADT
 import java.util.concurrent.TimeUnit
 import models.bff.ingame.GameUserCredentials
 import services.localstorage.LocalStorage
+import gamelogic.entities.boss.Boss101
+import models.bff.outofgame.gameconfig.PlayerType
+import models.bff.outofgame.gameconfig.PlayerName.HumanPlayerName
+import models.bff.outofgame.gameconfig.PlayerName.AIPlayerName
 
 object GameSettings {
 
@@ -279,7 +283,10 @@ object GameSettings {
                 .map(Colour.fromIntColour)
                 .getOrElse(Colour.white)
               Vector(
-                TableCompat.row.cell(name.name),
+                TableCompat.row.cell(name match
+                  case HumanPlayerName(name) => name
+                  case ai: AIPlayerName      => s"🤖 ${ai.name}"
+                ),
                 TableCompat.row.cell(
                   if isMe then
                     Select(
@@ -413,6 +420,25 @@ object GameSettings {
         _.design := ButtonDesign.Positive
       )
 
+    def addAIButton = {
+      val bossMetadataSignal = gameDataEvents
+        .map(_.game.gameConfiguration.bossName)
+        .map(BossMetadata.maybeMetadataByName)
+        .collect { case Some(bossMetadata) =>
+          bossMetadata
+        }
+        .startWith(Boss101)
+      val clickBus = new EventBus[Unit]
+      Button(
+        _.disabled <-- gameIsLaunchingSignal
+          .combineWith(bossMetadataSignal.map(_.maybeAIComposition.isEmpty))
+          .map(_ || _),
+        "Add AI",
+        _.events.onClick.mapToUnit --> clickBus.writer,
+        clickBus.events.flatMapSwitchZIO(_ => menugames.addAIToGame(gameId)) --> Observer.empty
+      )
+    }
+
     // emit to this bus to show a toast. use sparsely
     val toastBus = new EventBus[String]
 
@@ -438,6 +464,9 @@ object GameSettings {
               _.events.onClick.mapTo(true) --> controlSettingsOpenerBus.writer
             ),
             _.slots.endContent := leaveGameButton,
+            _.slots.endContent <-- gameDataEvents
+              .filter(_.isGameCreator(user))
+              .map(_ => addAIButton),
             _.slots.endContent <-- gameDataEvents
               .filter(_.game.gameCreator == user)
               .map(launchGameButton(toastBus.writer))

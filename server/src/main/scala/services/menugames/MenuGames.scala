@@ -9,6 +9,7 @@ import models.bff.outofgame.gameconfig.GameConfiguration
 import menus.data.AllGameCredentials
 import services.localstorage.LocalStorage
 import menus.data.GameCredentialsWithGameInfo
+import models.bff.outofgame.PlayerClasses
 
 trait MenuGames {
 
@@ -27,6 +28,21 @@ trait MenuGames {
       gameId: String,
       maybePassword: Option[String]
   ): ZIO[Any, Nothing, Either[ErrorADT, Vector[MenuGameWithPlayers]]]
+
+  /** Adds the "next" AI to the game configuration.
+    *
+    * @param gameId
+    *   id of the game
+    * @return
+    *   maybe an error message if the AI could not be added (mostly because full, or boss has no ai
+    *   implemented yet)
+    */
+  def addAIToGame(gameId: String): ZIO[Any, Nothing, Either[ErrorADT, Unit]]
+
+  def removeAIFromGame(
+      gameId: String,
+      cls: PlayerClasses
+  ): ZIO[Any, Nothing, Either[ErrorADT, Unit]]
 
   def removePlayer(
       requester: User,
