@@ -12,7 +12,7 @@ case class TextComponent(
     width: Int,
     height: Int,
     textAlign: TextAlign = TextAlign.Left,
-    visible: Boolean = true
+    visible: Boolean = false
 ) extends Component {
 
   def children: js.Array[Component] = js.Array()

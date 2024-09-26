@@ -30,8 +30,6 @@ class Boss101Controller extends AIController[Boss101, SpawnBoss] {
   ): Vector[GameAction] =
     Option.unless(currentGameState.entityIsCasting(me.id))(maybeTarget).flatten.toVector.flatMap {
       target =>
-        println("Boss101 taking decisions!")
-
         // If the boss is casting, he doesn't do anything else.
         // If the boss has no target, the only possibility is that all players are dead.
         // In that case, the game either has not started yet or it will end very soon so we don't do anything.

@@ -53,8 +53,8 @@ final case class BossFrame()(using viewModel: IndigoViewModel) extends Component
               Asset.ingame.gui.bars.minimalist,
               StatusBar.Horizontal,
               this.width,
-              this.height,
-              Anchor.topLeft
+              10,
+              Anchor.topLeft.withOffset(Point(0, 20))
             ),
             StatusBar(
               viewModel.gameState.time - castingInfo.startedTime.toDouble,
@@ -63,8 +63,8 @@ final case class BossFrame()(using viewModel: IndigoViewModel) extends Component
               Asset.ingame.gui.bars.minimalist,
               StatusBar.Horizontal,
               this.width,
-              this.height,
-              Anchor.topLeft
+              10,
+              Anchor.topLeft.withOffset(Point(0, 20))
             )
           )
         }

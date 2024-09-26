@@ -34,6 +34,17 @@ trait BossMetadata {
       }
     }
 
+  final def fillWithAI(currentClasses: Vector[PlayerClasses]): Option[Vector[PlayerClasses]] =
+    maybeAIComposition.map(_.toVector).map { _ =>
+      def addNext(accumulatedClasses: Vector[PlayerClasses]): Vector[PlayerClasses] =
+        nextAvailableAI(currentClasses ++ accumulatedClasses) match {
+          case None            => accumulatedClasses
+          case Some(nextClass) => addNext(accumulatedClasses :+ nextClass)
+        }
+
+      addNext(Vector.empty)
+    }
+
   /** Returns maybe the composition where the left element in the tuples is the name given to the
     * player. Names follow a simple pattern of appending a by-class index to the name of the class.
     *

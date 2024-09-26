@@ -43,7 +43,7 @@ trait AIController[
 
   protected def getMe(gameState: GameState, entityId: Entity.Id): Option[EntityType]
 
-  @inline private def now = System.currentTimeMillis
+  inline private def now = System.currentTimeMillis()
 
   def loopRate = AIManager.loopRate
 
@@ -54,7 +54,6 @@ trait AIController[
       gameState: GameState,
       graphs: Double => Option[Graph]
   ): Vector[GameAction] =
-    println(s"computing actions for $myId")
     val startTime          = now
     val timeSinceLastFrame = now - lastTimeStamp
     val shouldRun          = timeSinceLastFrame > loopRate

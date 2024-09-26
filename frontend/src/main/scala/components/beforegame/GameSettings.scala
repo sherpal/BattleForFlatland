@@ -87,11 +87,13 @@ object GameSettings {
       models.bff.Routes.gameIdParam,
       gameId
     )
-    val dataRefreshEvents = EventStream.merge(
-      dataRefreshSocket.openEvents.mapToUnit,
-      dataRefreshSocket.inEvents.collect { case MenuGameComm.DataUpdated() => () },
-      playerUpdateFailures.mapToUnit
-    )
+    val dataRefreshEvents = EventStream
+      .merge(
+        dataRefreshSocket.openEvents.mapToUnit,
+        dataRefreshSocket.inEvents.collect { case MenuGameComm.DataUpdated() => () },
+        playerUpdateFailures.mapToUnit
+      )
+      .debounce(50)
     val gameIsStartingSignal = dataRefreshSocket.inEvents
       .collect { case MenuGameComm.GameStarted() =>
         true
@@ -439,6 +441,33 @@ object GameSettings {
       )
     }
 
+    def fillWithAIButton = {
+      val bossMetadataSignal = gameDataEvents
+        .map(_.game.gameConfiguration.bossName)
+        .map(BossMetadata.maybeMetadataByName)
+        .collect { case Some(bossMetadata) =>
+          bossMetadata
+        }
+        .startWith(Boss101)
+      val clickBus = new EventBus[Unit]
+      Button(
+        _.disabled <-- gameIsLaunchingSignal
+          .combineWith(bossMetadataSignal.map(_.maybeAIComposition.isEmpty))
+          .map(_ || _),
+        "Fill with AIs",
+        _.events.onClick.mapToUnit --> clickBus.writer,
+        clickBus.events
+          .sample(bossMetadataSignal)
+          .map(_.fillWithAI(Vector.empty))
+          .collect { case Some(classes) =>
+            classes
+          }
+          .flatMapSwitchZIO(classes =>
+            ZIO.foreachPar(classes)(_ => menugames.addAIToGame(gameId))
+          ) --> Observer.empty
+      )
+    }
+
     // emit to this bus to show a toast. use sparsely
     val toastBus = new EventBus[String]
 
@@ -468,7 +497,10 @@ object GameSettings {
               .filter(_.isGameCreator(user))
               .map(_ => addAIButton),
             _.slots.endContent <-- gameDataEvents
-              .filter(_.game.gameCreator == user)
+              .filter(_.isGameCreator(user))
+              .map(_ => fillWithAIButton),
+            _.slots.endContent <-- gameDataEvents
+              .filter(_.isGameCreator(user))
               .map(launchGameButton(toastBus.writer))
           ),
           gameProblemsDialog,

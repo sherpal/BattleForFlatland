@@ -10,13 +10,15 @@ import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import gamelogic.gamestate.GameAction
 
-class GraphManager(initialRadiuses: Iterable[Double]) {
+class GraphManager(initialRadiuses: Iterable[Int]) {
 
-  private val pathFindersInfo: mutable.Map[Double, PathFinderInfo] = mutable.Map.empty
+  private val pathFindersInfo: mutable.Map[Int, PathFinderInfo] = mutable.Map.empty
 
-  def graphs: Double => Option[Graph] = pathFindersInfo.get(_).map(_.graph)
+  def graphs: Double => Option[Graph] = (r: Double) =>
+    val approxRadius = math.round(r).toInt
+    pathFindersInfo.get(approxRadius).map(_.graph)
 
-  case class PathFinderInfo(shapeQT: ShapeQT, entityRadius: Double) {
+  case class PathFinderInfo(shapeQT: ShapeQT, entityRadius: Int) {
     def addObstacles(obstacles: Iterable[PolygonBody]): PathFinderInfo =
       copy(shapeQT = shapeQT ++ obstacles.toVector)
 
@@ -33,9 +35,9 @@ class GraphManager(initialRadiuses: Iterable[Double]) {
 
   }
 
-  private def emptyPathFinderInfo(radius: Double) = PathFinderInfo(ShapeQT.empty, radius)
+  private def emptyPathFinderInfo(radius: Int) = PathFinderInfo(ShapeQT.empty, radius)
 
-  def graphsForRadius(radius: Iterable[Double], gameState: GameState): Unit = {
+  def graphsForRadius(radius: Iterable[Int], gameState: GameState): Unit = {
     val missingRadius = radius.toSet -- pathFindersInfo.keySet
     pathFindersInfo ++= missingRadius.map(radius =>
       radius -> emptyPathFinderInfo(radius).addObstacles(gameState.obstacles.values)

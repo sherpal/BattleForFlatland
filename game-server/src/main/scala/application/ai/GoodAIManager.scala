@@ -15,8 +15,23 @@ import gamelogic.entities.boss.dawnoftime.*
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
 import application.TimeManager
+import application.ai.goodais.GoodAIController
+import gamelogic.docs.BossMetadata
+import models.bff.outofgame.PlayerClasses.Square
+import models.bff.outofgame.PlayerClasses.Hexagon
+import models.bff.outofgame.PlayerClasses.Triangle
+import models.bff.outofgame.PlayerClasses.Pentagon
+import application.ai.goodais.bosses.boss101.PentagonForBoss101
+import models.bff.outofgame.gameconfig.PlayerName
+import application.ai.goodais.bosses.boss101.SquareForBoss101
+import application.ai.goodais.bosses.boss101.TriangleForBoss101
+import application.ai.goodais.bosses.boss101.HexagonForBoss101
 
-class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTranslator)(using
+class GoodAIManager(
+    bossMetadata: BossMetadata,
+    gameStateProvider: () => GameState,
+    actionTranslator: ActionTranslator
+)(using
     ExecutionContext
 ) extends TimeManager {
   actionTranslator.subscribe(handleNewActions)
@@ -38,21 +53,11 @@ class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTran
         loop(currentGameState)
         sleep(5)
     }.onComplete {
-      case scala.util.Success(_) => println("AIManager loop ended")
+      case scala.util.Success(_) => println("GoodAIManager loop ended")
       case scala.util.Failure(throwable) =>
-        println("[error] AIManager stopped with an error")
+        println("[error] GoodAIManager stopped with an error")
         throwable.printStackTrace()
     }
-
-  private val graphManager = GraphManager(
-    Vector(
-      math.round(Constants.playerRadius).toInt,
-      math.round(Constants.bossRadius).toInt,
-      math.round(BigGuy.shape.radius).toInt
-    )
-  )
-
-  private val aiControllers: mutable.Map[Entity.Id, AIController[?, ?]] = mutable.Map.empty
 
   def handleNewActions(update: AddAndRemoveActions): Unit = {
     // todo
@@ -67,34 +72,50 @@ class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTran
       case action: RemoveEntity =>
         graphManager.maybeRemoveObstacle(action)
         aiControllers.remove(action.entityId)
+      case action: AddPlayerByClass =>
+        action.playerClass.parsePlayerName(action.playerName).foreach {
+          case PlayerName.AIPlayerName(cls, index) =>
+            bossMetadata match {
+              case Boss101 =>
+                val makeAI: (Int, Entity.Id) => GoodAIController[?] = cls match
+                  case Square   => SquareForBoss101(_, _)
+                  case Hexagon  => HexagonForBoss101(_, _)
+                  case Triangle => TriangleForBoss101(_, _)
+                  case Pentagon => PentagonForBoss101(_, _)
+
+                aiControllers.addOne(
+                  action.entityId -> makeAI(index, action.entityId)
+                )
+              case other =>
+                println(s"I don't handle boss ${other.name}")
+            }
+        }
       // todo
-      case action: SpawnBoss if action.bossName == Boss101.name =>
-        aiControllers.addOne(action.entityId -> boss.Boss101Controller())
-      case action: SpawnBoss if action.bossName == Boss102.name =>
-        ??? // make boss 102 controller
-      case action: SpawnBoss if action.bossName == Boss103.name =>
-        ??? // make boss 103 controller
-      case action: SpawnBoss if action.bossName == Boss110.name =>
-        ??? // make boss 110 controller
       case _ =>
       // ignoring other actions
     }
   }
+
+  private val graphManager = GraphManager(
+    Vector(math.round(Constants.playerRadius).toInt)
+  )
+
+  private val aiControllers: mutable.Map[Entity.Id, GoodAIController[?]] = mutable.Map.empty
 
   def loop(gameState: GameState): Unit = {
     val allEntityIds = gameState.entities.keySet
 
     aiControllers.filterInPlace((id, _) => allEntityIds.contains(id))
 
-    aiControllers.foreach { (id, controller) =>
-      val controllerActions = controller.computeActions(id, gameState, graphManager.graphs)
+    aiControllers.values.foreach { controller =>
+      val controllerActions = controller.computeActions(gameState, graphManager.graphs)
       actionTranslator.aiNewGameActions(controllerActions)
     }
   }
 
 }
 
-object AIManager {
+object GoodAIManager {
 
   inline def loopRate = 1000 / 60 // 60 fps for ais
 

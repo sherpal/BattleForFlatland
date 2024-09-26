@@ -39,8 +39,11 @@ import gamelogic.abilities.Ability
   *   - [x] handle when player is dead
   *   - [x] send game actions other than moving (using abilities, mostly)
   *   - [x] draw the UI (player frame, all player frames, target frames, boss frame, damage threat)
+  *   - [ ] implement friendly ais
+  *   - [ ] put back the texts
   *   - [ ] draw other entities (bullets, damage zones, boss adds...)
   *   - [ ] draw the effects
+  *   - [ ] draw the markers
   *   - [ ] scale camera to best fit
   */
 class InGameScene(
@@ -174,14 +177,21 @@ class InGameScene(
             player.speed,
             maybePlayerDirection.isDefined
           )
-          if playerMoveAction.moving || playerMoveAction.moving != player.moving then
-            sendGameAction(playerMoveAction)
-          Outcome(
-            newModel.withActionGatherer(
-              newModel.actionGatherer,
-              newModel.unconfirmedActions :+ playerMoveAction
-            )
-          ).addGlobalEvents(triggeredActions)
+          val maybeAction = Option.when(
+            (model.lastTimeMovementActionSent - nowGameTime > Millis(
+              50
+            ).toSeconds) && (playerMoveAction.moving || playerMoveAction.moving != player.moving)
+          )(
+            playerMoveAction
+          )
+          val outputModel = newModel.withActionGatherer(
+            newModel.actionGatherer,
+            newModel.unconfirmedActions :+ playerMoveAction
+          )
+          Outcome(maybeAction match {
+            case Some(action) => outputModel.alsoSendAction(nowGameTime, sendGameAction(action))
+            case None         => outputModel
+          }).addGlobalEvents(triggeredActions)
         case None =>
           Outcome(newModel).addGlobalEvents(triggeredActions)
       }
@@ -306,13 +316,18 @@ object InGameScene {
 
   class InGameModel(
       val actionGatherer: ActionGatherer,
-      val unconfirmedActions: Vector[GameAction]
+      val unconfirmedActions: Vector[GameAction],
+      val lastTimeMovementActionSent: Seconds
   ) extends js.Object {
     inline def withActionGatherer(
         newActionGatherer: ActionGatherer,
         newUnconfirmedActions: Vector[GameAction]
     ): InGameModel =
-      InGameModel(newActionGatherer, newUnconfirmedActions)
+      InGameModel(newActionGatherer, newUnconfirmedActions, lastTimeMovementActionSent)
+
+    inline def alsoSendAction(now: Seconds, sendAction: => Unit): InGameModel =
+      sendAction
+      InGameModel(actionGatherer, unconfirmedActions, now)
 
     lazy val projectedGameState: GameState =
       actionGatherer.currentGameState.applyActions(unconfirmedActions)
@@ -320,7 +335,8 @@ object InGameScene {
 
   def initialModel(initialGameState: GameState): InGameModel = InGameModel(
     GreedyActionGatherer(initialGameState),
-    Vector.empty
+    Vector.empty,
+    Seconds.zero
   )
 
   val name = SceneName("in game")

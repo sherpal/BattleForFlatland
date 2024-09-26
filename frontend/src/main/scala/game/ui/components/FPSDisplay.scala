@@ -18,7 +18,8 @@ final class FPSDisplay(anchor: Anchor)(using viewModel: IndigoViewModel)
     Anchor.topLeft.withOffset(offset),
     RGBA.Black,
     width,
-    textHeight
+    textHeight,
+    visible = true
   )
 
   override def children: js.Array[Component] = js.Array(

@@ -17,10 +17,11 @@ import gamelogic.gamestate.GameState
 import gamelogic.gamestate.GreedyActionGatherer
 import gamelogic.gamestate.gameactions.{GameStart, SpawnBoss}
 import gamelogic.gamestate.AddAndRemoveActions
-import application.ai.AIManager
+import application.ai.{AIManager, GoodAIManager}
 import scala.concurrent.ExecutionContext
 import gamelogic.entities.Entity
 import gamelogic.utils.IdsProducer
+import gamelogic.docs.BossMetadata
 
 class GameMaster(
     actionTranslator: ActionTranslator,
@@ -37,6 +38,14 @@ class GameMaster(
   @volatile() private var actionGatherer: ActionGatherer = GreedyActionGatherer(GameState.empty)
 
   val aiManager = AIManager(() => actionGatherer.currentGameState, actionTranslator)
+  val goodAiManager =
+    BossMetadata.maybeMetadataByName(gameInfo.game.gameConfiguration.bossName) match {
+      case Some(bossMetadata) =>
+        Some(GoodAIManager(bossMetadata, () => actionGatherer.currentGameState, actionTranslator))
+      case None =>
+        println(s"Woopsies, No metadata for ${gameInfo.game.gameConfiguration.bossName}")
+        None
+    }
 
   /** Set of players that have received the boss starting position and their entity ids, and have
     * done everything they have to before the game starts (loading assets, creating frontend
@@ -62,6 +71,7 @@ class GameMaster(
     if readyPlayers.size == gameInfo.players.length then {
       // every one is ready, we can enter "pre game" mode
       aiManager.start()
+      goodAiManager.foreach(_.start())
       run()
       log.info("Warning all players that everyone is ready")
       playerMap.values.foreach(_.send(InGameWSProtocol.EveryoneIsReady))
