@@ -9,6 +9,7 @@ import com.raquo.airstream.ownership.Owner
 import game.GameStateManager
 import gamelogic.gamestate.GameState
 import models.bff.ingame.Controls
+import assets.fonts.Fonts
 
 object GameViewContainer {
 
@@ -21,7 +22,8 @@ object GameViewContainer {
       socketOutWriter: Observer[InGameWSProtocol.Outgoing],
       deltaTimeWithServer: Long,
       gameId: String,
-      controls: Controls
+      controls: Controls,
+      fonts: Fonts
   ): HtmlElement = {
     val canvasId = "the-game"
     div(
@@ -41,7 +43,8 @@ object GameViewContainer {
           playerId,
           bossStartingPosition,
           indigo.Millis(deltaTimeWithServer).toSeconds,
-          controls
+          controls,
+          fonts
         ).launch(canvasId, "width" -> "1200", "height" -> "800")
       }
     )

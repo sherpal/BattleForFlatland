@@ -15,7 +15,7 @@ object EdgeGameActionsSpecs extends ZIOSpecDefault {
     test("Game must be started after GameStart action") {
       check(Gen.long(0, Long.MaxValue), Gen.long(0, Long.MaxValue)) { (time, startingTime) =>
         val gameStart = GameStart(idGen.actionId(), startingTime)
-        val gameState = GameState.empty.copy(newTime = time)
+        val gameState = GameState.empty.copy(time = time)
         ZIO.succeed(assertTrue(gameStart(gameState).started))
       }
     },
@@ -28,7 +28,7 @@ object EdgeGameActionsSpecs extends ZIOSpecDefault {
     test("Applying a time update on a game state changes its time") {
       check(Gen.long, Gen.long) { (time, updateTime) =>
         val updateTimestamp = UpdateTimestamp(idGen.actionId(), updateTime)
-        val gameState       = GameState.empty.copy(newTime = time)
+        val gameState       = GameState.empty.copy(time = time)
         ZIO.succeed(assertTrue(updateTimestamp(gameState).time == updateTime.max(time).max(0)))
       }
     }

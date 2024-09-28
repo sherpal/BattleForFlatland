@@ -14,6 +14,7 @@ import assets.Asset
 import game.events.CustomIndigoEvents
 import indigo.shared.events.MouseEvent.Click
 import game.ui.*
+import assets.fonts.Fonts
 
 final case class PlayerFrame(
     playerId: Entity.Id,
@@ -79,12 +80,12 @@ final case class PlayerFrame(
       ),
       TextComponent(
         maybePlayer.fold("Dead")(target => s"${target.life}/${target.maxLife}"),
-        Pixels(12),
         Anchor.right.withOffset(Point(-2, 0)),
-        RGBA.Black,
         this.width,
         12,
-        textAlign = TextAlign.Right
+        "black",
+        Fonts.xs,
+        textAlign = TextAlignment.Right
       )
     )
 
@@ -110,12 +111,12 @@ final case class PlayerFrame(
         maybePlayer.fold("")(entity =>
           s"${entity.resourceAmount.amount}/${entity.maxResourceAmount}"
         ),
-        Pixels(8),
         Anchor.right.withOffset(Point(-2, 0)),
-        RGBA.Black,
         this.width,
         8,
-        textAlign = TextAlign.Right
+        "black",
+        Fonts.xs,
+        textAlign = TextAlignment.Right
       )
     )
   }
@@ -127,11 +128,11 @@ final case class PlayerFrame(
       BuffContainer(playerId, Anchor.topLeft.withOffset(Point(0, 35))),
       TextComponent(
         maybePlayer.fold("")(_.name),
-        Pixels(16),
         Anchor.topLeft.withOffset(Point(20, 0)),
-        RGBA.Black,
         width,
-        height
+        height,
+        "black",
+        Fonts.m
       )
     )
 }

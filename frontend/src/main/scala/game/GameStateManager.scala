@@ -13,6 +13,7 @@ import com.raquo.airstream.ownership.Owner
 import game.scenes.loading.LoadingScene
 import game.scenes.ingame.InGameScene
 import models.bff.ingame.Controls
+import assets.fonts.Fonts
 
 class GameStateManager(
     userName: String,
@@ -23,7 +24,8 @@ class GameStateManager(
     playerId: Entity.Id,
     bossStartingPosition: Complex,
     deltaTimeWithServer: Seconds,
-    controls: Controls
+    controls: Controls,
+    fonts: Fonts
 )(using Owner)
     extends IndigoGame[
       InGameScene.StartupData,
@@ -77,6 +79,7 @@ class GameStateManager(
     val height = flags("height").toInt
     Outcome(
       BootResult(GameConfig(width, height), InGameScene.StartupData(Rectangle(width, height)))
+        .withFonts(fonts.fontsInfo.values.toSet)
     )
   }
   override def initialViewModel(

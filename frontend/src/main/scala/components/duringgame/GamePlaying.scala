@@ -23,12 +23,30 @@ import models.bff.ingame.ClockSynchronizationReport
 import models.syntax.Pointed
 import models.bff.ingame.Controls
 import services.logging.log
+import assets.fonts.Fonts
+import scala.concurrent.Future
 
 object GamePlaying {
   def apply(gameId: String, user: User, secret: String, port: Int)(using
       Runtime[FrontendEnv]
   ): HtmlElement = {
 
+    def fontsZIO =
+      ZIO
+        .foreach(for {
+          color <- Fonts.allowedColors
+          size  <- Fonts.allowedSizes
+          key: (Fonts.AllowedColor, Fonts.AllowedSize) = (color, size)
+
+          url = Fonts.makeUrlInfo(color, size)
+        } yield (key, url))((key, url) =>
+          for {
+            response <- ZIO.fromPromiseJS(dom.Fetch.fetch(url.href))
+            json     <- ZIO.fromPromiseJS(response.text())
+          } yield (key, json)
+        )
+        .map(_.toMap)
+        .map(Fonts(_))
     def gameCredentials = GameUserCredentials(user.name, gameId, secret)
 
     val gameSocket =
@@ -171,7 +189,12 @@ object GamePlaying {
       setupDataBus.events --> Observer[Any](x => println(x)),
       child <-- setupDataBus.events
         .withCurrentValueOf(controlsVar.signal)
-        .map { (playerId, bossStartingPosition, deltaWithServer, controls) =>
+        .flatMapSwitchZIO((playerId, bossStartingPosition, deltaWithServer, controls) =>
+          fontsZIO
+            .map(fonts => (playerId, bossStartingPosition, deltaWithServer, controls, fonts))
+            .orDie
+        )
+        .map { (playerId, bossStartingPosition, deltaWithServer, controls, fonts) =>
           GameViewContainer(
             user,
             playerId,
@@ -189,7 +212,8 @@ object GamePlaying {
             gameSocket.outWriter,
             deltaWithServer,
             gameId,
-            controls
+            controls,
+            fonts
           )
         }
     )

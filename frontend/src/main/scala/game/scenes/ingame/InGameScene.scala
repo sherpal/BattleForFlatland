@@ -30,6 +30,7 @@ import game.handlers.CastAbilitiesHandler
 import game.drawers.PentagonBulletsDrawer
 import gamelogic.abilities.pentagon.CreatePentagonZone
 import gamelogic.abilities.Ability
+import assets.fonts.Fonts
 
 /** Next steps:
   *
@@ -39,8 +40,8 @@ import gamelogic.abilities.Ability
   *   - [x] handle when player is dead
   *   - [x] send game actions other than moving (using abilities, mostly)
   *   - [x] draw the UI (player frame, all player frames, target frames, boss frame, damage threat)
-  *   - [ ] implement friendly ais
-  *   - [ ] put back the texts
+  *   - [x] implement friendly ais
+  *   - [x] put back the texts
   *   - [ ] draw other entities (bullets, damage zones, boss adds...)
   *   - [ ] draw the effects
   *   - [ ] draw the markers
@@ -178,7 +179,7 @@ class InGameScene(
             maybePlayerDirection.isDefined
           )
           val maybeAction = Option.when(
-            (model.lastTimeMovementActionSent - nowGameTime > Millis(
+            (nowGameTime - model.lastTimeMovementActionSent > Millis(
               50
             ).toSeconds) && (playerMoveAction.moving || playerMoveAction.moving != player.moving)
           )(

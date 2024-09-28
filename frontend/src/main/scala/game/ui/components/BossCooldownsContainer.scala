@@ -10,6 +10,7 @@ import game.ui.components.grid.GridContainer
 import utils.misc.RGBColour
 import assets.Asset
 import scala.scalajs.js.JSConverters.*
+import assets.fonts.Fonts
 
 final case class BossCooldownsContainer()(using viewModel: IndigoViewModel) extends Component {
 
@@ -46,11 +47,11 @@ final case class BossCooldownsContainer()(using viewModel: IndigoViewModel) exte
                   ),
                   TextComponent(
                     name,
-                    Pixels(this.height - 4),
                     Anchor.left,
-                    if colour.isBright then RGBA.Black else RGBA.White,
                     this.width,
-                    this.height
+                    this.height,
+                    if colour.isBright then "black" else "white",
+                    Fonts.m
                   )
                 )
               }

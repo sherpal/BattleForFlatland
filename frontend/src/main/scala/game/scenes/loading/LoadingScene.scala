@@ -18,6 +18,7 @@ import game.scenes.loading.LoadingState.InProgress
 import game.scenes.loading.LoadingState.WaitingForOthers
 import indigo.scenes.SceneEvent.JumpTo
 import game.scenes.ingame.InGameScene
+import assets.fonts.Fonts
 
 /** This is the indigo scene when we start the game.
   *
@@ -78,7 +79,9 @@ class LoadingScene(
             .addGlobalEvents(
               AssetBundleLoaderEvent.Load(
                 BindingKey("Loading"),
-                Asset.allAssets.map(_.asIndigoAssetType)
+                Asset.allAssets.map(
+                  _.asIndigoAssetType
+                ) ++ Fonts.fontImages.values
               )
             )
         case _ if backendCommWrapper.allPlayersAreReady =>

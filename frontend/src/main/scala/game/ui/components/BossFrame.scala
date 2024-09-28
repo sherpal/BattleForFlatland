@@ -6,6 +6,7 @@ import scala.scalajs.js
 import game.IndigoViewModel
 import game.ui.Component.EventRegistration
 import assets.Asset
+import assets.fonts.Fonts
 
 final case class BossFrame()(using viewModel: IndigoViewModel) extends Component {
 
@@ -42,7 +43,7 @@ final case class BossFrame()(using viewModel: IndigoViewModel) extends Component
           20,
           Anchor.top
         ),
-        TextComponent(boss.name, Pixels(18), Anchor.top, RGBA.Black, width, 20)
+        TextComponent(boss.name, Anchor.top, width, 20, "black", Fonts.m)
       ) ++ maybeCastingInfo
         .map { castingInfo =>
           js.Array(

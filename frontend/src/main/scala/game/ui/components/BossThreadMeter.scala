@@ -9,6 +9,7 @@ import game.ui.components.grid.GridContainer
 import scala.scalajs.js.JSConverters.*
 import assets.Asset
 import utils.misc.RGBColour
+import assets.fonts.Fonts
 
 final case class BossThreadMeter()(using viewModel: IndigoViewModel) extends Component {
 
@@ -33,7 +34,7 @@ final case class BossThreadMeter()(using viewModel: IndigoViewModel) extends Com
   override def width: Int = 150
 
   override val children: js.Array[Component] = js.Array(
-    TextComponent("Threat Meter", Pixels(16), Anchor.topLeft, RGBA.Black, width, 18),
+    TextComponent("Threat Meter", Anchor.topLeft, width, 18, "black", Fonts.m),
     GridContainer(
       GridContainer.Column,
       20,
@@ -53,11 +54,11 @@ final case class BossThreadMeter()(using viewModel: IndigoViewModel) extends Com
             ),
             TextComponent(
               player.name,
-              Pixels(this.height - 4),
               Anchor.left,
-              if colour.isBright then RGBA.Black else RGBA.White,
               this.width,
-              this.height
+              this.height,
+              if colour.isBright then "black" else "white",
+              Fonts.m
             )
           )
         }

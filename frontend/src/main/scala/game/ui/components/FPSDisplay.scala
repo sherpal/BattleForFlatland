@@ -4,22 +4,21 @@ import game.IndigoViewModel
 import game.ui.*
 import scala.scalajs.js
 import indigo.*
+import assets.fonts.Fonts
 
 final class FPSDisplay(anchor: Anchor)(using viewModel: IndigoViewModel)
     extends Container(200, 28, anchor) {
 
   val report     = viewModel.telemetry.fps
   val textHeight = 8
-  val fontSize   = Pixels(textHeight)
 
   def text(content: String, offset: Point) = TextComponent(
     content,
-    fontSize,
     Anchor.topLeft.withOffset(offset),
-    RGBA.Black,
     width,
     textHeight,
-    visible = true
+    "black",
+    Fonts.xs
   )
 
   override def children: js.Array[Component] = js.Array(

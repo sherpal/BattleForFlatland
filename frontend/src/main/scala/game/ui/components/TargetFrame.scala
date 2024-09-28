@@ -14,6 +14,7 @@ import gamelogic.entities.WithAbilities
 import gamelogic.entities.Resource
 import game.events.CustomIndigoEvents
 import game.ui.components.buffcontainers.BuffContainer
+import assets.fonts.Fonts
 
 final case class TargetFrame()(using context: FrameContext[StartupData], viewModel: IndigoViewModel)
     extends Component {
@@ -49,12 +50,12 @@ final case class TargetFrame()(using context: FrameContext[StartupData], viewMod
       ),
       TextComponent(
         maybeTarget.fold("Dead")(target => s"${target.life}/${target.maxLife}"),
-        Pixels(12),
         Anchor.right.withOffset(Point(-2, 0)),
-        RGBA.Black,
         this.width,
         12,
-        textAlign = TextAlign.Right
+        "black",
+        Fonts.xs,
+        textAlign = TextAlignment.Right
       )
     )
 
@@ -83,12 +84,12 @@ final case class TargetFrame()(using context: FrameContext[StartupData], viewMod
         maybeTargetWithAbility.fold("")(entity =>
           s"${entity.resourceAmount.amount}/${entity.maxResourceAmount}"
         ),
-        Pixels(8),
         Anchor.right.withOffset(Point(-2, 0)),
-        RGBA.Black,
         this.width,
         8,
-        textAlign = TextAlign.Right
+        "black",
+        Fonts.xs,
+        textAlign = TextAlignment.Right
       )
     )
   }
@@ -126,11 +127,11 @@ final case class TargetFrame()(using context: FrameContext[StartupData], viewMod
         castingBar,
         TextComponent(
           name,
-          Pixels(12),
           Anchor.topLeft.withOffset(Point(1)),
-          RGBA.Black,
           width,
-          height
+          height,
+          "black",
+          Fonts.xs
         ),
         BuffContainer(target.id, Anchor.topLeft.withOffset(Point(0, 40)))
       )
