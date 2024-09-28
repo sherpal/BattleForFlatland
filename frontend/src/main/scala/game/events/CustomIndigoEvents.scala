@@ -5,6 +5,7 @@ import gamelogic.gamestate.AddAndRemoveActions
 import gamelogic.gamestate.GameAction
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.entities.Entity
+import gamelogic.gameextras.GameMarkerInfo
 
 trait CustomIndigoEvents extends GlobalEvent
 
@@ -17,9 +18,10 @@ object CustomIndigoEvents {
 
   sealed trait GameEvent extends CustomIndigoEvents
   object GameEvent {
-    case class NewAction(action: GameAction)  extends GameEvent
-    case class SendStartGame()                extends GameEvent
-    case class SendAction(action: GameAction) extends GameEvent
+    case class NewAction(action: GameAction)    extends GameEvent
+    case class SendStartGame()                  extends GameEvent
+    case class SendAction(action: GameAction)   extends GameEvent
+    case class PutMarkers(info: GameMarkerInfo) extends GameEvent
 
     /** Sent within the game when an error message must be displayed on top of the screen. */
     case class ErrorMessage(message: String) extends GameEvent

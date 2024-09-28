@@ -10,11 +10,6 @@ import indigo.scenes.SceneContext
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
 import models.bff.ingame.Controls
-import models.bff.ingame.Controls.InputCode
-import models.bff.ingame.Controls.KeyCode
-import models.bff.ingame.Controls.ModifiedKeyCode
-import models.bff.ingame.Controls.MouseCode
-import models.bff.ingame.Controls.KeyInputModifier.WithShift
 import gamelogic.abilities.*
 
 import org.scalajs.dom
@@ -30,7 +25,8 @@ import gamelogic.entities.classes.pentagon.PentagonZone
 import utils.misc.RGBAColour
 import utils.misc.RGBColour
 
-class CastAbilitiesHandler(myId: Entity.Id, controls: Controls, deltaTimeWithServer: Long) {
+class CastAbilitiesHandler(myId: Entity.Id, controls: Controls, deltaTimeWithServer: Long)
+    extends KeyboardHandler {
 
   def handleClickEvent(
       click: Click,
@@ -198,20 +194,6 @@ class CastAbilitiesHandler(myId: Entity.Id, controls: Controls, deltaTimeWithSer
   }
 
   private def maybeMe(gameState: GameState) = gameState.players.get(myId)
-
-  private def wasInputCode(
-      inputCode: InputCode,
-      event: KeyboardEvent,
-      downKeys: Batch[Key]
-  ): Boolean = inputCode match
-    case kc: KeyCode =>
-      kc.keyCode == event.keyCode.code && !downKeys.contains[Key](Key.SHIFT)
-    case mkc @ ModifiedKeyCode(_, modifier) =>
-      def isModifierDown = modifier match
-        case WithShift => downKeys.contains[Key](Key.SHIFT)
-
-      mkc.keyCode == event.keyCode.code && isModifierDown
-    case MouseCode(_) => false
 
   def sendCastAbilityWithTarget(
       ability: Entity => Ability,

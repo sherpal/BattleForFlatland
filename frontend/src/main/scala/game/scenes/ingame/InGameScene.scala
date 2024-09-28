@@ -31,6 +31,9 @@ import game.drawers.PentagonBulletsDrawer
 import gamelogic.abilities.pentagon.CreatePentagonZone
 import gamelogic.abilities.Ability
 import assets.fonts.Fonts
+import gamelogic.gamestate.gameactions.markers.UpdateMarker
+import game.handlers.MarkersHandler
+import game.drawers.GameMarkersDrawer
 
 /** Next steps:
   *
@@ -44,7 +47,7 @@ import assets.fonts.Fonts
   *   - [x] put back the texts
   *   - [x (mostly)] draw the effects
   *   - [ ] draw other entities (bullets, damage zones, boss adds...)
-  *   - [ ] allow players to use markers and draw them
+  *   - [x] allow players to use markers and draw them
   *   - [ ] scale camera to best fit
   */
 class InGameScene(
@@ -58,6 +61,7 @@ class InGameScene(
   type SceneViewModel = IndigoViewModel
 
   val castAbilitiesHandler = CastAbilitiesHandler(myId, controls, deltaWithServer.toMillis.toLong)
+  val gameMarkersHandler   = MarkersHandler(controls)
 
   override def subSystems: Set[SubSystem[IndigoModel]] = Set.empty
 
@@ -135,9 +139,14 @@ class InGameScene(
               viewModel.maybeLaunchGameButton.getOrElse(js.Array())
           )
         ).withCamera(playerCenteredCamera),
-        Layer(Batch(viewModel.uiParent.presentAll(context.frameContext, viewModel))),
-        Layer(Batch(viewModel.effectsManager.present(context.frameContext, viewModel)))
-          .withCamera(playerCenteredCamera)
+        Layer(
+          Batch(
+            viewModel.effectsManager.present(context.frameContext, viewModel) ++ GameMarkersDrawer
+              .drawAll(viewModel.gameState, System.currentTimeMillis(), context.gameToLocal)
+          )
+        )
+          .withCamera(playerCenteredCamera),
+        Layer(Batch(viewModel.uiParent.presentAll(context.frameContext, viewModel)))
       )
     )
   }
@@ -199,6 +208,11 @@ class InGameScene(
       sendGameAction(send.action)
       Outcome(model)
 
+    case putMarker: CustomIndigoEvents.GameEvent.PutMarkers =>
+      println(putMarker.info)
+      sendGameAction(UpdateMarker(GameAction.Id.dummy, System.currentTimeMillis(), putMarker.info))
+      Outcome(model)
+
     case _ => Outcome(model)
   }
 
@@ -258,7 +272,14 @@ class InGameScene(
                   model,
                   viewModel,
                   System.currentTimeMillis()
-                )
+                ) ++ gameMarkersHandler
+                  .handleKeyboardEvent(
+                    kbd,
+                    context.frameContext,
+                    model,
+                    viewModel,
+                    System.currentTimeMillis()
+                  )
               )
             )
 

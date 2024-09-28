@@ -51,6 +51,10 @@ final case class Controls(
     */
   def getOrUnknown(keyCode: InputCode): UserInput =
     controlMap.getOrElse(keyCode, UserInput.Unknown(keyCode))
+
+  /** Retrieve the [[UserInput]] associated to this [[InputCode]], or None if it's not associated
+   */
+  def get(keyCode: InputCode): Option[UserInput] = controlMap.get(keyCode)
 }
 
 object Controls {
@@ -123,7 +127,7 @@ object Controls {
   given Encoder[Controls] = deriveEncoder
   given Decoder[Controls] = deriveDecoder
 
-  def keyCodeToKeyMap = Map(
+  val keyCodeToKeyMap = Map(
     "KeyA"           -> 65,
     "KeyB"           -> 66,
     "KeyC"           -> 67,
@@ -245,5 +249,7 @@ object Controls {
     "F23"            -> 134,
     "F24"            -> 135
   )
+
+  val keyToKeyCodeMap = keyCodeToKeyMap.map(_.swap)
 
 }
