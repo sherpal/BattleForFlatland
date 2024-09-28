@@ -66,7 +66,9 @@ object Asset {
   def allAssets: Set[Asset] =
     Set(
       ingame.gui.abilities.abilityOverlay,
-      ingame.gui.boss.dawnOfTime.boss103.sacredGroundArea
+      ingame.gui.boss.dawnOfTime.boss103.sacredGroundArea,
+      ingame.gui.abilities.triangleDirectHitEffect,
+      ingame.gui.abilities.cleaveEffect
     ) ++
       Asset.ingame.gui.bars.allBars ++
       Asset.markerAssetMap.values ++
@@ -104,6 +106,9 @@ object Asset {
         val pentagonZone   = Asset("/assets/in-game/gui/abilities/create-pentagon-zone.png", 32, 32)
         val pentagonDispel = Asset("/assets/in-game/gui/abilities/pentagon-dispel.png", 32, 32)
         val boss101BigDot  = Asset("/assets/in-game/gui/abilities/boss101-big-dot.png", 30, 30)
+
+        val triangleDirectHitEffect = Asset("/assets/in-game/gui/abilities/sword.png", 20, 2)
+        val cleaveEffect = Asset("/assets/in-game/gui/abilities/cleave-animation.png", 135, 40)
 
       }
 

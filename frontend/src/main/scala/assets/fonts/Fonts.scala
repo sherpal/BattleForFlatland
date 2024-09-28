@@ -69,7 +69,7 @@ object Fonts {
     )
   }
 
-  val allowedSizes: js.Array[AllowedSize]   = js.Array(8, 16)
+  val allowedSizes: js.Array[AllowedSize]   = js.Array(8, 12, 16, 20)
   val allowedColors: js.Array[AllowedColor] = js.Array("black", "white", "green", "red")
 
   val fontKeys: Map[(AllowedColor, AllowedSize), FontKey] = (for {

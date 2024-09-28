@@ -42,9 +42,9 @@ import assets.fonts.Fonts
   *   - [x] draw the UI (player frame, all player frames, target frames, boss frame, damage threat)
   *   - [x] implement friendly ais
   *   - [x] put back the texts
+  *   - [x (mostly)] draw the effects
   *   - [ ] draw other entities (bullets, damage zones, boss adds...)
-  *   - [ ] draw the effects
-  *   - [ ] draw the markers
+  *   - [ ] allow players to use markers and draw them
   *   - [ ] scale camera to best fit
   */
 class InGameScene(
@@ -76,6 +76,8 @@ class InGameScene(
       .withFontSize(Pixels(16))
       .withStroke(TextStroke(RGBA.Red, Pixels(1)))
       .withPosition(point)
+
+    val playerCenteredCamera = Camera.LookAt(context.gameToLocal(viewModel.currentCameraPosition))
 
     Outcome(
       SceneUpdateFragment(
@@ -132,8 +134,10 @@ class InGameScene(
                 .flatMap(_.drawAll(gameState, now, context.gameToLocal)) ++
               viewModel.maybeLaunchGameButton.getOrElse(js.Array())
           )
-        ).withCamera(Camera.LookAt(context.gameToLocal(viewModel.currentCameraPosition))),
-        Layer(Batch(viewModel.uiParent.presentAll(context.frameContext, viewModel)))
+        ).withCamera(playerCenteredCamera),
+        Layer(Batch(viewModel.uiParent.presentAll(context.frameContext, viewModel))),
+        Layer(Batch(viewModel.effectsManager.present(context.frameContext, viewModel)))
+          .withCamera(playerCenteredCamera)
       )
     )
   }
@@ -179,20 +183,14 @@ class InGameScene(
             maybePlayerDirection.isDefined
           )
           val maybeAction = Option.when(
-            (nowGameTime - model.lastTimeMovementActionSent > Millis(
-              50
-            ).toSeconds) && (playerMoveAction.moving || playerMoveAction.moving != player.moving)
-          )(
-            playerMoveAction
-          )
+            playerMoveAction.moving || playerMoveAction.moving != player.moving
+          )(playerMoveAction)
+          maybeAction.foreach(sendGameAction(_))
           val outputModel = newModel.withActionGatherer(
             newModel.actionGatherer,
             newModel.unconfirmedActions :+ playerMoveAction
           )
-          Outcome(maybeAction match {
-            case Some(action) => outputModel.alsoSendAction(nowGameTime, sendGameAction(action))
-            case None         => outputModel
-          }).addGlobalEvents(triggeredActions)
+          Outcome(outputModel).addGlobalEvents(triggeredActions)
         case None =>
           Outcome(newModel).addGlobalEvents(triggeredActions)
       }
@@ -201,14 +199,6 @@ class InGameScene(
       sendGameAction(send.action)
       Outcome(model)
 
-    case CustomIndigoEvents.GameEvent.NewAction(action) if !action.isInstanceOf[UpdateTimestamp] =>
-      // this is where we trigger animations effects
-      action match {
-        case x @ UseAbility(id, time, casterId, useId, ability) =>
-          println(x)
-        case _ => ()
-      }
-      Outcome(model)
     case _ => Outcome(model)
   }
 
@@ -239,16 +229,27 @@ class InGameScene(
         globalEvent match {
           case FrameTick =>
             Outcome(
-              viewModel
-                .withUpToDateGameState(model.projectedGameState)
-                .newCameraPosition(myId, context.gameTime.delta)
-                .addFPSDataPoint(context.delta)
+              viewModel.effectsManager.updateViewModel(
+                context.frameContext,
+                viewModel
+                  .withUpToDateGameState(model.projectedGameState)
+                  .newCameraPosition(myId, context.gameTime.delta)
+                  .addFPSDataPoint(context.delta)
+              )
             )
 
           case mouse: MouseEvent.Move =>
             Outcome(viewModel.withMousePos(mouse.position))
 
-          case kbd: KeyboardEvent =>
+          case CustomIndigoEvents.GameEvent.NewAction(action)
+              if !action.isInstanceOf[UpdateTimestamp] =>
+            // this is where we trigger animations effects
+            Outcome(
+              viewModel.effectsManager
+                .handleActionAndModifyViewModel(action, context.frameContext, viewModel)
+            )
+
+          case kbd: KeyboardEvent.KeyUp =>
             Outcome(viewModel).addGlobalEvents(
               Batch(
                 castAbilitiesHandler.handleKeyboardEvent(

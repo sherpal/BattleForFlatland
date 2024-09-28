@@ -73,7 +73,7 @@ class CastAbilitiesHandler(myId: Entity.Id, controls: Controls, deltaTimeWithSer
   }
 
   def handleKeyboardEvent(
-      event: KeyboardEvent,
+      event: KeyboardEvent.KeyUp,
       context: SceneContext[InGameScene.StartupData],
       model: InGameScene.InGameModel,
       viewModel: IndigoViewModel,

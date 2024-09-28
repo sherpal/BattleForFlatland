@@ -16,6 +16,7 @@ import scala.scalajs.js.JSConverters.*
 import game.scenes.ingame.InGameScene.StartupData
 import models.bff.outofgame.PlayerClasses
 import game.viewmodelmisc.Telemetry
+import game.drawers.effects.EffectsManager
 
 case class IndigoViewModel(
     startupData: InGameScene.StartupData,
@@ -27,6 +28,7 @@ case class IndigoViewModel(
     localMousePos: Point,
     uiParent: UIParent[InGameScene.StartupData, IndigoViewModel],
     cachedComponents: Component.CachedComponentsInfo,
+    effectsManager: EffectsManager,
     telemetry: Telemetry
 ) {
 
@@ -154,7 +156,8 @@ object IndigoViewModel {
         startupData.bounds.height
       ),
       cachedComponents = Component.CachedComponentsInfo.empty,
-      telemetry = Telemetry.empty
+      telemetry = Telemetry.empty,
+      effectsManager = EffectsManager.empty(myId)
     )
 
 }
