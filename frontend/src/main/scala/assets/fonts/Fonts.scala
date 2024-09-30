@@ -60,7 +60,7 @@ object Fonts {
           FontChar(position.char.toString, position.x, position.y, position.width, position.height)
         )
         .get
-    )
+    ).makeCaseSensitive(sensitive = true)
 
     glyphInfo.position.foldLeft(baseInfo)((fontInfo, position) =>
       fontInfo.addChar(

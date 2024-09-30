@@ -71,7 +71,7 @@ final case class PlayerFrame(
       StatusBar(
         maybePlayer.fold(0.0)(_.life),
         maybePlayer.fold(1.0)(_.maxLife),
-        value => if value > 0.5 then RGBA.Green else if value > 0.2 then RGBA.Orange else RGBA.Red,
+        StatusBar.lifeStatusColor,
         Asset.ingame.gui.bars.lifeBarWenakari,
         StatusBar.Horizontal,
         this.width,

@@ -72,6 +72,12 @@ trait Component {
     else js.Array()
   }
 
+  /** Same as [[presentWithChildren]], but assumes that you are going to place your component in
+    * absolute position.
+    */
+  def presentWithChildrenWithoutRectangle: js.Array[SceneNode] =
+    presentWithChildren(Rectangle(Size(0)))
+
   protected def registerClickInBounds(bounds: Rectangle)(
       events: => js.Array[GlobalEvent]
   ): EventRegistration[Click] =

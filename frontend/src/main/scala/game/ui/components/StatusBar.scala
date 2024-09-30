@@ -65,4 +65,7 @@ object StatusBar {
   sealed trait Orientation
   case object Horizontal extends Orientation
   case object Vertical   extends Orientation
+
+  val lifeStatusColor: Double => RGBA = x =>
+    if x > 0.5 then RGBA.Green else if x > 0.2 then RGBA.Orange else RGBA.Red
 }

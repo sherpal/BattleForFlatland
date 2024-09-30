@@ -34,6 +34,8 @@ import assets.fonts.Fonts
 import gamelogic.gamestate.gameactions.markers.UpdateMarker
 import game.handlers.MarkersHandler
 import game.drawers.GameMarkersDrawer
+import game.drawers.PlayerDrawer
+import game.drawers.BossDrawer
 
 /** Next steps:
   *
@@ -48,7 +50,10 @@ import game.drawers.GameMarkersDrawer
   *   - [x (mostly)] draw the effects
   *   - [ ] draw other entities (bullets, damage zones, boss adds...)
   *   - [x] allow players to use markers and draw them
-  *   - [ ] scale camera to best fit
+  *   - [x] draw mini bars on top of players and boss
+  *   - [x] draw indication of orientation of boss
+  *   - [ ] generate font glyph images and data at run-time
+  *   - [ ] scale camera to best fit (opt)
   */
 class InGameScene(
     myId: Entity.Id,
@@ -96,15 +101,7 @@ class InGameScene(
         ),
         Layer(
           Batch.fromJSArray(
-            gameState.bosses.values.headOption.toJSArray.map(boss =>
-              Shape
-                .Circle(
-                  context.gameToLocal(boss.currentPosition(System.currentTimeMillis())),
-                  boss.shape.radius.toInt,
-                  Fill.Color(RGBA.White)
-                )
-                .withDepth(Depth(4))
-            ) ++
+            BossDrawer.drawAll(gameState, gameState.time, context.gameToLocal) ++
               js.Array(
                 Shape
                   .Circle(context.gameToLocal(0), 2, Fill.Color(RGBA.White))
@@ -118,22 +115,11 @@ class InGameScene(
                 myId,
                 now,
                 context.gameToLocal
-              ) ++
-              gameState.players.values.toJSArray.map { player =>
-                val asset = Asset.playerClassAssetMap(player.cls)
-                Graphic(
-                  Rectangle(asset.size),
-                  2,
-                  Material
-                    .ImageEffects(asset.assetName)
-                    .withTint(
-                      RGBA.fromColorInts(player.rgb._1, player.rgb._2, player.rgb._3)
-                    )
-                ).withPosition(context.gameToLocal(player.pos))
-                  .withRef(asset.center)
-                  .withRotation(Radians(-player.rotation))
-                  .withScale(asset.scaleTo(2 * player.shape.radius))
-              } ++ gameState.bosses.values.headOption.toJSArray
+              ) ++ PlayerDrawer.drawAll(
+                gameState,
+                gameState.time,
+                context.gameToLocal
+              ) ++ gameState.bosses.values.headOption.toJSArray
                 .map(game.drawers.bossspecificdrawers.drawerMapping)
                 .flatMap(_.drawAll(gameState, now, context.gameToLocal)) ++
               viewModel.maybeLaunchGameButton.getOrElse(js.Array())
