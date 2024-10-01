@@ -14,6 +14,8 @@ import assets.fonts.Fonts
 
 final case class BossCooldownsContainer()(using viewModel: IndigoViewModel) extends Component {
 
+  def alpha = 1.0
+
   val maybeBoss = viewModel.gameState.bosses.values.headOption
 
   override def width: Int = 150
@@ -64,7 +66,7 @@ final case class BossCooldownsContainer()(using viewModel: IndigoViewModel) exte
 
   override def height: Int = children.map(_.height).sum
 
-  override def present(bounds: Rectangle): js.Array[SceneNode] = js.Array()
+  override def present(bounds: Rectangle, alpha: Double): js.Array[SceneNode] = js.Array()
 
   override def visible: Boolean = maybeBoss.isDefined
 

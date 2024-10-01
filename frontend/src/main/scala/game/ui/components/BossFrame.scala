@@ -10,6 +10,8 @@ import assets.fonts.Fonts
 
 final case class BossFrame()(using viewModel: IndigoViewModel) extends Component {
 
+  def alpha = 1.0
+
   val maybeBoss = viewModel.gameState.bosses.values.headOption
 
   override val width: Int  = 250
@@ -72,7 +74,7 @@ final case class BossFrame()(using viewModel: IndigoViewModel) extends Component
         .getOrElse(js.Array())
   }
 
-  override def present(bounds: Rectangle): js.Array[SceneNode] = js.Array()
+  override def present(bounds: Rectangle, alpha: Double): js.Array[SceneNode] = js.Array()
 
   override def visible: Boolean = maybeBoss.isDefined
 

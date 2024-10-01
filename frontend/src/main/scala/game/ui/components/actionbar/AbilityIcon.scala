@@ -18,18 +18,20 @@ final case class AbilityIcon(
     offset: Point
 ) extends Component {
 
+  override def alpha = 1.0
+
   val asset = Asset.abilityAssetMap(abilityId)
 
   override def width: Int = iconSize
 
   override def height: Int = iconSize
 
-  override def present(bounds: Rectangle): js.Array[SceneNode] =
+  override def present(bounds: Rectangle, alpha: Double): js.Array[SceneNode] =
     js.Array(
       asset
         .indigoGraphic(
           bounds.center,
-          None,
+          Option.when(alpha < 1.0)(RGBA.White.withAlpha(alpha)),
           Radians.zero,
           bounds.size
         )

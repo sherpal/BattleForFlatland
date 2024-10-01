@@ -23,6 +23,8 @@ final case class BuffIcon(
     extends Component {
   val buffAsset = Asset.buffAssetMap.get(buff.resourceIdentifier)
 
+  override def alpha = 1.0
+
   override val children: js.Array[Component] =
     if buff.isFinite then
       js.Array(
@@ -45,11 +47,11 @@ final case class BuffIcon(
 
   override def visible: Boolean = buffAsset.isDefined
 
-  override def present(bounds: Rectangle): js.Array[SceneNode] =
+  override def present(bounds: Rectangle, alpha: Double): js.Array[SceneNode] =
     buffAsset.toJSArray.map(
       _.indigoGraphic(
         bounds.center,
-        None,
+        Option.when(alpha < 1.0)(RGBA.White.withAlpha(alpha)),
         Radians.zero,
         bounds.size
       )

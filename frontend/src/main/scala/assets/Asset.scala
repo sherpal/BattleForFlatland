@@ -129,6 +129,11 @@ object Asset {
               32,
               32
             )
+            val livingDamageZoneAnimation = Asset(
+              "/assets/in-game/gui/boss/dawn-of-time/boss102/living-damage-zone-animation.png",
+              960,
+              576
+            )
           }
           object boss103 {
             val punished = Asset(
@@ -232,7 +237,7 @@ object Asset {
     Buff.triangleUpgradeDirectHit -> ingame.gui.abilities.triangleUpgradeDirectHit,
     Buff.triangleStun             -> ingame.gui.abilities.triangleStun,
     Buff.squareEnrage             -> ingame.gui.abilities.squareEnrage,
-    Buff.boss102LivingDamageZone  -> ingame.gui.boss.dawnOfTime.boss102.livingDamageZone,
+    Buff.boss102LivingDamageZone  -> ingame.gui.boss.dawnOfTime.boss102.livingDamageZoneAnimation,
     Buff.boss103Punished          -> ingame.gui.boss.dawnOfTime.boss103.punished,
     Buff.boss103Purified          -> ingame.gui.boss.dawnOfTime.boss103.purified,
     Buff.boss103Inflamed          -> ingame.gui.boss.dawnOfTime.boss103.inflamed,

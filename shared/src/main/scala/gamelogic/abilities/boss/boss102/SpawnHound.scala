@@ -40,10 +40,10 @@ final case class SpawnHound(
 
 object SpawnHound extends AbilityMetadata {
 
-  @inline final def castingTime: Long = 2000L
-  @inline final def cooldown: Long    = 10000L
+  inline def castingTime: Long = 2000L
+  inline def cooldown: Long    = 10000L
 
-  @inline final def timeToFirstAbility: Long = 13000L
+  inline def timeToFirstAbility: Long = 13000L
 
   def name: String = "Spawn Hound"
 

@@ -14,20 +14,23 @@ trait Component {
   def children: js.Array[Component]
 
   def allDescendants(
-      parentRectangle: Rectangle
+      parentRectangle: Rectangle,
+      parentAlpha: Double
   ): js.Array[Component.ComponentWithItsBounds] =
-    val thisWithItsBounds = withItsBounds(parentRectangle)
+    val thisWithItsBounds = withItsBounds(parentRectangle, parentAlpha)
     thisWithItsBounds +: children.flatMap(
-      _.allDescendants(thisWithItsBounds.bounds)
+      _.allDescendants(thisWithItsBounds.bounds, thisWithItsBounds.alpha)
     )
 
   def anchor: Anchor
 
-  def withItsBounds(parentRectangle: Rectangle) =
-    Component.ComponentWithItsBounds(this, positionRectangle(parentRectangle))
+  def withItsBounds(parentRectangle: Rectangle, parentAlpha: Double) =
+    Component.ComponentWithItsBounds(this, positionRectangle(parentRectangle), alpha * parentAlpha)
 
   def width: Int
   def height: Int
+
+  def alpha: Double
 
   def visible: Boolean
 
@@ -45,7 +48,7 @@ trait Component {
       else js.Array()
     registerEvents(myRectangle) ++ childrenEvents
 
-  def present(bounds: Rectangle): js.Array[SceneNode]
+  def present(bounds: Rectangle, alpha: Double): js.Array[SceneNode]
 
   final def size = Size(width, height)
 
@@ -62,21 +65,20 @@ trait Component {
 
   def propagateToChildren: Boolean = true
 
-  def presentWithChildren(parentRectangle: Rectangle): js.Array[SceneNode] = {
-    val myRectangle = positionRectangle(parentRectangle)
-
+  def presentWithChildren(parentRectangle: Rectangle, parentAlpha: Double): js.Array[SceneNode] =
     if visible then
-      present(myRectangle) ++ children.flatMap(
-        _.presentWithChildren(myRectangle)
+      val myRectangle = positionRectangle(parentRectangle)
+      val myAlpha     = alpha * parentAlpha
+      present(myRectangle, myAlpha) ++ children.flatMap(
+        _.presentWithChildren(myRectangle, myAlpha)
       )
     else js.Array()
-  }
 
   /** Same as [[presentWithChildren]], but assumes that you are going to place your component in
     * absolute position.
     */
   def presentWithChildrenWithoutRectangle: js.Array[SceneNode] =
-    presentWithChildren(Rectangle(Size(0)))
+    presentWithChildren(Rectangle(Size(0)), 1.0)
 
   protected def registerClickInBounds(bounds: Rectangle)(
       events: => js.Array[GlobalEvent]
@@ -96,7 +98,8 @@ object Component {
 
   case class ComponentWithItsBounds(
       component: Component,
-      bounds: Rectangle
+      bounds: Rectangle,
+      alpha: Double
   ) {
     def registerEvents: js.Array[Component.EventRegistration[?]] =
       component.registerEvents(bounds)
@@ -107,7 +110,7 @@ object Component {
       components: js.Array[ComponentWithItsBounds]
   ) {
     def presentAll: js.Array[SceneNode] =
-      components.flatMap(comp => comp.component.present(comp.bounds))
+      components.flatMap(comp => comp.component.present(comp.bounds, comp.alpha))
 
     def handleEvent(event: GlobalEvent): js.Array[GlobalEvent] =
       registeredEvents.flatMap(_.handle(event))

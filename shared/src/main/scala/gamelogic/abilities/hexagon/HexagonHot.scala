@@ -48,8 +48,8 @@ final case class HexagonHot(
 
 object HexagonHot {
 
-  @inline final def healOnTick = 15.0
-  @inline final def duration   = 15000L
-  @inline final def tickRate   = 3000L
+  inline def healOnTick = 15.0
+  inline def duration   = 15000L
+  inline def tickRate   = 3000L
 
 }

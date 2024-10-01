@@ -36,6 +36,7 @@ import game.handlers.MarkersHandler
 import game.drawers.GameMarkersDrawer
 import game.drawers.PlayerDrawer
 import game.drawers.BossDrawer
+import game.drawers.ObstacleDrawer
 
 /** Next steps:
   *
@@ -48,11 +49,15 @@ import game.drawers.BossDrawer
   *   - [x] implement friendly ais
   *   - [x] put back the texts
   *   - [x (mostly)] draw the effects
-  *   - [ ] draw other entities (bullets, damage zones, boss adds...)
+  *   - [x (for boss 102)] draw other entities (bullets, damage zones, boss adds...)
   *   - [x] allow players to use markers and draw them
   *   - [x] draw mini bars on top of players and boss
   *   - [x] draw indication of orientation of boss
-  *   - [ ] generate font glyph images and data at run-time
+  *   - [x] alpha of 0.5 for players and target out of range
+  *   - [ ] friendly ais for boss 102
+  *   - [ ] add sounds
+  *   - [ ] aztec diamond background
+  *   - [ ] generate font glyph images and data at run-time (opt)
   *   - [ ] scale camera to best fit (opt)
   */
 class InGameScene(
@@ -101,7 +106,8 @@ class InGameScene(
         ),
         Layer(
           Batch.fromJSArray(
-            BossDrawer.drawAll(gameState, gameState.time, context.gameToLocal) ++
+            ObstacleDrawer.drawAll(gameState, gameState.time, context.gameToLocal) ++
+              BossDrawer.drawAll(gameState, gameState.time, context.gameToLocal) ++
               js.Array(
                 Shape
                   .Circle(context.gameToLocal(0), 2, Fill.Color(RGBA.White))

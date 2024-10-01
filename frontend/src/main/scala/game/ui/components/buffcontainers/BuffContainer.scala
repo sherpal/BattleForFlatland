@@ -20,6 +20,8 @@ case class BuffContainer(
 )(using context: FrameContext[StartupData], viewModel: IndigoViewModel)
     extends Component {
 
+  override def alpha = 1.0
+
   val children: js.Array[Component] =
     val buffs = viewModel.gameState.allBuffsOfEntity(entityId).toJSArray
     buffs
@@ -38,7 +40,8 @@ case class BuffContainer(
 
   override val width: Int = children.headOption.fold(0)(_.width)
 
-  override def present(bounds: Rectangle): scala.scalajs.js.Array[SceneNode] = js.Array()
+  override def present(bounds: Rectangle, alpha: Double): scala.scalajs.js.Array[SceneNode] =
+    js.Array()
 
   override def registerEvents(parentRectangle: Rectangle) = js.Array()
 

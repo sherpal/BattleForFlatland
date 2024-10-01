@@ -15,8 +15,17 @@ import game.events.CustomIndigoEvents
 import indigo.shared.events.MouseEvent.Click
 import game.ui.*
 import assets.fonts.Fonts
+import gamelogic.abilities.WithTargetAbility
 
+/** @param myId
+  *   id of the playing player
+  * @param playerId
+  *   id of the player we display the info of
+  * @param playerClass
+  *   class of the player we display the info of
+  */
 final case class PlayerFrame(
+    myId: Entity.Id,
     playerId: Entity.Id,
     playerClass: PlayerClasses,
     anchor: Anchor = Anchor.topLeft
@@ -29,6 +38,18 @@ final case class PlayerFrame(
   def idDead = maybeDeadPlayer.isDefined
 
   val maybePlayer = maybeAlivePlayer.orElse(maybeDeadPlayer)
+
+  lazy val alpha: Double =
+    if myId != playerId then
+      (for {
+        player <- maybeAlivePlayer
+        me     <- viewModel.gameState.players.get(myId)
+      } yield {
+        val playerPos = player.currentPosition(viewModel.gameState.time)
+        val myPos     = me.currentPosition(viewModel.gameState.time)
+        if (playerPos - myPos).modulus2 > WithTargetAbility.healRangeSquared then 0.5 else 1.0
+      }).getOrElse(1.0)
+    else 1.0
 
   private val theWidth  = 200
   private val theHeight = 55
@@ -43,7 +64,7 @@ final case class PlayerFrame(
 
   override def visible: Boolean = true
 
-  override def present(bounds: Rectangle): js.Array[SceneNode] =
+  override def present(bounds: Rectangle, alpha: Double): js.Array[SceneNode] =
     maybePlayer match {
       case None => js.Array()
       case Some(player) =>
@@ -52,13 +73,13 @@ final case class PlayerFrame(
           Shape
             .Box(
               bounds,
-              fill = Fill.Color(RGBA.fromColorInts(204, 255, 255)),
+              fill = Fill.Color(RGBA.fromColorInts(204, 255, 255).withAlpha(alpha)),
               stroke = Stroke(1, RGBA.Black)
             )
             .withDepth(Depth.far),
           playerImageAsset.indigoGraphic(
             bounds.position + Point(10),
-            Some(RGBA.fromColorInts(player.rgb._1, player.rgb._2, player.rgb._3)),
+            Some(RGBA.fromColorInts(player.rgb._1, player.rgb._2, player.rgb._3).withAlpha(alpha)),
             Radians.zero,
             Size(20)
           )

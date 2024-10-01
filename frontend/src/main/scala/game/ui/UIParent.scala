@@ -32,13 +32,13 @@ final case class UIParent[StartupData, ViewModel](
   )
 
   def presentAll(context: FrameContext[StartupData], viewModel: ViewModel): js.Array[SceneNode] =
-    children(context, viewModel).flatMap(_.presentWithChildren(rectangle))
+    children(context, viewModel).flatMap(_.presentWithChildren(rectangle, 1.0))
 
   def generateCachedComponents(
       context: FrameContext[StartupData],
       viewModel: ViewModel
   ): Component.CachedComponentsInfo = {
-    val allComponents      = children(context, viewModel).flatMap(_.allDescendants(rectangle))
+    val allComponents      = children(context, viewModel).flatMap(_.allDescendants(rectangle, 1.0))
     val eventRegistrations = allComponents.flatMap(_.registerEvents)
 
     Component.CachedComponentsInfo(

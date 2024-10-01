@@ -16,6 +16,8 @@ final case class ActionBar(playerId: Entity.Id)(using
     viewModel: IndigoViewModel
 ) extends Component {
 
+  override def alpha = 1.0
+
   val maybePlayer = viewModel.gameState.players.get(playerId)
 
   val iconSize = 30
@@ -38,7 +40,7 @@ final case class ActionBar(playerId: Entity.Id)(using
 
   override val width: Int = children.map(_.width).sum
 
-  override def present(bounds: Rectangle): js.Array[SceneNode] = js.Array()
+  override def present(bounds: Rectangle, alpha: Double): js.Array[SceneNode] = js.Array()
 
   override def visible: Boolean = true
 

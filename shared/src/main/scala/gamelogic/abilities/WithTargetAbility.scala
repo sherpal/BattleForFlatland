@@ -41,8 +41,7 @@ trait WithTargetAbility extends Ability {
       case _    => None
     }
 
-  /**
-    * Returns whether this target can be stunned.
+  /** Returns whether this target can be stunned.
     */
   final def targetCanBeStunned(gameState: GameState): Boolean =
     gameState.livingEntityById(entityId = targetId).map(_.canBeStunned).getOrElse(false)
@@ -55,7 +54,9 @@ object WithTargetAbility {
   type Distance = Double
 
   // todo: change that
-  def meleeRange: Distance = Constants.playerRadius * 2 + Boss101.shape.radius
+  inline def meleeRange: Distance = Constants.playerRadius * 2 + Boss101.shape.radius
 
-  def healRange: Distance = 600.0
+  inline def healRange: Distance = 600.0
+
+  inline def healRangeSquared: Double = healRange * healRange
 }

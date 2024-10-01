@@ -47,10 +47,10 @@ object PutDamageZones extends AbilityMetadata {
 
   def name = "Damage Zone"
 
-  @inline final def cooldown: Long    = 30000L
-  @inline final def castingTime: Long = 3000L
+  inline def cooldown: Long    = 30000L
+  inline def castingTime: Long = 3000L
 
-  @inline final def timeToFirstAbility: Long = 3000L
+  inline def timeToFirstAbility: Long = 3000L
 
   def abilityId: Ability.AbilityId = Ability.boss102PutDamageZones
 

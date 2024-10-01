@@ -137,10 +137,11 @@ object IndigoViewModel {
           given FrameContext[StartupData] = context
           given IndigoViewModel           = viewModel
           js.Array[Component](
-            game.ui.components.PlayerFrameContainer(Point(0, 150)),
+            game.ui.components.PlayerFrameContainer(myId, Point(0, 150)),
             game.ui.components.actionbar.ActionBar(myId),
-            game.ui.components.TargetFrame(),
+            game.ui.components.TargetFrame(myId),
             game.ui.components.PlayerFrame(
+              myId,
               myId,
               viewModel.gameState.players.get(myId).fold(PlayerClasses.Hexagon)(_.cls),
               Anchor(AnchorPoint.TopRight, AnchorPoint.BottomCenter, Point(-10, -120))

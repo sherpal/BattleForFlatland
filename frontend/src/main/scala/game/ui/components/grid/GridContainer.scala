@@ -13,7 +13,8 @@ final case class GridContainer(
     numberOfElementsInGridDirection: Int,
     cellChildren: js.Array[Component],
     anchor: Anchor,
-    visible: Boolean = true
+    visible: Boolean = true,
+    alpha: Double = 1.0
 ) extends Component {
 
   val cellWidth  = cellChildren.map(_.width).maxOption.getOrElse(0)
@@ -60,7 +61,7 @@ final case class GridContainer(
 
   override def registerEvents(parentRectangle: Rectangle) = js.Array()
 
-  override def present(bounds: Rectangle): js.Array[SceneNode] = js.Array()
+  override def present(bounds: Rectangle, alpha: Double): js.Array[SceneNode] = js.Array()
 
 }
 

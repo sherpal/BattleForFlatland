@@ -16,6 +16,8 @@ case class TextComponent(
     visible: Boolean = true
 ) extends Component {
 
+  def alpha = 1.0
+
   val fontKey   = Fonts.fontKeys(color, fontSize)
   val assetName = Fonts.assetNames(color, fontSize)
 
@@ -25,7 +27,7 @@ case class TextComponent(
 
   def textNode = Text(text, fontKey, Material.Bitmap(assetName))
 
-  def present(bounds: Rectangle): js.Array[SceneNode] =
+  def present(bounds: Rectangle, alpha: Double): js.Array[SceneNode] =
     js.Array(
       Text(text, fontKey, Material.Bitmap(assetName))
         .withAlignment(textAlign)

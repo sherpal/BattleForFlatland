@@ -15,6 +15,7 @@ import gamelogic.entities.boss.dawnoftime.*
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
 import application.TimeManager
+import gamelogic.gamestate.gameactions.boss102.AddBossHound
 
 class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTranslator)(using
     ExecutionContext
@@ -67,11 +68,13 @@ class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTran
       case action: RemoveEntity =>
         graphManager.maybeRemoveObstacle(action)
         aiControllers.remove(action.entityId)
+      case action: AddBossHound =>
+        aiControllers.addOne(action.entityId -> boss.boss102units.BossHoundController())
       // todo
       case action: SpawnBoss if action.bossName == Boss101.name =>
-        aiControllers.addOne(action.entityId -> boss.Boss101Controller())
+        aiControllers.addOne(action.entityId -> boss.Boss101Controller)
       case action: SpawnBoss if action.bossName == Boss102.name =>
-        ??? // make boss 102 controller
+        aiControllers.addOne(action.entityId -> boss.Boss102Controller)
       case action: SpawnBoss if action.bossName == Boss103.name =>
         ??? // make boss 103 controller
       case action: SpawnBoss if action.bossName == Boss110.name =>

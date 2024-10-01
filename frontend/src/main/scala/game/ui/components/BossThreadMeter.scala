@@ -13,6 +13,8 @@ import assets.fonts.Fonts
 
 final case class BossThreadMeter()(using viewModel: IndigoViewModel) extends Component {
 
+  override def alpha = 1.0
+
   val maybeBoss = viewModel.gameState.bosses.values.headOption
 
   val damageThreats = maybeBoss
@@ -69,7 +71,7 @@ final case class BossThreadMeter()(using viewModel: IndigoViewModel) extends Com
 
   override def height: Int = children.map(_.height).sum
 
-  override def present(bounds: Rectangle): js.Array[SceneNode] = js.Array()
+  override def present(bounds: Rectangle, alpha: Double): js.Array[SceneNode] = js.Array()
 
   override def visible: Boolean = true
 

@@ -17,14 +17,16 @@ final case class StatusBar(
     orientation: StatusBar.Orientation,
     width: Int,
     height: Int,
-    anchor: Anchor
+    anchor: Anchor,
+    alpha: Double = 1.0
 ) extends Component {
 
   def children = js.Array()
 
   override def visible: Boolean = true
 
-  override def present(bounds: Rectangle): js.Array[SceneNode] = {
+  override def present(bounds: Rectangle, alpha: Double): js.Array[SceneNode] = {
+    println(alpha)
     val barValue = (value / maxValue).max(0.0).min(1.0)
     val (position, cropPosition, cropSize) = orientation match {
       case StatusBar.Horizontal =>
@@ -46,7 +48,7 @@ final case class StatusBar(
         Material
           .ImageEffects(asset.assetName)
           .withTint(theColor)
-          .withAlpha(theColor.a)
+          .withAlpha(theColor.a * alpha)
       ).withPosition(position)
         .withScale(asset.scaleTo(bounds.size))
         .withCrop(Rectangle(cropPosition, cropSize))

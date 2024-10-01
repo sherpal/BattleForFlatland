@@ -17,7 +17,7 @@ import scala.util.Random
 import gamelogic.abilities.boss.boss101.SmallHit
 import gamelogic.abilities.Ability
 
-class Boss101Controller extends AIController[Boss101, SpawnBoss] {
+object Boss101Controller extends AIController[Boss101, SpawnBoss] {
 
   override protected def takeActions(
       currentGameState: GameState,

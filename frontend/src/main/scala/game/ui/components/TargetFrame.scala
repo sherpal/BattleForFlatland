@@ -15,12 +15,28 @@ import gamelogic.entities.Resource
 import game.events.CustomIndigoEvents
 import game.ui.components.buffcontainers.BuffContainer
 import assets.fonts.Fonts
+import gamelogic.abilities.WithTargetAbility
 
-final case class TargetFrame()(using context: FrameContext[StartupData], viewModel: IndigoViewModel)
-    extends Component {
+final case class TargetFrame(myId: Entity.Id)(using
+    context: FrameContext[StartupData],
+    viewModel: IndigoViewModel
+) extends Component {
 
   val maybeTarget =
     viewModel.maybeTarget.flatMap(entity => viewModel.gameState.targetableEntityById(entity.id))
+
+  val maybeMe = viewModel.gameState.players.get(myId)
+
+  lazy val alpha: Double = (for {
+    target <- maybeTarget
+    me     <- maybeMe
+  } yield {
+    val targetPos = target.currentPosition(viewModel.gameState.time)
+    val myPos     = me.currentPosition(viewModel.gameState.time)
+    if (targetPos - myPos).modulus2 > WithTargetAbility.healRange * WithTargetAbility.healRange then
+      0.5
+    else 1.0
+  }).getOrElse(1.0)
 
   val maybeTargetWithAbility = maybeTarget.collect {
     case wa: WithAbilities if wa.resourceType != Resource.NoResource => wa
@@ -137,12 +153,12 @@ final case class TargetFrame()(using context: FrameContext[StartupData], viewMod
       )
   }
 
-  override def present(bounds: Rectangle): js.Array[SceneNode] =
+  override def present(bounds: Rectangle, alpha: Double): js.Array[SceneNode] =
     js.Array(
       Shape
         .Box(
           bounds,
-          fill = Fill.Color(RGBA.fromColorInts(204, 255, 255)),
+          fill = Fill.Color(RGBA.fromColorInts(204, 255, 255).withAlpha(alpha)),
           stroke = Stroke(1, RGBA.Black)
         )
         .withDepth(Depth.far)
