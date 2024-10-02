@@ -23,6 +23,16 @@ Global / onLoad := {
     StandardCharsets.UTF_8
   )
 
+  println("""
+  |    ____        __  __  __        ____              ________      __  __                __
+  |   / __ )____ _/ /_/ /_/ /__     / __/___  _____   / ____/ /___ _/ /_/ /___ _____  ____/ /
+  |  / __  / __ `/ __/ __/ / _ \   / /_/ __ \/ ___/  / /_  / / __ `/ __/ / __ `/ __ \/ __  / 
+  | / /_/ / /_/ / /_/ /_/ /  __/  / __/ /_/ / /     / __/ / / /_/ / /_/ / /_/ / / / / /_/ /  
+  |/_____/\__,_/\__/\__/_/\___/  /_/  \____/_/     /_/   /_/\__,_/\__/_/\__,_/_/ /_/\__,_/   
+  |                                                                                         
+  |                                                                                    
+  |""".stripMargin)
+
   (Global / onLoad).value
 }
 
@@ -105,7 +115,7 @@ lazy val frontend = project
   .settings(
     libraryDependencies ++= List(
       "com.raquo"       %%% "laminar"            % "17.0.0",
-      "be.doeraene"     %%% "web-components-ui5" % "2.0.0-RC2",
+      "be.doeraene"     %%% "web-components-ui5" % "2.0.0",
       "io.indigoengine" %%% "indigo"             % indigoVersion,
       "io.indigoengine" %%% "indigo-extras"      % indigoVersion,
       "io.indigoengine" %%% "indigo-json-circe"  % indigoVersion

@@ -57,6 +57,7 @@ import game.drawers.ObstacleDrawer
   *   - [ ] friendly ais for boss 102
   *   - [ ] add sounds
   *   - [ ] aztec diamond background
+  *   - [ ] the "next target" manager
   *   - [ ] generate font glyph images and data at run-time (opt)
   *   - [ ] scale camera to best fit (opt)
   */

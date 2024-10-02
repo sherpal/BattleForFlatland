@@ -12,9 +12,9 @@
     "http-proxy": "1.18.1"
   },
   "dependencies": {
-    "@ui5/webcomponents": "2.0.1",
-    "@ui5/webcomponents-fiori": "2.0.1",
-    "@ui5/webcomponents-icons": "2.0.1",
-    "@ui5/webcomponents-compat": "2.0.1"
+    "@ui5/webcomponents": "2.2.0",
+    "@ui5/webcomponents-fiori": "2.2.0",
+    "@ui5/webcomponents-icons": "2.2.0",
+    "@ui5/webcomponents-compat": "2.2.0"
   }
 }

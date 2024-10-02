@@ -26,7 +26,6 @@ final case class StatusBar(
   override def visible: Boolean = true
 
   override def present(bounds: Rectangle, alpha: Double): js.Array[SceneNode] = {
-    println(alpha)
     val barValue = (value / maxValue).max(0.0).min(1.0)
     val (position, cropPosition, cropSize) = orientation match {
       case StatusBar.Horizontal =>
