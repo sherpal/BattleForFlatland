@@ -29,7 +29,7 @@ object EdgeGameActionsSpecs extends ZIOSpecDefault {
       check(Gen.long, Gen.long) { (time, updateTime) =>
         val updateTimestamp = UpdateTimestamp(idGen.actionId(), updateTime)
         val gameState       = GameState.empty.copy(time = time)
-        ZIO.succeed(assertTrue(updateTimestamp(gameState).time == updateTime.max(time).max(0)))
+        ZIO.succeed(assertTrue(updateTimestamp(gameState).time == updateTime))
       }
     }
   )

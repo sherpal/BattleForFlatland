@@ -11,5 +11,5 @@ final case class UpdateTimestamp(id: GameAction.Id, time: Long) extends GameActi
   def changeId(newId: Id): GameAction = copy(id = newId)
 
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
-    new UpdateTimeTransformer(time)
+    UpdateTimeTransformer(time)
 }

@@ -8,6 +8,13 @@ trait Polygon extends Shape {
   val vertices: Vector[Complex]
   lazy val triangulation: Vector[Triangle]
 
+  def ears = for (j <- vertices.indices) yield {
+    val z1 = if j == 0 then vertices.last else vertices(j - 1)
+    val z2 = vertices(j)
+    val z3 = if j + 1 == vertices.length then vertices.head else vertices(j + 1)
+    Triangle(z1, z2, z3)
+  }
+
   val center: Complex = vertices.sum / vertices.length
   val radius: Double  = math.sqrt(vertices.map(z => (z - center).modulus2).max)
 

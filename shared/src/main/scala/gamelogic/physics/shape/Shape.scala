@@ -70,7 +70,12 @@ object Shape {
     triangulationAcc(vertices, List[Triangle]()).toVector
   }
 
-  private final class Corner(val z: Complex, val next: Complex, val prev: Complex, val cornerIndex: Int) {
+  private final class Corner(
+      val z: Complex,
+      val next: Complex,
+      val prev: Complex,
+      val cornerIndex: Int
+  ) {
     val det: Double        = (z - prev).crossProduct(next - z)
     def triangle: Triangle = Triangle(prev, z, next)
     def angle: Double = {
@@ -81,12 +86,11 @@ object Shape {
     def isVertex(v: Complex): Boolean = v == z || v == next || v == prev
   }
 
-  def earClipping(vertices: Vector[Complex]): List[Triangle] = {
+  def earClipping(vertices: Vector[Complex]): Vector[Triangle] = {
     @scala.annotation.tailrec
-    def earClippingAcc(vs: Vector[Complex], acc: List[Triangle]): List[Triangle] =
-      if (vs.length == 3) Triangle(vs.head, vs(1), vs.last) :: acc
+    def earClippingAcc(vs: Vector[Complex], acc: List[Triangle]): Vector[Triangle] =
+      if vs.length == 3 then (Triangle(vs.head, vs(1), vs.last) :: acc).toVector
       else {
-
         val corners =
           for (j <- vs.indices)
             yield new Corner(
@@ -97,31 +101,44 @@ object Shape {
             )
 
         val (convex, reflex) = corners.partition(_.det > 0)
-        val ears    = convex.filter(v => !reflex.exists(c => (!v.isVertex(c.z)) && v.triangle.contains(c.z.re, c.z.im)))
-        val process = ears.minBy(_.angle)
 
-        val (beforeCorner, afterCorner) = vs.splitAt(process.cornerIndex)
+        if reflex.isEmpty then ConvexPolygon(vs).triangulation ++ acc
+        else
+          val ears = convex.filter(v =>
+            !reflex.exists(c => (!v.isVertex(c.z)) && v.triangle.contains(c.z.re, c.z.im))
+          )
+          val process = ears.minBy(_.angle)
 
-        earClippingAcc(beforeCorner ++ afterCorner.tail, process.triangle :: acc)
+          val (beforeCorner, afterCorner) = vs.splitAt(process.cornerIndex)
+
+          earClippingAcc(beforeCorner ++ afterCorner.tail, process.triangle :: acc)
       }
 
     earClippingAcc(vertices, List()).sortWith((t1, t2) => t1.det > t2.det)
   }
 
   def regularPolygon(nbrSides: Int, radius: Double = 1): ConvexPolygon = new ConvexPolygon(
-    (0 until nbrSides).map(j => radius * Complex.exp(Complex.i * 2 * math.Pi * j / nbrSides)).toVector
+    (0 until nbrSides)
+      .map(j => radius * Complex.exp(Complex.i * 2 * math.Pi * j / nbrSides))
+      .toVector
   )
 
-  def regularPolygon(nbrSides: Int, radius: Double, rotation: Double): ConvexPolygon = new ConvexPolygon(
-    (0 until nbrSides).map(j => radius * Complex.rotation(2 * math.Pi * j / nbrSides + rotation)).toVector
-  )
+  def regularPolygon(nbrSides: Int, radius: Double, rotation: Double): ConvexPolygon =
+    new ConvexPolygon(
+      (0 until nbrSides)
+        .map(j => radius * Complex.rotation(2 * math.Pi * j / nbrSides + rotation))
+        .toVector
+    )
 
-  def translatedRegularPolygon(nbrSides: Int, radius: Double, translation: Complex): ConvexPolygon = new ConvexPolygon(
-    (0 until nbrSides).map(j => translation + radius * Complex.exp(Complex.i * 2 * math.Pi * j / nbrSides)).toVector
-  )
+  def translatedRegularPolygon(nbrSides: Int, radius: Double, translation: Complex): ConvexPolygon =
+    new ConvexPolygon(
+      (0 until nbrSides)
+        .map(j => translation + radius * Complex.exp(Complex.i * 2 * math.Pi * j / nbrSides))
+        .toVector
+    )
 
-  /** Returns the intersection point of the two segments [x11 + i y11, x12 + i y12] and [x21 + i y21, x22 + i y22], or
-    * None if it does not exist.
+  /** Returns the intersection point of the two segments [x11 + i y11, x12 + i y12] and [x21 + i
+    * y21, x22 + i y22], or None if it does not exist.
     */
   def intersectionPoint(
       x11: Double,
@@ -161,15 +178,21 @@ object Shape {
 
   /** If it exists, returns the intersection of segments [z1, z2] and [w1, w2].
     */
-  @inline def intersectionPoint(z1: Complex, z2: Complex, w1: Complex, w2: Complex): Option[Complex] =
+  @inline def intersectionPoint(
+      z1: Complex,
+      z2: Complex,
+      w1: Complex,
+      w2: Complex
+  ): Option[Complex] =
     intersectionPoint(z1.re, z1.im, z2.re, z2.im, w1.re, w1.im, w2.re, w2.im)
 
   /** Returns the point of the segment [z1, z2] the closest to z.
     *
-    * We first create a segment that is perpendicular to the segment [z1, z2], whose middle is z and its length is twice
-    * the min between the distance to z1 and z2. (Taking the min is fine since the distance to the closest point to z
-    * has to be smaller than the distance to both z1 and z2.) That way, if that segment intersect [z1, z2], it is the
-    * closest point. Otherwise, we need to take z1 or z2, whichever is closer to z.
+    * We first create a segment that is perpendicular to the segment [z1, z2], whose middle is z and
+    * its length is twice the min between the distance to z1 and z2. (Taking the min is fine since
+    * the distance to the closest point to z has to be smaller than the distance to both z1 and z2.)
+    * That way, if that segment intersect [z1, z2], it is the closest point. Otherwise, we need to
+    * take z1 or z2, whichever is closer to z.
     */
   def closestToSegment(segment: (Complex, Complex), z: Complex): Complex = {
     val (z1, z2) = segment
@@ -187,7 +210,8 @@ object Shape {
     }
   }
 
-  /** Returns whether the two segments [x11 + i y11, x12 + i y12] and [x21 + i y21, x22 + i y22] intersect.
+  /** Returns whether the two segments [x11 + i y11, x12 + i y12] and [x21 + i y21, x22 + i y22]
+    * intersect.
     */
   def intersectingSegments(
       x11: Double,
@@ -219,8 +243,8 @@ object Shape {
   def intersectingSegments(z1: Complex, z2: Complex, w1: Complex, w2: Complex): Boolean =
     intersectingSegments(z1.re, z1.im, z2.re, z2.im, w1.re, w1.im, w2.re, w2.im)
 
-  /** Returns the intersection point of the two lines passing respectively through z1 and z2 with direction vectors
-    * respectively dir1 and dir2.
+  /** Returns the intersection point of the two lines passing respectively through z1 and z2 with
+    * direction vectors respectively dir1 and dir2.
     *
     * This is done by solving the system z1 + t dir1 = z2 + t dir2
     */
