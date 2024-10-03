@@ -22,7 +22,11 @@ trait SquareAIController(index: Int) extends GoodAIController[Square] {
 
   val name = PlayerName.AIPlayerName(PlayerClasses.Square, index)
 
-  def shouldIHammerThisTarget(target: WithThreat, me: Square, threshold: Double = 2000): Boolean =
+  def isMyThreatTowardsTargetEnough(
+      target: WithThreat,
+      me: Square,
+      threshold: Double = 2000
+  ): Boolean =
     (for {
       myThreatToBoss <- target.damageThreats.get(me.id)
       threatsFromOthers = target.damageThreats.filterNot(_._1 == me.id).values.toList

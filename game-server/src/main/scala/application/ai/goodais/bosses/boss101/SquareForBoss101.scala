@@ -34,7 +34,7 @@ case class SquareForBoss101(index: Int, entityId: Entity.Id) extends SquareAICon
 
     val actions: Vector[GameAction] = gameState.bosses.values.headOption match {
       case Some(theBoss) =>
-        val shouldIHammer = shouldIHammerThisTarget(theBoss, me)
+        val shouldIHammer = isMyThreatTowardsTargetEnough(theBoss, me)
 
         val maybeTaunt = Option
           .unless(shouldIHammer)(maybeTauntUsage(gameState, startTime, me, theBoss))

@@ -15,6 +15,8 @@ import scala.reflect.ClassTag
 import gamelogic.abilities.Ability
 import models.bff.outofgame.gameconfig.PlayerName
 import models.bff.outofgame.PlayerClasses
+import gamelogic.entities.LivingEntity
+import gamelogic.entities.classes.PlayerClass
 
 trait HexagonAIController(index: Int) extends GoodAIController[Hexagon] {
 
@@ -52,13 +54,21 @@ trait HexagonAIController(index: Int) extends GoodAIController[Hexagon] {
       threshold: Double
   ): Option[EntityStartsCasting] =
     for {
-      target <- gameState.players.values.find(buddy => buddy.life < buddy.maxLife * threshold)
-      ability <- maybeAbilityUsage(
-        me,
-        FlashHeal(Ability.UseId.dummy, time, me.id, target.id),
-        gameState
-      ).startCasting
+      target  <- gameState.players.values.find(buddy => buddy.life < buddy.maxLife * threshold)
+      ability <- maybeFlashHealUsage(gameState, time, target, me)
     } yield ability
+
+  def maybeFlashHealUsage(
+      gameState: GameState,
+      time: Long,
+      target: PlayerClass,
+      me: Hexagon
+  ): Option[EntityStartsCasting] =
+    maybeAbilityUsage(
+      me,
+      FlashHeal(Ability.UseId.dummy, time, me.id, target.id),
+      gameState
+    ).startCasting
 
   /** Returns the tank with the minimum count of my HoT on it, but only if it satisfy the filtering,
     * and only if the number of HoT on it is smaller than the requiredCount.

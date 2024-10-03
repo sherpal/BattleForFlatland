@@ -17,15 +17,10 @@ import scala.concurrent.ExecutionContext
 import application.TimeManager
 import application.ai.goodais.GoodAIController
 import gamelogic.docs.BossMetadata
-import models.bff.outofgame.PlayerClasses.Square
-import models.bff.outofgame.PlayerClasses.Hexagon
-import models.bff.outofgame.PlayerClasses.Triangle
-import models.bff.outofgame.PlayerClasses.Pentagon
-import application.ai.goodais.bosses.boss101.PentagonForBoss101
+import models.bff.outofgame.PlayerClasses.*
 import models.bff.outofgame.gameconfig.PlayerName
-import application.ai.goodais.bosses.boss101.SquareForBoss101
-import application.ai.goodais.bosses.boss101.TriangleForBoss101
-import application.ai.goodais.bosses.boss101.HexagonForBoss101
+import application.ai.goodais.bosses.boss101.*
+import application.ai.goodais.bosses.boss102.*
 
 class GoodAIManager(
     bossMetadata: BossMetadata,
@@ -82,6 +77,16 @@ class GoodAIManager(
                   case Hexagon  => HexagonForBoss101(_, _)
                   case Triangle => TriangleForBoss101(_, _)
                   case Pentagon => PentagonForBoss101(_, _)
+
+                aiControllers.addOne(
+                  action.entityId -> makeAI(index, action.entityId)
+                )
+              case Boss102 =>
+                val makeAI: (Int, Entity.Id) => GoodAIController[?] = cls match
+                  case Square   => SquareForBoss102(_, _)
+                  case Hexagon  => HexagonForBoss102(_, _)
+                  case Triangle => TriangleForBoss102(_, _)
+                  case Pentagon => PentagonForBoss102(_, _)
 
                 aiControllers.addOne(
                   action.entityId -> makeAI(index, action.entityId)

@@ -187,6 +187,11 @@ final case class GameState(
   def allBuffsOfEntity(entityId: Entity.Id): Iterator[Buff] =
     tickerBuffs.getOrElse(entityId, Map()).valuesIterator ++
       passiveBuffs.getOrElse(entityId, Map()).valuesIterator
+  def hasBuffOfType[T <: Buff](entityId: Entity.Id)(using scala.reflect.Typeable[T]) =
+    allBuffsOfEntity(entityId).exists {
+      case _: T => true
+      case _    => false
+    }
 
   def obstaclesLike: Iterator[PolygonBody] = obstacles.valuesIterator
   def allObstacles: Iterator[Obstacle]     = obstacles.valuesIterator

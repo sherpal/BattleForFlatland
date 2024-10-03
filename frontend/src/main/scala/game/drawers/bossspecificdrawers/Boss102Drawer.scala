@@ -52,7 +52,7 @@ object Boss102Drawer extends game.drawers.Drawer {
       .Circle(
         localPos,
         dz.shape.radius.toInt,
-        Fill.Color(RGBA.Red.withAlpha(0.5))
+        Fill.Color(RGBA.Green.withAlpha(0.5))
       )
       .withDepth(Depth.far)
   }
@@ -80,6 +80,6 @@ object Boss102Drawer extends game.drawers.Drawer {
     Asset.ingame.gui.boss.dawnOfTime.boss102.livingDamageZoneAnimation
 
   private val livingDamageZoneAnimatedSprite =
-    LoopingAnimatedSprite(livingDamageZoneAsset, 50L, 3, 5, Some(0.7))
+    LoopingAnimatedSprite(livingDamageZoneAsset, 50L, 3, 5, Some(0.3))
 
 }

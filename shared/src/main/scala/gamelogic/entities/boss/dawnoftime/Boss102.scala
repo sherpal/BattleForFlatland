@@ -117,7 +117,15 @@ object Boss102 extends BossFactory[Boss102] with BossMetadata {
 
   import Complex.i
 
-  override def maybeAIComposition: Option[List[PlayerClasses]] = None
+  override def maybeAIComposition: Option[List[PlayerClasses]] = Some(
+    List(
+      PlayerClasses.Square,
+      PlayerClasses.Pentagon,
+      PlayerClasses.Pentagon,
+      PlayerClasses.Hexagon,
+      PlayerClasses.Hexagon
+    )
+  )
 
   final val shape: Circle = new Circle(30.0)
 

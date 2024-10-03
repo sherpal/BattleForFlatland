@@ -58,6 +58,8 @@ import game.drawers.ObstacleDrawer
   *   - [ ] add sounds
   *   - [ ] aztec diamond background
   *   - [ ] the "next target" manager
+  *   - [ ] double check server time sync
+  *   - [ ] display number of hounds for boss 102
   *   - [ ] generate font glyph images and data at run-time (opt)
   *   - [ ] scale camera to best fit (opt)
   */
