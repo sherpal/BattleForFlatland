@@ -64,23 +64,23 @@ final case class UIParent[StartupData, ViewModel](
       case _ => this
     }
 
-    event match {
-      case FrameTick =>
-        // refresh the component cache
-        val cache = generateCachedComponents(context, viewModel)
-        Outcome(
-          updateCachedComponents(update(viewModel, newUIParent), cache)
-        ).addGlobalEvents(Batch(cache.handleEvent(FrameTick)))
-      case other =>
-        Outcome(update(viewModel, newUIParent)).addGlobalEvents(
-          Batch(retrieveComponentCache(viewModel).handleEvent(other))
-        )
-    }
-    // val allComponents = newUIParent.allDescendants(context, viewModel, rectangle)
+    // event match {
+    //   case FrameTick =>
+    //     // refresh the component cache
+    //     val cache = generateCachedComponents(context, viewModel)
+    //     Outcome(
+    //       updateCachedComponents(update(viewModel, newUIParent), cache)
+    //     ).addGlobalEvents(Batch(cache.handleEvent(FrameTick)))
+    //   case other =>
+    //     Outcome(update(viewModel, newUIParent)).addGlobalEvents(
+    //       Batch(retrieveComponentCache(viewModel).handleEvent(other))
+    //     )
+    // }
+    val allComponents = children(context, viewModel).flatMap(_.allDescendants(rectangle, 1.0))
 
-    // val generatedEvents =
-    //   allComponents.flatMap(_.registerEvents(context, viewModel)).flatMap(_.handle(event))
-    // Outcome(update(viewModel, newUIParent)).addGlobalEvents(Batch(generatedEvents))
+    val generatedEvents =
+      allComponents.flatMap(_.registerEvents).flatMap(_.handle(event))
+    Outcome(update(viewModel, newUIParent)).addGlobalEvents(Batch(generatedEvents))
   }
 
 }
