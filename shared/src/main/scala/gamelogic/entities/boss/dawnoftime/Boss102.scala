@@ -122,7 +122,7 @@ object Boss102 extends BossFactory[Boss102] with BossMetadata {
       PlayerClasses.Square,
       PlayerClasses.Pentagon,
       PlayerClasses.Pentagon,
-      PlayerClasses.Hexagon,
+      PlayerClasses.Pentagon,
       PlayerClasses.Hexagon
     )
   )

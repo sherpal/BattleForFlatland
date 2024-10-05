@@ -147,6 +147,7 @@ object IndigoViewModel {
               Anchor(AnchorPoint.TopRight, AnchorPoint.BottomCenter, Point(-10, -120))
             ),
             game.ui.components.FPSDisplay(Anchor.bottomLeft),
+            game.ui.components.ClockDisplay(),
             game.ui.components.PlayerCastBar(myId),
             game.ui.components.BossCooldownsContainer(),
             game.ui.components.BossThreadMeter(),
