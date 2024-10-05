@@ -54,11 +54,11 @@ import game.drawers.ObstacleDrawer
   *   - [x] draw mini bars on top of players and boss
   *   - [x] draw indication of orientation of boss
   *   - [x] alpha of 0.5 for players and target out of range
-  *   - [ ] friendly ais for boss 102
+  *   - [x] friendly ais for boss 102
   *   - [ ] add sounds
   *   - [ ] aztec diamond background
   *   - [ ] the "next target" manager
-  *   - [ ] double check server time sync
+  *   - [x] double check server time sync
   *   - [ ] display number of hounds for boss 102
   *   - [ ] generate font glyph images and data at run-time (opt)
   *   - [ ] scale camera to best fit (opt)
@@ -76,6 +76,8 @@ class InGameScene(
   val castAbilitiesHandler = CastAbilitiesHandler(myId, controls, deltaWithServer.toMillis.toLong)
   val gameMarkersHandler   = MarkersHandler(controls)
 
+  inline def serverTime: Long = System.currentTimeMillis() + deltaWithServer.toMillis.toLong
+
   override def subSystems: Set[SubSystem[IndigoModel]] = Set.empty
 
   override def present(
@@ -85,7 +87,7 @@ class InGameScene(
   ): Outcome[SceneUpdateFragment] = {
 
     val gameState = viewModel.gameState
-    val now       = System.currentTimeMillis()
+    val now       = serverTime
 
     def text(message: String, point: Point) = TextBox(message, 400, 30)
       .withFontFamily(FontFamily.cursive)
@@ -137,7 +139,7 @@ class InGameScene(
         Layer(
           Batch(
             viewModel.effectsManager.present(context.frameContext, viewModel) ++ GameMarkersDrawer
-              .drawAll(viewModel.gameState, System.currentTimeMillis(), context.gameToLocal)
+              .drawAll(viewModel.gameState, serverTime, context.gameToLocal)
           )
         )
           .withCamera(playerCenteredCamera),
@@ -172,7 +174,7 @@ class InGameScene(
 
           val playerMoveAction = MovingBodyMoves(
             GameAction.Id.zero,
-            System.currentTimeMillis() + deltaWithServer.toMillis.toLong,
+            serverTime,
             myId,
             maybePlayerDirection.fold(player.pos)(dir =>
               player.lastValidPosition(
@@ -205,7 +207,7 @@ class InGameScene(
 
     case putMarker: CustomIndigoEvents.GameEvent.PutMarkers =>
       println(putMarker.info)
-      sendGameAction(UpdateMarker(GameAction.Id.dummy, System.currentTimeMillis(), putMarker.info))
+      sendGameAction(UpdateMarker(GameAction.Id.dummy, serverTime, putMarker.info))
       Outcome(model)
 
     case _ => Outcome(model)
@@ -266,14 +268,14 @@ class InGameScene(
                   context,
                   model,
                   viewModel,
-                  System.currentTimeMillis()
+                  serverTime
                 ) ++ gameMarkersHandler
                   .handleKeyboardEvent(
                     kbd,
                     context.frameContext,
                     model,
                     viewModel,
-                    System.currentTimeMillis()
+                    serverTime
                   )
               )
             )
@@ -290,7 +292,7 @@ class InGameScene(
             castAbilitiesHandler.handleClickEvent(
               click,
               viewModel.targetFromMouseClick(click),
-              System.currentTimeMillis()
+              serverTime
             )
 
           case CustomIndigoEvents.GameEvent.StartChoosingAbility(abilityId) =>
