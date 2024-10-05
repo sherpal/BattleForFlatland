@@ -89,6 +89,12 @@ trait Component {
 
 object Component {
 
+  def empty: Component = new Container(0, 0, Anchor.topLeft, 1.0) {
+    def children: js.Array[Component] = js.Array()
+
+    override def propagateToChildren: Boolean = false
+  }
+
   class EventRegistration[Ev <: GlobalEvent](f: Ev => js.Array[GlobalEvent])(using Typeable[Ev]) {
     def handle(event: GlobalEvent): js.Array[GlobalEvent] = event match {
       case ev: Ev => f(ev)

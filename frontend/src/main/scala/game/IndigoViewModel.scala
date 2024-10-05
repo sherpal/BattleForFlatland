@@ -151,7 +151,10 @@ object IndigoViewModel {
             game.ui.components.PlayerCastBar(myId),
             game.ui.components.BossCooldownsContainer(),
             game.ui.components.BossThreadMeter(),
-            game.ui.components.BossFrame()
+            game.ui.components.BossFrame(),
+            viewModel.gameState.bosses.values.headOption.fold(game.ui.Component.empty)(boss =>
+              game.ui.components.bossspecificcomponents.containerMapping(boss)
+            )
           )
         },
         startupData.bounds.width,

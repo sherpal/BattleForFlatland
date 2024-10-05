@@ -55,11 +55,12 @@ import game.drawers.ObstacleDrawer
   *   - [x] draw indication of orientation of boss
   *   - [x] alpha of 0.5 for players and target out of range
   *   - [x] friendly ais for boss 102
+  *   - [x] display number of hounds for boss 102
   *   - [ ] add sounds
   *   - [ ] aztec diamond background
   *   - [ ] the "next target" manager
   *   - [x] double check server time sync
-  *   - [ ] display number of hounds for boss 102
+  *   - [ ] make prod build
   *   - [ ] generate font glyph images and data at run-time (opt)
   *   - [ ] scale camera to best fit (opt)
   */
