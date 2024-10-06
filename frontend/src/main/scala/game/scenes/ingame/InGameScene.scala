@@ -38,32 +38,6 @@ import game.drawers.PlayerDrawer
 import game.drawers.BossDrawer
 import game.drawers.ObstacleDrawer
 
-/** Next steps:
-  *
-  *   - [x] use the camera to center drawing on the player
-  *   - [x] use controls defined by user (UI is missing!)
-  *   - [x] button to launch the game
-  *   - [x] handle when player is dead
-  *   - [x] send game actions other than moving (using abilities, mostly)
-  *   - [x] draw the UI (player frame, all player frames, target frames, boss frame, damage threat)
-  *   - [x] implement friendly ais
-  *   - [x] put back the texts
-  *   - [x (mostly)] draw the effects
-  *   - [x (for boss 102)] draw other entities (bullets, damage zones, boss adds...)
-  *   - [x] allow players to use markers and draw them
-  *   - [x] draw mini bars on top of players and boss
-  *   - [x] draw indication of orientation of boss
-  *   - [x] alpha of 0.5 for players and target out of range
-  *   - [x] friendly ais for boss 102
-  *   - [x] display number of hounds for boss 102
-  *   - [ ] add sounds
-  *   - [ ] aztec diamond background
-  *   - [ ] the "next target" manager
-  *   - [x] double check server time sync
-  *   - [ ] make prod build
-  *   - [ ] generate font glyph images and data at run-time (opt)
-  *   - [ ] scale camera to best fit (opt)
-  */
 class InGameScene(
     myId: Entity.Id,
     sendGameAction: GameAction => Unit,

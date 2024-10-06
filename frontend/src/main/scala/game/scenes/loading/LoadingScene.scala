@@ -34,7 +34,8 @@ import assets.fonts.Fonts
 class LoadingScene(
     userName: String,
     assetPath: String,
-    backendCommWrapper: BackendCommWrapper
+    backendCommWrapper: BackendCommWrapper,
+    fonts: Fonts
 ) extends Scene[InGameScene.StartupData, IndigoModel, IndigoViewModel] {
 
   type SceneModel     = LoadingState
@@ -81,7 +82,7 @@ class LoadingScene(
                 BindingKey("Loading"),
                 Asset.allAssets.map(
                   _.asIndigoAssetType
-                ) ++ Fonts.fontImages.values
+                ) ++ fonts.fontImages
               )
             )
         case _ if backendCommWrapper.allPlayersAreReady =>

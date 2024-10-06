@@ -1,28 +1,28 @@
 package assets.fonts
 
 import indigo.*
-import scala.scalajs.js
 import io.circe.Decoder
 import org.scalajs.dom
+import zio.ZIO
 
-class Fonts(glyphsInfoStrings: Map[(Fonts.AllowedColor, Fonts.AllowedSize), String]) {
-  val glyphsInfo: Map[(Fonts.AllowedColor, Fonts.AllowedSize), GlyphInfo] = glyphsInfoStrings.map {
-    case ((color: Fonts.AllowedColor, size: Fonts.AllowedSize), json: String) =>
-      val giDecoder = Decoder[GlyphInfo]
-      def parseGlyphInfo(str: String): GlyphInfo =
-        io.circe.parser.decode[GlyphInfo](str).toTry.get
+import scala.scalajs.js
+import scala.scalajs.js.JSConverters.*
 
-      ((color, size), parseGlyphInfo(json))
-  }
+class Fonts(glyphsInfo: Map[(Fonts.AllowedColor, Fonts.AllowedSize), (String, GlyphInfo)]) {
 
   val fontsInfo: Map[(Fonts.AllowedColor, Fonts.AllowedSize), FontInfo] = (for {
     size      <- Fonts.allowedSizes
     color     <- Fonts.allowedColors
-    glyphInfo <- glyphsInfo.get(color, size)
+    glyphInfo <- glyphsInfo.get(color, size).map(_._2)
   } yield (((color, size), Fonts.fontInfoFromGlyphInfo(glyphInfo)): (
       (Fonts.AllowedColor, Fonts.AllowedSize),
       FontInfo
   ))).toMap
+
+  val fontImages = for {
+    (key, (imageData, _)) <- glyphsInfo
+    assetName = Fonts.assetNames(key._1, key._2)
+  } yield AssetType.Image(assetName, AssetPath(imageData))
 
 }
 
@@ -38,11 +38,18 @@ object Fonts {
 
   val fontName = "Quicksand"
 
-  def makeUrlInfo(color: AllowedColor, size: AllowedSize): dom.URL =
-    dom.URL(
-      assetPathFromName(assetNames(color, size)).toString.dropRight(4) ++ ".json",
-      js.`import`.meta.url.asInstanceOf[String]
+  def allGlyphFontData = ZIO
+    .foreachPar(for {
+      color <- allowedColors
+      size  <- allowedSizes
+      key: (AllowedColor, AllowedSize) = (color, size)
+    } yield key)(key =>
+      createGlyphFontData(quicksand, key._2, key._1, alphabet).map((data, _, glyphInfo) =>
+        key -> (data, glyphInfo)
+      )
     )
+    .map(_.toMap)
+    .map(Fonts(_))
 
   private def fontInfoFromGlyphInfo(glyphInfo: GlyphInfo): FontInfo = {
     val key = fontKeys(
@@ -90,21 +97,5 @@ object Fonts {
     )
   )
     .toMap[(AllowedColor, AllowedSize), AssetName]
-
-  private def assetPathFromName(assetName: AssetName): AssetPath =
-    AssetPath(s"/assets/in-game/gui/fonts/${assetName}.png")
-
-  val fontImages: Map[(AllowedColor, AllowedSize), AssetType] = assetNames.map {
-    case ((color: AllowedColor, size: AllowedSize), assetName) =>
-      (
-        (
-          (color, size),
-          AssetType.Image(assetName, assetPathFromName(assetName))
-        ): (
-            (AllowedColor, AllowedSize),
-            AssetType
-        )
-      )
-  }
 
 }

@@ -50,7 +50,7 @@ class GameStateManager(
       bootData: InGameScene.StartupData
   ): NonEmptyList[Scene[InGameScene.StartupData, IndigoModel, IndigoViewModel]] =
     NonEmptyList[Scene[InGameScene.StartupData, IndigoModel, IndigoViewModel]](
-      LoadingScene(userName, "in-game/gui", backendCommWrapper),
+      LoadingScene(userName, "in-game/gui", backendCommWrapper, fonts),
       InGameScene(
         playerId,
         gameAction =>

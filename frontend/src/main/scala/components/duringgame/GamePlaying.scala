@@ -31,22 +31,8 @@ object GamePlaying {
       Runtime[FrontendEnv]
   ): HtmlElement = {
 
-    def fontsZIO =
-      ZIO
-        .foreach(for {
-          color <- Fonts.allowedColors
-          size  <- Fonts.allowedSizes
-          key: (Fonts.AllowedColor, Fonts.AllowedSize) = (color, size)
+    def fontsZIO = Fonts.allGlyphFontData
 
-          url = Fonts.makeUrlInfo(color, size)
-        } yield (key, url))((key, url) =>
-          for {
-            response <- ZIO.fromPromiseJS(dom.Fetch.fetch(url.href))
-            json     <- ZIO.fromPromiseJS(response.text())
-          } yield (key, json)
-        )
-        .map(_.toMap)
-        .map(Fonts(_))
     def gameCredentials = GameUserCredentials(user.name, gameId, secret)
 
     val gameSocket =
