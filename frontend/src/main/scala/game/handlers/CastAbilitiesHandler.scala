@@ -25,8 +25,7 @@ import gamelogic.entities.classes.pentagon.PentagonZone
 import utils.misc.RGBAColour
 import utils.misc.RGBColour
 
-class CastAbilitiesHandler(myId: Entity.Id, controls: Controls, deltaTimeWithServer: Long)
-    extends KeyboardHandler {
+class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) extends KeyboardHandler {
 
   def handleClickEvent(
       click: Click,
@@ -78,7 +77,7 @@ class CastAbilitiesHandler(myId: Entity.Id, controls: Controls, deltaTimeWithSer
     val gameState     = model.actionGatherer.currentGameState
     def worldMousePos = viewModel.worldMousePosition
 
-    def maybeAbilityIndex = controls.abilityKeys.zipWithIndex.collectFirst {
+    def maybeAbilityIndex = context.startUpData.controls.abilityKeys.zipWithIndex.collectFirst {
       case (inputCode, index) if wasInputCode(inputCode, event, context.keyboard.keysDown) =>
         index
     }

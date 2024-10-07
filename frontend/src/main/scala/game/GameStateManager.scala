@@ -78,7 +78,10 @@ class GameStateManager(
     val width  = flags("width").toInt
     val height = flags("height").toInt
     Outcome(
-      BootResult(GameConfig(width, height), InGameScene.StartupData(Rectangle(width, height)))
+      BootResult(
+        GameConfig(width, height),
+        InGameScene.StartupData(Rectangle(width, height), controls)
+      )
         .withFonts(fonts.fontsInfo.values.toSet)
     )
   }

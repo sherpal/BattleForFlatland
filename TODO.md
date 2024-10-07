@@ -17,8 +17,8 @@
 - [x] friendly ais for boss 102
 - [x] display number of hounds for boss 102
 - [ ] add sounds
-- [ ] aztec diamond background
-- [ ] the "next target" manager
+- [ ] aztec diamond background (opt)
+- [x] the "next target" manager
 - [x] double check server time sync
 - [x] make prod build
 - [x] generate font glyph images and data at run-time (opt)

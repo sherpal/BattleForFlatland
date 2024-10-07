@@ -37,6 +37,7 @@ import game.drawers.GameMarkersDrawer
 import game.drawers.PlayerDrawer
 import game.drawers.BossDrawer
 import game.drawers.ObstacleDrawer
+import game.handlers.NextTargetHandler
 
 class InGameScene(
     myId: Entity.Id,
@@ -48,8 +49,9 @@ class InGameScene(
   type SceneModel     = InGameScene.InGameModel
   type SceneViewModel = IndigoViewModel
 
-  val castAbilitiesHandler = CastAbilitiesHandler(myId, controls, deltaWithServer.toMillis.toLong)
-  val gameMarkersHandler   = MarkersHandler(controls)
+  val castAbilitiesHandler = CastAbilitiesHandler(myId, deltaWithServer.toMillis.toLong)
+  val gameMarkersHandler   = MarkersHandler()
+  val nextTargetHandler    = NextTargetHandler(myId)
 
   inline def serverTime: Long = System.currentTimeMillis() + deltaWithServer.toMillis.toLong
 
@@ -251,7 +253,8 @@ class InGameScene(
                     model,
                     viewModel,
                     serverTime
-                  )
+                  ) ++ nextTargetHandler
+                  .handleKeyUpEvent(kbd, model.projectedGameState, context.frameContext)
               )
             )
 
@@ -307,7 +310,7 @@ class InGameScene(
 }
 
 object InGameScene {
-  case class StartupData(bounds: Rectangle)
+  case class StartupData(bounds: Rectangle, controls: Controls)
 
   class InGameModel(
       val actionGatherer: ActionGatherer,
