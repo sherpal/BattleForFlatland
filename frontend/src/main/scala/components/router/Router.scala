@@ -23,7 +23,8 @@ final class Router private () {
 
   def moveTo(url: String): Unit = {
     val finalUrl =
-      if url.startsWith("/") && !url.startsWith(s"/$baseStr/") then s"/$baseStr$url" else url
+      if url.startsWith("/") && !url.startsWith(baseStr) then s"$baseStr${url.stripPrefix("/")}"
+      else url
     dom.window.history
       .pushState(null, "Title", finalUrl)
     setTimeout(1.millisecond) {

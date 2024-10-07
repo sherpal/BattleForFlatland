@@ -3,14 +3,17 @@ package assets
 import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff
 import gamelogic.gameextras.GameMarker
+import urldsl.language.dummyErrorImpl.*
+import urldsl.language.PathSegment
 
 import scala.language.implicitConversions
+import scala.collection.mutable
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 import scala.util.Try
 import models.bff.outofgame.PlayerClasses
 
-class Asset(val path: String, val name: String, width: Int, height: Int) {
+class Asset private (val path: PathSegment[Unit, ?], val name: String, width: Int, height: Int) {
 
   override final def equals(obj: Any): Boolean = obj match {
     case that: Asset => this.name == that.name
@@ -31,7 +34,7 @@ class Asset(val path: String, val name: String, width: Int, height: Int) {
 
   def asIndigoAssetType: indigo.AssetType = indigo.AssetType.Image(
     assetName,
-    indigo.AssetPath(path)
+    indigo.AssetPath(pathStr)
   )
 
   def indigoGraphic(
@@ -56,150 +59,135 @@ class Asset(val path: String, val name: String, width: Int, height: Int) {
     .withRotation(rotation)
     .withScale(scaleTo(targetSize))
 
+  private lazy val pathStr = "/" ++ path.createPart()
+
 }
 
 object Asset {
 
-  def apply(path: String, width: Int, height: Int): Asset =
-    new Asset(path, path.split("/").last.reverse.dropWhile(_ != '.').tail.reverse, width, height)
+  private val _allAssets = mutable.Set.empty[Asset]
 
-  def allAssets: Set[Asset] =
-    Set(
-      ingame.gui.abilities.abilityOverlay,
-      ingame.gui.boss.dawnOfTime.boss103.sacredGroundArea,
-      ingame.gui.abilities.triangleDirectHitEffect,
-      ingame.gui.abilities.cleaveEffect
-    ) ++
-      Asset.ingame.gui.bars.allBars ++
-      Asset.markerAssetMap.values ++
-      Asset.buffAssetMap.values ++
-      Asset.abilityAssetMap.values ++
-      Asset.units ++ Asset.playerClassAssetMap.values
+  def allAssets: Set[Asset] = _allAssets.toSet
 
-  final class AssetNotProperlyDefined(asset: Asset)
-      extends Exception(
-        s"The asset `${asset.toString}` does not seem to work. Did you forget to restart the Dev server? Or Perhaps" +
-          s"you forgot to add the asset in resource path? A typo in the filepath could also cause that."
-      )
+  private def apply(path: PathSegment[Unit, ?], width: Int, height: Int): Asset = {
+    val asset = new Asset(
+      path,
+      path.createSegments().last.content.reverse.dropWhile(_ != '.').tail.reverse,
+      width,
+      height
+    )
+    _allAssets += asset
+    asset
+  }
+
+  private val basePath = services.routing.base / "assets"
 
   object ingame {
-    object gui {
-      object abilities {
-        val abilityOverlay   = Asset("/assets/in-game/gui/abilities/ability-overlay.png", 30, 30)
-        val hexagonFlashHeal = Asset("/assets/in-game/gui/abilities/hexagon-flash-heal.png", 30, 30)
-        val hexagonHot       = Asset("/assets/in-game/gui/abilities/hexagon-hot.png", 30, 30)
-        val squareHammerHit  = Asset("/assets/in-game/gui/abilities/square-hammer-hit.png", 30, 30)
-        val squareTaunt      = Asset("/assets/in-game/gui/abilities/square-taunt.png", 30, 30)
-        val squareEnrage     = Asset("/assets/in-game/gui/abilities/square-enrage.png", 32, 32)
-        val squareCleave     = Asset("/assets/in-game/gui/abilities/square-cleave.png", 32, 32)
-        val triangleDirectHit =
-          Asset("/assets/in-game/gui/abilities/triangle-direct-hit.png", 30, 30)
-        val triangleUpgradeDirectHit = Asset(
-          "/assets/in-game/gui/abilities/triangle-upgrade-direct-hit.png",
-          32,
-          32
-        )
-        val triangleStun = Asset("/assets/in-game/gui/abilities/triangle-stun.png", 32, 32)
-        val triangleEnergyKick =
-          Asset("/assets/in-game/gui/abilities/triangle-energy-kick.png", 32, 32)
-        val pentagonBullet = Asset("/assets/in-game/gui/abilities/pentagon-bullet.png", 32, 32)
-        val pentagonZone   = Asset("/assets/in-game/gui/abilities/create-pentagon-zone.png", 32, 32)
-        val pentagonDispel = Asset("/assets/in-game/gui/abilities/pentagon-dispel.png", 32, 32)
-        val boss101BigDot  = Asset("/assets/in-game/gui/abilities/boss101-big-dot.png", 30, 30)
 
-        val triangleDirectHitEffect = Asset("/assets/in-game/gui/abilities/sword.png", 20, 2)
-        val cleaveEffect = Asset("/assets/in-game/gui/abilities/cleave-animation.png", 135, 40)
+    private val ingameP = basePath / "in-game"
+
+    object gui {
+
+      private val guiP = ingameP / "gui"
+
+      object abilities {
+        private val abilitiesP = guiP / "abilities"
+
+        val abilityOverlay   = Asset(abilitiesP / "ability-overlay.png", 30, 30)
+        val hexagonFlashHeal = Asset(abilitiesP / "hexagon-flash-heal.png", 30, 30)
+        val hexagonHot       = Asset(abilitiesP / "hexagon-hot.png", 30, 30)
+        val squareHammerHit  = Asset(abilitiesP / "square-hammer-hit.png", 30, 30)
+        val squareTaunt      = Asset(abilitiesP / "square-taunt.png", 30, 30)
+        val squareEnrage     = Asset(abilitiesP / "square-enrage.png", 32, 32)
+        val squareCleave     = Asset(abilitiesP / "square-cleave.png", 32, 32)
+        val triangleDirectHit =
+          Asset(abilitiesP / "triangle-direct-hit.png", 30, 30)
+        val triangleUpgradeDirectHit = Asset(abilitiesP / "triangle-upgrade-direct-hit.png", 32, 32)
+        val triangleStun             = Asset(abilitiesP / "triangle-stun.png", 32, 32)
+        val triangleEnergyKick =
+          Asset(abilitiesP / "triangle-energy-kick.png", 32, 32)
+        val pentagonBullet = Asset(abilitiesP / "pentagon-bullet.png", 32, 32)
+        val pentagonZone   = Asset(abilitiesP / "create-pentagon-zone.png", 32, 32)
+        val pentagonDispel = Asset(abilitiesP / "pentagon-dispel.png", 32, 32)
+        val boss101BigDot  = Asset(abilitiesP / "boss101-big-dot.png", 30, 30)
+
+        val triangleDirectHitEffect = Asset(abilitiesP / "sword.png", 20, 2)
+        val cleaveEffect            = Asset(abilitiesP / "cleave-animation.png", 135, 40)
 
       }
 
       object bars {
-        val liteStepBar     = Asset("/assets/in-game/gui/bars/LiteStep_wenakari.png", 256, 32)
-        val lifeBarWenakari = Asset("/assets/in-game/gui/bars/life-bar_wenakari.png", 373, 51)
-        val xeonBar         = Asset("/assets/in-game/gui/bars/Xeon.png", 256, 32)
-        val minimalist      = Asset("/assets/in-game/gui/bars/Minimalist.png", 256, 32)
+        private val barsP = guiP / "bars"
+
+        val liteStepBar     = Asset(barsP / "LiteStep_wenakari.png", 256, 32)
+        val lifeBarWenakari = Asset(barsP / "life-bar_wenakari.png", 373, 51)
+        val xeonBar         = Asset(barsP / "Xeon.png", 256, 32)
+        val minimalist      = Asset(barsP / "Minimalist.png", 256, 32)
 
         def allBars = Vector(liteStepBar, lifeBarWenakari, xeonBar, minimalist)
       }
 
       object boss {
+        private val bossP = guiP / "boss"
+
         object dawnOfTime {
+          private val dawnOfTimeP = bossP / "dawn-of-time"
+
           object boss102 {
-            val livingDamageZone = Asset(
-              "/assets/in-game/gui/boss/dawn-of-time/boss102/living-damage-zone.png",
-              32,
-              32
-            )
-            val livingDamageZoneAnimation = Asset(
-              "/assets/in-game/gui/boss/dawn-of-time/boss102/living-damage-zone-animation.png",
-              960,
-              576
-            )
+            private val boss102P = dawnOfTimeP / "boss102"
+
+            val livingDamageZone = Asset(boss102P / "living-damage-zone.png", 32, 32)
+            val livingDamageZoneAnimation =
+              Asset(boss102P / "living-damage-zone-animation.png", 960, 576)
           }
           object boss103 {
-            val punished = Asset(
-              "/assets/in-game/gui/boss/dawn-of-time/boss103/boss103-punished.png",
-              32,
-              32
-            )
-            val purified = Asset(
-              "/assets/in-game/gui/boss/dawn-of-time/boss103/boss103-purified.png",
-              32,
-              32
-            )
-            val inflamed = Asset(
-              "/assets/in-game/gui/boss/dawn-of-time/boss103/boss103-inflamed.png",
-              32,
-              32
-            )
-            val sacredGroundArea = Asset(
-              "/assets/in-game/gui/boss/dawn-of-time/boss103/sacred-ground.png",
-              500,
-              500
-            )
+            private val boss103P = dawnOfTimeP / "boss103"
+
+            val punished         = Asset(boss103P / "boss103-punished.png", 32, 32)
+            val purified         = Asset(boss103P / "boss103-purified.png", 32, 32)
+            val inflamed         = Asset(boss103P / "boss103-inflamed.png", 32, 32)
+            val sacredGroundArea = Asset(boss103P / "sacred-ground.png", 500, 500)
           }
 
           object boss110 {
+            private val boss110P = dawnOfTimeP / "boss110"
 
-            val brokenArmor = Asset(
-              "/assets/in-game/gui/boss/dawn-of-time/boss110/broken-armor.png",
-              32,
-              32
-            )
-            val bigGuy = Asset("/assets/in-game/gui/boss/dawn-of-time/boss110/big-guy.png", 64, 64)
-            val smallGuy =
-              Asset("/assets/in-game/gui/boss/dawn-of-time/boss110/small-guy.png", 64, 64)
-            val bombPod =
-              Asset("/assets/in-game/gui/boss/dawn-of-time/boss110/bomb-pod.png", 64, 64)
-
+            val brokenArmor = Asset(boss110P / "broken-armor.png", 32, 32)
+            val bigGuy      = Asset(boss110P / "big-guy.png", 64, 64)
+            val smallGuy    = Asset(boss110P / "small-guy.png", 64, 64)
+            val bombPod     = Asset(boss110P / "bomb-pod.png", 64, 64)
           }
         }
       }
 
       object `default-abilities` {
-        val squareShield =
-          Asset("/assets/in-game/gui/default-abilities/players/square-shield.png", 30, 30)
-        val rageFiller =
-          Asset("/assets/in-game/gui/default-abilities/players/rage-filler.png", 30, 30)
-        val energyFiller =
-          Asset("/assets/in-game/gui/default-abilities/players/energy-filler.png", 30, 30)
-        val manaFiller =
-          Asset("/assets/in-game/gui/default-abilities/players/mana-filler.png", 32, 32)
+        private val defaultAbilitiesP = guiP / "default-abilities"
+        private val playersP          = defaultAbilitiesP / "players"
+
+        val squareShield = Asset(playersP / "square-shield.png", 30, 30)
+        val rageFiller   = Asset(playersP / "rage-filler.png", 30, 30)
+        val energyFiller = Asset(playersP / "energy-filler.png", 30, 30)
+        val manaFiller   = Asset(playersP / "mana-filler.png", 32, 32)
       }
 
       object markers {
-        val markerCross    = Asset("/assets/in-game/gui/markers/marker-cross.png", 64, 64)
-        val markerLozenge  = Asset("/assets/in-game/gui/markers/marker-lozenge.png", 64, 64)
-        val markerMoon     = Asset("/assets/in-game/gui/markers/marker-moon.png", 64, 64)
-        val markerSquare   = Asset("/assets/in-game/gui/markers/marker-square.png", 64, 64)
-        val markerStar     = Asset("/assets/in-game/gui/markers/marker-star.png", 64, 64)
-        val markerTriangle = Asset("/assets/in-game/gui/markers/marker-triangle.png", 64, 64)
+        private val markersP = guiP / "markers"
+
+        val markerCross    = Asset(markersP / "marker-cross.png", 64, 64)
+        val markerLozenge  = Asset(markersP / "marker-lozenge.png", 64, 64)
+        val markerMoon     = Asset(markersP / "marker-moon.png", 64, 64)
+        val markerSquare   = Asset(markersP / "marker-square.png", 64, 64)
+        val markerStar     = Asset(markersP / "marker-star.png", 64, 64)
+        val markerTriangle = Asset(markersP / "marker-triangle.png", 64, 64)
       }
 
       object players {
-        val triangle = Asset("/assets/in-game/gui/players/triangle.png", 50, 50)
-        val square   = Asset("/assets/in-game/gui/players/square.png", 50, 50)
-        val pentagon = Asset("/assets/in-game/gui/players/pentagon.png", 50, 50)
-        val hexagon  = Asset("/assets/in-game/gui/players/hexagon.png", 50, 50)
+        private val playersP = guiP / "players"
+
+        val triangle = Asset(playersP / "triangle.png", 50, 50)
+        val square   = Asset(playersP / "square.png", 50, 50)
+        val pentagon = Asset(playersP / "pentagon.png", 50, 50)
+        val hexagon  = Asset(playersP / "hexagon.png", 50, 50)
       }
     }
   }
@@ -258,5 +246,7 @@ object Asset {
     ingame.gui.boss.dawnOfTime.boss110.bombPod,
     ingame.gui.boss.dawnOfTime.boss110.smallGuy
   )
+
+  val bars = ingame.gui.bars.allBars
 
 }

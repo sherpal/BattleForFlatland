@@ -1,6 +1,7 @@
 import sbt.Keys._
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 import java.nio.charset.StandardCharsets
+import scala.sys.process.Process
 
 name := "Battle for Flatland"
 
@@ -124,3 +125,49 @@ lazy val frontend = project
     scalaJSUseMainModuleInitializer := true
   )
   .dependsOn(`shared`.js)
+
+val buildFrontend = taskKey[Unit]("Build frontend")
+
+buildFrontend := {
+  /*
+  To build the frontend, we do the following things:
+  - fullLinkJS the frontend sub-module
+  - run npm ci in the frontend directory (might not be required)
+  - package the application with vite-js (output will be in the resources of the server sub-module)
+   */
+  (frontend / Compile / fullLinkJS).value
+  val npmCiExit =
+    Process(Utils.npm :: "ci" :: Nil, cwd = baseDirectory.value / "frontend").run().exitValue()
+  if (npmCiExit > 0) {
+    throw new IllegalStateException(s"npm ci failed. See above for reason")
+  }
+
+  val buildExit = Process(
+    Utils.npm :: "run" :: "build" :: Nil,
+    cwd = baseDirectory.value / "frontend"
+  ).run().exitValue()
+  if (buildExit > 0) {
+    throw new IllegalStateException(s"Building frontend failed. See above for reason")
+  }
+
+  IO.copyDirectory(
+    baseDirectory.value / "frontend" / "dist",
+    baseDirectory.value / "server" / "src" / "main" / "resources" / "static"
+  )
+}
+
+(server / assembly) := (server / assembly).dependsOn(buildFrontend).value
+
+val packageApplication = taskKey[File]("Package the whole application into a fat jar")
+
+packageApplication := {
+  /*
+  To package the whole application into a fat jar, we do the following things:
+  - call sbt assembly to make the fat jar for us (config in the server sub-module settings)
+  - we move it to the ./dist folder so that the Dockerfile can be independent of Scala versions and other details
+   */
+  val fatJar = (server / assembly).value
+  val target = baseDirectory.value / "dist" / "app.jar"
+  IO.copyFile(fatJar, target)
+  target
+}
