@@ -23,3 +23,9 @@
 - [x] make prod build
 - [x] generate font glyph images and data at run-time (opt)
 - [ ] scale camera to best fit (opt)
+- [x] fix "tab" key behaviour
+- [ ] add target "lock-in" toggle: rather than pointing towards the mouse, the player points towards the target (if any)
+
+# Next Steps
+
+- [ ] allow players to configure a "frenzy" level for the boss, which would reduce cooldown, increase damage and life, or some combination of those

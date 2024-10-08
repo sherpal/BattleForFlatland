@@ -10,6 +10,7 @@ import game.GameStateManager
 import gamelogic.gamestate.GameState
 import models.bff.ingame.Controls
 import assets.fonts.Fonts
+import org.scalajs.dom
 
 object GameViewContainer {
 
@@ -33,6 +34,10 @@ object GameViewContainer {
       div(height := "800px", width := "1200px", idAttr := canvasId),
       onMountCallback { ctx =>
         given Owner = ctx.owner
+
+        dom.document.addEventListener("keyup", (event: dom.Event) => event.preventDefault())
+        dom.document.addEventListener("keydown", (event: dom.Event) => event.preventDefault())
+
         println("Creating game state manager")
         GameStateManager(
           me.name,
