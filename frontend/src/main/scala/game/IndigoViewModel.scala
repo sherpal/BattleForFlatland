@@ -144,7 +144,8 @@ object IndigoViewModel {
               myId,
               myId,
               viewModel.gameState.players.get(myId).fold(PlayerClasses.Hexagon)(_.cls),
-              Anchor(AnchorPoint.TopRight, AnchorPoint.BottomCenter, Point(-10, -120))
+              inGroup = false,
+              anchor = Anchor(AnchorPoint.TopRight, AnchorPoint.BottomCenter, Point(-10, -120))
             ),
             game.ui.components.FPSDisplay(Anchor.bottomLeft),
             game.ui.components.ClockDisplay(),

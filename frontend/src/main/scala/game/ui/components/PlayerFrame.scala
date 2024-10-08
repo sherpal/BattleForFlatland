@@ -23,11 +23,15 @@ import gamelogic.abilities.WithTargetAbility
   *   id of the player we display the info of
   * @param playerClass
   *   class of the player we display the info of
+  * @param inGroup
+  *   whether this frame will be placed within the group of players. In that case, we make it less
+  *   wide
   */
 final case class PlayerFrame(
     myId: Entity.Id,
     playerId: Entity.Id,
     playerClass: PlayerClasses,
+    inGroup: Boolean,
     anchor: Anchor = Anchor.topLeft
 )(using context: FrameContext[StartupData], viewModel: IndigoViewModel)
     extends Component {
@@ -51,7 +55,7 @@ final case class PlayerFrame(
       }).getOrElse(1.0)
     else 1.0
 
-  private val theWidth  = 200
+  private val theWidth  = if inGroup then 150 else 200
   private val theHeight = 55
 
   override def width: Int  = theWidth
@@ -86,7 +90,7 @@ final case class PlayerFrame(
         )
     }
 
-  val lifeBar = new Container(180, 20, Anchor.topRight) {
+  val lifeBar = new Container(theWidth - 20, 20, Anchor.topRight) {
 
     def children: js.Array[Component] = js.Array(
       StatusBar(
@@ -112,35 +116,36 @@ final case class PlayerFrame(
 
   }
 
-  val resourceBar = new Container(180, 15, anchor = Anchor.topRight.withOffset(Point(0, 20))) {
-    def children: js.Array[Component] = js.Array(
-      StatusBar(
-        maybePlayer.fold(0.0)(_.resourceAmount.amount),
-        maybePlayer.fold(1.0)(_.maxResourceAmount),
-        _ =>
-          maybePlayer.fold(RGBA.White)(player =>
-            val resourceColour = player.resourceType.colour
-            RGBA.fromColorInts(resourceColour.red, resourceColour.green, resourceColour.blue)
-          ),
-        Asset.ingame.gui.bars.minimalist,
-        StatusBar.Horizontal,
-        this.width,
-        this.height,
-        Anchor.left
-      ),
-      TextComponent(
-        maybePlayer.fold("")(entity =>
-          s"${entity.resourceAmount.amount}/${entity.maxResourceAmount}"
+  val resourceBar =
+    new Container(theWidth - 20, 15, anchor = Anchor.topRight.withOffset(Point(0, 20))) {
+      def children: js.Array[Component] = js.Array(
+        StatusBar(
+          maybePlayer.fold(0.0)(_.resourceAmount.amount),
+          maybePlayer.fold(1.0)(_.maxResourceAmount),
+          _ =>
+            maybePlayer.fold(RGBA.White)(player =>
+              val resourceColour = player.resourceType.colour
+              RGBA.fromColorInts(resourceColour.red, resourceColour.green, resourceColour.blue)
+            ),
+          Asset.ingame.gui.bars.minimalist,
+          StatusBar.Horizontal,
+          this.width,
+          this.height,
+          Anchor.left
         ),
-        Anchor.right.withOffset(Point(-2, 0)),
-        this.width,
-        8,
-        "black",
-        Fonts.xs,
-        textAlign = TextAlignment.Right
+        TextComponent(
+          maybePlayer.fold("")(entity =>
+            s"${entity.resourceAmount.amount}/${entity.maxResourceAmount}"
+          ),
+          Anchor.right.withOffset(Point(-2, 0)),
+          this.width,
+          8,
+          "black",
+          Fonts.xs,
+          textAlign = TextAlignment.Right
+        )
       )
-    )
-  }
+    }
 
   def children: js.Array[Component] =
     js.Array(

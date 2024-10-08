@@ -28,13 +28,13 @@ case class PlayerFrameContainer(
         (viewModel.gameState.players ++ viewModel.gameState.deadPlayers).toJSArray
           .sortBy(_._2.name)
           .map { (playerId, player) =>
-            PlayerFrame(myId, playerId, player.cls)
+            PlayerFrame(myId, playerId, player.cls, inGroup = true)
           },
         anchor = Anchor.topLeft
       )
     )
 
-  override def width: Int = 200
+  override def width: Int = 150
 
   override val height: Int = children.map(_.height).sum
 
