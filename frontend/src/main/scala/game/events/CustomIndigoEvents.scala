@@ -6,6 +6,7 @@ import gamelogic.gamestate.GameAction
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.entities.Entity
 import gamelogic.gameextras.GameMarkerInfo
+import gamelogic.entities.Entity.Id
 
 trait CustomIndigoEvents extends GlobalEvent
 
@@ -27,14 +28,21 @@ object CustomIndigoEvents {
     case class ErrorMessage(message: String) extends GameEvent
 
     case class StartChoosingAbility(abilityId: AbilityId) extends GameEvent
-    case class ChooseTarget(entityId: Entity.Id)          extends GameEvent
+    sealed trait TargetEvent extends GameEvent {
+      def maybeTargetId: Option[Entity.Id]
+    }
+    case class ChooseTarget(entityId: Entity.Id) extends TargetEvent {
+      def maybeTargetId: Option[Id] = Some(entityId)
+    }
+    case class ClearTarget() extends TargetEvent {
+      def maybeTargetId: Option[Id] = None
+    }
+
+    /** Happens when the player toggle the target lock in mechanism */
+    case class ToggleTargetLockIn() extends GameEvent
   }
 
   sealed trait UIEvent extends CustomIndigoEvents
-  object UIEvent {
-
-    /** Emitted by the ui parent every half a second so components can decide to slowly change */
-    case class SlowFrameTick() extends UIEvent
-  }
+  object UIEvent {}
 
 }

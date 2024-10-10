@@ -28,7 +28,9 @@ object PlayerDrawer extends Drawer {
     val playerColor      = colorCache.retrieve(player.id, player)
     val currentPlayerPos = player.currentPosition(gameState.time)
     val localCurrentPos  = gameToLocal(currentPlayerPos)
-    val barPos           = gameToLocal(currentPlayerPos + Complex.i * (player.shape.radius + 10))
+    val localNosePos =
+      gameToLocal(currentPlayerPos + Complex.polar(player.shape.radius, player.rotation))
+    val barPos = gameToLocal(currentPlayerPos + Complex.i * (player.shape.radius + 10))
 
     val asset = Asset.playerClassAssetMap(player.cls)
     Graphic(
@@ -40,7 +42,11 @@ object PlayerDrawer extends Drawer {
     ).withPosition(localCurrentPos)
       .withRef(asset.center)
       .withRotation(Radians(-player.rotation))
-      .withScale(asset.scaleTo(2 * player.shape.radius)) +:
+      .withScale(asset.scaleTo(2 * player.shape.radius)) +: Shape.Circle(
+      localNosePos,
+      2,
+      Fill.Color(RGBA.White)
+    ) +:
       minilifebar(player, barPos).presentWithChildrenWithoutRectangle
   }
 

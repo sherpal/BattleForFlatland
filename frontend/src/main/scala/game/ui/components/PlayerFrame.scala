@@ -63,7 +63,9 @@ final case class PlayerFrame(
 
   override def registerEvents(bounds: Rectangle): js.Array[Component.EventRegistration[?]] =
     js.Array(
-      registerClickInBounds(bounds)(js.Array(CustomIndigoEvents.GameEvent.ChooseTarget(playerId)))
+      registerClickInBounds(bounds, stopPropagation = true)(
+        js.Array(CustomIndigoEvents.GameEvent.ChooseTarget(playerId))
+      )
     )
 
   override def visible: Boolean = true

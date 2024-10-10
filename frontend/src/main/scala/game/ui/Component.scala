@@ -8,6 +8,7 @@ import scala.reflect.Typeable
 import scala.scalajs.js
 import game.ui.Component.EventRegistration
 import indigo.shared.events.MouseEvent.Click
+import game.ui.Component.EventResult
 
 trait Component {
 
@@ -80,10 +81,13 @@ trait Component {
   def presentWithChildrenWithoutRectangle: js.Array[SceneNode] =
     presentWithChildren(Rectangle(Size(0)), 1.0)
 
-  protected def registerClickInBounds(bounds: Rectangle)(
+  protected def registerClickInBounds(bounds: Rectangle, stopPropagation: Boolean)(
       events: => js.Array[GlobalEvent]
   ): EventRegistration[Click] =
-    EventRegistration(click => if bounds.isPointWithin(click.position) then events else js.Array())
+    EventRegistration(click =>
+      if bounds.isPointWithin(click.position) then EventResult(events, stopPropagation)
+      else EventResult.empty
+    )
 
 }
 
@@ -95,10 +99,21 @@ object Component {
     override def propagateToChildren: Boolean = false
   }
 
-  class EventRegistration[Ev <: GlobalEvent](f: Ev => js.Array[GlobalEvent])(using Typeable[Ev]) {
-    def handle(event: GlobalEvent): js.Array[GlobalEvent] = event match {
+  case class EventResult(generatedEvents: js.Array[GlobalEvent], stopPropagation: Boolean) {
+    def combine(that: EventResult): EventResult = EventResult(
+      this.generatedEvents ++ that.generatedEvents,
+      this.stopPropagation || that.stopPropagation
+    )
+  }
+
+  object EventResult {
+    val empty: EventResult = EventResult(js.Array(), stopPropagation = false)
+  }
+
+  class EventRegistration[Ev <: GlobalEvent](f: Ev => EventResult)(using Typeable[Ev]) {
+    def handle(event: GlobalEvent): EventResult = event match {
       case ev: Ev => f(ev)
-      case _      => js.Array()
+      case _      => EventResult.empty
     }
   }
 
@@ -118,8 +133,8 @@ object Component {
     def presentAll: js.Array[SceneNode] =
       components.flatMap(comp => comp.component.present(comp.bounds, comp.alpha))
 
-    def handleEvent(event: GlobalEvent): js.Array[GlobalEvent] =
-      registeredEvents.flatMap(_.handle(event))
+    def handleEvent(event: GlobalEvent): EventResult =
+      registeredEvents.map(_.handle(event)).reduceOption(_.combine(_)).getOrElse(EventResult.empty)
   }
 
   object CachedComponentsInfo {

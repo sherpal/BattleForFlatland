@@ -62,9 +62,6 @@ object GameSettings {
       } yield result
     )
 
-    org.scalajs.dom.console.log(js.`import`.meta.env)
-    println("cocou")
-
     val playerUpdateFailures = playerUpdateEvents.collect { case Left(error) => error }
 
     val launchGameBus    = new EventBus[Unit]

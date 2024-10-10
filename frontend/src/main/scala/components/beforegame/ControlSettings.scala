@@ -96,6 +96,11 @@ object ControlSettings {
                 controls.nextTargetKey,
                 code => controls.copy(nextTargetKey = code)
               ),
+              displayInputCode(
+                "Toggle Target Lock-in",
+                controls.targetLockInToggleKey,
+                code => controls.copy(targetLockInToggleKey = code)
+              ),
               controls.abilityKeys.zipWithIndex.map { (currentCode, index) =>
                 displayInputCode(
                   s"Ability ${index + 1}",

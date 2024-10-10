@@ -10,28 +10,28 @@ import game.events.CustomIndigoEvents
 import models.bff.ingame.UserInput
 import gamelogic.gameextras.GameMarkerInfo
 
-class MarkersHandler() extends KeyboardHandler {
+class MarkersHandler() {
 
   def handleKeyboardEvent(
-      event: KeyboardEvent.KeyUp,
+      event: KeyboardHandler.RichKeyboardEvent[KeyboardEvent.KeyUp],
       context: FrameContext[InGameScene.StartupData],
       model: InGameScene.InGameModel,
       viewModel: IndigoViewModel,
       now: Long
   ): js.Array[CustomIndigoEvents] = (for {
-    inputCode <- event.toInputCode(context.keyboard.keysDown)
+    inputCode <- event.maybeInputCode
     userInput <- context.startUpData.controls.get(inputCode)
   } yield userInput).collect { case UserInput.GameMarkerInput(gameMarker, onTarget) =>
     (gameMarker, onTarget)
   } match {
     case None => js.Array()
     case Some((gameMarker, true)) =>
-      viewModel.maybeTarget match {
+      viewModel.maybeTargetId match {
         case None => js.Array()
-        case Some(target) =>
+        case Some(targetId) =>
           js.Array(
             CustomIndigoEvents.GameEvent.PutMarkers(
-              GameMarkerInfo.GameMarkerOnEntity(gameMarker, target.id)
+              GameMarkerInfo.GameMarkerOnEntity(gameMarker, targetId)
             )
           )
       }

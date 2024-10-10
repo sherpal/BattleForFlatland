@@ -47,7 +47,7 @@ object PutDamageZones extends AbilityMetadata {
 
   def name = "Damage Zone"
 
-  inline def cooldown: Long    = 30000L
+  inline def cooldown: Long    = 15000L
   inline def castingTime: Long = 3000L
 
   inline def timeToFirstAbility: Long = 3000L

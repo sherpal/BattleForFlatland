@@ -22,8 +22,7 @@ final case class TargetFrame(myId: Entity.Id)(using
     viewModel: IndigoViewModel
 ) extends Component {
 
-  val maybeTarget =
-    viewModel.maybeTarget.flatMap(entity => viewModel.gameState.targetableEntityById(entity.id))
+  val maybeTarget = viewModel.maybeTarget
 
   val maybeMe = viewModel.gameState.players.get(myId)
 
@@ -153,8 +152,8 @@ final case class TargetFrame(myId: Entity.Id)(using
       )
   }
 
-  override def present(bounds: Rectangle, alpha: Double): js.Array[SceneNode] =
-    js.Array(
+  override def present(bounds: Rectangle, alpha: Double): js.Array[SceneNode] = {
+    val nodes: js.Array[SceneNode] = js.Array(
       Shape
         .Box(
           bounds,
@@ -164,11 +163,20 @@ final case class TargetFrame(myId: Entity.Id)(using
         .withDepth(Depth.far)
     )
 
+    if viewModel.lockInToTarget then {
+      nodes.push(
+        Asset.misc.smallLock
+          .indigoGraphic(bounds.bottomRight, None, Radians.zero, Asset.misc.smallLock.size)
+      )
+    }
+
+    nodes
+  }
   override def visible: Boolean = maybeTarget.isDefined
 
   override def registerEvents(bounds: Rectangle): js.Array[EventRegistration[?]] =
     js.Array(
-      registerClickInBounds(bounds)(
+      registerClickInBounds(bounds, stopPropagation = true)(
         maybeTarget.fold(js.Array())(t => js.Array(CustomIndigoEvents.GameEvent.ChooseTarget(t.id)))
       )
     )

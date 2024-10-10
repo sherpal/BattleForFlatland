@@ -21,16 +21,18 @@ final case class Controls(
     leftKey: InputCode,
     rightKey: InputCode,
     nextTargetKey: InputCode,
+    targetLockInToggleKey: InputCode,
     abilityKeys: List[InputCode],
     gameMarkerControls: GameMarkerControls
 ) {
 
   lazy val controlMap: Map[InputCode, UserInput] = Map(
-    upKey         -> UserInput.Up,
-    downKey       -> UserInput.Down,
-    leftKey       -> UserInput.Left,
-    rightKey      -> UserInput.Right,
-    nextTargetKey -> UserInput.NextTarget
+    upKey                 -> UserInput.Up,
+    downKey               -> UserInput.Down,
+    leftKey               -> UserInput.Left,
+    rightKey              -> UserInput.Right,
+    nextTargetKey         -> UserInput.NextTarget,
+    targetLockInToggleKey -> UserInput.ToggleTargetLockIn
   ) ++ abilityKeys.zipWithIndex.map { case (code, idx) =>
     code -> UserInput.AbilityInput(idx)
   }.toMap ++
@@ -50,10 +52,10 @@ final case class Controls(
     * defined.
     */
   def getOrUnknown(keyCode: InputCode): UserInput =
-    controlMap.getOrElse(keyCode, UserInput.Unknown(keyCode))
+    controlMap.getOrElse(keyCode, UserInput.Unknown(Some(keyCode)))
 
   /** Retrieve the [[UserInput]] associated to this [[InputCode]], or None if it's not associated
-   */
+    */
   def get(keyCode: InputCode): Option[UserInput] = controlMap.get(keyCode)
 }
 
@@ -108,6 +110,7 @@ object Controls {
       KeyCode("KeyA"),
       KeyCode("KeyD"),
       KeyCode("Tab"),
+      KeyCode("CapsLock"),
       (1 to 10).map(_ % 10).map("Digit" + _).map(KeyCode(_)).toList,
       Pointed[GameMarkerControls].unit
     )

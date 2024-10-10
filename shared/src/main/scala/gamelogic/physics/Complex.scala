@@ -129,6 +129,9 @@ object Complex {
 
   def rotation(angle: Double): Complex = Complex(math.cos(angle), math.sin(angle))
 
+  def polar(radius: Double, angle: Double): Complex =
+    Complex(radius * math.cos(angle), radius * math.sin(angle))
+
   trait ComplexIsNumeric extends Numeric[Complex] {
     override def plus(x: Complex, y: Complex): Complex = x + y
 

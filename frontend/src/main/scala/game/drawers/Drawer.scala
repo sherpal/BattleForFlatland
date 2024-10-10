@@ -12,7 +12,7 @@ trait Drawer {
 }
 
 object Drawer {
-  def empty: Drawer = new Drawer {
+  val empty: Drawer = new Drawer {
     def drawAll(
         gameState: GameState,
         now: Long,

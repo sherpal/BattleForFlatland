@@ -4,13 +4,12 @@ import indigo.*
 
 import scala.scalajs.js
 import game.events.CustomIndigoEvents
-import game.ui.Component.EventRegistration
+import game.ui.Component.{EventRegistration, EventResult}
 
 final case class UIParent[StartupData, ViewModel](
     children: (FrameContext[StartupData], ViewModel) => js.Array[Component],
     theWidth: Int,
-    theHeight: Int,
-    lastSlowFrameTick: Seconds = Seconds.zero
+    theHeight: Int
 ) {
 
   private inline def slowFrameTickRate = Seconds(0.5)
@@ -23,13 +22,7 @@ final case class UIParent[StartupData, ViewModel](
       context: FrameContext[StartupData],
       viewModel: ViewModel,
       bounds: Rectangle
-  ): scala.scalajs.js.Array[EventRegistration[?]] = js.Array(
-    EventRegistration[FrameTick](_ =>
-      if context.gameTime.running - lastSlowFrameTick > slowFrameTickRate then
-        js.Array(CustomIndigoEvents.UIEvent.SlowFrameTick())
-      else js.Array()
-    )
-  )
+  ): scala.scalajs.js.Array[EventRegistration[?]] = js.Array()
 
   def presentAll(context: FrameContext[StartupData], viewModel: ViewModel): js.Array[SceneNode] =
     children(context, viewModel).flatMap(_.presentWithChildren(rectangle, 1.0))
@@ -50,37 +43,18 @@ final case class UIParent[StartupData, ViewModel](
   def changeViewModel(
       context: FrameContext[StartupData],
       viewModel: ViewModel,
-      update: (ViewModel, UIParent[StartupData, ViewModel]) => ViewModel,
-      updateCachedComponents: (
-          ViewModel,
-          Component.CachedComponentsInfo
-      ) => ViewModel,
-      retrieveComponentCache: ViewModel => Component.CachedComponentsInfo,
       event: GlobalEvent
-  ): Outcome[ViewModel] = {
-    val newUIParent = event match {
-      case CustomIndigoEvents.UIEvent.SlowFrameTick() =>
-        copy(lastSlowFrameTick = context.gameTime.running)
-      case _ => this
-    }
-
-    // event match {
-    //   case FrameTick =>
-    //     // refresh the component cache
-    //     val cache = generateCachedComponents(context, viewModel)
-    //     Outcome(
-    //       updateCachedComponents(update(viewModel, newUIParent), cache)
-    //     ).addGlobalEvents(Batch(cache.handleEvent(FrameTick)))
-    //   case other =>
-    //     Outcome(update(viewModel, newUIParent)).addGlobalEvents(
-    //       Batch(retrieveComponentCache(viewModel).handleEvent(other))
-    //     )
-    // }
+  ): Outcome[(ViewModel, Boolean)] = {
     val allComponents = children(context, viewModel).flatMap(_.allDescendants(rectangle, 1.0))
 
-    val generatedEvents =
-      allComponents.flatMap(_.registerEvents).flatMap(_.handle(event))
-    Outcome(update(viewModel, newUIParent)).addGlobalEvents(Batch(generatedEvents))
+    val eventResult =
+      allComponents
+        .flatMap(_.registerEvents)
+        .map(_.handle(event))
+        .reduceOption(_.combine(_))
+        .getOrElse(EventResult.empty)
+    Outcome((viewModel, eventResult.stopPropagation))
+      .addGlobalEvents(Batch(eventResult.generatedEvents))
   }
 
 }

@@ -17,13 +17,17 @@ import game.scenes.ingame.InGameScene.StartupData
 import models.bff.outofgame.PlayerClasses
 import game.viewmodelmisc.Telemetry
 import game.drawers.effects.EffectsManager
+import gamelogic.entities.MovingBody
+import gamelogic.entities.LivingEntity
+import game.events.CustomIndigoEvents
 
 case class IndigoViewModel(
     startupData: InGameScene.StartupData,
     gameState: GameState,
     currentCameraPosition: Complex,
     initialBossPosition: Complex,
-    maybeTarget: Option[Entity],
+    maybeTargetId: Option[Entity.Id],
+    lockInToTarget: Boolean,
     maybeChoosingAbilityPosition: Option[AbilityId],
     localMousePos: Point,
     uiParent: UIParent[InGameScene.StartupData, IndigoViewModel],
@@ -31,6 +35,9 @@ case class IndigoViewModel(
     effectsManager: EffectsManager,
     telemetry: Telemetry
 ) {
+
+  lazy val maybeTarget: Option[MovingBody & LivingEntity] =
+    maybeTargetId.flatMap(gameState.targetableEntityById)
 
   def withMousePos(pos: Point): IndigoViewModel = copy(
     localMousePos = pos
@@ -58,14 +65,20 @@ case class IndigoViewModel(
 
   lazy val worldMousePosition: Complex = localMousePosToWorld(localMousePos)
 
-  def targetFromMouseClick(event: Click): IndigoViewModel = {
-    val mousePos = localMousePosToWorld(event.position)
-    val maybeNextTarget = gameState.allTargetableEntities.toVector
-      .sortBy(_.shape.radius)
-      .find(entity => entity.shape.contains(mousePos, entity.pos, entity.rotation))
+  def targetFromMouseClick(event: Click): js.Array[CustomIndigoEvents.GameEvent.TargetEvent] =
+    if maybeChoosingAbilityPosition.isEmpty then {
+      val mousePos = localMousePosToWorld(event.position)
+      val maybeNextTargetId = gameState.allTargetableEntities.toVector
+        .sortBy(_.shape.radius)
+        .find(entity => entity.shape.contains(mousePos, entity.pos, entity.rotation))
+        .map(_.id)
 
-    copy(maybeTarget = maybeNextTarget)
-  }
+      maybeNextTargetId match {
+        case None     => js.Array(CustomIndigoEvents.GameEvent.ClearTarget())
+        case Some(id) => js.Array(CustomIndigoEvents.GameEvent.ChooseTarget(id))
+      }
+    } else js.Array()
+
   def newCameraPosition(myId: Entity.Id, deltaTime: Seconds): IndigoViewModel = copy(
     currentCameraPosition = gameState.players
       .get(myId)
@@ -129,7 +142,8 @@ object IndigoViewModel {
       gameState,
       Complex.zero,
       initialBossPosition,
-      maybeTarget = Option.empty,
+      maybeTargetId = Option.empty,
+      lockInToTarget = false,
       maybeChoosingAbilityPosition = Option.empty,
       localMousePos = Point.zero,
       uiParent = UIParent[InGameScene.StartupData, IndigoViewModel](

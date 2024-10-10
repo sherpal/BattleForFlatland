@@ -46,7 +46,7 @@ object PutLivingDamageZoneOnTarget extends AbilityMetadata {
 
   def name = "Living Damage Zone"
 
-  @inline final def cooldown: Long    = LivingDamageZone.duration / 2
+  @inline final def cooldown: Long    = LivingDamageZone.duration / 3
   @inline final def castingTime: Long = 0L
   @inline final def cost: Resource.ResourceAmount =
     Resource.ResourceAmount(0.0, Resource.NoResource)

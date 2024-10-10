@@ -26,7 +26,7 @@ final case class PentagonForBoss102(index: Int, entityId: Entity.Id)
       val hounds    = houndsNow(currentGameState)
 
       def maybePentagonZone = Option
-        .when(hounds.length >= 5) {
+        .when(hounds.length >= 4) {
           val targetPos = medianOfEntities(hounds, startTime)
           maybePentagonZoneUsage(currentGameState, startTime, me, targetPos)
         }

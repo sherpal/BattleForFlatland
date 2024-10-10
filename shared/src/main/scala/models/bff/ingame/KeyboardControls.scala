@@ -32,7 +32,7 @@ final case class KeyboardControls(
     * defined.
     */
   def getOrUnknown(keyCode: KeyCode): UserInput =
-    controlMap.getOrElse(keyCode, UserInput.Unknown(Controls.KeyCode(keyCode)))
+    controlMap.getOrElse(keyCode, UserInput.Unknown(Some(Controls.KeyCode(keyCode))))
 
 }
 

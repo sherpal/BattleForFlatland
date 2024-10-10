@@ -24,8 +24,9 @@ import indigo.shared.events.MouseEvent.Click
 import gamelogic.entities.classes.pentagon.PentagonZone
 import utils.misc.RGBAColour
 import utils.misc.RGBColour
+import models.bff.ingame.UserInput.AbilityInput
 
-class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) extends KeyboardHandler {
+class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
 
   def handleClickEvent(
       click: Click,
@@ -68,7 +69,7 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) extends K
   }
 
   def handleKeyboardEvent(
-      event: KeyboardEvent.KeyUp,
+      event: KeyboardHandler.RichKeyboardEvent[KeyboardEvent.KeyUp],
       context: SceneContext[InGameScene.StartupData],
       model: InGameScene.InGameModel,
       viewModel: IndigoViewModel,
@@ -77,9 +78,8 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) extends K
     val gameState     = model.actionGatherer.currentGameState
     def worldMousePos = viewModel.worldMousePosition
 
-    def maybeAbilityIndex = context.startUpData.controls.abilityKeys.zipWithIndex.collectFirst {
-      case (inputCode, index) if wasInputCode(inputCode, event, context.keyboard.keysDown) =>
-        index
+    def maybeAbilityIndex = event.collectUserInput { case AbilityInput(abilityIndex) =>
+      abilityIndex
     }
 
     (for {
@@ -88,34 +88,34 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) extends K
       abilities = player.abilities.toArray
       abilityId <- Option.when(abilityIndex < abilities.length)(abilities(abilityIndex))
     } yield {
-      inline def maybeTarget = viewModel.maybeTarget
+      inline def maybeTargetId = viewModel.maybeTargetId
       abilityId match {
         case Ability.hexagonFlashHealId =>
           sendCastAbilityWithTarget(
-            target => FlashHeal(Ability.UseId.zero, now, myId, target.id),
-            maybeTarget,
+            targetId => FlashHeal(Ability.UseId.zero, now, myId, targetId),
+            maybeTargetId,
             gameState,
             now
           )
         case Ability.hexagonHexagonHotId =>
           sendCastAbilityWithTarget(
-            target => HexagonHot(Ability.UseId.zero, now, myId, target.id),
-            maybeTarget,
+            targetId => HexagonHot(Ability.UseId.zero, now, myId, targetId),
+            maybeTargetId,
             gameState,
             now
           )
         case Ability.squareTauntId =>
           sendCastAbilityWithTarget(
-            target => Taunt(Ability.UseId.zero, now, myId, target.id),
-            maybeTarget,
+            targetId => Taunt(Ability.UseId.zero, now, myId, targetId),
+            maybeTargetId,
             gameState,
             now
           )
 
         case Ability.squareHammerHit =>
           sendCastAbilityWithTarget(
-            target => HammerHit(Ability.UseId.zero, now, myId, target.id),
-            maybeTarget,
+            targetId => HammerHit(Ability.UseId.zero, now, myId, targetId),
+            maybeTargetId,
             gameState,
             now
           )
@@ -134,16 +134,16 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) extends K
 
         case Ability.triangleEnergyKick =>
           sendCastAbilityWithTarget(
-            target => EnergyKick(Ability.UseId.zero, now, myId, target.id),
-            maybeTarget,
+            targetId => EnergyKick(Ability.UseId.zero, now, myId, targetId),
+            maybeTargetId,
             gameState,
             now
           )
         case Ability.triangleDirectHit =>
           sendCastAbilityWithTarget(
-            target =>
-              DirectHit(Ability.UseId.zero, now, myId, target.id, DirectHit.directHitDamage),
-            maybeTarget,
+            targetId =>
+              DirectHit(Ability.UseId.zero, now, myId, targetId, DirectHit.directHitDamage),
+            maybeTargetId,
             gameState,
             now
           )
@@ -152,15 +152,15 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) extends K
           sendCastAbility(ability, gameState, now)
         case Ability.triangleStun =>
           sendCastAbilityWithTarget(
-            target => Stun(Ability.UseId.zero, now, myId, target.id),
-            maybeTarget,
+            targetId => Stun(Ability.UseId.zero, now, myId, targetId),
+            maybeTargetId,
             gameState,
             now
           )
         case Ability.pentagonPentagonBullet =>
           val myPosition  = player.pos // should not be moving anyway
-          val direction   = worldMousePos - myPosition
-          val startingPos = myPosition + player.shape.radius * direction.normalized
+          val direction   = Complex.rotation(player.rotation)
+          val startingPos = myPosition + player.shape.radius * direction
           val ability = CreatePentagonBullet(
             Ability.UseId.zero,
             now,
@@ -173,8 +173,8 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) extends K
           sendCastAbility(ability, gameState, now)
         case Ability.pentagonDispelId =>
           sendCastAbilityWithTarget(
-            target => PentaDispel(Ability.UseId.zero, now, myId, target.id),
-            maybeTarget,
+            targetId => PentaDispel(Ability.UseId.zero, now, myId, targetId),
+            maybeTargetId,
             gameState,
             now
           )
@@ -195,18 +195,18 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) extends K
   private def maybeMe(gameState: GameState) = gameState.players.get(myId)
 
   def sendCastAbilityWithTarget(
-      ability: Entity => Ability,
-      maybeTarget: Option[Entity],
+      ability: Entity.Id => Ability,
+      maybeTargetId: Option[Entity.Id],
       gameState: GameState,
       time: Long
   ): js.Array[CustomIndigoEvents] =
-    maybeTarget match {
+    maybeTargetId match {
       case None =>
         if (scala.scalajs.LinkingInfo.developmentMode) {
           dom.console.warn("No target")
         }
         js.Array(CustomIndigoEvents.GameEvent.ErrorMessage("No target"))
-      case Some(target) => sendCastAbility(ability(target), gameState, time)
+      case Some(targetId) => sendCastAbility(ability(targetId), gameState, time)
     }
 
   def sendCastAbility(

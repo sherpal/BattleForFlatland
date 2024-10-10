@@ -38,6 +38,9 @@ import game.drawers.PlayerDrawer
 import game.drawers.BossDrawer
 import game.drawers.ObstacleDrawer
 import game.handlers.NextTargetHandler
+import game.handlers.KeyboardHandler
+import game.handlers.ToggleLockInTargetHandler
+import game.drawers.bossspecificdrawers.Boss102Drawer
 
 class InGameScene(
     myId: Entity.Id,
@@ -45,7 +48,8 @@ class InGameScene(
     backendCommWrapper: BackendCommWrapper,
     deltaWithServer: Seconds,
     controls: Controls
-) extends Scene[InGameScene.StartupData, IndigoModel, IndigoViewModel] {
+) extends Scene[InGameScene.StartupData, IndigoModel, IndigoViewModel]
+    with KeyboardHandler {
   type SceneModel     = InGameScene.InGameModel
   type SceneViewModel = IndigoViewModel
 
@@ -75,52 +79,64 @@ class InGameScene(
 
     val playerCenteredCamera = Camera.LookAt(context.gameToLocal(viewModel.currentCameraPosition))
 
+    val bossDrawers = gameState.bosses.values.headOption.toJSArray
+      .map(game.drawers.bossspecificdrawers.drawerMapping)
+
     Outcome(
       SceneUpdateFragment(
-        Layer(
-          Shape
-            .Box(
-              context.startUpData.bounds,
-              Fill.Color(RGBA.fromColorInts(200, 200, 200)),
-              Stroke(1, RGBA.Blue)
+        Batch(
+          js.Array(
+            Layer(
+              Shape
+                .Box(
+                  context.startUpData.bounds,
+                  Fill.Color(RGBA.fromColorInts(200, 200, 200)),
+                  Stroke(1, RGBA.Blue)
+                )
+                .withDepth(Depth.far)
             )
-            .withDepth(Depth.far)
-        ),
-        Layer(
-          Batch.fromJSArray(
-            ObstacleDrawer.drawAll(gameState, gameState.time, context.gameToLocal) ++
-              BossDrawer.drawAll(gameState, gameState.time, context.gameToLocal) ++
-              js.Array(
-                Shape
-                  .Circle(context.gameToLocal(0), 2, Fill.Color(RGBA.White))
-                  .withDepth(Depth.far)
-              ) ++ PentagonBulletsDrawer.drawAll(
-                gameState,
-                viewModel.maybeChoosingAbilityPosition.collect {
-                  case Ability.createPentagonZoneId =>
-                    viewModel.localMousePosToWorld(context.mouse.position)
-                },
-                myId,
-                now,
-                context.gameToLocal
-              ) ++ PlayerDrawer.drawAll(
-                gameState,
-                gameState.time,
-                context.gameToLocal
-              ) ++ gameState.bosses.values.headOption.toJSArray
-                .map(game.drawers.bossspecificdrawers.drawerMapping)
-                .flatMap(_.drawAll(gameState, now, context.gameToLocal)) ++
-              viewModel.maybeLaunchGameButton.getOrElse(js.Array())
-          )
-        ).withCamera(playerCenteredCamera),
-        Layer(
-          Batch(
-            viewModel.effectsManager.present(context.frameContext, viewModel) ++ GameMarkersDrawer
-              .drawAll(viewModel.gameState, serverTime, context.gameToLocal)
-          )
+          ) ++ bossDrawers.map(
+            _.cloneLayer(gameState, gameState.time, context.gameToLocal).withCamera(
+              playerCenteredCamera
+            )
+          ) ++
+            js.Array(
+              Layer(
+                Batch.fromJSArray(
+                  ObstacleDrawer.drawAll(gameState, gameState.time, context.gameToLocal) ++
+                    BossDrawer.drawAll(gameState, gameState.time, context.gameToLocal) ++
+                    js.Array(
+                      Shape
+                        .Circle(context.gameToLocal(0), 2, Fill.Color(RGBA.White))
+                        .withDepth(Depth.far)
+                    ) ++ PentagonBulletsDrawer.drawAll(
+                      gameState,
+                      viewModel.maybeChoosingAbilityPosition.collect {
+                        case Ability.createPentagonZoneId =>
+                          viewModel.localMousePosToWorld(context.mouse.position)
+                      },
+                      myId,
+                      now,
+                      context.gameToLocal
+                    ) ++ PlayerDrawer.drawAll(
+                      gameState,
+                      gameState.time,
+                      context.gameToLocal
+                    ) ++ bossDrawers.flatMap(_.drawAll(gameState, now, context.gameToLocal)) ++
+                    viewModel.maybeLaunchGameButton.getOrElse(js.Array())
+                )
+              ).withCamera(playerCenteredCamera),
+              Layer(
+                Batch(
+                  viewModel.effectsManager
+                    .present(context.frameContext, viewModel) ++ GameMarkersDrawer
+                    .drawAll(viewModel.gameState, serverTime, context.gameToLocal)
+                )
+              )
+                .withCamera(playerCenteredCamera),
+              Layer(Batch(viewModel.uiParent.presentAll(context.frameContext, viewModel)))
+            )
         )
-          .withCamera(playerCenteredCamera),
-        Layer(Batch(viewModel.uiParent.presentAll(context.frameContext, viewModel)))
       )
     )
   }
@@ -147,7 +163,12 @@ class InGameScene(
           val maybePlayerDirection =
             if playerX == 0 && playerY == 0 then None else Some(Math.atan2(playerY, playerX))
 
-          val rotation = gameMousePos.arg
+          val rotation = (for {
+            targetId <- model.maybeTarget
+            if model.lockInToTarget
+            target <- gameState.targetableEntityById(targetId)
+          } yield (target.currentPosition(gameState.time) - player.pos).arg)
+            .getOrElse(gameMousePos.arg)
 
           val playerMoveAction = MovingBodyMoves(
             GameAction.Id.zero,
@@ -166,7 +187,7 @@ class InGameScene(
             maybePlayerDirection.isDefined
           )
           val maybeAction = Option.when(
-            playerMoveAction.moving || playerMoveAction.moving != player.moving
+            playerMoveAction.moving || playerMoveAction.moving != player.moving || player.rotation != rotation
           )(playerMoveAction)
           maybeAction.foreach(sendGameAction(_))
           val outputModel = newModel.withActionGatherer(
@@ -187,6 +208,10 @@ class InGameScene(
       sendGameAction(UpdateMarker(GameAction.Id.dummy, serverTime, putMarker.info))
       Outcome(model)
 
+    case event: CustomIndigoEvents.GameEvent.TargetEvent =>
+      Outcome(model.withTarget(event.maybeTargetId))
+    case CustomIndigoEvents.GameEvent.ToggleTargetLockIn() =>
+      Outcome(model.toggleTargetLockIn)
     case _ => Outcome(model)
   }
 
@@ -208,83 +233,86 @@ class InGameScene(
       .changeViewModel(
         context.frameContext,
         modelBeforeUI,
-        (vm, ui) => vm.copy(uiParent = ui),
-        (vm, cache) => vm.copy(cachedComponents = cache),
-        _.cachedComponents,
         globalEvent
       )
-      .flatMap(viewModel =>
-        globalEvent match {
-          case FrameTick =>
-            Outcome(
-              viewModel.effectsManager.updateViewModel(
-                context.frameContext,
-                viewModel
-                  .withUpToDateGameState(model.projectedGameState)
-                  .newCameraPosition(myId, context.gameTime.delta)
-                  .addFPSDataPoint(context.delta)
+      .flatMap((viewModel, stopPropagation) =>
+        if stopPropagation then Outcome(viewModel)
+        else
+          globalEvent match {
+            case FrameTick =>
+              Outcome(
+                viewModel.effectsManager.updateViewModel(
+                  context.frameContext,
+                  viewModel
+                    .withUpToDateGameState(model.projectedGameState)
+                    .newCameraPosition(myId, context.gameTime.delta)
+                    .addFPSDataPoint(context.delta)
+                )
               )
-            )
 
-          case mouse: MouseEvent.Move =>
-            Outcome(viewModel.withMousePos(mouse.position))
+            case mouse: MouseEvent.Move =>
+              Outcome(viewModel.withMousePos(mouse.position))
 
-          case CustomIndigoEvents.GameEvent.NewAction(action)
-              if !action.isInstanceOf[UpdateTimestamp] =>
-            // this is where we trigger animations effects
-            Outcome(
-              viewModel.effectsManager
-                .handleActionAndModifyViewModel(action, context.frameContext, viewModel)
-            )
+            case CustomIndigoEvents.GameEvent.NewAction(action)
+                if !action.isInstanceOf[UpdateTimestamp] =>
+              // this is where we trigger animations effects
+              Outcome(
+                viewModel.effectsManager
+                  .handleActionAndModifyViewModel(action, context.frameContext, viewModel)
+              )
 
-          case kbd: KeyboardEvent.KeyUp =>
-            Outcome(viewModel).addGlobalEvents(
-              Batch(
-                castAbilitiesHandler.handleKeyboardEvent(
-                  kbd,
-                  context,
-                  model,
-                  viewModel,
-                  serverTime
-                ) ++ gameMarkersHandler
-                  .handleKeyboardEvent(
-                    kbd,
-                    context.frameContext,
+            case kbd: KeyboardEvent.KeyUp =>
+              val richKbd = kbd.enrich(context.frameContext)
+              Outcome(viewModel).addGlobalEvents(
+                Batch(
+                  castAbilitiesHandler.handleKeyboardEvent(
+                    richKbd,
+                    context,
                     model,
                     viewModel,
                     serverTime
-                  ) ++ nextTargetHandler
-                  .handleKeyUpEvent(kbd, model.projectedGameState, context.frameContext)
+                  ) ++ gameMarkersHandler
+                    .handleKeyboardEvent(
+                      richKbd,
+                      context.frameContext,
+                      model,
+                      viewModel,
+                      serverTime
+                    ) ++ nextTargetHandler
+                    .handleKeyUpEvent(richKbd, model.projectedGameState, context.frameContext) ++
+                    ToggleLockInTargetHandler.handleKeyboardEvent(richKbd)
+                )
               )
-            )
 
-          case click: Click
-              if viewModel
-                .doesMouseClickLaunchButton(click.position) =>
-            println("We should launch the game, woot!")
+            case click: Click
+                if viewModel
+                  .doesMouseClickLaunchButton(click.position) =>
+              println("We should launch the game, woot!")
 
-            Outcome(viewModel)
-              .addGlobalEvents(CustomIndigoEvents.GameEvent.SendStartGame())
+              Outcome(viewModel)
+                .addGlobalEvents(CustomIndigoEvents.GameEvent.SendStartGame())
 
-          case click: Click =>
-            castAbilitiesHandler.handleClickEvent(
-              click,
-              viewModel.targetFromMouseClick(click),
-              serverTime
-            )
+            case click: Click =>
+              castAbilitiesHandler
+                .handleClickEvent(
+                  click,
+                  viewModel,
+                  serverTime
+                )
+                .addGlobalEvents(Batch(viewModel.targetFromMouseClick(click)))
 
-          case CustomIndigoEvents.GameEvent.StartChoosingAbility(abilityId) =>
-            Outcome(viewModel.withChoosingAbilityPosition(abilityId))
+            case CustomIndigoEvents.GameEvent.StartChoosingAbility(abilityId) =>
+              Outcome(viewModel.withChoosingAbilityPosition(abilityId))
 
-          case CustomIndigoEvents.GameEvent.SendStartGame() =>
-            backendCommWrapper.sendMessageToBackend(InGameWSProtocol.LetsBegin)
-            Outcome(viewModel)
-          case CustomIndigoEvents.GameEvent.ChooseTarget(entityId) =>
-            Outcome(
-              viewModel.copy(maybeTarget = model.projectedGameState.entities.get(entityId))
-            )
-          case _ => Outcome(viewModel)
-        }
+            case CustomIndigoEvents.GameEvent.SendStartGame() =>
+              backendCommWrapper.sendMessageToBackend(InGameWSProtocol.LetsBegin)
+              Outcome(viewModel)
+            case event: CustomIndigoEvents.GameEvent.TargetEvent =>
+              Outcome(viewModel.copy(maybeTargetId = event.maybeTargetId))
+            case CustomIndigoEvents.GameEvent.ToggleTargetLockIn() =>
+              Outcome(viewModel.copy(lockInToTarget = !viewModel.lockInToTarget))
+            case _ => Outcome(viewModel)
+          }
       )
 
   extension (input: InputCode) {
@@ -315,17 +343,48 @@ object InGameScene {
   class InGameModel(
       val actionGatherer: ActionGatherer,
       val unconfirmedActions: Vector[GameAction],
-      val lastTimeMovementActionSent: Seconds
+      val lastTimeMovementActionSent: Seconds,
+      val maybeTarget: Option[Entity.Id],
+      val lockInToTarget: Boolean
   ) extends js.Object {
     inline def withActionGatherer(
         newActionGatherer: ActionGatherer,
         newUnconfirmedActions: Vector[GameAction]
     ): InGameModel =
-      InGameModel(newActionGatherer, newUnconfirmedActions, lastTimeMovementActionSent)
+      InGameModel(
+        newActionGatherer,
+        newUnconfirmedActions,
+        lastTimeMovementActionSent,
+        maybeTarget = maybeTarget,
+        lockInToTarget = lockInToTarget
+      )
+
+    inline def withTarget(newMaybeTarget: Option[Entity.Id]) =
+      InGameModel(
+        actionGatherer,
+        unconfirmedActions,
+        lastTimeMovementActionSent,
+        maybeTarget = newMaybeTarget,
+        lockInToTarget = lockInToTarget
+      )
+
+    inline def toggleTargetLockIn: InGameModel = InGameModel(
+      actionGatherer,
+      unconfirmedActions,
+      lastTimeMovementActionSent,
+      maybeTarget = maybeTarget,
+      lockInToTarget = !lockInToTarget
+    )
 
     inline def alsoSendAction(now: Seconds, sendAction: => Unit): InGameModel =
       sendAction
-      InGameModel(actionGatherer, unconfirmedActions, now)
+      InGameModel(
+        actionGatherer,
+        unconfirmedActions,
+        now,
+        maybeTarget = maybeTarget,
+        lockInToTarget = lockInToTarget
+      )
 
     lazy val projectedGameState: GameState =
       actionGatherer.currentGameState.applyActions(unconfirmedActions)
@@ -334,7 +393,9 @@ object InGameScene {
   def initialModel(initialGameState: GameState): InGameModel = InGameModel(
     GreedyActionGatherer(initialGameState),
     Vector.empty,
-    Seconds.zero
+    Seconds.zero,
+    maybeTarget = Option.empty,
+    lockInToTarget = false
   )
 
   val name = SceneName("in game")

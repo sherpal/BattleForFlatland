@@ -14,13 +14,13 @@ import game.drawers.minilifebar
 import game.drawers.LoopingAnimatedSprite
 import gamelogic.entities.boss.boss102.DamageZone
 
-object Boss102Drawer extends game.drawers.Drawer {
+object Boss102Drawer extends game.drawers.DrawerWithCloneBlanks {
 
   def drawAll(gameState: GameState, now: Long, gameToLocal: Complex => Point): js.Array[SceneNode] =
     drawLivingDamageZones(gameState, now, gameToLocal) ++ drawBossHounds(
       gameState,
       gameToLocal
-    ) ++ drawDamageZones(gameState, gameToLocal)
+    )
 
   private def drawBossHounds(
       gameState: GameState,
@@ -45,18 +45,17 @@ object Boss102Drawer extends game.drawers.Drawer {
   private def drawDamageZones(
       gameState: GameState,
       gameToLocal: Complex => Point
-  ): js.Array[SceneNode] = gameState.allTEntities[DamageZone].values.toJSArray.map { dz =>
-    val localPos = gameToLocal(dz.pos)
-
-    Shape
-      .Circle(
-        localPos,
-        dz.shape.radius.toInt,
-        Fill.Color(RGBA.Green.withAlpha(0.5))
-      )
-      .withDepth(Depth.far)
+  ): js.Array[SceneNode] = {
+    val damageZoneLocalPositions =
+      gameState.allTEntities[DamageZone].values.toJSArray.map(dz => gameToLocal(dz.pos))
+    val damageZoneCloneBatchData = Batch(
+      damageZoneLocalPositions.map(dz => CloneBatchData(dz.x, dz.y))
+    )
+    js.Array(
+      CloneBatch(damageZoneBackgroundCloneBlankId, damageZoneCloneBatchData),
+      CloneBatch(damageZoneAnimationCloneBlankId, damageZoneCloneBatchData)
+    )
   }
-
   private def drawLivingDamageZones(
       gameState: GameState,
       now: Long,
@@ -81,5 +80,41 @@ object Boss102Drawer extends game.drawers.Drawer {
 
   private val livingDamageZoneAnimatedSprite =
     LoopingAnimatedSprite(livingDamageZoneAsset, 50L, 3, 5, Some(0.3))
+
+  private val damageZoneAsset = Asset.ingame.gui.boss.dawnOfTime.boss102.damageZoneAnimation
+
+  private val damageZoneAnimatedSprite =
+    LoopingAnimatedSprite(damageZoneAsset, 100L, 1, 12, Some(0.3), Some(RGBA.Olive))
+
+  private val damageZoneAnimationCloneBlankId = CloneId("damage-zone-animation")
+
+  private val damageZoneBackgroundCloneBlankId = CloneId("damage-zone")
+
+  def cloneBlanks(time: Long) = js.Array(
+    CloneBlank(
+      damageZoneAnimationCloneBlankId,
+      damageZoneAnimatedSprite
+        .graphic(
+          time,
+          Size(DamageZone.radius.toInt * 4)
+        )
+        .withDepth(Depth.far)
+        .withRef(Point(32))
+    ),
+    CloneBlank(
+      damageZoneBackgroundCloneBlankId,
+      Shape
+        .Circle(
+          Point.zero,
+          DamageZone.radius.toInt,
+          Fill.Color(RGBA.Green.withAlpha(0.5))
+        )
+        .withRef(Point(DamageZone.radius.toInt))
+        .withDepth(Depth.far)
+    )
+  )
+
+  def cloneLayer(gameState: GameState, now: Long, gameToLocal: Complex => Point): Layer.Content =
+    Layer(Batch(drawDamageZones(gameState, gameToLocal))).addCloneBlanks(Batch(cloneBlanks(now)))
 
 }

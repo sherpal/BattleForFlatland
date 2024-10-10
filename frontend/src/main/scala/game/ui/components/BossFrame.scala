@@ -7,6 +7,7 @@ import game.IndigoViewModel
 import game.ui.Component.EventRegistration
 import assets.Asset
 import assets.fonts.Fonts
+import game.events.CustomIndigoEvents
 
 final case class BossFrame()(using viewModel: IndigoViewModel) extends Component {
 
@@ -79,6 +80,12 @@ final case class BossFrame()(using viewModel: IndigoViewModel) extends Component
   override def visible: Boolean = maybeBoss.isDefined
 
   override def registerEvents(bounds: Rectangle): js.Array[EventRegistration[?]] =
-    js.Array()
+    maybeBoss.fold(js.Array())(boss =>
+      js.Array(
+        registerClickInBounds(bounds, stopPropagation = true)(
+          js.Array(CustomIndigoEvents.GameEvent.ChooseTarget(boss.id))
+        )
+      )
+    )
 
 }

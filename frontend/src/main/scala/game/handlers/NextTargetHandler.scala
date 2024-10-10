@@ -11,6 +11,7 @@ import gamelogic.entities.classes.PlayerClass
 import models.bff.ingame.Controls.InputCode
 import game.scenes.ingame.InGameScene.StartupData
 import scala.collection.mutable
+import models.bff.ingame.UserInput
 
 /** This class handles what happens when a player uses the "next target" input (tab by default).
   *
@@ -27,19 +28,17 @@ import scala.collection.mutable
   *
   * If, for some reason, there is no entity at all, we simply do nothing
   */
-class NextTargetHandler(myId: Entity.Id) extends KeyboardHandler {
+class NextTargetHandler(myId: Entity.Id) {
   import NextTargetHandler.RecentTargetInfo
 
   private val recentTargetInfo: mutable.Map[Entity.Id, RecentTargetInfo] = mutable.Map.empty
 
   def handleKeyUpEvent(
-      keyup: KeyboardEvent.KeyUp,
+      keyup: KeyboardHandler.RichKeyboardEvent[KeyboardEvent.KeyUp],
       gameState: GameState,
       context: FrameContext[StartupData]
   ): js.Array[CustomIndigoEvents.GameEvent.ChooseTarget] =
-    if keyup
-        .toInputCode(context.keyboard.keysDown)
-        .contains[InputCode](context.startUpData.controls.nextTargetKey)
+    if keyup.isUserInput(UserInput.NextTarget)
     then
       gameState.players
         .get(myId)

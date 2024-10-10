@@ -1,37 +1,48 @@
 package game.handlers
 
-import models.bff.ingame.Controls.InputCode
 import indigo.*
-import models.bff.ingame.Controls.InputCode
-import models.bff.ingame.Controls.KeyCode
-import models.bff.ingame.Controls.ModifiedKeyCode
-import models.bff.ingame.Controls.MouseCode
+import models.bff.ingame.Controls.*
 import models.bff.ingame.Controls.KeyInputModifier.WithShift
 import models.bff.ingame.Controls
-import models.bff.ingame.Controls.KeyInputModifier
+import models.bff.ingame.UserInput
+import game.scenes.ingame.InGameScene.StartupData
 
 trait KeyboardHandler {
 
-  extension (event: KeyboardEvent) {
-    def toInputCode(downKeys: Batch[Key]): Option[InputCode] =
-      Controls.keyToKeyCodeMap.get(event.keyCode.code).map { key =>
-        if downKeys.contains[Key](Key.SHIFT) then ModifiedKeyCode(key, KeyInputModifier.WithShift)
-        else KeyCode(key)
-      }
+  extension [Kbd <: KeyboardEvent](event: Kbd) {
+    def enrich(context: FrameContext[StartupData]) = KeyboardHandler.enrich(context, event)
   }
 
-  protected def wasInputCode(
-      inputCode: InputCode,
-      event: KeyboardEvent,
-      downKeys: Batch[Key]
-  ): Boolean = inputCode match
-    case kc: KeyCode =>
-      kc.keyCode == event.keyCode.code && !downKeys.contains[Key](Key.SHIFT)
-    case mkc @ ModifiedKeyCode(_, modifier) =>
-      def isModifierDown = modifier match
-        case WithShift => downKeys.contains[Key](Key.SHIFT)
+}
 
-      mkc.keyCode == event.keyCode.code && isModifierDown
-    case MouseCode(_) => false
+object KeyboardHandler {
+  case class RichKeyboardEvent[Kbd <: KeyboardEvent](
+      kbd: Kbd,
+      maybeInputCode: Option[InputCode],
+      userInput: UserInput
+  ) {
 
+    inline def collectUserInput[T](pf: PartialFunction[UserInput, T]): Option[T] =
+      pf.lift(userInput)
+
+    inline def isUserInput(input: UserInput): Boolean = userInput == input
+
+  }
+
+  def enrich[Kbd <: KeyboardEvent](
+      context: FrameContext[StartupData],
+      kbd: Kbd
+  ): RichKeyboardEvent[Kbd] =
+    val maybeInputCode = Controls.keyToKeyCodeMap
+      .get(kbd.keyCode.code)
+      .map { key =>
+        if context.keyboard.keysDown.contains[Key](Key.SHIFT) then
+          ModifiedKeyCode(key, KeyInputModifier.WithShift)
+        else KeyCode(key)
+      }
+    RichKeyboardEvent(
+      kbd,
+      maybeInputCode,
+      maybeInputCode.fold(UserInput.Unknown(None))(context.startUpData.controls.getOrUnknown)
+    )
 }

@@ -139,6 +139,8 @@ object Asset {
             val livingDamageZone = Asset(boss102P / "living-damage-zone.png", 32, 32)
             val livingDamageZoneAnimation =
               Asset(boss102P / "living-damage-zone-animation.png", 960, 576)
+            val damageZoneAnimation =
+              Asset(boss102P / "damage-zone-animation.png", 768, 64)
           }
           object boss103 {
             private val boss103P = dawnOfTimeP / "boss103"
@@ -189,6 +191,12 @@ object Asset {
         val pentagon = Asset(playersP / "pentagon.png", 50, 50)
         val hexagon  = Asset(playersP / "hexagon.png", 50, 50)
       }
+
+      object misc {
+        private val miscP = guiP / "misc"
+
+        val smallLock = Asset(miscP / "small-lock.png", 7, 11)
+      }
     }
   }
 
@@ -225,7 +233,7 @@ object Asset {
     Buff.triangleUpgradeDirectHit -> ingame.gui.abilities.triangleUpgradeDirectHit,
     Buff.triangleStun             -> ingame.gui.abilities.triangleStun,
     Buff.squareEnrage             -> ingame.gui.abilities.squareEnrage,
-    Buff.boss102LivingDamageZone  -> ingame.gui.boss.dawnOfTime.boss102.livingDamageZoneAnimation,
+    Buff.boss102LivingDamageZone  -> ingame.gui.boss.dawnOfTime.boss102.livingDamageZone,
     Buff.boss103Punished          -> ingame.gui.boss.dawnOfTime.boss103.punished,
     Buff.boss103Purified          -> ingame.gui.boss.dawnOfTime.boss103.purified,
     Buff.boss103Inflamed          -> ingame.gui.boss.dawnOfTime.boss103.inflamed,
@@ -248,5 +256,12 @@ object Asset {
   )
 
   val bars = ingame.gui.bars.allBars
+
+  val misc = ingame.gui.misc
+
+  val boss102Animations = Vector(
+    ingame.gui.boss.dawnOfTime.boss102.damageZoneAnimation,
+    ingame.gui.boss.dawnOfTime.boss102.livingDamageZoneAnimation
+  )
 
 }
