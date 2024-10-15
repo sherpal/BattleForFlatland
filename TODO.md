@@ -17,13 +17,16 @@
 - [x] friendly ais for boss 102
 - [x] display number of hounds for boss 102
 - [ ] add sounds
-- [ ] aztec diamond background (opt)
+- [x] aztec diamond background (opt)
 - [x] the "next target" manager
 - [x] double check server time sync
 - [x] make prod build
 - [x] generate font glyph images and data at run-time (opt)
 - [x] fix "tab" key behaviour
 - [x] add target "lock-in" toggle: rather than pointing towards the mouse, the player points towards the target (if any)
+- [ ] effect on players to represent casting a spell
+- [ ] visual response on cast bar when ability is used
+- [ ] cast bar colour dependent on ability
 
 # Next Steps
 

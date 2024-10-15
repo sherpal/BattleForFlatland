@@ -116,6 +116,12 @@ object Asset {
 
       }
 
+      object background {
+        private val backgroundP = guiP / "background"
+
+        val anAztecDiamond = Asset(backgroundP / "aztec-diamond.png", 2000, 2000)
+      }
+
       object bars {
         private val barsP = guiP / "bars"
 
@@ -254,6 +260,8 @@ object Asset {
     ingame.gui.boss.dawnOfTime.boss110.bombPod,
     ingame.gui.boss.dawnOfTime.boss110.smallGuy
   )
+
+  val background = ingame.gui.background
 
   val bars = ingame.gui.bars.allBars
 

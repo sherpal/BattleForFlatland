@@ -77,7 +77,8 @@ class InGameScene(
       .withStroke(TextStroke(RGBA.Red, Pixels(1)))
       .withPosition(point)
 
-    val playerCenteredCamera = Camera.LookAt(context.gameToLocal(viewModel.currentCameraPosition))
+    val localCameraPos       = context.gameToLocal(viewModel.currentCameraPosition)
+    val playerCenteredCamera = Camera.LookAt(localCameraPos)
 
     val bossDrawers = gameState.bosses.values.headOption.toJSArray
       .map(game.drawers.bossspecificdrawers.drawerMapping)
@@ -94,7 +95,9 @@ class InGameScene(
                   Stroke(1, RGBA.Blue)
                 )
                 .withDepth(Depth.far)
-            )
+                .withPosition(localCameraPos - context.startUpData.bounds.size.toPoint / 2),
+              aztecDiamondBackground.withPosition(context.startUpData.bounds.center)
+            ).withCamera(playerCenteredCamera)
           ) ++ bossDrawers.map(
             _.cloneLayer(gameState, gameState.time, context.gameToLocal).withCamera(
               playerCenteredCamera
@@ -333,6 +336,14 @@ class InGameScene(
 
     inline def localToGame(p: Point): Complex =
       game.gameutils.localToGame(p)(context.startUpData.bounds)
+  }
+
+  private val aztecDiamondBackground = {
+    val background = Asset.background.anAztecDiamond
+    Graphic(background.size, Material.ImageEffects(background.assetName).withAlpha(0.5))
+      .withDepth(Depth.far - 1)
+      .withRef(background.center)
+      .withScale(background.scaleTo(background.size * 2))
   }
 
 }
