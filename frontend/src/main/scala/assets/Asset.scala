@@ -114,6 +114,9 @@ object Asset {
         val triangleDirectHitEffect = Asset(abilitiesP / "sword.png", 20, 2)
         val cleaveEffect            = Asset(abilitiesP / "cleave-animation.png", 135, 40)
 
+        val playerCastingAbilityAnimation =
+          Asset(abilitiesP / "player-casting-ability-animation.png", 240, 288)
+
       }
 
       object background {

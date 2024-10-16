@@ -11,6 +11,8 @@ import utils.misc.RGBColour
 import assets.Asset
 import scala.scalajs.js.JSConverters.*
 import assets.fonts.Fonts
+import gamelogic.abilities.Ability
+import game.gameutils.toIndigo
 
 final case class BossCooldownsContainer()(using viewModel: IndigoViewModel) extends Component {
 
@@ -27,36 +29,36 @@ final case class BossCooldownsContainer()(using viewModel: IndigoViewModel) exte
         GridContainer(
           GridContainer.Column,
           20,
-          boss.abilityNames.zip(RGBColour.repeatedColours).toJSArray.map {
-            case ((abilityId, name), colour) =>
-              val maybeLastUse = boss.relevantUsedAbilities.get(abilityId)
-              val value = maybeLastUse.fold(0.0) { lastUse =>
-                val elapsedTime = viewModel.gameState.time - lastUse.time
-                val cooldown    = lastUse.cooldown
-                (cooldown - elapsedTime) / cooldown.toDouble
-              }
-              new Container(width, 15, Anchor.topLeft) {
-                def children = js.Array(
-                  StatusBar(
-                    value,
-                    1.0,
-                    _ => RGBA.fromColorInts(colour.red, colour.green, colour.blue),
-                    Asset.ingame.gui.bars.minimalist,
-                    StatusBar.Horizontal,
-                    this.width,
-                    this.height,
-                    Anchor.topLeft
-                  ),
-                  TextComponent(
-                    name,
-                    Anchor.left,
-                    this.width,
-                    this.height,
-                    if colour.isBright then "black" else "white",
-                    Fonts.m
-                  )
+          boss.abilityNames.toJSArray.map { (abilityId, name) =>
+            val colour       = Ability.abilityColour(abilityId)
+            val maybeLastUse = boss.relevantUsedAbilities.get(abilityId)
+            val value = maybeLastUse.fold(0.0) { lastUse =>
+              val elapsedTime = viewModel.gameState.time - lastUse.time
+              val cooldown    = lastUse.cooldown
+              (cooldown - elapsedTime) / cooldown.toDouble
+            }
+            new Container(width, 15, Anchor.topLeft) {
+              def children = js.Array(
+                StatusBar(
+                  value,
+                  1.0,
+                  _ => colour.toIndigo,
+                  Asset.ingame.gui.bars.minimalist,
+                  StatusBar.Horizontal,
+                  this.width,
+                  this.height,
+                  Anchor.topLeft
+                ),
+                TextComponent(
+                  name,
+                  Anchor.left,
+                  this.width,
+                  this.height,
+                  if colour.isBright then "black" else "white",
+                  Fonts.m
                 )
-              }
+              )
+            }
           },
           Anchor.topRight,
           true

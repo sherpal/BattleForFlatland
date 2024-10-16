@@ -24,9 +24,10 @@
 - [x] generate font glyph images and data at run-time (opt)
 - [x] fix "tab" key behaviour
 - [x] add target "lock-in" toggle: rather than pointing towards the mouse, the player points towards the target (if any)
-- [ ] effect on players to represent casting a spell
+- [x] effect on players to represent casting a spell
 - [ ] visual response on cast bar when ability is used
-- [ ] cast bar colour dependent on ability
+- [x] cast bar colour dependent on ability
+- [ ] fix visual bug when player is dead
 
 # Next Steps
 

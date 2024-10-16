@@ -8,6 +8,7 @@ import game.ui.Component.EventRegistration
 import assets.Asset
 import assets.fonts.Fonts
 import game.events.CustomIndigoEvents
+import game.gameutils.toIndigo
 
 final case class BossFrame()(using viewModel: IndigoViewModel) extends Component {
 
@@ -49,6 +50,7 @@ final case class BossFrame()(using viewModel: IndigoViewModel) extends Component
         TextComponent(boss.name, Anchor.top, width, 20, "black", Fonts.m)
       ) ++ maybeCastingInfo
         .map { castingInfo =>
+          val colour = castingInfo.ability.abilityColour
           js.Array(
             StatusBar(
               1.0,
@@ -63,12 +65,20 @@ final case class BossFrame()(using viewModel: IndigoViewModel) extends Component
             StatusBar(
               viewModel.gameState.time - castingInfo.startedTime.toDouble,
               castingInfo.castingTime.toDouble,
-              _ => RGBA.Orange,
+              _ => colour.toIndigo,
               Asset.ingame.gui.bars.minimalist,
               StatusBar.Horizontal,
               this.width,
               10,
               Anchor.topLeft.withOffset(Point(0, 20))
+            ),
+            TextComponent(
+              boss.abilityNames(castingInfo.ability.abilityId),
+              Anchor.top.withOffset(Point(0, 20)),
+              this.width,
+              this.height,
+              if colour.isBright then "black" else "white",
+              Fonts.xs
             )
           )
         }

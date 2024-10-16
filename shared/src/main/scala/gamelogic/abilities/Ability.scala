@@ -8,6 +8,7 @@ import io.circe.{Decoder, Encoder, Json}
 import scala.annotation.tailrec
 import gamelogic.buffs.Buff
 import gamelogic.utils.OpaqueLongCompanion
+import utils.misc.RGBColour
 
 /** A [[gamelogic.abilities.Ability]] represents an action that an entity can take besides moving.
   *
@@ -57,6 +58,8 @@ trait Ability {
 
   /** Change the time and id of this ability, without changing the rest. */
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): Ability
+
+  inline def abilityColour = Ability.abilityColour(abilityId)
 
   /** Returns None when the ability can indeed be cast, otherwise return Some(error message).
     *
@@ -149,18 +152,27 @@ object Ability {
   val boss110SpawnSmallGuies: AbilityId    = nextAbilityId()
   val boss110CreepingShadowTick: AbilityId = nextAbilityId()
 
+  opaque type AbilityColour <: RGBColour = RGBColour
+
+  private val _abilitiesColours: Array[AbilityColour] =
+    RGBColour.repeatedColours.zipWithIndex.takeWhile(_._2 < lastAbilityId).map(_._1).toArray
+
+  inline def abilityColour(abilityId: AbilityId): AbilityColour = _abilitiesColours(abilityId - 1)
+
+  val abilitiesColours: Vector[AbilityColour] = _abilitiesColours.toVector
+
   /** Global cooldown. Not sure if this should be there... */
-  @inline def gcd = 200L
+  inline def gcd = 200L
 
   /** Encoding. Replace this by more performant stuff in the future. */
   import cats.syntax.functor._
   import io.circe.generic.auto._
   import io.circe.syntax._
 
-  private def customEncode[A <: Ability](a: A, name: String)(implicit encoder: Encoder[A]): Json =
+  private def customEncode[A <: Ability](a: A, name: String)(using Encoder[A]): Json =
     a.asJson.mapObject(_.add("ability_name", Json.fromString(name)))
 
-  implicit val encoder: Encoder[Ability] = Encoder.instance {
+  given Encoder[Ability] = Encoder.instance {
     case x: boss.boss101.BigDot         => customEncode(x, "boss.boss101.BigDot")
     case x: boss.boss101.BigHit         => customEncode(x, "boss.boss101.BigHit")
     case x: boss.boss101.SmallHit       => customEncode(x, "boss.boss101.SmallHit")
@@ -187,7 +199,7 @@ object Ability {
   ): Decoder[Ability] =
     decoder.validate(_.get[String]("ability_name").contains(name), s"Not a $name instance").widen
 
-  implicit val decoder: Decoder[Ability] = List[Decoder[Ability]](
+  given Decoder[Ability] = List[Decoder[Ability]](
     customDecoder[boss.boss101.BigDot]("boss.boss101.BigDot"),
     customDecoder[boss.boss101.BigHit]("boss.boss101.BigHit"),
     customDecoder[boss.boss101.SmallHit]("boss.boss101.SmallHit"),

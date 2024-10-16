@@ -7,6 +7,7 @@ import scala.scalajs.js
 import game.ui.Component.EventRegistration
 import game.IndigoViewModel
 import assets.Asset
+import game.gameutils.*
 
 final case class PlayerCastBar(playerId: Entity.Id)(using viewModel: IndigoViewModel)
     extends Container(150, 15, Anchor.bottom.withOffset(Point(0, -35))) {
@@ -32,7 +33,7 @@ final case class PlayerCastBar(playerId: Entity.Id)(using viewModel: IndigoViewM
         StatusBar(
           viewModel.gameState.time - castingInfo.startedTime.toDouble,
           castingInfo.castingTime.toDouble,
-          _ => RGBA.Orange,
+          _ => castingInfo.ability.abilityColour.toIndigo,
           Asset.ingame.gui.bars.minimalist,
           StatusBar.Horizontal,
           this.width,
