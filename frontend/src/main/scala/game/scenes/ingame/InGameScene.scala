@@ -5,41 +5,28 @@ import indigo.scenes.*
 import game.IndigoModel
 import game.IndigoViewModel
 import game.scenes.ingame.InGameScene.StartupData
-import gamelogic.gamestate.GameState
-import gamelogic.gamestate.ActionGatherer
 import scala.scalajs.js.JSConverters.*
 import gamelogic.physics.Complex
 import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions.*
-import gamelogic.gamestate.GameAction
+import gamelogic.gamestate.*
 import game.BackendCommWrapper
-import gamelogic.gamestate.GreedyActionGatherer
 
 import scala.scalajs.js
 import game.events.CustomIndigoEvents
 import models.bff.ingame.Controls
-import models.bff.ingame.Controls.InputCode
-import models.bff.ingame.Controls.KeyCode
-import models.bff.ingame.Controls.ModifiedKeyCode
-import models.bff.ingame.Controls.MouseCode
+import models.bff.ingame.Controls.*
 import models.bff.ingame.Controls.KeyInputModifier.WithShift
 import assets.Asset
 import indigo.shared.events.MouseEvent.Click
 import models.bff.ingame.InGameWSProtocol
-import game.handlers.CastAbilitiesHandler
 import game.drawers.PentagonBulletsDrawer
 import gamelogic.abilities.pentagon.CreatePentagonZone
 import gamelogic.abilities.Ability
 import assets.fonts.Fonts
 import gamelogic.gamestate.gameactions.markers.UpdateMarker
-import game.handlers.MarkersHandler
-import game.drawers.GameMarkersDrawer
-import game.drawers.PlayerDrawer
-import game.drawers.BossDrawer
-import game.drawers.ObstacleDrawer
-import game.handlers.NextTargetHandler
-import game.handlers.KeyboardHandler
-import game.handlers.ToggleLockInTargetHandler
+import game.drawers.*
+import game.handlers.*
 import game.drawers.bossspecificdrawers.Boss102Drawer
 
 class InGameScene(
@@ -199,7 +186,12 @@ class InGameScene(
           )
           Outcome(outputModel).addGlobalEvents(triggeredActions)
         case None =>
-          Outcome(newModel).addGlobalEvents(triggeredActions)
+          Outcome(
+            newModel.withActionGatherer(
+              newModel.actionGatherer,
+              Vector(UpdateTimestamp(GameAction.Id.dummy, serverTime))
+            )
+          ).addGlobalEvents(triggeredActions)
       }
 
     case send: CustomIndigoEvents.GameEvent.SendAction =>

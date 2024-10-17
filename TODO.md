@@ -27,7 +27,7 @@
 - [x] effect on players to represent casting a spell
 - [ ] visual response on cast bar when ability is used
 - [x] cast bar colour dependent on ability
-- [ ] fix visual bug when player is dead
+- [x] fix visual bug when player is dead
 
 # Next Steps
 
