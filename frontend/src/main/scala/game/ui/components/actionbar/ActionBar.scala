@@ -28,6 +28,7 @@ final case class ActionBar(playerId: Entity.Id)(using
       player.abilities.toArray.toJSArray.zipWithIndex.map { (abilityId, index) =>
         AbilityIcon(
           player,
+          viewModel.lastEntityStartCastings.get(player.id).filter(_.ability.abilityId == abilityId),
           abilityId,
           now = viewModel.gameState.time,
           iconSize = iconSize,

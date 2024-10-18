@@ -1,6 +1,6 @@
 package game.ui.components.actionbar
 
-import game.ui.Component
+import game.ui.{Anchor, Component}
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.abilities.Ability
 import assets.Asset
@@ -8,10 +8,13 @@ import game.ui.Anchor
 import game.ui.Component.EventRegistration
 import indigo.*
 import scala.scalajs.js
-import game.ui.components.StatusBar
+import game.ui.components.{GraphicComponent, StatusBar}
+import gamelogic.entities.EntityCastingInfo
+import gamelogic.gamestate.gameactions.EntityStartsCasting
 
 final case class AbilityIcon(
     player: PlayerClass,
+    maybeEntityStartsCastingInfo: Option[EntityStartsCasting],
     abilityId: Ability.AbilityId,
     now: Long,
     iconSize: Int,
@@ -27,16 +30,7 @@ final case class AbilityIcon(
   override def height: Int = iconSize
 
   override def present(bounds: Rectangle, alpha: Double): js.Array[SceneNode] =
-    js.Array(
-      asset
-        .indigoGraphic(
-          bounds.center,
-          Option.when(alpha < 1.0)(RGBA.White.withAlpha(alpha)),
-          Radians.zero,
-          bounds.size
-        )
-        .withDepth(Depth(4))
-    )
+    js.Array()
 
   override def visible: Boolean = true
 
@@ -44,8 +38,30 @@ final case class AbilityIcon(
 
   override def anchor: Anchor = Anchor.topLeft.withOffset(offset)
 
+  def abilityJustUsedEffect(lastUsedAbilityTime: Long): js.Array[Component] = js.Array(
+    GraphicComponent(
+      height,
+      width,
+      (bounds, alpha) =>
+        asset
+          .indigoGraphic(
+            bounds.center,
+            Option.when(alpha < 1.0)(RGBA.White.withAlpha(alpha)),
+            Radians.zero,
+            bounds.size
+          )
+          .withDepth(Depth(4)),
+      anchor = Anchor.topLeft.withOffset(
+        if now - lastUsedAbilityTime < 100 then Point(0, 3)
+        else Point.zero
+      )
+    )
+  )
+
   override def children: js.Array[Component] =
-    player.relevantUsedAbilities.get(abilityId) match {
+    maybeEntityStartsCastingInfo.fold(abilityJustUsedEffect(0L)) { lastEntityStartsCasting =>
+      abilityJustUsedEffect(lastEntityStartsCasting.time)
+    } ++ (player.relevantUsedAbilities.get(abilityId) match {
       case None                                                    => js.Array()
       case Some(usedAbilityInfo) if usedAbilityInfo.cooldown == 0L => js.Array()
       case Some(usedAbilityInfo) =>
@@ -64,5 +80,5 @@ final case class AbilityIcon(
             Anchor.topLeft
           )
         )
-    }
+    })
 }

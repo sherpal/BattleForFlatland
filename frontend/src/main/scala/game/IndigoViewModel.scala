@@ -20,6 +20,8 @@ import game.drawers.effects.EffectsManager
 import gamelogic.entities.MovingBody
 import gamelogic.entities.LivingEntity
 import game.events.CustomIndigoEvents
+import gamelogic.gamestate.gameactions.EntityStartsCasting
+import gamelogic.gamestate.GameAction
 
 case class IndigoViewModel(
     startupData: InGameScene.StartupData,
@@ -30,6 +32,7 @@ case class IndigoViewModel(
     lockInToTarget: Boolean,
     maybeChoosingAbilityPosition: Option[AbilityId],
     localMousePos: Point,
+    lastEntityStartCastings: Map[Entity.Id, EntityStartsCasting],
     uiParent: UIParent[InGameScene.StartupData, IndigoViewModel],
     cachedComponents: Component.CachedComponentsInfo,
     effectsManager: EffectsManager,
@@ -125,6 +128,15 @@ case class IndigoViewModel(
     telemetry = telemetry.addFPSDataPoint(delta.toMillis.toLong)
   )
 
+  private inline def entityStartsCasting(action: EntityStartsCasting): IndigoViewModel = copy(
+    lastEntityStartCastings = lastEntityStartCastings + (action.ability.casterId -> action)
+  )
+
+  def handleAction(action: GameAction): IndigoViewModel = action match {
+    case action: EntityStartsCasting => entityStartsCasting(action)
+    case _                           => this
+  }
+
   private val cameraSpeed: Double = 300.0
 
 }
@@ -146,6 +158,7 @@ object IndigoViewModel {
       lockInToTarget = false,
       maybeChoosingAbilityPosition = Option.empty,
       localMousePos = Point.zero,
+      lastEntityStartCastings = Map.empty,
       uiParent = UIParent[InGameScene.StartupData, IndigoViewModel](
         { (context, viewModel) =>
           given FrameContext[StartupData] = context

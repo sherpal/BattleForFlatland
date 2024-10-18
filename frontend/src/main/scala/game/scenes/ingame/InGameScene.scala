@@ -254,6 +254,7 @@ class InGameScene(
               Outcome(
                 viewModel.effectsManager
                   .handleActionAndModifyViewModel(action, context.frameContext, viewModel)
+                  .handleAction(action)
               )
 
             case kbd: KeyboardEvent.KeyUp =>

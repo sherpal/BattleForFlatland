@@ -44,7 +44,7 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
   )
 
   @cask.get("/")
-  def index() = indexHtmlStaticResource
+  def index() = cask.Redirect("/static")
 
   @caskz.getJ[Option[User]]("/api/users/me")
   def me(request: cask.Request) =
