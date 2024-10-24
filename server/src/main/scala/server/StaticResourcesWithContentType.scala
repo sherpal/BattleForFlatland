@@ -3,11 +3,28 @@ package server
 import cask.model.Request
 import cask.model.Response.Raw
 import cask.router.Result
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.attribute.BasicFileAttributeView
+import scala.util.Try
+import scala.util.Failure
+import scala.util.Success
+import cask.endpoints.StaticUtil
+import java.nio.file.FileSystems
+import java.net.URI
+import scala.jdk.CollectionConverters.*
 
 final class StaticResourcesWithContentType(
     path: String,
     default: => cask.Response[cask.Response.Data]
 ) extends cask.staticResources(path) {
+
+  private lazy val fileSystem =
+    FileSystems.newFileSystem(
+      URI.create(getClass.getClassLoader.getResource("static/index.html").toString.split("!").head),
+      Map().asJava
+    )
+
   override def wrapFunction(ctx: Request, delegate: Delegate): Result[Raw] =
     ctx.remainingPathSegments.lastOption
       .filter(_.contains('.'))
@@ -26,15 +43,40 @@ final class StaticResourcesWithContentType(
               s"Don't know extension $other"
             )
         }
-        super
-          .wrapFunction(ctx, delegate)
-          .map(result =>
-            result.copy(headers =
-              result.headers.filterNot(
-                _._1.toLowerCase() == "content-type"
-              ) :+ ("Content-Type" -> contentType)
-            )
-          )
+
+        delegate(Map()).map { t =>
+          val fullPath = StaticUtil.makePathAndContentType(t, ctx)._1
+          val maybeEtag = Try {
+            val attributes = Files
+              .getFileAttributeView(fileSystem.getPath(fullPath), classOf[BasicFileAttributeView])
+              .readAttributes()
+
+            attributes.size().toHexString ++ "-" ++ fullPath.hashCode().toHexString
+          } match {
+            case Success(value) =>
+              Some(value)
+            case Failure(exception) =>
+              println(s"[DEBUG] Failed to build an etag for $fullPath")
+              exception.printStackTrace()
+              None
+          }
+
+          val maybeIfNoneMatch = ctx.headers.get("if-none-match").flatMap(_.headOption)
+
+          (for {
+            etag        <- maybeEtag
+            ifNoneMatch <- maybeIfNoneMatch
+            if ifNoneMatch == etag
+          } yield cask.Response[cask.Response.Data]((), statusCode = 304))
+            .getOrElse {
+              cask.model.StaticResource(
+                fullPath,
+                getClass.getClassLoader,
+                maybeEtag.map("ETag" -> _).toSeq :+ ("Content-Type" -> contentType)
+              )
+            }
+        }
+
     }
 
 }
