@@ -38,6 +38,7 @@ final class StaticResourcesWithContentType(
           case "html" => "text/html; charset=utf-8"
           case "ttf"  => "font/ttf"
           case "png"  => "image/png"
+          case "wav"  => "audio/wav"
           case other =>
             throw new UnsupportedOperationException(
               s"Don't know extension $other"

@@ -13,7 +13,8 @@ import scala.scalajs.js.annotation.JSImport
 import scala.util.Try
 import models.bff.outofgame.PlayerClasses
 
-class Asset private (val path: PathSegment[Unit, ?], val name: String, width: Int, height: Int) {
+class Asset private (val path: PathSegment[Unit, ?], val name: String, width: Int, height: Int)
+    extends IndigoLikeAsset {
 
   override final def equals(obj: Any): Boolean = obj match {
     case that: Asset => this.name == that.name
@@ -67,7 +68,7 @@ object Asset {
 
   private val _allAssets = mutable.Set.empty[Asset]
 
-  def allAssets: Set[Asset] = _allAssets.toSet
+  def all: Set[Asset] = _allAssets.toSet
 
   private def apply(path: PathSegment[Unit, ?], width: Int, height: Int): Asset = {
     val asset = new Asset(

@@ -25,7 +25,7 @@
 - [x] fix "tab" key behaviour
 - [x] add target "lock-in" toggle: rather than pointing towards the mouse, the player points towards the target (if any)
 - [x] effect on players to represent casting a spell
-- [ ] visual response on cast bar when ability is used
+- [x] visual response on cast bar when ability is used
 - [x] cast bar colour dependent on ability
 - [x] fix visual bug when player is dead
 
@@ -33,3 +33,4 @@
 
 - [ ] allow players to configure a "frenzy" level for the boss, which would reduce cooldown, increase damage and life, or some combination of those
 - [ ] scale camera to best fit
+- [ ] better logs in backend

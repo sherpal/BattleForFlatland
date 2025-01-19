@@ -28,6 +28,7 @@ import gamelogic.gamestate.gameactions.markers.UpdateMarker
 import game.drawers.*
 import game.handlers.*
 import game.drawers.bossspecificdrawers.Boss102Drawer
+import game.sounds.SoundsManager
 
 class InGameScene(
     myId: Entity.Id,
@@ -43,6 +44,7 @@ class InGameScene(
   val castAbilitiesHandler = CastAbilitiesHandler(myId, deltaWithServer.toMillis.toLong)
   val gameMarkersHandler   = MarkersHandler()
   val nextTargetHandler    = NextTargetHandler(myId)
+  val soundsManager        = SoundsManager(myId)
 
   inline def serverTime: Long = System.currentTimeMillis() + deltaWithServer.toMillis.toLong
 
@@ -229,6 +231,9 @@ class InGameScene(
         context.frameContext,
         modelBeforeUI,
         globalEvent
+      )
+      .addGlobalEvents(
+        Batch(soundsManager.handle(context.frameContext, modelBeforeUI, globalEvent))
       )
       .flatMap((viewModel, stopPropagation) =>
         if stopPropagation then Outcome(viewModel)

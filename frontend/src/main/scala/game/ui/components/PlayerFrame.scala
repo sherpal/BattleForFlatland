@@ -43,6 +43,10 @@ final case class PlayerFrame(
 
   val maybePlayer = maybeAlivePlayer.orElse(maybeDeadPlayer)
 
+  val isTarget = maybePlayer.fold(false) { player =>
+    viewModel.maybeTargetId.contains[Entity.Id](playerId)
+  }
+
   lazy val alpha: Double =
     if myId != playerId then
       (for {
@@ -89,7 +93,11 @@ final case class PlayerFrame(
             Radians.zero,
             Size(20)
           )
-        )
+        ) ++ (if isTarget then
+                js.Array(
+                  Shape.Box(bounds, fill = Fill.Color(RGBA.Zero), stroke = Stroke(3, RGBA.Red))
+                )
+              else js.Array())
     }
 
   val lifeBar = new Container(theWidth - 20, 20, Anchor.topRight) {
