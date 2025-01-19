@@ -1,33 +1,59 @@
 import sbt.Keys._
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
+import java.nio.charset.StandardCharsets
+import scala.sys.process.Process
 
 name := "Battle for Flatland"
 
 version := "0.2"
 
-scalaVersion in ThisBuild := "2.13.4"
+ThisBuild / scalaVersion := "3.5.0"
+
+Global / onLoad := {
+  val scalaVersionValue = (frontend / scalaVersion).value
+  val outputFile        = baseDirectory.value / "frontend" / "scala-metadata.js"
+  IO.writeLines(
+    outputFile,
+    s"""
+       |const scalaVersion = "$scalaVersionValue"
+       |
+       |exports.scalaMetadata = {
+       |  scalaVersion: scalaVersion
+       |}
+       |""".stripMargin.split("\n").toList,
+    StandardCharsets.UTF_8
+  )
+
+  println("""
+  |    ____        __  __  __        ____              ________      __  __                __
+  |   / __ )____ _/ /_/ /_/ /__     / __/___  _____   / ____/ /___ _/ /_/ /___ _____  ____/ /
+  |  / __  / __ `/ __/ __/ / _ \   / /_/ __ \/ ___/  / /_  / / __ `/ __/ / __ `/ __ \/ __  / 
+  | / /_/ / /_/ / /_/ /_/ /  __/  / __/ /_/ / /     / __/ / / /_/ / /_/ / /_/ / / / / /_/ /  
+  |/_____/\__,_/\__/\__/_/\___/  /_/  \____/_/     /_/   /_/\__,_/\__/_/\__,_/_/ /_/\__,_/   
+  |                                                                                         
+  |                                                                                    
+  |""".stripMargin)
+
+  (Global / onLoad).value
+}
 
 val scalaCompilerOptions = List(
   "-deprecation",
-  "-feature"
+  "-feature",
+  "-Xfatal-warnings"
 //  "-unchecked",
-  // "-Xfatal-warnings",
 //  "-Xlint",
 //  "-Ywarn-numeric-widen",
 //  "-Ywarn-value-discard"
-  //"-Ywarn-dead-code"
+  // "-Ywarn-dead-code"
 )
 
-scalacOptions in ThisBuild := scalaCompilerOptions
+ThisBuild / scalacOptions := scalaCompilerOptions
 
 lazy val `shared` = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
-  .disablePlugins(HerokuPlugin) // no need of Heroku for shared project
   .settings(
-    SharedSettings(),
-    scalaVersion := "2.13.4",
-    testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
-    testFrameworks += new TestFramework("munit.Framework")
+    SharedSettings()
   )
   .jvmSettings(
     SharedSettings.jvmSettings
@@ -38,111 +64,110 @@ lazy val `shared` = crossProject(JSPlatform, JVMPlatform)
 
 lazy val `shared-backend` = project
   .in(file("./shared-backend"))
-  .disablePlugins(HerokuPlugin)
   .settings(
-    scalaVersion := "2.13.4",
     BackendSettings(),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )
   .dependsOn(shared.jvm)
 
-/** Backend server uses Play framework */
-lazy val `backend` = (project in file("./backend"))
-  .enablePlugins(PlayScala)
-  //.enablePlugins(SwaggerPlugin)
+lazy val server = project
+  .in(file("./server"))
   .settings(
-    scalaVersion := "2.13.4",
-    BackendSettings.playSpecifics(),
-    BackendSettings.testsDeps(),
-    BackendSettings.herokuSettings(),
-    swaggerDomainNameSpaces := Seq("models"),
-    testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
-    libraryDependencies += guice // dependency injection
+    libraryDependencies ++= List(
+      "com.lihaoyi" %% "cask" % "0.9.1"
+    ),
+    assembly / mainClass       := Some("server.Server"),
+    assembly / assemblyJarName := "app.jar"
   )
   .dependsOn(`shared-backend`)
 
-lazy val `frontend` = (project in file("./frontend"))
-  .enablePlugins(ScalablyTypedConverterExternalNpmPlugin)
-  .disablePlugins(HerokuPlugin)
-  //.enablePlugins(ScalaJSBundlerPlugin)
+def esModule = Def.settings(scalaJSLinkerConfig ~= {
+  _.withModuleKind(ModuleKind.ESModule)
+})
+
+lazy val `game-server-launcher` = project
+  .in(file("./game-server-launcher"))
   .settings(
-    FrontendSettings(),
-    scalaVersion := "2.13.4",
-//    useYarn := true,
-    stUseScalaJsDom := false,
-    stIgnore := List(
-      "@pixi/constants", 
-      "@pixi/core", 
-      "@pixi/math", 
-      "@pixi/settings", 
-      "@pixi/utils", 
-      "tailwindcss"
+    libraryDependencies ++= List(
+      "com.lihaoyi" %% "cask" % "0.9.1"
     ),
-    externalNpm := {
-      scala.sys.process.Process("npm", baseDirectory.value).!
-      baseDirectory.value
-    },
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
-    scalaJSUseMainModuleInitializer := true
+    assembly / mainClass       := Some("server.Server"),
+    assembly / assemblyJarName := "game-server-launcher.jar"
   )
-  .dependsOn(shared.js)
+  .dependsOn(`shared-backend`)
 
 lazy val `game-server` = project
   .in(file("./game-server"))
   .settings(
-    scalaVersion := "2.13.4",
-    GameServerSettings()
+    libraryDependencies ++= List(
+      "com.lihaoyi" %% "cask" % "0.9.1"
+    ),
+    assembly / mainClass       := Some("server.Server"),
+    assembly / assemblyJarName := "game-server.jar",
+    SharedSettings()
   )
-  .disablePlugins(HerokuPlugin)
   .dependsOn(`shared-backend`)
 
-lazy val bundlerSettings: Project => Project =
-  _.settings(
-    // Compile / fastOptJS / webpackExtraArgs += "--mode=development",
-    // Compile / fullOptJS / webpackExtraArgs += "--mode=production",
-    // Compile / fastOptJS / webpackDevServerExtraArgs += "--mode=development",
-    // Compile / fullOptJS / webpackDevServerExtraArgs += "--mode=production"
-  )
+val indigoVersion = "0.17.0"
 
-val nodeProject: Project => Project =
-  _.settings(
-    jsEnv := new org.scalajs.jsenv.nodejs.NodeJSEnv,
-    // es5 doesn't include DOM, which we don't have access to in node
-    stStdlib := List("es5"),
-    stUseScalaJsDom := false,
-    // Compile / npmDependencies ++= Seq(
-    //   "@types/node" -> "13.5.0"
-    // )
-  )
-
-lazy val `game-server-launcher` = project
-  .in(file("./game-server-launcher"))
-  .enablePlugins(ScalablyTypedConverterExternalNpmPlugin)
-  .configure(bundlerSettings, nodeProject)
+lazy val frontend = project
+  .in(file("./frontend"))
+  .enablePlugins(ScalaJSPlugin)
   .settings(
-    externalNpm := {
-      scala.sys.process.Process("npm", baseDirectory.value).!
-      baseDirectory.value
-    },
-    scalaJSUseMainModuleInitializer := true,
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+    libraryDependencies ++= List(
+      "com.raquo"       %%% "laminar"            % "17.0.0",
+      "be.doeraene"     %%% "web-components-ui5" % "2.0.0",
+      "io.indigoengine" %%% "indigo"             % indigoVersion,
+      "io.indigoengine" %%% "indigo-extras"      % indigoVersion,
+      "io.indigoengine" %%% "indigo-json-circe"  % indigoVersion
+    ),
+    esModule,
+    scalaJSUseMainModuleInitializer := true
   )
-  .disablePlugins(HerokuPlugin)
+  .dependsOn(`shared`.js)
 
-addCommandAlias("dev", ";frontend/fastOptJS::startWebpackDevServer;~frontend/fastOptJS")
+val buildFrontend = taskKey[Unit]("Build frontend")
 
-/**
-  * This command builds the frontend inside the backend public directory. This should only be used in production.
-  */
-addCommandAlias("build", "frontend/fullOptJS::webpack")
+buildFrontend := {
+  /*
+  To build the frontend, we do the following things:
+  - fullLinkJS the frontend sub-module
+  - run npm ci in the frontend directory (might not be required)
+  - package the application with vite-js (output will be in the resources of the server sub-module)
+   */
+  (frontend / Compile / fullLinkJS).value
+  val npmCiExit =
+    Process(Utils.npm :: "ci" :: Nil, cwd = baseDirectory.value / "frontend").run().exitValue()
+  if (npmCiExit > 0) {
+    throw new IllegalStateException(s"npm ci failed. See above for reason")
+  }
 
-addCommandAlias("compileShared", ";sharedJS/compile;sharedJVM/compile")
+  val buildExit = Process(
+    Utils.npm :: "run" :: "build" :: Nil,
+    cwd = baseDirectory.value / "frontend"
+  ).run().exitValue()
+  if (buildExit > 0) {
+    throw new IllegalStateException(s"Building frontend failed. See above for reason")
+  }
 
-stage := {
-//  val webpackValue = (frontend / Compile / fullOptJS / webpack).value
-//  println(s"Webpack value is $webpackValue")
-
-  (stage in backend).value
+  IO.copyDirectory(
+    baseDirectory.value / "frontend" / "dist",
+    baseDirectory.value / "server" / "src" / "main" / "resources" / "static"
+  )
 }
 
-// sbt clean stage backend/deploy
+(server / assembly) := (server / assembly).dependsOn(buildFrontend).value
+
+val packageApplication = taskKey[File]("Package the whole application into a fat jar")
+
+packageApplication := {
+  /*
+  To package the whole application into a fat jar, we do the following things:
+  - call sbt assembly to make the fat jar for us (config in the server sub-module settings)
+  - we move it to the ./dist folder so that the Dockerfile can be independent of Scala versions and other details
+   */
+  val fatJar = (server / assembly).value
+  val target = baseDirectory.value / "dist" / "app.jar"
+  IO.copyFile(fatJar, target)
+  target
+}

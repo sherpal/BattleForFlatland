@@ -17,13 +17,11 @@ import gamelogic.gamestate.gameactions.RemoveBuff
 import gamelogic.gamestate.gameactions.EntityCastingInterrupted
 import gamelogic.gamestate.gameactions.MovingBodyMoves
 
-/**
-  * Impeach the target from doing anything for the next 20 seconds.
-  * If the target takes damage, the effect is cancelled.
-  * If the ability is used on another target, the effect is cancelled.
+/** Impeach the target from doing anything for the next 20 seconds. If the target takes damage, the
+  * effect is cancelled. If the ability is used on another target, the effect is cancelled.
   *
-  * // todo: this removes all previous stun, no matter who put it. We need the origin of
-  * // a buff/debuff in order to fix that.
+  * // todo: this removes all previous stun, no matter who put it. We need the origin of // a
+  * buff/debuff in order to fix that.
   */
 final case class Stun(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
     extends WithTargetAbility {
@@ -33,7 +31,7 @@ final case class Stun(useId: Ability.UseId, time: Long, casterId: Entity.Id, tar
   def cost: ResourceAmount = Stun.cost
   def range: Distance      = Stun.range
 
-  def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
     // First we remove the previous debuff, if any.
     (for {
       caster            <- gameState.withAbilityEntitiesById(casterId)
@@ -45,17 +43,17 @@ final case class Stun(useId: Ability.UseId, time: Long, casterId: Entity.Id, tar
         .collect {
           case debuff: TriangleStunDebuff if debuff.sourceId == caster.id => debuff.buffId
         }
-        .map(buffId => RemoveBuff(idGeneratorContainer.gameActionIdGenerator(), time, previousTargetId, buffId))
-    } yield actions).toList.flatten ++
-      List(
+        .map(buffId => RemoveBuff(genActionId(), time, previousTargetId, buffId))
+    } yield actions).toVector.flatten ++
+      Vector(
         // the caster is interrupted if they were casting.
         Option.when(gameState.entityIsCasting(targetId))(
-          EntityCastingInterrupted(idGeneratorContainer.gameActionIdGenerator(), time, targetId)
+          EntityCastingInterrupted(genActionId(), time, targetId)
         ),
         for {
           target <- gameState.movingBodyEntityById(targetId)
         } yield MovingBodyMoves(
-          idGeneratorContainer.gameActionIdGenerator(),
+          genActionId(),
           time,
           target.id,
           target.currentPosition(time),
@@ -66,9 +64,9 @@ final case class Stun(useId: Ability.UseId, time: Long, casterId: Entity.Id, tar
         ),
         Some(
           PutSimpleBuff(
-            idGeneratorContainer.gameActionIdGenerator(),
+            genActionId(),
             time,
-            idGeneratorContainer.buffIdGenerator(),
+            genBuffId(),
             targetId,
             casterId,
             time,
@@ -77,7 +75,8 @@ final case class Stun(useId: Ability.UseId, time: Long, casterId: Entity.Id, tar
         )
       ).flatten
 
-  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
+  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
+    copy(time = newTime, useId = newId)
 
   def canBeCast(gameState: GameState, time: Long): Option[String] =
     (for {

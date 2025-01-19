@@ -9,8 +9,8 @@ import gamelogic.entities.{Body, Entity}
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.Circle
 
-/**
-  * The [[DamageZone]] is put by the boss under each player. It deals damage to all enemies standing in it.
+/** The [[DamageZone]] is put by the boss under each player. It deals damage to all enemies standing
+  * in it.
   */
 final case class DamageZone(
     id: Entity.Id,
@@ -30,5 +30,5 @@ final case class DamageZone(
 }
 
 object DamageZone {
-  @inline final def radius: Double = Constants.playerRadius * 6
+  inline def radius: Double = Constants.playerRadius * 4
 }

@@ -11,9 +11,9 @@ final class CasterUsesAbility(ability: Ability) extends GameStateTransformer {
         gameState
       } { entity =>
         gameState.copy(
-          newTime           = ability.time,
+          time = ability.time,
           castingEntityInfo = gameState.castingEntityInfo - entity.id,
-          entities          = gameState.entities + (entity.id -> entity.useAbility(ability))
+          entities = gameState.entities + (entity.id -> entity.useAbility(ability))
         )
       }
 }

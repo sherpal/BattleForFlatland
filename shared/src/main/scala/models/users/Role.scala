@@ -1,5 +1,8 @@
 package models.users
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
+
 sealed trait Role extends PartiallyOrdered[Role] {
 
   final def name: String = toString // concrete members are case objects
@@ -36,5 +39,8 @@ object Role {
   def roles: List[Role] = List(SuperUser, Moderator, SimpleUser)
 
   def roleByName(roleName: String): Role = roles.find(_.name == roleName).get
+
+  given Decoder[Role] = deriveDecoder
+  given Encoder[Role] = deriveEncoder
 
 }

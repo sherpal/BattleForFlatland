@@ -14,18 +14,16 @@ final case class BigHit(useId: Ability.UseId, time: Long, casterId: Entity.Id, t
 
   def abilityId: Ability.AbilityId = Ability.boss101BigHitId
 
-  def cooldown: Long = 120000L
+  def cooldown: Long = BigHit.cooldown
 
   def castingTime: Long = 1000L
 
   def cost: Resource.ResourceAmount = ResourceAmount(0, NoResource)
 
-  def createActions(
-      gameState: GameState
-  )(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
-    List(
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
+    Vector(
       EntityTakesDamage(
-        0L,
+        GameAction.Id.zero,
         time,
         targetId,
         BigHit.damageAmount,
@@ -33,7 +31,8 @@ final case class BigHit(useId: Ability.UseId, time: Long, casterId: Entity.Id, t
       )
     )
 
-  def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): Ability = copy(time = newTime, useId = newId)
+  def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): Ability =
+    copy(time = newTime, useId = newId)
 
   def range: Distance = Boss101.rangeRange
 
@@ -48,6 +47,6 @@ object BigHit {
   final def damageAmount: Double = 150.0
 
   final val timeToFirstBigHit: Long = 15000L
-  final val cooldown: Long          = 120000L
+  final val cooldown: Long          = 30000L
 
 }

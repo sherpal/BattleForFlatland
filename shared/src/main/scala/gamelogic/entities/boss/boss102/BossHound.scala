@@ -39,7 +39,14 @@ final case class BossHound(
       speed: Double,
       moving: Boolean
   ): BossHound =
-    copy(time = time, pos = position, direction = direction, rotation = rotation, speed = speed, moving = moving)
+    copy(
+      time = time,
+      pos = position,
+      direction = direction,
+      rotation = rotation,
+      speed = speed,
+      moving = moving
+    )
 
   def maxLife: Double = BossHound.houndMaxLife
 
@@ -61,8 +68,7 @@ final case class BossHound(
 
   def useAbility(ability: Ability): BossHound =
     copy(
-      relevantUsedAbilities =
-        relevantUsedAbilities + (ability.abilityId -> ability)
+      relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability)
     )
 
   def resourceAmount: Resource.ResourceAmount = Resource.ResourceAmount(0.0, NoResource)
@@ -74,7 +80,7 @@ final case class BossHound(
   def maybeAutoAttack(time: Long): Option[AutoAttack] =
     Some(
       AutoAttack(
-        0L,
+        Ability.UseId.zero,
         time,
         id,
         targetId,

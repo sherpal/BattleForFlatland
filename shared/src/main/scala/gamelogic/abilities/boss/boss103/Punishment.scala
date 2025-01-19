@@ -9,8 +9,8 @@ import gamelogic.gamestate.gameactions.boss103.PutPunishedDebuff
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-/**
-  * Curse all players with the [[gamelogic.buffs.boss.boss103.Punished]] keeping them from doing anything for some time.
+/** Curse all players with the [[gamelogic.buffs.boss.boss103.Punished]] keeping them from doing
+  * anything for some time.
   */
 final case class Punishment(useId: Ability.UseId, time: Long, casterId: Entity.Id)
     extends Ability
@@ -19,21 +19,22 @@ final case class Punishment(useId: Ability.UseId, time: Long, casterId: Entity.I
 
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(0, Resource.NoResource)
 
-  def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
     gameState.players.valuesIterator.flatMap { player =>
-      List(
-        EntityCastingInterrupted(id = idGeneratorContainer.gameActionIdGenerator(), time = time, entityId = player.id),
+      Vector(
+        EntityCastingInterrupted(id = genActionId(), time = time, entityId = player.id),
         PutPunishedDebuff(
-          idGeneratorContainer.gameActionIdGenerator(),
+          genActionId(),
           time,
-          idGeneratorContainer.buffIdGenerator(),
+          genBuffId(),
           player.id,
           casterId
         )
       )
-    }.toList
+    }.toVector
 
-  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Punishment = copy(time = newTime, useId = newId)
+  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Punishment =
+    copy(time = newTime, useId = newId)
 
   def canBeCast(gameState: GameState, time: Long): None.type = None
 }

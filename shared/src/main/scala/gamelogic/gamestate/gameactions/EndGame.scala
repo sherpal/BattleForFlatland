@@ -5,9 +5,10 @@ import gamelogic.gamestate.statetransformers.{EdgeGameTransformer, GameStateTran
 import gamelogic.gamestate.{GameAction, GameState}
 
 /** Simply ends the game. */
-final case class EndGame(id: Long, time: Long) extends GameAction {
+final case class EndGame(id: GameAction.Id, time: Long) extends GameAction {
 
-  def isLegal(gameState: GameState): Option[String] = Option.when(gameState.ended)("Game has already ended")
+  def isLegal(gameState: GameState): Option[String] =
+    Option.when(gameState.ended)("Game has already ended")
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 

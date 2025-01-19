@@ -7,31 +7,37 @@ import gamelogic.gamestate.gameactions._
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-/**
-  * Multiplies by 2 the amount of damage that the bearer takes.
+/** Multiplies by 2 the amount of damage that the bearer takes.
   *
-  * Note that if the bearer has n instance of this debuff, the damage are multiplied
-  * by 2^n, which is on purpose!
+  * Note that if the bearer has n instance of this debuff, the damage are multiplied by 2^n, which
+  * is on purpose!
   *
-  * @param buffId buff id for this instance
-  * @param bearerId entity id of the bearer
-  * @param appearanceTime time at which the entity arrived
+  * @param buffId
+  *   buff id for this instance
+  * @param bearerId
+  *   entity id of the bearer
+  * @param appearanceTime
+  *   time at which the entity arrived
   */
-final case class BrokenArmor(buffId: Buff.Id, bearerId: Entity.Id, sourceId: Entity.Id, appearanceTime: Long)
-    extends PassiveBuff {
+final case class BrokenArmor(
+    buffId: Buff.Id,
+    bearerId: Entity.Id,
+    sourceId: Entity.Id,
+    appearanceTime: Long
+) extends PassiveBuff {
 
   def duration: Long = BrokenArmor.duration
 
   def resourceIdentifier: Buff.ResourceIdentifier = Buff.boss110BrokenArmor
 
-  def endingAction(gameState: GameState, time: Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] = Nil
+  def endingAction(gameState: GameState, time: Long)(using
+      IdGeneratorContainer
+  ): Vector[GameAction] = Vector.empty
 
-  def actionTransformer(gameAction: GameAction): List[GameAction] = gameAction match {
+  def actionTransformer(gameAction: GameAction): Vector[GameAction] = gameAction match {
     case takingDamage: EntityTakesDamage if takingDamage.entityId == bearerId =>
-      List(takingDamage.copy(amount = takingDamage.amount * 2))
-    case action => List(action)
+      Vector(takingDamage.copy(amount = takingDamage.amount * 2))
+    case action => Vector(action)
   }
 }
 

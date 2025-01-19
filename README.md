@@ -12,7 +12,8 @@ You can easily change them when you join a game, at which point they are saved i
 
 ## History was made on June, 3rd, 2020
 
-The first games of BFF were made on the 3rd of June, 2020. The first boss "Boss101" was defeated at 22:12 CEST in presence of
+The first games of BFF were made on the 3rd of June, 2020. 
+The first boss "Boss101" was defeated at 22:12 CEST in presence of
 
 - Justin Dekeyser, Square
 - Antoine Doeraene, Triangle
@@ -20,122 +21,69 @@ The first games of BFF were made on the 3rd of June, 2020. The first boss "Boss1
 - Souad Lepoivre, Pentagon
 - Nicolas Radu, Hexagon
 
+## History was made (again) on January, 15, 2025
+
+After the complete overhaul of the implementation, switching from the old tech stack to the new one, the boss "Boss102" was defeated in presence of
+
+- Rémi, Pentagon
+- Sébastien, Hexagon
+- Damien, Pentagon
+- Florent, Square
+- Antoine, Pentagon
+
+This closes the renewal chapter of the game.
+
 ## Run locally
 
-You want to play locally with your friends? Or perhaps contribute? That's great! We'll walk you through the steps to make it happen.
+You want to play locally with your friends? 
+Or perhaps contribute?
+That's great!
+We'll walk you through the steps to make it happen.
 
 In order to proceed, make sure you have sbt and npm installed on your machine.
 
-### Set up the database
-
-#### I don't have [docker](https://docs.docker.com/) installed
-
-The best is to install docker and jump to the next section. If not, you will need to install postgresql on your machine. Then, within the `shared-backend/src/main/resources`, create a file named `dev.conf` and add the lines
-
-```
-slick.dbs.default.db.url = "jdbc:postgresql://localhost:<port>/<db-name>?user=<user-name>&password=<db-password>"
-
-superUser {
-  name = ???
-  mail = ???
-  password = ???
-}
-```
-
-Replace the fields `???` with fields you want for your personal account inside the web app, and fill the `<...>` information in the JDBC connection string.
-
-#### I have docker installed
-
-Within the `shared-backend/src/main/resources`, create a file named `dev.conf` and add the lines
-
-```
-slick.dbs.default.db.url = "jdbc:postgresql://localhost:30000/battleforflatland?user=postgres&password=somepassword"
-
-superUser {
-  name = ???
-  mail = ???
-  password = ???
-}
-```
-
-Replace the fields `???` with fields you want for your personal account inside the web app. If you have fancy characters, and in any case for the email address, you should enclose your variables in double-quotes.
-
-Then execute the following command
-
-```
-docker run --name some-postgres -p 30000:5432 -e POSTGRES_DB=battleforflatland -e POSTGRES_PASSWORD=somepassword -d postgres
-```
-
-If you are not familiar with docker, here are a few explanations of what this does:
-
-- `--name some-postgres` gives a name to the container (doesn't matter much)
-- `-p 30000:5432` binds the port 30000 in your machine to the port 5432 inside the docker container. 5432 is the port on which the postgres databases runs. Which means that on your machine the database is available at port 30000
-- `-e key=value` These instructions adds the `key` environment variable inside the docker container and binds it to the specified `value`
-- `-d` means "detached". That is, the docker container runs in the background
-- `postgres` this is the name of the [docker image](https://hub.docker.com/_/postgres/). If you don't have it already, docker will automatically download it for you.
-
-If you want to see the list of current docker containers, you should issue the command `docker ps`. Within the first column of what you see, you have the id of the container, which allows you to `docker kill <id>` (stop the docker from running), `docker rm <id>` (remove it entirely), `docker restart <id>`.
-
 ### Install npm dependencies
 
-The frontend part of the game relies on a certain amount of npm dependencies. These must be installed via `npm install` in the `frontend` and `game-server-launcher` directories.
+The frontend part of the game relies on a certain amount of npm dependencies.
+These must be installed via `npm ci` in the `frontend` directory.
 
 ### Set up the game server launcher
 
-While in development, we have a "game-server-launcher" to launch the game servers when a game is launched. This is a kind of a "mock up" for a more robust setup, involving, e.g., an Azure gaming service.
+While in development, we have a "game-server-launcher" to launch the game servers when a game is launched. 
+This is a kind of a "mock up" for a more robust setup, involving, e.g., an Azure gaming service.
 
-The `game-server-launcher` sub-project is an express server written in Scala-js.
+The `game-server-launcher` sub-project is an cask server dedicated to launch games servers on demand.
+This project should basically not change (or very few) and hence, even in dev, we package it as a fat jar and launch that.
 
-You first have to install `npm` dependencies. Go to `game-server-launcher` directory and run `npm install`.
-
-You can then compile the Scala project using, in sbt,
-
-```
-game-server-launcher/fullOptJS
-```
-
-and you can finally launch it using (outside sbt!)
+Run
 
 ```
-node game-server-launcher/target/scala-2.13/game-server-launcher-opt
+sbt game-server-launcher/assembly
 ```
 
-Alternatively, you can simply run (in sbt)
+Then run
 
 ```
-game-server-launcher/run
+java -jar .\game-server-launcher\target\scala-3.5.0\game-server-launcher.jar
 ```
 
-but then you leave an extra sbt console open, which is using resources for basically nothing.
+### Compile the game server
 
-If you have [ammonite](http://ammonite.io/) installed (and not on Windows apparently), you can launch the `game-server-launcher.sc`. Simply issue the
-`amm game-server-launcher.sc`
-command.
-
-If your game-launcher-server doesn't work, it's not a big deal, and you'll see a message saying what to copy-paste in an sbt shell. Something like
+The game-server-launcher will launch the fat game-server jar. You can obtained the latter with
 
 ```
-Could not reach game-server-launcher, fall back to manual launch:
-Game secret for 595c2cf3-4349-4ff3-a10d-0f7dfc83cf13 is 24b1cb9c-9ce6-4c9b-9755-7ee3edfaab9c.
-Game server can be launched in sbt with the command:
-game-server/run -i 595c2cf3-4349-4ff3-a10d-0f7dfc83cf13 -s 24b1cb9c-9ce6-4c9b-9755-7ee3edfaab9c
+sbt game-server/assembly
 ```
-
-(You can add `-h 0.0.0.0` if you want to play with other people. Using the game-server-launcher, it is done by default.)
-
-### Adding the game assets
-
-The game canvas will need game assets. You'll need to create images corresponding to all the paths in `frontend/src/main/scala/assets/Asset.scala`. The referenced `resources` folder is the `frontend/src/main/resources` folder.
 
 ### Launching all the required programs
 
 There are three programs that must be ran in dev mode:
 
-- `sbt backend/run`: runs the backend (port 9000) (If you want to play with other people, you should use `sbt "backend/run -Dhttp.address=0.0.0.0"` instead)
-- `sbt ~frontend/fastLinkJS` and, in the `frontend` directory, `npx snowpack dev`: runs the frontend with hot reload (port 8080) (If you want to play with other people, you should instead use the `build` alias command to build the frontend inside the backend's public directory.)
-- `node game-server-launcher/target/scala-2.13/game-server-launcher-opt`: runs the game-server-launcher (after you compiled it once with `sbt game-server-launcher/fullOptJS`)
+- `sbt server/reStart`: runs the backend (port 9000) (If you want to play with other people, you should use `sbt "server/reStart -DisProd=true"` instead).
+- `sbt ~frontend/fastLinkJS` and, in the `frontend` directory, `npm run dev`: runs the frontend with hot reload (port 3000) (If you want to play with other people, you should instead use the `build` alias command to build the frontend inside the backend's public directory.)
+- `java -jar .\game-server-launcher\target\scala-3.5.0\game-server-launcher.jar`: runs the game-server-launcher (after you compiled it once with `sbt game-server-launcher/assembly`)
 
-You should be redirected to `http://localhost:8080` and after 10s you should be able to connect with the super user credentials.
+You should be redirected to `http://localhost:3000`.
 
 ## Contribute (in construction)
 

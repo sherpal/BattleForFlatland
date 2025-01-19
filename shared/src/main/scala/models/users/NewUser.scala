@@ -5,16 +5,15 @@ import errors.ErrorADT.PasswordsMismatch
 import models.validators.StringValidators._
 import models.validators.Validator.simpleValidator
 import models.validators.{FieldsValidator, Validator}
+import io.circe.Codec
 
 final case class NewUser(name: String, password: String, confirmPassword: String, email: String) {
   def valid: Boolean = password == confirmPassword
 
-  /**
-    * Returns a number between 0 and 1 indicating the strentgh of the `password`.
-    * 0 means weak, while 1 means strong.
+  /** Returns a number between 0 and 1 indicating the strentgh of the `password`. 0 means weak, while 1 means strong.
     *
-    * We define a number of criteria that we want to impose on a string password, via validators.
-    * The strength is the relative number of criteria that pass.
+    * We define a number of criteria that we want to impose on a string password, via validators. The strength is the
+    * relative number of criteria that pass.
     */
   def passwordStrength: Double = {
     val criteria: List[Validator[String, Any]] = List(
@@ -53,11 +52,13 @@ object NewUser {
         "name" -> (nonEmptyString ++ atLeastLength(4) ++ noSpace ++
           doesNotContainAnyOf(List("?", "@", ":", "&", "$", "<", ">", ",", "!", "§", "`", "$")))
           .contraMap[NewUser](_.name),
-        "password" -> validPassword.contraMap[NewUser](_.password),
+        "password"        -> validPassword.contraMap[NewUser](_.password),
         "confirmPassword" -> validPassword.contraMap[NewUser](_.confirmPassword),
-        "passwordMatch" -> samePasswords,
-        "email" -> emailValidator.contraMap[NewUser](_.email)
+        "passwordMatch"   -> samePasswords,
+        "email"           -> emailValidator.contraMap[NewUser](_.email)
       )
     )
+
+  given Codec[NewUser] = io.circe.generic.semiauto.deriveCodec
 
 }

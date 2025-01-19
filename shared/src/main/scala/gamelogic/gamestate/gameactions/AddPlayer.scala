@@ -6,7 +6,13 @@ import gamelogic.gamestate.statetransformers.GameStateTransformer
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 
-final case class AddPlayer(id: Long, time: Long, playerId: Entity.Id, pos: Complex, colour: Int) extends GameAction {
+final case class AddPlayer(
+    id: GameAction.Id,
+    time: Long,
+    playerId: Entity.Id,
+    pos: Complex,
+    colour: Int
+) extends GameAction {
 
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     ???

@@ -2,14 +2,14 @@ package gamelogic.utils
 
 import java.util.concurrent.atomic.AtomicLong
 
-trait LongGenerator extends (() => Long) {
+trait LongGenerator[Id](fromLong: Long => Id) extends (() => Id) {
 
   protected val generator: AtomicLong
 
-  @inline def nextId(): Long = generator.getAndIncrement()
+  inline def nextId(): Id = fromLong(generator.getAndIncrement())
 
-  @inline def apply(): Long = nextId()
+  inline def apply(): Id = nextId()
 
-  def currentValue: Long = generator.get()
+  def currentValue: Id = fromLong(generator.get())
 
 }

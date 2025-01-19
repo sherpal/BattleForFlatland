@@ -13,65 +13,71 @@ final class TriangleEnergyKickSpecs extends StoryTeller {
     val player = addPlayer(2)
     val hound  = addHound(2)
 
-    val ability       = EnergyKick(idGenerator.abilityUseIdGenerator(), 3, player.id, hound.id)
+    val ability =
+      EnergyKick(genAbilityUseId(), 3, player.entityId, hound.entityId)
     val useEnergyKick = useAbilityFromAbility(ability)
 
     val composer = ActionComposer.empty >>
       start >>
       player >> hound >>>
       (gs => ability.createActions(gs)) >> useEnergyKick >>>> { (gs: GameState) =>
-      for {
-        p           <- gs.players.get(player.id)
-        pAsTriangle <- Some(p).collect { case p: Triangle => p }
-        energyAmount = pAsTriangle.resourceAmount.amount
-      } yield assertEqualsDouble(energyAmount, Triangle.initialResourceAmount.amount, 1e-2)
-    }
+        for {
+          p           <- gs.players.get(player.entityId)
+          pAsTriangle <- Some(p).collect { case p: Triangle => p }
+          energyAmount = pAsTriangle.resourceAmount.amount
+        } yield assertEqualsDouble(energyAmount, Triangle.initialResourceAmount.amount, 1e-2)
+      }
   }
 
   test("Energy should move up and target should take damage with Energy Kick") {
     val player = addPlayer(2)
     val hound  = addHound(2)
 
-    val someEnergyLoss = EntityResourceChanges(idGenerator.gameActionIdGenerator(), 3, player.id, -20, Energy)
+    val someEnergyLoss = EntityResourceChanges(genActionId(), 3, player.entityId, -20, Energy)
 
-    val ability       = EnergyKick(idGenerator.abilityUseIdGenerator(), 3, player.id, hound.id)
+    val ability =
+      EnergyKick(genAbilityUseId(), 3, player.entityId, hound.entityId)
     val useEnergyKick = useAbilityFromAbility(ability)
 
     val composer = ActionComposer.empty >>
       start >>
       player >> hound >>
       someEnergyLoss >>>> { (gs: GameState) =>
-      for {
-        p           <- gs.players.get(player.id)
-        pAsTriangle <- Some(p).collect { case p: Triangle => p }
-        energyAmount = pAsTriangle.resourceAmount.amount
-      } yield assertEqualsDouble(energyAmount, Triangle.initialResourceAmount.amount + someEnergyLoss.amount, 1e-2)
-    } >>> (gs => ability.createActions(gs)) >> useEnergyKick >>>> { (gs: GameState) =>
-      (for {
-        p           <- gs.players.get(player.id)
-        pAsTriangle <- Some(p).collect { case p: Triangle => p }
-        energyAmount = pAsTriangle.resourceAmount.amount
-      } yield energyAmount) match {
-        case Some(energyAmount) =>
-          assertEqualsDouble(
-            energyAmount,
-            Triangle.initialResourceAmount.amount + someEnergyLoss.amount + EnergyKick.energyGain,
-            1e-2
-          )
-        case None => fail("Energy value of player should exist!")
-      }
+        for {
+          p           <- gs.players.get(player.entityId)
+          pAsTriangle <- Some(p).collect { case p: Triangle => p }
+          energyAmount = pAsTriangle.resourceAmount.amount
+        } yield assertEqualsDouble(
+          energyAmount,
+          Triangle.initialResourceAmount.amount + someEnergyLoss.amount,
+          1e-2
+        )
+      } >>> (gs => ability.createActions(gs)) >> useEnergyKick >>>> { (gs: GameState) =>
+        (for {
+          p           <- gs.players.get(player.entityId)
+          pAsTriangle <- Some(p).collect { case p: Triangle => p }
+          energyAmount = pAsTriangle.resourceAmount.amount
+        } yield energyAmount) match {
+          case Some(energyAmount) =>
+            assertEqualsDouble(
+              energyAmount,
+              Triangle.initialResourceAmount.amount + someEnergyLoss.amount + EnergyKick.energyGain,
+              1e-2
+            )
+          case None => fail("Energy value of player should exist!")
+        }
 
-      (for {
-        h <- gs.livingEntityAndMovingBodyById(hound.id)
-        life    = h.life
-        maxLife = h.maxLife
-      } yield (life, maxLife)) match {
-        case Some((life, maxLife)) =>
-          assertEqualsDouble(life, maxLife - EnergyKick.damage, 1e-2)
-        case None =>
-          fail("Life value of the hound should exist.")
+        (for {
+          h <- gs.livingEntityAndMovingBodyById(hound.entityId)
+          life    = h.life
+          maxLife = h.maxLife
+        } yield (life, maxLife)) match {
+          case Some((life, maxLife)) =>
+            assertEqualsDouble(life, maxLife - EnergyKick.damage, 1e-2)
+          case None =>
+            fail("Life value of the hound should exist.")
+        }
       }
-    }
   }
 
 }

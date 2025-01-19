@@ -2,26 +2,28 @@ package utils.websocket
 
 import java.nio.ByteBuffer
 
-import boopickle.Default._
-import com.raquo.airstream.eventbus.{EventBus, WriteBus}
-import com.raquo.airstream.eventstream.EventStream
+import boopickle.Default.*
+import com.raquo.laminar.api.A.*
 import com.raquo.airstream.ownership.Owner
 import org.scalajs.dom
-import org.scalajs.dom.raw.MessageEvent
+import org.scalajs.dom.MessageEvent
 import org.scalajs.dom.{Event, WebSocket}
 import urldsl.language.{PathSegment, PathSegmentWithQueryParams, QueryParameters}
 import zio.{CancelableFuture, UIO, ZIO}
 
 import scala.scalajs.js.typedarray.{ArrayBuffer, Uint8Array}
+import com.raquo.laminar.nodes.ReactiveElement
+import services.FrontendEnv
+import utils.laminarzio.onMountUnmountCallbackWithStateZIO
 
 // todo: make a WebSocketEndpoint above the Boopickle and the Circe one.
 final class BoopickleWebSocket[In, Out, P, Q] private (
-    pathWithQueryParams: PathSegmentWithQueryParams[P, _, Q, _],
+    pathWithQueryParams: PathSegmentWithQueryParams[P, ?, Q, ?],
     p: P,
     q: Q,
     host: String
-)(
-    implicit inPickler: Pickler[In],
+)(using
+    inPickler: Pickler[In],
     outPickler: Pickler[Out]
 ) {
   private def url: String = "ws://" + host + "/ws/" + pathWithQueryParams.createUrlString(p, q)
@@ -38,90 +40,76 @@ final class BoopickleWebSocket[In, Out, P, Q] private (
   private val errorBus: EventBus[dom.Event] = new EventBus
   private val openBus: EventBus[dom.Event]  = new EventBus
 
-  private def openWebSocketConnection(implicit owner: Owner) =
-    for {
-      webSocket <- UIO(socket)
-      unpickler = Unpickle.apply[In]
-      _ <- UIO {
-        webSocket.onmessage = (event: MessageEvent) => {
-          val arrayBuffer = event.data.asInstanceOf[ArrayBuffer]
-          val array       = new Uint8Array(arrayBuffer)
-          val in          = unpickler.fromBytes(ByteBuffer.wrap(array.toArray.map(_.asInstanceOf[Byte])))
-          inBus.writer.onNext(in)
-        }
-      }
-      _ <- UIO {
-        outBus.events
-          .map(Pickle.intoBytes[Out])
-          .map { byteBuffer =>
-            val array = new Array[Byte](byteBuffer.remaining())
-            byteBuffer.get(array)
-            val arrayBuffer = new ArrayBuffer(array.length)
-            val view        = new Uint8Array(arrayBuffer)
-            for (idx <- array.indices) {
-              view(idx) = array(idx)
-            }
-            arrayBuffer
-          }
-          .foreach(webSocket.send)
-      }
-      _ <- UIO { webSocket.onopen = (event: Event) => openBus.writer.onNext(event) }
-      _ <- UIO {
-        webSocket.onerror = (event: Event) => {
-          if (scala.scalajs.LinkingInfo.developmentMode) {
-            dom.console.error(event)
-          }
-          errorBus.writer.onNext(event)
-        }
-      }
-      _ <- ZIO.effectTotal {
-        webSocket.onclose = (_: Event) => {
-          closeBus.writer.onNext(())
-        }
-      }
-    } yield ()
+  private def openWebSocketConnection(using Owner) = ZIO.succeed {
+    val webSocket = socket
+    val unpickler = Unpickle.apply[In]
+    webSocket.onmessage = (event: MessageEvent) => {
+      val arrayBuffer = event.data.asInstanceOf[ArrayBuffer]
+      val array       = new Uint8Array(arrayBuffer)
+      val in = unpickler.fromBytes(ByteBuffer.wrap(array.toArray.map(_.asInstanceOf[Byte])))
+      inBus.writer.onNext(in)
+    }
 
-  def open()(implicit owner: Owner): CancelableFuture[Unit] =
-    zio.Runtime.default.unsafeRunToFuture(openWebSocketConnection)
+    outBus.events
+      .map(Pickle.intoBytes[Out])
+      .map { byteBuffer =>
+        val array = new Array[Byte](byteBuffer.remaining())
+        byteBuffer.get(array)
+        val arrayBuffer = new ArrayBuffer(array.length)
+        val view        = new Uint8Array(arrayBuffer)
+        for (idx <- array.indices)
+          view(idx) = array(idx)
+        arrayBuffer
+      }
+      .foreach(webSocket.send)
+
+    webSocket.onopen = (event: Event) => openBus.writer.onNext(event)
+    webSocket.onclose = (_: Event) => closeBus.writer.onNext(())
+  }
+
+  def open(using Owner): ZIO[Any, Nothing, Unit] =
+    openWebSocketConnection
+
+  def modifier[El <: ReactiveElement.Base](using zio.Runtime[FrontendEnv]) =
+    onMountUnmountCallbackWithStateZIO(
+      ctx => open(using ctx.owner),
+      (_, _) => ZIO.succeed(socket.close())
+    )
 
   def close(): Unit = {
     socket.close()
     closeBus.writer.onNext(())
   }
 
-  val $in: EventStream[In]       = inBus.events
-  val outWriter: WriteBus[Out]   = outBus.writer
-  val $closed: EventStream[Unit] = closeBus.events
-  val $error: EventStream[Event] = errorBus.events
-  val $open: EventStream[Event]  = openBus.events
+  val inEvents: EventStream[In]       = inBus.events
+  val outWriter: WriteBus[Out]        = outBus.writer
+  val closedSignal: Signal[Boolean]   = closeBus.events.mapTo(true).startWith(false)
+  val errorEvents: EventStream[Event] = errorBus.events
+  val openEvents: EventStream[Event]  = openBus.events
 }
 
 object BoopickleWebSocket {
 
   import urldsl.language.QueryParameters.dummyErrorImpl._
 
-  def apply[In, Out](path: PathSegment[Unit, _], host: String = dom.document.location.host)(
-      implicit inPickler: Pickler[In],
-      outPickler: Pickler[Out]
-  ): BoopickleWebSocket[In, Out, Unit, Unit] = new BoopickleWebSocket(path ? empty, (), (), host)
+  def apply[In, Out](path: PathSegment[Unit, ?], host: String = dom.document.location.host)(using
+      Pickler[In],
+      Pickler[Out]
+  ): BoopickleWebSocket[In, Out, Unit, Unit] = new BoopickleWebSocket(path ? ignore, (), (), host)
 
   def apply[In, Out, Q](
-      path: PathSegment[Unit, _],
-      query: QueryParameters[Q, _],
+      path: PathSegment[Unit, ?],
+      query: QueryParameters[Q, ?],
       q: Q,
       host: String
-  )(
-      implicit inPickler: Pickler[In],
-      outPickler: Pickler[Out]
-  ): BoopickleWebSocket[In, Out, Unit, Q] = new BoopickleWebSocket(path ? query, (), q, host)
+  )(using Pickler[In], Pickler[Out]): BoopickleWebSocket[In, Out, Unit, Q] =
+    new BoopickleWebSocket(path ? query, (), q, host)
 
   def apply[In, Out, Q](
-      path: PathSegment[Unit, _],
-      query: QueryParameters[Q, _],
+      path: PathSegment[Unit, ?],
+      query: QueryParameters[Q, ?],
       q: Q
-  )(
-      implicit inPickler: Pickler[In],
-      outPickler: Pickler[Out]
-  ): BoopickleWebSocket[In, Out, Unit, Q] = apply(path, query, q, dom.document.location.host)
+  )(using Pickler[In], Pickler[Out]): BoopickleWebSocket[In, Out, Unit, Q] =
+    apply(path, query, q, dom.document.location.host)
 
 }

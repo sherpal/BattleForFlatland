@@ -15,15 +15,24 @@ final case class PentagonZoneTick(
     lastTickTime: Long,
     duration: Long
 ) extends TickerBuff {
-  def tickEffect(gameState: GameState, time: Long, idGenerator: IdGeneratorContainer): List[GameAction] =
-    gameState.entityByIdAs[PentagonZone](bearerId).fold(List[GameAction]()) { zone =>
+  def tickEffect(
+      gameState: GameState,
+      time: Long
+  )(using IdGeneratorContainer): Vector[GameAction] =
+    gameState.entityByIdAs[PentagonZone](bearerId).fold(Vector[GameAction]()) { zone =>
       gameState.allLivingEntities
         .filterNot(_.teamId == zone.teamId)
         .filter(_.collides(zone, time))
-        .map(
-          entity => EntityTakesDamage(idGenerator.gameActionIdGenerator(), time, entity.id, zone.damage, zone.sourceId)
+        .map(entity =>
+          EntityTakesDamage(
+            genActionId(),
+            time,
+            entity.id,
+            zone.damage,
+            zone.sourceId
+          )
         )
-        .toList
+        .toVector
     }
 
   val tickRate: Long = PentagonZone.tickRate
@@ -32,8 +41,8 @@ final case class PentagonZoneTick(
 
   def resourceIdentifier: ResourceIdentifier = Buff.entitiesPentagonZoneBuff
 
-  def endingAction(gameState: GameState, time: Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] =
-    List(RemoveEntity(idGeneratorContainer.gameActionIdGenerator(), time, bearerId))
+  def endingAction(gameState: GameState, time: Long)(using
+      IdGeneratorContainer
+  ): Vector[GameAction] =
+    Vector(RemoveEntity(genActionId(), time, bearerId))
 }

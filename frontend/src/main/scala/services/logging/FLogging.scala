@@ -1,23 +1,25 @@
 package services.logging
 
+import zio.UIO
 import org.scalajs.dom
-import zio.{Task, UIO, ZLayer}
+import zio.ZIO
+import zio.ZLayer
+
+class FLogging(console: dom.Console) extends Logging {
+
+  override def info(line: => String): UIO[Unit] = ZIO.succeed(console.log(line))
+
+  override def debug(line: => String): UIO[Unit] = ZIO.succeed(console.debug(line))
+
+  override def warn(line: => String): UIO[Unit] = ZIO.succeed(console.warn(line))
+
+  override def error(line: => String): UIO[Unit] = ZIO.succeed(console.error(line))
+
+}
 
 object FLogging {
-
-  val serviceLive: Logging.Service = new Logging.Service {
-    def info(line: => String): UIO[Unit] = UIO.effectTotal(dom.console.log(line))
-
-    def debug(line: => String): UIO[Unit] =
-      if (scala.scalajs.LinkingInfo.developmentMode)
-        UIO.effectTotal(dom.console.log(line))
-      else UIO(())
-
-    def warn(line: => String): UIO[Unit] = UIO.effectTotal(dom.console.warn(line))
-
-    def error(line: => String): UIO[Unit] = UIO.effectTotal(dom.console.error(line))
-  }
-
-  val live: ZLayer[Any, Nothing, Logging] = ZLayer.succeed(serviceLive)
-
+  def live = ZLayer.fromZIO(for {
+    console  <- ZIO.succeed(dom.console)
+    flogging <- ZIO.succeed(FLogging(console))
+  } yield (flogging: Logging))
 }

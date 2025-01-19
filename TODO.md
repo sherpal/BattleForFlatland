@@ -1,24 +1,36 @@
-# To implement
+# TODO before first try
 
-- implement obstacles and path finding for AIs
-- mini health bar at entities positions (done for boss 102 hounds, should be easily generalisable)
-- integrating sounds
-- allow players to put markers on the ground, on enemies and on allies to mark positions
-- class description documentation
-- improve end of game feeling (don't return directly to menu game)
-- key to target furthest ally/enemy
-- forbidding players to join a game if it is "launched"
-- improve game assets in general
-- the life frame of a dead player should not vanish entirely
-- put a kind of "halo" on the selected player to help visualize who is currently targeted and show heath bar
-- enforce limit in number of players allowed in a given boss
+- [x] use the camera to center drawing on the player
+- [x] use controls defined by user (UI is missing!)
+- [x] button to launch the game
+- [x] handle when player is dead
+- [x] send game actions other than moving (using abilities, mostly)
+- [x] draw the UI (player frame, all player frames, target frames, boss frame, damage threat)
+- [x] implement friendly ais
+- [x] put back the texts
+- [x] draw the effects
+- [x] draw other entities (bullets, damage zones, boss adds...)
+- [x] allow players to use markers and draw them
+- [x] draw mini bars on top of players and boss
+- [x] draw indication of orientation of boss
+- [x] alpha of 0.5 for players and target out of range
+- [x] friendly ais for boss 102
+- [x] display number of hounds for boss 102
+- [ ] add sounds
+- [x] aztec diamond background (opt)
+- [x] the "next target" manager
+- [x] double check server time sync
+- [x] make prod build
+- [x] generate font glyph images and data at run-time (opt)
+- [x] fix "tab" key behaviour
+- [x] add target "lock-in" toggle: rather than pointing towards the mouse, the player points towards the target (if any)
+- [x] effect on players to represent casting a spell
+- [x] visual response on cast bar when ability is used
+- [x] cast bar colour dependent on ability
+- [x] fix visual bug when player is dead
 
-# Done but need improvement
+# Next Steps
 
-- icon for browser bar (simply change the `icon.ico` in `frontend/src/main/resources`)
-
-# Bugs
-
-- sometimes the game crashes at the very beginning when clicking on "Start Fight". Unclear (yet) how to reproduce (I think this is fixed. It was caused by the first action being wrongfully created in the time at which the server starts, but only added way after when the fight actually starts).
-- quite slow on Firefox
-- in the GameJoined component, when the page is refreshed while the player is Ready, the selector doesn't go to the correct class name
+- [ ] allow players to configure a "frenzy" level for the boss, which would reduce cooldown, increase damage and life, or some combination of those
+- [ ] scale camera to best fit
+- [ ] better logs in backend

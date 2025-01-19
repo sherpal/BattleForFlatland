@@ -16,13 +16,13 @@ final case class DBMenuGame(
     createdOn: LocalDateTime,
     gameConfigurationAsString: String
 ) {
-  def menuGame(creator: User): MenuGame =
-    MenuGame(
-      gameId,
-      gameName,
-      maybeHashedPassword,
-      creator,
-      createdOn,
-      decode[GameConfiguration](gameConfigurationAsString).getOrElse(Pointed[GameConfiguration].unit)
-    )
+  def menuGame(creator: User): MenuGame = ???
+  // MenuGame(
+  //   gameId,
+  //   gameName,
+  //   maybeHashedPassword,
+  //   creator,
+  //   createdOn,
+  //   decode[GameConfiguration](gameConfigurationAsString).getOrElse(Pointed[GameConfiguration].unit)
+  // )
 }

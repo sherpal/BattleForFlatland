@@ -1,19 +1,17 @@
 package utils.ziohelpers
 
-import zio.test.{DefaultRunnableSpec, ZSpec}
-import zio._
-import zio.console._
-import zio.test._
-import zio.test.Assertion._
-import zio.test.environment._
+import zio.test.ZIOSpecDefault
+import zio.*
+import zio.test.*
+import zio.test.Assertion.*
 
-object ZioHelpersSpecs extends DefaultRunnableSpec {
+object ZioHelpersSpecs extends ZIOSpecDefault {
   def spec = suite("failIfWith")(
-    testM("failIfWith should fail if condition is true") {
+    test("failIfWith should fail if condition is true") {
       for {
-        condition <- UIO.succeed(true)
-        output <- failIfWith(condition, 0).either
-      } yield assert(output)(equalTo(Left(0)))
+        condition <- ZIO.succeed(true)
+        output    <- failIfWith(condition, 0).either
+      } yield assertTrue(output == Left(0))
     }
   )
 

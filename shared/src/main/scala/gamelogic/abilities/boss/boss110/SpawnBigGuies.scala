@@ -19,13 +19,11 @@ final case class SpawnBigGuies(useId: Ability.UseId, time: Long, casterId: Entit
 
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(0.0, Resource.NoResource)
 
-  def createActions(gameState: GameState)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] = List(
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] = Vector(
     AddBigGuies(
-      idGeneratorContainer.gameActionIdGenerator(),
+      genActionId(),
       time,
-      SpawnBigGuies.bigGuiesPositions.map(idGeneratorContainer.entityIdGenerator() -> _)
+      SpawnBigGuies.bigGuiesPositions.map(genEntityId() -> _)
     )
   )
 

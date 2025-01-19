@@ -6,14 +6,14 @@ import models.validators.Validator._
 
 object StringValidators {
 
-  private val sv = simpleValidator[String, ErrorADT] _
+  private val sv = simpleValidator[String, ErrorADT](_, _)
 
   final val alphabet = "abcdefghijklmnopqrstuvwxyz"
 
   final val nonEmptyString = sv(_.nonEmpty, _ => StringIsEmpty)
 
   final val onlyLowercaseLetters =
-    sv(_.forall(c => alphabet.exists(_ == c)), ContainsNonLowercaseAlphabet)
+    sv(_.forall(c => alphabet.exists(_ == c)), ContainsNonLowercaseAlphabet(_))
 
   def atLeastLength(n: Int): Validator[String, ErrorADT] =
     sv(_.length >= n, s => StringIsTooShort(s, n))

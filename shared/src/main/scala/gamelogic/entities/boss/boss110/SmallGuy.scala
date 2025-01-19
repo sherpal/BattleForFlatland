@@ -40,7 +40,14 @@ final case class SmallGuy(
       speed: Double,
       moving: Boolean
   ): SmallGuy =
-    copy(time = time, pos = position, direction = direction, rotation = rotation, speed = speed, moving = moving)
+    copy(
+      time = time,
+      pos = position,
+      direction = direction,
+      rotation = rotation,
+      speed = speed,
+      moving = moving
+    )
 
   def maxLife: Double = SmallGuy.maxLife
 
@@ -62,8 +69,7 @@ final case class SmallGuy(
 
   def useAbility(ability: Ability): SmallGuy =
     copy(
-      relevantUsedAbilities =
-        relevantUsedAbilities + (ability.abilityId -> ability)
+      relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability)
     )
 
   def resourceAmount: Resource.ResourceAmount = Resource.ResourceAmount(0.0, NoResource)
@@ -75,7 +81,7 @@ final case class SmallGuy(
   def maybeAutoAttack(time: Long): Option[AutoAttack] =
     Some(
       AutoAttack(
-        0L,
+        Ability.UseId.zero,
         time,
         id,
         targetId,

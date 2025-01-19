@@ -6,9 +6,8 @@ import gamelogic.physics.Complex
 import models.bff.ingame.Controls.InputCode
 import gamelogic.gameextras.GameMarker
 
-/**
-  * A [[UserInput]] corresponds to the input a user made, translated to something meaningful from the point of view
-  * of the game.
+/** A [[UserInput]] corresponds to the input a user made, translated to something meaningful from
+  * the point of view of the game.
   *
   * For example, the input of a direction, or using an ability.
   */
@@ -36,6 +35,8 @@ object UserInput {
 
   case object NextTarget extends UserInput
 
+  case object ToggleTargetLockIn extends UserInput
+
   /** Represent */
   case class AbilityInput(abilityIndex: Int) extends UserInput {
     def abilityId(player: PlayerClass): Option[Ability.AbilityId] =
@@ -47,7 +48,7 @@ object UserInput {
   final val directions: List[DirectionInput] = List(Up, Down, Right, Left)
 
   /** If the key code from the event is not above, you can keep track with this unknown instance. */
-  case class Unknown(code: InputCode) extends UserInput {
+  case class Unknown(code: Option[InputCode]) extends UserInput {
     override def isKnown: Boolean = false
   }
 

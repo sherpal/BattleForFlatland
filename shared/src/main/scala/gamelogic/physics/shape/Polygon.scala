@@ -6,7 +6,14 @@ import scala.Ordering.Double.TotalOrdering
 
 trait Polygon extends Shape {
   val vertices: Vector[Complex]
-  val triangulation: List[Triangle]
+  lazy val triangulation: Vector[Triangle]
+
+  def ears = for (j <- vertices.indices) yield {
+    val z1 = if j == 0 then vertices.last else vertices(j - 1)
+    val z2 = vertices(j)
+    val z3 = if j + 1 == vertices.length then vertices.head else vertices(j + 1)
+    Triangle(z1, z2, z3)
+  }
 
   val center: Complex = vertices.sum / vertices.length
   val radius: Double  = math.sqrt(vertices.map(z => (z - center).modulus2).max)
@@ -30,21 +37,19 @@ trait Polygon extends Shape {
     boundingBox.intersect(that.boundingBox, thisTranslation, thatTranslation) && {
       that match {
         case that: Polygon =>
-          this.triangulation.exists(
-            t =>
-              that.triangulation.exists(thatT => {
-                t.overlap(thatT, thisRotation, thisTranslation, thatRotation, thatTranslation)
-              })
+          this.triangulation.exists(t =>
+            that.triangulation.exists { thatT =>
+              t.overlap(thatT, thisRotation, thisTranslation, thatRotation, thatTranslation)
+            }
           )
         case that: Circle =>
-          this.triangulation.exists(
-            t =>
-              t.overlapDisk(
-                that,
-                thatTranslation,
-                thisRotation,
-                thisTranslation
-              )
+          this.triangulation.exists(t =>
+            t.overlapDisk(
+              that,
+              thatTranslation,
+              thisRotation,
+              thisTranslation
+            )
           )
       }
     }
@@ -53,17 +58,16 @@ trait Polygon extends Shape {
     BoundingBox(center.re - radius, center.im - radius, center.re + radius, center.im + radius)
 
   def intersectSegment(translation: Complex, rotation: Double, z1: Complex, z2: Complex): Boolean =
-    triangulation.exists(triangle => {
+    triangulation.exists { triangle =>
       val actualVertices = triangle.vertices.map(_ * Complex.rotation(rotation) + translation)
       triangle.contains(z1.re, z1.im, rotation, translation) ||
       triangle.contains(z2.re, z2.im, rotation, translation) ||
       actualVertices
         .zip(actualVertices.tail :+ actualVertices.head)
-        .exists({
-          case (w1, w2) =>
-            Shape.intersectingSegments(w1.re, w1.im, w2.re, w2.im, z1.re, z1.im, z2.re, z2.im)
-        })
-    })
+        .exists { case (w1, w2) =>
+          Shape.intersectingSegments(w1.re, w1.im, w2.re, w2.im, z1.re, z1.im, z2.re, z2.im)
+        }
+    }
 
   def contains(point: Complex): Boolean =
     boundingBox.contains(point) && triangulation.exists(_.contains(point.re, point.im))
@@ -72,28 +76,25 @@ trait Polygon extends Shape {
     boundingBox.contains(point - translation) && triangulation
       .exists(_.contains(point.re, point.im, rotation, translation))
 
-  def edges: Vector[Segment] = vertices.zip(vertices.tail :+ vertices(0)).map(Segment.tupled)
+  def edges: Vector[Segment] = vertices.zip(vertices.tail :+ vertices(0)).map(Segment.tupled(_))
 
   def translateAndRotationVertices(translation: Complex, rotation: Double): Vector[Complex] =
     vertices.map(_.rotate(rotation) + translation)
 
-  /**
-    * Returns the polygon where all the edges are translated radius away to the exterior.
+  /** Returns the polygon where all the edges are translated radius away to the exterior.
     */
   def inflate(radius: Double): Polygon = Polygon(inflateWithoutPolygon(radius))
 
-  /**
-    * Returns the vertices where all the edges are translated radius away to the exterior.
+  /** Returns the vertices where all the edges are translated radius away to the exterior.
     */
   def inflateWithoutPolygon(radius: Double): Vector[Complex] = {
     val triplets = vertices.indices
-      .map(
-        j =>
-          (
-            vertices(j),
-            vertices(if (j == vertices.length - 1) 0 else j + 1),
-            vertices(if (j == 0) vertices.length - 1 else j - 1)
-          )
+      .map(j =>
+        (
+          vertices(j),
+          vertices(if (j == vertices.length - 1) 0 else j + 1),
+          vertices(if (j == 0) vertices.length - 1 else j - 1)
+        )
       )
       .toVector
     for {

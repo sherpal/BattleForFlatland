@@ -7,20 +7,23 @@ import gamelogic.gamestate.gameactions.{EntityTakesDamage, ThreatToEntityChange}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-/**
-  * Each time the bearer takes damage, it adds a amount of threat towards the source of the damage proportional to
-  * the amount of damage.
+/** Each time the bearer takes damage, it adds an amount of threat towards the source of the damage
+  * proportional to the amount of damage.
   */
-final case class DamageThreatAware(buffId: Buff.Id, bearerId: Entity.Id, sourceId: Entity.Id, appearanceTime: Long)
-    extends PassiveBuff {
+final case class DamageThreatAware(
+    buffId: Buff.Id,
+    bearerId: Entity.Id,
+    sourceId: Entity.Id,
+    appearanceTime: Long
+) extends PassiveBuff {
 
-  def endingAction(gameState: GameState, time: Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] = Nil
+  def endingAction(gameState: GameState, time: Long)(using
+      IdGeneratorContainer
+  ): Vector[GameAction] = Vector.empty
 
-  def actionTransformer(gameAction: GameAction): List[GameAction] = gameAction match {
+  def actionTransformer(gameAction: GameAction): Vector[GameAction] = gameAction match {
     case gameAction: EntityTakesDamage if gameAction.entityId == bearerId =>
-      List(
+      Vector(
         gameAction,
         ThreatToEntityChange(
           gameAction.id,
@@ -31,7 +34,7 @@ final case class DamageThreatAware(buffId: Buff.Id, bearerId: Entity.Id, sourceI
           isDamageThreat = true
         )
       )
-    case _ => List(gameAction)
+    case _ => Vector(gameAction)
   }
 
   def duration: Long = -1L

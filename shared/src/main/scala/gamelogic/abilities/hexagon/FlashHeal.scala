@@ -9,24 +9,37 @@ import gamelogic.gamestate.gameactions.EntityGetsHealed
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-final case class FlashHeal(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
-    extends WithTargetAbility {
+final case class FlashHeal(
+    useId: Ability.UseId,
+    time: Long,
+    casterId: Entity.Id,
+    targetId: Entity.Id
+) extends WithTargetAbility {
   val abilityId: AbilityId = Ability.hexagonFlashHealId
   val cooldown: Long       = 0L
   val castingTime: Long    = 1000L
 
   def createActions(
       gameState: GameState
-  )(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
-    List(EntityGetsHealed(0L, time, targetId, FlashHeal.healAmount, casterId))
+  )(using IdGeneratorContainer): Vector[GameAction] =
+    Vector(
+      EntityGetsHealed(
+        genActionId(),
+        time,
+        targetId,
+        FlashHeal.healAmount,
+        casterId
+      )
+    )
 
-  def copyWithNewTimeAndId(newTime: Long, newId: UseId): FlashHeal = copy(time = newTime, useId = newId)
+  def copyWithNewTimeAndId(newTime: Long, newId: UseId): FlashHeal =
+    copy(time = newTime, useId = newId)
 
   val cost: ResourceAmount = ResourceAmount(10, Mana)
 
   def range: Distance = WithTargetAbility.healRange
 
-  def canBeCast(gameState: GameState, time: UseId): Option[String] =
+  def canBeCast(gameState: GameState, time: Long): Option[String] =
     canBeCastFriendlyOnly(gameState) orElse isInRangeAndInSight(gameState, time)
 }
 

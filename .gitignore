@@ -1,16 +1,19 @@
 target
 dist
-data
 .vscode
 .bsp
 temp
+null/
 
 .DS_Store
 .idea
 
 frontend/node_modules
+frontend/scala-metadata.js
 game-server-launcher/node_modules
 game-server-launcher/build
+
+server/src/main/resources/
 
 .bloop
 .metals

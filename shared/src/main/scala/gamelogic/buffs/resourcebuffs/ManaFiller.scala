@@ -7,14 +7,20 @@ import gamelogic.gamestate.gameactions.EntityResourceChanges
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-/**
-  * Mana is restored by 10 every 10 seconds.
+/** Mana is restored by 10 every 10 seconds.
   */
-final case class ManaFiller(buffId: Buff.Id, bearerId: Entity.Id, appearanceTime: Long, lastTickTime: Long)
-    extends TickerBuff {
-  def tickEffect(gameState: GameState, time: Long, entityIdGenerator: IdGeneratorContainer): List[GameAction] = List(
+final case class ManaFiller(
+    buffId: Buff.Id,
+    bearerId: Entity.Id,
+    appearanceTime: Long,
+    lastTickTime: Long
+) extends TickerBuff {
+  def tickEffect(
+      gameState: GameState,
+      time: Long
+  )(using IdGeneratorContainer): Vector[GameAction] = Vector(
     EntityResourceChanges(
-      0L,
+      genActionId(),
       time,
       bearerId,
       ManaFiller.manaRefillPerSecond * ManaFiller.tickEveryNSeconds,
@@ -30,9 +36,9 @@ final case class ManaFiller(buffId: Buff.Id, bearerId: Entity.Id, appearanceTime
 
   def resourceIdentifier: ResourceIdentifier = Buff.manaFiller
 
-  def endingAction(gameState: GameState, time: Long)(
-      implicit idGeneratorContainer: IdGeneratorContainer
-  ): List[GameAction] = Nil
+  def endingAction(gameState: GameState, time: Long)(using
+      IdGeneratorContainer
+  ): Vector[GameAction] = Vector.empty
 }
 
 object ManaFiller {

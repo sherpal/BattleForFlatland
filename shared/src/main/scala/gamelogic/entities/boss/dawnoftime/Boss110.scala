@@ -52,10 +52,10 @@ final case class Boss110(
 ) extends BossEntity {
 
   def abilityNames: Map[gamelogic.abilities.Ability.AbilityId, String] = Map(
-    Ability.autoAttackId -> "Auto attack",
-    Ability.boss110SpawnBigGuies -> SpawnBigGuies.name,
-    Ability.boss110PlaceBombPods -> PlaceBombPods.name,
-    Ability.boss110ExplodeBombs -> ExplodeBombs.name,
+    Ability.autoAttackId           -> "Auto attack",
+    Ability.boss110SpawnBigGuies   -> SpawnBigGuies.name,
+    Ability.boss110PlaceBombPods   -> PlaceBombPods.name,
+    Ability.boss110ExplodeBombs    -> ExplodeBombs.name,
     Ability.boss110SpawnSmallGuies -> SpawnSmallGuies.name
   )
 
@@ -78,7 +78,14 @@ final case class Boss110(
       speed: Double,
       moving: Boolean
   ): Boss110 =
-    copy(time = time, pos = position, direction = direction, rotation = rotation, speed = speed, moving = moving)
+    copy(
+      time = time,
+      pos = position,
+      direction = direction,
+      rotation = rotation,
+      speed = speed,
+      moving = moving
+    )
 
   // Members declared in gamelogic.entities.WithAbilities
   def abilities: Set[gamelogic.abilities.Ability.AbilityId] = Boss110.abilities
@@ -96,22 +103,27 @@ final case class Boss110(
   )
 
   // Members declared in gamelogic.entities.WithTarget
-  def changeTarget(newTargetId: gamelogic.entities.Entity.Id): Boss110 = copy(targetId = newTargetId)
+  def changeTarget(newTargetId: gamelogic.entities.Entity.Id): Boss110 =
+    copy(targetId = newTargetId)
 
   // Members declared in gamelogic.entities.WithThreat
   def changeDamageThreats(
       threatId: gamelogic.entities.Entity.Id,
       delta: gamelogic.entities.WithThreat.ThreatAmount
-  ): Boss110 = copy(damageThreats = damageThreats + (threatId -> (damageThreats.getOrElse(threatId, 0.0) + delta)))
+  ): Boss110 = copy(damageThreats =
+    damageThreats + (threatId -> (damageThreats.getOrElse(threatId, 0.0) + delta))
+  )
   def changeHealingThreats(
       threatId: gamelogic.entities.Entity.Id,
       delta: gamelogic.entities.WithThreat.ThreatAmount
-  ): Boss110 = copy(healingThreats = healingThreats + (threatId -> (healingThreats.getOrElse(threatId, 0.0) + delta)))
+  ): Boss110 = copy(healingThreats =
+    healingThreats + (threatId -> (healingThreats.getOrElse(threatId, 0.0) + delta))
+  )
 
   def maybeAutoAttack(time: Long, gameState: GameState): Option[AutoAttack] =
     Some(
       AutoAttack(
-        0L,
+        Ability.UseId.zero,
         time,
         id,
         targetId,
@@ -158,12 +170,15 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
 
   @inline final def fullSpeed: Double = 300.0
 
-  def initialBoss(entityId: gamelogic.entities.Entity.Id, time: Long): gamelogic.entities.boss.dawnoftime.Boss110 =
+  def initialBoss(
+      entityId: gamelogic.entities.Entity.Id,
+      time: Long
+  ): gamelogic.entities.boss.dawnoftime.Boss110 =
     Pointed[Boss110].unit.copy(
-      id      = entityId,
-      time    = time,
-      speed   = fullSpeed,
-      life    = maxLife,
+      id = entityId,
+      time = time,
+      speed = fullSpeed,
+      life = maxLife,
       maxLife = maxLife,
       relevantUsedAbilities = Map(
         SpawnBigGuies.abilityId -> Pointed[SpawnBigGuies].unit.copy(
@@ -183,17 +198,10 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
 
   def initialBossActions(
       entityId: gamelogic.entities.Entity.Id,
-      time: Long,
-      idGeneratorContainer: gamelogic.utils.IdGeneratorContainer
-  ): List[gamelogic.gamestate.GameAction] =
-    healAndDamageAwareActions(entityId, time, idGeneratorContainer) ++ List(
-      AddCreepingShadow(
-        idGeneratorContainer.gameActionIdGenerator(),
-        time,
-        idGeneratorContainer.entityIdGenerator(),
-        entityId
-      )
-    )
+      time: Long
+  )(using IdGeneratorContainer): Vector[gamelogic.gamestate.GameAction] =
+    healAndDamageAwareActions(entityId, time) ++
+      Vector(AddCreepingShadow(genActionId(), time, genEntityId(), entityId))
 
   val name: String = "Boss 110"
 
@@ -202,41 +210,40 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
   val halfWidth  = 600
   val halfHeight = 300
 
-  def gameBoundariesActions(time: Long, idGeneratorContainer: IdGeneratorContainer): List[CreateObstacle] =
-    List[(Complex, (Complex, Complex))](
+  def gameBoundariesActions(
+      time: Long
+  )(using IdGeneratorContainer): Vector[CreateObstacle] =
+    Vector[(Complex, (Complex, Complex))](
       (halfWidth, (-i * halfHeight, i * halfHeight)),
       (-halfWidth, (-i * halfHeight, i * halfHeight)),
       (-i * halfHeight, (-halfWidth, halfWidth)),
       (i * halfHeight, (-halfWidth, halfWidth))
-    ).map {
-      case (position, (z1, z2)) =>
-        CreateObstacle(
-          idGeneratorContainer.gameActionIdGenerator(),
-          time,
-          idGeneratorContainer.entityIdGenerator(),
-          position,
-          Obstacle.segmentObstacleVertices(z1, z2, 10)
-        )
+    ).map { case (position, (z1, z2)) =>
+      CreateObstacle(
+        genActionId(),
+        time,
+        genEntityId(),
+        position,
+        Obstacle.segmentObstacleVertices(z1, z2, 10)
+      )
     }
 
-  def stagingBossActions(
-      time: Long,
-      idGeneratorContainer: gamelogic.utils.IdGeneratorContainer
-  ): List[gamelogic.gamestate.GameAction] =
-    gameBoundariesActions(time, idGeneratorContainer)
+  def stagingBossActions(time: Long)(using
+      IdGeneratorContainer
+  ): Vector[gamelogic.gamestate.GameAction] =
+    gameBoundariesActions(time)
 
   def whenBossDiesActions(
       gameState: gamelogic.gamestate.GameState,
-      time: Long,
-      idGeneratorContainer: gamelogic.utils.IdGeneratorContainer
-  ): List[gamelogic.gamestate.GameAction] =
+      time: Long
+  )(using IdGeneratorContainer): Vector[gamelogic.gamestate.GameAction] =
     gameState.entities.values
       .collect {
         case bigGuy: BigGuy => bigGuy
         case bomb: BombPod  => bomb
       }
-      .map(entity => RemoveEntity(idGeneratorContainer.gameActionIdGenerator(), time, entity.id))
-      .toList
+      .map(entity => RemoveEntity(genActionId(), time, entity.id))
+      .toVector
 
   final val abilities: Set[Ability.AbilityId] =
     Set(

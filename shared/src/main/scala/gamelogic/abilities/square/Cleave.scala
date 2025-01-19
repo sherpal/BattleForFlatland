@@ -11,8 +11,13 @@ import gamelogic.physics.Complex
 import gamelogic.physics.shape.{ConvexPolygon, Polygon}
 import gamelogic.utils.IdGeneratorContainer
 
-final case class Cleave(useId: Ability.UseId, time: Long, casterId: Entity.Id, position: Complex, rotation: Angle)
-    extends Ability {
+final case class Cleave(
+    useId: Ability.UseId,
+    time: Long,
+    casterId: Entity.Id,
+    position: Complex,
+    rotation: Angle
+) extends Ability {
   def abilityId: AbilityId = Ability.squareCleaveId
 
   def cooldown: Long = Cleave.cooldown
@@ -21,16 +26,17 @@ final case class Cleave(useId: Ability.UseId, time: Long, casterId: Entity.Id, p
 
   def cost: Resource.ResourceAmount = Cleave.cost
 
-  def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
     gameState.allLivingEntities
       .filter(_.teamId != Entity.teams.playerTeam)
       .filter(_.collidesShape(Cleave.cone, position, rotation, time))
       .map { entity =>
-        EntityTakesDamage(idGeneratorContainer.gameActionIdGenerator(), time, entity.id, Cleave.damage, casterId)
+        EntityTakesDamage(genActionId(), time, entity.id, Cleave.damage, casterId)
       }
-      .toList
+      .toVector
 
-  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
+  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
+    copy(time = newTime, useId = newId)
 
   def canBeCast(gameState: GameState, time: Long): None.type = None
 }

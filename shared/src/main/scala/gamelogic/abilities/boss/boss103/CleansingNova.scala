@@ -16,15 +16,16 @@ final case class CleansingNova(useId: Ability.UseId, time: Long, casterId: Entit
 
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(0, Resource.NoResource)
 
-  def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
     gameState.players.valuesIterator
       .filter(player => gameState.areTheyInSight(casterId, player.id, time).getOrElse(false))
       .map { player =>
-        EntityTakesDamage(idGeneratorContainer.gameActionIdGenerator(), time, player.id, CleansingNova.damage, casterId)
+        EntityTakesDamage(genActionId(), time, player.id, CleansingNova.damage, casterId)
       }
-      .toList
+      .toVector
 
-  def copyWithNewTimeAndId(newTime: Long, newId: UseId): CleansingNova = copy(time = newTime, useId = newId)
+  def copyWithNewTimeAndId(newTime: Long, newId: UseId): CleansingNova =
+    copy(time = newTime, useId = newId)
 
   def canBeCast(gameState: GameState, time: Long): None.type = None
 }

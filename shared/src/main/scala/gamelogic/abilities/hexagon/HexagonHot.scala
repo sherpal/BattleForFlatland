@@ -10,22 +10,24 @@ import gamelogic.gamestate.gameactions.UpdateConstantHot
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-final case class HexagonHot(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
-    extends WithTargetAbility {
+final case class HexagonHot(
+    useId: Ability.UseId,
+    time: Long,
+    casterId: Entity.Id,
+    targetId: Entity.Id
+) extends WithTargetAbility {
   val abilityId: AbilityId = Ability.hexagonHexagonHotId
   val cooldown: Long       = 4000L
   val castingTime: Long    = 0L
 
   def cost: Resource.ResourceAmount = ResourceAmount(15, Mana)
 
-  def createActions(
-      gameState: GameState
-  )(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] = Vector(
     UpdateConstantHot(
-      0L,
+      genActionId(),
       time,
       targetId,
-      idGeneratorContainer.buffIdGenerator(),
+      genBuffId(),
       HexagonHot.duration,
       HexagonHot.tickRate,
       HexagonHot.healOnTick,
@@ -35,9 +37,10 @@ final case class HexagonHot(useId: Ability.UseId, time: Long, casterId: Entity.I
     )
   )
 
-  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
+  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
+    copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: UseId): Option[String] =
+  def canBeCast(gameState: GameState, time: Long): Option[String] =
     canBeCastFriendlyOnly(gameState) orElse isInRangeAndInSight(gameState, time)
 
   def range: Distance = WithTargetAbility.healRange
@@ -45,8 +48,8 @@ final case class HexagonHot(useId: Ability.UseId, time: Long, casterId: Entity.I
 
 object HexagonHot {
 
-  @inline final def healOnTick = 15.0
-  @inline final def duration   = 15000L
-  @inline final def tickRate   = 3000L
+  inline def healOnTick = 15.0
+  inline def duration   = 15000L
+  inline def tickRate   = 3000L
 
 }

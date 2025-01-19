@@ -10,12 +10,14 @@ import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 import utils.misc.Colour
 
-/**
-  * The [[PentagonZone]] is put on the game by an ability of the [[gamelogic.entities.classes.Pentagon]].
-  * This zone will stay for a certain amount of time and deal damage over time to enemies standing in it.
+/** The [[PentagonZone]] is put on the game by an ability of the
+  * [[gamelogic.entities.classes.Pentagon]]. This zone will stay for a certain amount of time and
+  * deal damage over time to enemies standing in it.
   *
-  * @param sourceId entity id of the [[gamelogic.entities.classes.Pentagon]] putting the zone
-  * @param colour colour for the zone, will be the same as the Hexagon putting it.
+  * @param sourceId
+  *   entity id of the [[gamelogic.entities.classes.Pentagon]] putting the zone
+  * @param colour
+  *   colour for the zone, will be the same as the Hexagon putting it.
   */
 final case class PentagonZone(
     id: Entity.Id,
@@ -30,14 +32,15 @@ final case class PentagonZone(
 
   def teamId: TeamId = Entity.teams.playerTeam
 
-  def itsBuff(buffId: Buff.Id): PentagonZoneTick = PentagonZoneTick(buffId, id, time, time, PentagonZone.duration)
+  def itsBuff(buffId: Buff.Id): PentagonZoneTick =
+    PentagonZoneTick(buffId, id, time, time, PentagonZone.duration)
 }
 
 object PentagonZone {
 
-  final val shape: Polygon = Shape.regularPolygon(5, Constants.playerRadius * 5)
+  final val shape: Polygon = Shape.regularPolygon(5, Constants.playerRadius * 3)
 
-  @inline final def duration: Long       = 5000L
-  @inline final def tickRate: Long       = 1000L
-  @inline final def damageOnTick: Double = 30.0
+  inline def duration: Long       = 5000L
+  inline def tickRate: Long       = 1000L
+  inline def damageOnTick: Double = 30.0
 }

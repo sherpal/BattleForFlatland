@@ -10,8 +10,13 @@ import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-final case class SmallHit(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id, damage: Double)
-    extends WithTargetAbility {
+final case class SmallHit(
+    useId: Ability.UseId,
+    time: Long,
+    casterId: Entity.Id,
+    targetId: Entity.Id,
+    damage: Double
+) extends WithTargetAbility {
   def range: Distance = Boss101.meleeRange
 
   def abilityId: AbilityId = Ability.boss101SmallHitId
@@ -22,9 +27,11 @@ final case class SmallHit(useId: Ability.UseId, time: Long, casterId: Entity.Id,
 
   def cost: Resource.ResourceAmount = SmallHit.cost
 
-  def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
+  def createActions(
+      gameState: GameState
+  )(using IdGeneratorContainer): Vector[GameAction] = Vector(
     EntityTakesDamage(
-      0L,
+      genActionId(),
       time,
       targetId,
       damage,
@@ -32,7 +39,8 @@ final case class SmallHit(useId: Ability.UseId, time: Long, casterId: Entity.Id,
     )
   )
 
-  def copyWithNewTimeAndId(newTime: Long, newId: UseId): SmallHit = copy(time = newTime, useId = newId)
+  def copyWithNewTimeAndId(newTime: Long, newId: UseId): SmallHit =
+    copy(time = newTime, useId = newId)
 
   def canBeCast(gameState: GameState, time: Long): Option[String] =
     canBeCastEnemyOnly(gameState) orElse isInRangeAndInSight(gameState, time)

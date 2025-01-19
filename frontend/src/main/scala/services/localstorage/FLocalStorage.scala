@@ -4,41 +4,41 @@ import io.circe.parser.decode
 import io.circe.{Decoder, Encoder}
 import org.scalajs.dom
 import services.localstorage.LocalStorage.Key
-import zio.clock.Clock
-import zio.{ZIO, ZLayer}
+import zio.*
+
+class FLocalStorage extends LocalStorage {
+
+  private class ElementAbsentException extends Exception
+
+  protected def storeStoredItemAt[A](key: Key[A], storedItem: StoredItem[A])(implicit
+      encoder: Encoder[A]
+  ): ZIO[Any, Throwable, Unit] = ZIO.succeed {
+    dom.window.localStorage.setItem(key.value, Encoder[StoredItem[A]].apply(storedItem).noSpaces)
+  }
+
+  protected def retrieveStoredItemFrom[A](
+      key: Key[A]
+  )(using Decoder[A]): ZIO[Any, Throwable, Option[StoredItem[A]]] =
+    (for {
+      rawContent <- ZIO
+        .fromOption {
+          Option(dom.window.localStorage.getItem(key.value))
+        }
+        .orElseFail(new ElementAbsentException)
+      element <- ZIO.fromEither(decode[StoredItem[A]](rawContent))
+    } yield Some(element)).catchSome { case _: ElementAbsentException =>
+      ZIO.none
+    }
+
+  def clearKey[A](key: Key[A]): ZIO[Any, Throwable, Unit] =
+    ZIO.succeed(dom.window.localStorage.removeItem(key.value))
+}
 
 object FLocalStorage {
 
-  def serviceLive(c: Clock.Service): LocalStorage.Service = new LocalStorage.Service {
-
-    private class ElementAbsentException extends Exception
-
-    protected def clock: ZLayer[Any, Nothing, Clock] = ZLayer.succeed(c)
-
-    protected def storeStoredItemAt[A](key: Key, storedItem: StoredItem[A])(
-        implicit encoder: Encoder[A]
-    ): ZIO[Any, Throwable, Unit] = ZIO.effectTotal {
-      dom.window.localStorage.setItem(key, Encoder[StoredItem[A]].apply(storedItem).noSpaces)
-    }
-
-    protected def retrieveStoredItemFrom[A](key: Key)(
-        implicit decoder: Decoder[A]
-    ): ZIO[Any, Throwable, Option[StoredItem[A]]] =
-      (for {
-        rawContent <- ZIO
-          .fromOption {
-            Option(dom.window.localStorage.getItem(key))
-          }
-          .orElseFail(new ElementAbsentException)
-        element <- ZIO.fromEither(decode[StoredItem[A]](rawContent))
-      } yield Some(element)).catchSome {
-        case _: ElementAbsentException => ZIO.none
-      }
-
-    def clearKey(key: Key): ZIO[Any, Throwable, Unit] =
-      ZIO.effectTotal(dom.window.localStorage.removeItem(key))
-  }
-
-  val live: ZLayer[Clock, Nothing, LocalStorage] = ZLayer.fromService(serviceLive)
+  val live = ZLayer.fromZIO(for {
+    _             <- Console.printLine("Initializing LocalStorage service...")
+    fLocalStorage <- ZIO.succeed(FLocalStorage())
+  } yield (fLocalStorage: LocalStorage))
 
 }

@@ -9,8 +9,13 @@ import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-final case class DirectHit(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id, damage: Double)
-    extends WithTargetAbility {
+final case class DirectHit(
+    useId: Ability.UseId,
+    time: Long,
+    casterId: Entity.Id,
+    targetId: Entity.Id,
+    damage: Double
+) extends WithTargetAbility {
   def abilityId: AbilityId = Ability.triangleDirectHit
 
   def cooldown: Long = Ability.gcd
@@ -19,11 +24,12 @@ final case class DirectHit(useId: Ability.UseId, time: Long, casterId: Entity.Id
 
   def cost: Resource.ResourceAmount = DirectHit.cost
 
-  def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] = List(
-    EntityTakesDamage(idGeneratorContainer.gameActionIdGenerator(), time, targetId, damage, casterId)
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] = Vector(
+    EntityTakesDamage(genActionId(), time, targetId, damage, casterId)
   )
 
-  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability = copy(time = newTime, useId = newId)
+  def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
+    copy(time = newTime, useId = newId)
 
   def canBeCast(gameState: GameState, time: Long): Option[String] =
     canBeCastEnemyOnly(gameState) orElse isInRangeAndInSight(gameState, time)

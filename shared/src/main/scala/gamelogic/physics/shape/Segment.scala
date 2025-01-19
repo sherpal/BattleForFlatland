@@ -23,3 +23,7 @@ final case class Segment(z1: Complex, z2: Complex) {
   def edges: List[Complex] = List(z1, z2)
 
 }
+
+object Segment {
+  def tupled(z: (Complex, Complex)): Segment = Segment(z._1, z._2)
+}

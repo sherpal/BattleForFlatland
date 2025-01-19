@@ -11,9 +11,9 @@ import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 import gamelogic.utils.IdGeneratorContainer
+import models.bff.outofgame.PlayerClasses
 
-/**
-  * The [[gamelogic.entities.classes.Square]] is the tank class available to players.
+/** The [[gamelogic.entities.classes.Square]] is the tank class available to players.
   */
 final case class Square(
     id: Entity.Id,
@@ -30,20 +30,34 @@ final case class Square(
     resourceAmount: ResourceAmount,
     maxResourceAmount: Double,
     name: String
-) extends PlayerClass {
+) extends PlayerClass(PlayerClasses.Square) {
   protected def patchLifeTotal(newLife: Double): LivingEntity = copy(life = newLife)
 
   def abilities: Set[AbilityId] = Square.abilities
 
   def useAbility(ability: Ability): Square = copy(
     relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability),
-    resourceAmount        = resourceAmount - ability.cost
+    resourceAmount = resourceAmount - ability.cost
   )
 
   def shape: Polygon = Square.shape
 
-  def move(time: Long, position: Complex, direction: Angle, rotation: Angle, speed: Double, moving: Boolean): Square =
-    copy(time = time, pos = position, direction = direction, rotation = rotation, speed = speed, moving = moving)
+  def move(
+      time: Long,
+      position: Complex,
+      direction: Angle,
+      rotation: Angle,
+      speed: Double,
+      moving: Boolean
+  ): Square =
+    copy(
+      time = time,
+      pos = position,
+      direction = direction,
+      rotation = rotation,
+      speed = speed,
+      moving = moving
+    )
 
   def teamId: Entity.TeamId = Entity.teams.playerTeam
 
@@ -58,17 +72,33 @@ object Square extends PlayerClassBuilder {
   def initialResourceAmount: ResourceAmount = ResourceAmount(100, Rage)
 
   final val abilities =
-    Set(Ability.squareTauntId, Ability.squareHammerHit, Ability.squareEnrageId, Ability.squareCleaveId)
+    Set(
+      Ability.squareTauntId,
+      Ability.squareHammerHit,
+      Ability.squareEnrageId,
+      Ability.squareCleaveId
+    )
 
   final val initialMaxLife: Double = 200
 
-  def startingActions(time: Long, entityId: Entity.Id, idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
-    List(
-      PutSimpleBuff(0L, time, idGeneratorContainer.buffIdGenerator(), entityId, entityId, time, Buff.rageFiller),
+  def startingActions(
+      time: Long,
+      entityId: Entity.Id
+  )(using IdGeneratorContainer): Vector[GameAction] =
+    Vector(
       PutSimpleBuff(
-        0L,
+        GameAction.Id.zero,
         time,
-        idGeneratorContainer.buffIdGenerator(),
+        genBuffId(),
+        entityId,
+        entityId,
+        time,
+        Buff.rageFiller
+      ),
+      PutSimpleBuff(
+        GameAction.Id.zero,
+        time,
+        genBuffId(),
         entityId,
         entityId,
         time,

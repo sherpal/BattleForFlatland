@@ -6,22 +6,22 @@ object ImmutableActionCollector {
   def apply(
       currentGameState: GameState,
       numberOfActionsBetweenGameStates: Int = 64,
-      timeToOldestGameState: Long           = 60000
+      timeToOldestGameState: Long = 60000
   ): ImmutableActionCollector = new ImmutableActionCollector(
     currentGameState,
-    List((currentGameState, Nil)),
+    Vector((currentGameState, Vector.empty)),
     numberOfActionsBetweenGameStates,
     timeToOldestGameState
   )
 }
 
-/**
-  * Create a complete picture of the game at time T, with its full history up to `timeToOldestGameState` millis earlier.
+/** Create a complete picture of the game at time T, with its full history up to
+  * `timeToOldestGameState` millis earlier.
   *
-  * `actionsAndStates` remembers the [[GameState]]s from the past and the actions from one to the other.
-  * An element of the list is a couple GameState, List[GameAction] where the list is sorted from oldest to
-  * newest, and are the actions between that GameState and the next one. The GameStates, however, are sorted
-  * from newest to oldest.
+  * `actionsAndStates` remembers the [[GameState]]s from the past and the actions from one to the
+  * other. An element of the list is a couple GameState, List[GameAction] where the list is sorted
+  * from oldest to newest, and are the actions between that GameState and the next one. The
+  * GameStates, however, are sorted from newest to oldest.
   *
   * It means that if
   * {{{
@@ -36,48 +36,51 @@ object ImmutableActionCollector {
   *
   * This property is maintained in the addAction method.
   *
-  * @param currentGameState game state as it is now
-  * @param actionsAndStates history of some [[gamelogic.gamestate.GameState]] and [[gamelogic.gamestate.GameAction]]
-  *                         between them
-  * @param numberOfActionsBetweenGameStates number of actions to keep between game states. This number should typically
-  *                                         corresponds to the usual maximum batch size of actions that you can receive
-  *                                         at once
-  * @param timeToOldestGameState time during which you want to keep the history in memory. Expressed in game time units
-  *                               (millis for BFF). Defaults to 60000.
+  * @param currentGameState
+  *   game state as it is now
+  * @param actionsAndStates
+  *   history of some [[gamelogic.gamestate.GameState]] and [[gamelogic.gamestate.GameAction]]
+  *   between them
+  * @param numberOfActionsBetweenGameStates
+  *   number of actions to keep between game states. This number should typically corresponds to the
+  *   usual maximum batch size of actions that you can receive at once
+  * @param timeToOldestGameState
+  *   time during which you want to keep the history in memory. Expressed in game time units (millis
+  *   for BFF). Defaults to 60000.
   */
 final class ImmutableActionCollector private (
     val currentGameState: GameState,
-    val actionsAndStates: List[(GameState, List[GameAction])],
+    val actionsAndStates: Vector[(GameState, Vector[GameAction])],
     val numberOfActionsBetweenGameStates: Int,
     val timeToOldestGameState: Long
 ) extends ActionGatherer {
 
-  /**
-    * Blindly add the actions, then remove all actions with ids in the list of ids to remove.
+  /** Blindly add the actions, then remove all actions with ids in the list of ids to remove.
     *
-    * This method should be consistent with, but more efficient than, the `masterAddAndRemoveActions`.
-    * The property that must always hold is the following:
-    * Given actions a_1, ..., a_n, and an action collector A,
-    * val (next, oldestTime, toRemove) = A.masterAddAndRemoveActions(List(a_1, ..., a_n))
-    * then
-    * next must be equivalent to A.slaveAddAndRemoveActions(List(a_1, ..., a_n), oldestTime, toRemove)
+    * This method should be consistent with, but more efficient than, the
+    * `masterAddAndRemoveActions`. The property that must always hold is the following: Given
+    * actions a_1, ..., a_n, and an action collector A, val (next, oldestTime, toRemove) =
+    * A.masterAddAndRemoveActions(List(a_1, ..., a_n)) then next must be equivalent to
+    * A.slaveAddAndRemoveActions(List(a_1, ..., a_n), oldestTime, toRemove)
     *
-    * @param actionsToAdd actions to add
-    * @param oldestTimeToRemove oldest time within the actions to remove
-    * @param idsOfActionsToRemove list of ids of actions to remove
+    * @param actionsToAdd
+    *   actions to add
+    * @param oldestTimeToRemove
+    *   oldest time within the actions to remove
+    * @param idsOfActionsToRemove
+    *   list of ids of actions to remove
     */
   def slaveAddAndRemoveActions(
-      actionsToAdd: List[GameAction],
+      actionsToAdd: Vector[GameAction],
       oldestTimeToRemove: Long,
-      idsOfActionsToRemove: List[GameAction.Id]
+      idsOfActionsToRemove: Vector[GameAction.Id]
   ): ImmutableActionCollector = {
     val updatedActionsAndStates = removeActions(
       oldestTimeToRemove,
       idsOfActionsToRemove,
       actionsToAdd
-        .foldLeft(actionsAndStates) {
-          case (asAndSs, nextAction) =>
-            addAction(nextAction, asAndSs)
+        .foldLeft(actionsAndStates) { case (asAndSs, nextAction) =>
+          addAction(nextAction, asAndSs)
         }
     )
 
@@ -89,26 +92,29 @@ final class ImmutableActionCollector private (
     )
   }
 
-  /**
-    * Adds new actions and remove then-illegal ones.
-    * See `slaveAddAndRemoveActions` to see what property these functions must hold.
+  /** Adds new actions and remove then-illegal ones. See `slaveAddAndRemoveActions` to see what
+    * property these functions must hold.
     *
-    * @param actionsToAdd new actions for the [[gamelogic.gamestate.GameState]]
-    * @return a triplet with the new action collector, the oldest time within actions to remove, and ids of actions to
-    *         remove.
+    * @param actionsToAdd
+    *   new actions for the [[gamelogic.gamestate.GameState]]
+    * @return
+    *   a triplet with the new action collector, the oldest time within actions to remove, and ids
+    *   of actions to remove.
     */
-  def masterAddAndRemoveActions(actionsToAdd: List[GameAction]): (ImmutableActionCollector, Long, List[GameAction.Id]) =
+  def masterAddAndRemoveActions(
+      actionsToAdd: Vector[GameAction]
+  ): (ImmutableActionCollector, Long, Vector[GameAction.Id]) =
     if (actionsToAdd.isEmpty) {
-      (this, currentGameState.time, Nil)
+      (this, currentGameState.time, Vector.empty)
     } else {
       val oldestTime: Long = actionsToAdd.head.time
 
       @scala.annotation.tailrec
       def mergeActions(
-          ls1: List[GameAction],
-          ls2: List[GameAction],
-          accumulator: List[GameAction]
-      ): List[GameAction] =
+          ls1: Vector[GameAction],
+          ls2: Vector[GameAction],
+          accumulator: Vector[GameAction]
+      ): Vector[GameAction] =
         if (ls1.isEmpty)
           accumulator.reverse ++ ls2
         else if (ls2.isEmpty)
@@ -121,13 +127,12 @@ final class ImmutableActionCollector private (
       val actionIdsToRemove = mergeActions(
         actionsFrom(oldestTime),
         actionsToAdd.sorted,
-        Nil
-      ).foldLeft((gameStateUpTo(oldestTime), List[Long]())) {
-          case ((state, toRemove), action) =>
-            if (shouldKeepAction(action, state)) (action(state), toRemove)
-            else (state, action.id +: toRemove)
-        }
-        ._2
+        Vector.empty
+      ).foldLeft((gameStateUpTo(oldestTime), Vector[GameAction.Id]())) {
+        case ((state, toRemove), action) =>
+          if (shouldKeepAction(action, state)) (action(state), toRemove)
+          else (state, action.id +: toRemove)
+      }._2
         .reverse
 
       (
@@ -139,9 +144,9 @@ final class ImmutableActionCollector private (
 
   def removeActions(
       oldestTime: Long,
-      idsToRemove: List[GameAction.Id],
-      currentActionsAndStates: List[(GameState, List[GameAction])]
-  ): List[(GameState, List[GameAction])] = {
+      idsToRemove: Vector[GameAction.Id],
+      currentActionsAndStates: Vector[(GameState, Vector[GameAction])]
+  ): Vector[(GameState, Vector[GameAction])] = {
 
     val (after, before) = currentActionsAndStates.span(_._1.time >= oldestTime)
 
@@ -160,68 +165,77 @@ final class ImmutableActionCollector private (
     // allActionsAfter is from oldest to newest
 
     val remainingActionsAfter = allActionsAfter
-      .foldLeft((List[GameAction](), idsToRemove))({
-        case ((acc, toRemove), nextAction) =>
-          if (toRemove.isEmpty)
-            (nextAction +: acc, Nil)
-          else {
-            toRemove.indexOf(nextAction.id) match {
-              case -1 =>
-                (nextAction +: acc, toRemove)
-              case idx =>
-                (acc, toRemove.drop(idx + 1))
-            }
+      .foldLeft((Vector[GameAction](), idsToRemove)) { case ((acc, toRemove), nextAction) =>
+        if toRemove.isEmpty then (nextAction +: acc, Vector.empty)
+        else {
+          toRemove.indexOf(nextAction.id) match {
+            case -1 =>
+              (nextAction +: acc, toRemove)
+            case idx =>
+              (acc, toRemove.drop(idx + 1))
           }
-      })
+        }
+      }
       ._1
       .reverse
     // remainingActionsAfter is from oldest to newest
 
-    if (remainingActionsAfter.isEmpty) {
+    if remainingActionsAfter.isEmpty then {
       toRemain
-    } else if (toRemain.nonEmpty) {
+    } else if toRemain.nonEmpty then {
       (toRemain.head._1.applyActions(toRemain.head._2), remainingActionsAfter) +: toRemain
     } else {
-      List((toBeChanged.last._1, remainingActionsAfter))
+      Vector((toBeChanged.last._1, remainingActionsAfter))
     }
 
   }
 
-  /**
-    * Adds an action to the gameState.
-    * When an action is added, it is put at the last possible position, after all actions at the same time that where
-    * already added.
+  /** Adds an action to the gameState. When an action is added, it is put at the last possible
+    * position, after all actions at the same time that where already added.
     *
-    * @param action     the [[GameAction]] to add
-    * @param currentActionsAndStates list of past actions and game state to add the action to
+    * @param action
+    *   the [[GameAction]] to add
+    * @param currentActionsAndStates
+    *   list of past actions and game state to add the action to
     */
   private def addAction(
       action: GameAction,
-      currentActionsAndStates: List[(GameState, List[GameAction])]
-  ): List[(GameState, List[GameAction])] =
-    if (currentActionsAndStates.head._2.length >= numberOfActionsBetweenGameStates) { //} && currentActionsAndStates.length > 3) {
-      val temp = (currentActionsAndStates.head._1.applyActions(currentActionsAndStates.head._2), List(action)) +: currentActionsAndStates
+      currentActionsAndStates: Vector[(GameState, Vector[GameAction])]
+  ): Vector[(GameState, Vector[GameAction])] =
+    if (currentActionsAndStates.head._2.length >= numberOfActionsBetweenGameStates) { // } && currentActionsAndStates.length > 3) {
+      val temp = (
+        currentActionsAndStates.head._1.applyActions(currentActionsAndStates.head._2),
+        Vector(action)
+      ) +: currentActionsAndStates
       if (timeToOldestGameState < temp.head._1.time - temp.last._1.time) {
         temp.dropRight(1)
       } else temp
     } else {
-      def insertAction(action: GameAction, list: List[GameAction]): List[GameAction] = {
+      def insertAction(action: GameAction, list: Vector[GameAction]): Vector[GameAction] = {
         // remaining is oldest to newest
         // treated   is newest to oldest
         @scala.annotation.tailrec
-        def insertAcc(action: GameAction, treated: List[GameAction], remaining: List[GameAction]): List[GameAction] =
+        def insertAcc(
+            action: GameAction,
+            treated: Vector[GameAction],
+            remaining: Vector[GameAction]
+        ): Vector[GameAction] =
           if (remaining.isEmpty) (action +: treated).reverse
           else if (remaining.head > action) treated.reverse ++ (action +: remaining)
           else insertAcc(action, remaining.head +: treated, remaining.tail)
 
-        insertAcc(action, Nil, list)
+        insertAcc(action, Vector.empty, list)
       }
 
       // the list actionsAndStates should typically not be too big
       // moreover, it is rare that we should add an action older than the second or third gameState,
       // provided timeToOldestGameState is not ridiculously too small...
-      def add(action: GameAction, list: List[(GameState, List[GameAction])]): List[(GameState, List[GameAction])] =
-        if (action.time >= list.head._1.time) (list.head._1, insertAction(action, list.head._2)) +: list.tail
+      def add(
+          action: GameAction,
+          list: Vector[(GameState, Vector[GameAction])]
+      ): Vector[(GameState, Vector[GameAction])] =
+        if (action.time >= list.head._1.time)
+          (list.head._1, insertAction(action, list.head._2)) +: list.tail
         else {
           val tail = add(action, list.tail)
           // we need to update the gameState since something changed in the past
@@ -229,9 +243,9 @@ final class ImmutableActionCollector private (
           head +: tail
         }
 
-      try {
+      try
         add(action, currentActionsAndStates)
-      } catch {
+      catch {
         case e: Throwable =>
           println("gs time " + currentActionsAndStates.head._1.time)
           println("action time " + action.time)
@@ -241,18 +255,18 @@ final class ImmutableActionCollector private (
       }
     }
 
-  /**
-    * Returns the GameState as it was at time time.
+  /** Returns the GameState as it was at time time.
     */
-  private def gameStateUpTo(time: Long): GameState = actionsAndStates.find(_._1.time <= time) match {
-    case Some((gs, actions)) =>
-      gs.applyActions(actions.takeWhile(_.time <= time))
-    case None =>
-      println("beuh", time, System.currentTimeMillis())
-      throw TooOldActionException(time.toString)
-  }
+  private def gameStateUpTo(time: Long): GameState =
+    actionsAndStates.find(_._1.time <= time) match {
+      case Some((gs, actions)) =>
+        gs.applyActions(actions.takeWhile(_.time <= time))
+      case None =>
+        println(("beuh", time, System.currentTimeMillis()))
+        throw TooOldActionException(time.toString)
+    }
 
-  private def actionsFrom(time: Long): List[GameAction] =
+  private def actionsFrom(time: Long): Vector[GameAction] =
     actionsAndStates
       .take(actionsAndStates.indexWhere(_._1.time < time) + 1)
       .reverse

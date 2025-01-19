@@ -3,11 +3,13 @@ package gamelogic.gamestate.statetransformers
 import gamelogic.entities.EntityCastingInfo
 import gamelogic.gamestate.GameState
 
-/** Makes the given entity to start casting an ability.  */
-final class EntityStartsCastingTransformer(entityCastingInfo: EntityCastingInfo) extends GameStateTransformer {
+/** Makes the given entity to start casting an ability. */
+final class EntityStartsCastingTransformer(entityCastingInfo: EntityCastingInfo)
+    extends GameStateTransformer {
   def apply(gameState: GameState): GameState =
     gameState.copy(
-      newTime           = entityCastingInfo.startedTime,
-      castingEntityInfo = gameState.castingEntityInfo + (entityCastingInfo.casterId -> entityCastingInfo)
+      time = entityCastingInfo.startedTime,
+      castingEntityInfo =
+        gameState.castingEntityInfo + (entityCastingInfo.casterId -> entityCastingInfo)
     )
 }

@@ -1,21 +1,28 @@
 package services.routing
 
-import frontend.router.Router.router
-import urldsl.language.{PathSegment, PathSegmentWithQueryParams}
-import zio.{UIO, ZIO, ZLayer}
+import components.router.Router
+import urldsl.language.PathSegment
+import zio.*
+import urldsl.language.PathSegmentWithQueryParams
+import urldsl.language.UrlPart
+
+class FRouting(router: Router) extends Routing {
+
+  override def currentUrlMatches(matcher: UrlPart[?, ?]): UIO[Boolean] =
+    ZIO.succeed(router.currentUrlMatches(matcher))
+
+  override def moveTo[Q](pathAndQuery: PathSegmentWithQueryParams[Unit, ?, Q, ?])(q: Q): UIO[Unit] =
+    ZIO.succeed(router.moveTo("/" ++ pathAndQuery.createUrlString((), q)))
+
+  override def moveTo(path: PathSegment[Unit, ?]): UIO[Unit] =
+    ZIO.succeed(router.moveTo("/" ++ path.createPath()))
+
+}
 
 object FRouting {
-
-  val serviceLive: Routing.Service = new Routing.Service {
-    def moveTo(path: PathSegment[Unit, _]): UIO[Unit] = ZIO.effectTotal(
-      router.moveTo("/" + path.createPath())
-    )
-
-    def moveTo[Q](pathAndQuery: PathSegmentWithQueryParams[Unit, _, Q, _])(q: Q): UIO[Unit] = ZIO.effectTotal {
-      router.moveTo("/" + pathAndQuery.createUrlString((), q))
-    }
-  }
-
-  final val live: ZLayer[Any, Nothing, Routing] = ZLayer.succeed(serviceLive)
-
+  def live = ZLayer.fromZIO(for {
+    _        <- Console.printLine("Initializing Routing service...").orDie
+    router   <- ZIO.succeed(Router.router)
+    frouting <- ZIO.succeed(FRouting(router))
+  } yield (frouting: Routing))
 }

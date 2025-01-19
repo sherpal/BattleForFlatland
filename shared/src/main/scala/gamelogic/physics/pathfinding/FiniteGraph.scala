@@ -6,21 +6,22 @@ import gamelogic.physics.shape.{Segment, Shape}
 
 import scala.Ordering.Double.TotalOrdering
 
-/**
-  * A Graph is a set of vertices that are connected together.
-  * The connection information is stored in the `neighboursMap` which maps a vertex to all its neighbours.
-  * @param vertices complex numbers in the graph
-  * @param neighboursMap describes the relationship between vertices.
+/** A Graph is a set of vertices that are connected together. The connection information is stored
+  * in the `neighboursMap` which maps a vertex to all its neighbours.
+  * @param vertices
+  *   complex numbers in the graph
+  * @param neighboursMap
+  *   describes the relationship between vertices.
   */
 final class FiniteGraph(
     val vertices: Vector[Complex],
-    val neighboursMap: Map[Complex, List[Complex]],
+    val neighboursMap: Map[Complex, Vector[Complex]],
     quadTree: ShapeQT,
     inflatedEdges: Iterable[Segment]
 ) extends Graph {
 
-  lazy val allEdges: List[(Complex, Complex)] =
-    neighboursMap.toList
+  lazy val allEdges: Vector[(Complex, Complex)] =
+    neighboursMap.toVector
       .flatMap { case (z, ws) => ws.map((z, _)) }
       .distinctBy { case (z, w) => if (Complex.polarOrder(z, w) <= 0) (z, w) else (w, z) }
 
@@ -42,32 +43,37 @@ final class FiniteGraph(
             .filterNot(_.hasEdge(v))
             .exists(segment => Shape.intersectingSegments(vertex, v, segment.z1, segment.z2))
           if !quadTree.contains((vertex + v) / 2)
-        } yield v).toList
+        } yield v).toVector
 
         val finalConnectedTo =
           if (connectedTo.isEmpty && neighboursMap.nonEmpty)
-            List(neighboursMap.keys.minBy(z => (vertex - z).modulus2))
+            Vector(neighboursMap.keys.minBy(z => (vertex - z).modulus2))
           else connectedTo
 
-        (neighboursMap ++ finalConnectedTo.map(v => v -> (vertex +: neighboursMap(v)))) + (vertex -> finalConnectedTo)
+        (neighboursMap ++ finalConnectedTo.map(v =>
+          v -> (vertex +: neighboursMap(v))
+        )) + (vertex -> finalConnectedTo)
       }
 
-    new FiniteGraph(vertices :+ vertex, newNeighboursMap, quadTree, inflatedEdges)
+    FiniteGraph(vertices :+ vertex, newNeighboursMap, quadTree, inflatedEdges)
   }
 
   def addVertices(
       vertices: Complex*
   ): FiniteGraph = vertices.foldLeft(this)(_.addVertex(_))
 
-  /**
-    * Finds the shortest path between the start and the end in the graph.
+  /** Finds the shortest path between the start and the end in the graph.
     *
     * Implements a simple A* algorithm
     *
-    * @param start starting point of the path.
-    * @param end end of the path
-    * @param heuristicFunction guess of the distance between two points. Usually the L2-norm
-    * @return if the shortest path exists, returns it wrapped in Some. Otherwise returns None
+    * @param start
+    *   starting point of the path.
+    * @param end
+    *   end of the path
+    * @param heuristicFunction
+    *   guess of the distance between two points. Usually the L2-norm
+    * @return
+    *   if the shortest path exists, returns it wrapped in Some. Otherwise returns None
     */
   def a_*(
       start: Complex,
@@ -95,22 +101,20 @@ final class FiniteGraph(
 
           val newElementsInOpenSet = neighboursMap(currentVertex)
             .filterNot(closedSet.contains)
-            .map(
-              neighbour =>
-                (
-                  neighbour,
-                  currentVertexScore.g + d(currentVertex, neighbour),
-                  openSet.getOrElse(neighbour, defaultScore)
-                )
+            .map(neighbour =>
+              (
+                neighbour,
+                currentVertexScore.g + d(currentVertex, neighbour),
+                openSet.getOrElse(neighbour, defaultScore)
+              )
             )
             .filter(triplet => triplet._2 < triplet._3.g)
-            .map({
-              case (neighbour, tentativeScoreG, _) =>
-                neighbour -> Score(
-                  tentativeScoreG + h(neighbour),
-                  tentativeScoreG
-                )
-            })
+            .map { case (neighbour, tentativeScoreG, _) =>
+              neighbour -> Score(
+                tentativeScoreG + h(neighbour),
+                tentativeScoreG
+              )
+            }
             .toMap
 
           exploration(
@@ -136,8 +140,8 @@ final class FiniteGraph(
 object FiniteGraph {
 
   implicit class Vertex(z: Complex) {
-    def neighbours(
-        implicit neighboursMap: Map[Complex, List[Complex]]
+    def neighbours(implicit
+        neighboursMap: Map[Complex, List[Complex]]
     ): List[Complex] = neighboursMap(z)
   }
 

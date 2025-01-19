@@ -13,29 +13,32 @@ import gamelogic.gamestate.gameactions.RemoveBuff
 import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.buffs.Buff
 
-/**
-  * Puts The [[gamelogic.buffs.boss.boss110.BrokenArmor]] debuff on the target.
+/** Puts The [[gamelogic.buffs.boss.boss110.BrokenArmor]] debuff on the target.
   */
-final case class PutBrokenArmor(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
-    extends WithTargetAbility
+final case class PutBrokenArmor(
+    useId: Ability.UseId,
+    time: Long,
+    casterId: Entity.Id,
+    targetId: Entity.Id
+) extends WithTargetAbility
     with AbilityInfoFromMetadata[PutBrokenArmor.type] {
 
   def metadata = PutBrokenArmor
 
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(0.0, Resource.NoResource)
 
-  def createActions(gameState: GameState)(implicit idGeneratorContainer: IdGeneratorContainer): List[GameAction] =
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
     // First we remove the previous debuff, if any
     gameState
       .allBuffsOfEntity(targetId)
       .collect {
         case buff: BrokenArmor if buff.sourceId == casterId => buff
       }
-      .map(buff => RemoveBuff(idGeneratorContainer.gameActionIdGenerator(), time, buff.bearerId, buff.buffId))
-      .toList :+ PutSimpleBuff(
-      idGeneratorContainer.gameActionIdGenerator(),
+      .map(buff => RemoveBuff(genActionId(), time, buff.bearerId, buff.buffId))
+      .toVector :+ PutSimpleBuff(
+      genActionId(),
       time,
-      idGeneratorContainer.buffIdGenerator(),
+      genBuffId(),
       targetId,
       casterId,
       time,
