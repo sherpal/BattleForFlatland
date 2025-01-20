@@ -88,7 +88,7 @@ object Hexagon extends PlayerClassBuilder {
   )
 
   def abilities: Set[Ability.AbilityId] =
-    Set(Ability.hexagonFlashHealId, Ability.hexagonHexagonHotId)
+    Set(Ability.hexagonFlashHealId, Ability.hexagonHexagonHotId, Ability.hexagonHexagonZoneId)
 
   def shape: Polygon = Shape.regularPolygon(6, Constants.playerRadius)
 

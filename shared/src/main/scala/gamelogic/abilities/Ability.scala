@@ -123,6 +123,7 @@ object Ability {
   val simpleBulletId: AbilityId            = nextAbilityId()
   val hexagonFlashHealId: AbilityId        = nextAbilityId()
   val hexagonHexagonHotId: AbilityId       = nextAbilityId()
+  val hexagonHexagonZoneId: AbilityId      = nextAbilityId()
   val squareTauntId: AbilityId             = nextAbilityId()
   val squareHammerHit: AbilityId           = nextAbilityId()
   val boss101BigHitId: AbilityId           = nextAbilityId()

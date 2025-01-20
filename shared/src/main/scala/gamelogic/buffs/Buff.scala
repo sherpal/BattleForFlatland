@@ -88,6 +88,7 @@ object Buff {
   val boss102DamageZoneBuff    = nextId()
   val squareEnrage             = nextId()
   val entitiesPentagonZoneBuff = nextId()
+  val entitiesHexagonZoneBuff  = nextId()
   val boss102LivingDamageZone  = nextId()
   val boss103Punished          = nextId()
   val boss103Purified          = nextId()

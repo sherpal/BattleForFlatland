@@ -25,6 +25,7 @@ import gamelogic.entities.classes.pentagon.PentagonZone
 import utils.misc.RGBAColour
 import utils.misc.RGBColour
 import models.bff.ingame.UserInput.AbilityInput
+import gamelogic.entities.classes.hexagon.HexagonZone
 
 class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
 
@@ -37,9 +38,9 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
     case Some(abilityId) =>
       maybeMe(viewModel.gameState) match {
         case Some(player) =>
-          abilityId match {
+          val events: js.Array[CustomIndigoEvents] = abilityId match {
             case Ability.createPentagonZoneId =>
-              val events = sendCastAbility(
+              sendCastAbility(
                 CreatePentagonZone(
                   Ability.UseId.zero,
                   now,
@@ -52,16 +53,31 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
                 viewModel.gameState,
                 now
               )
-              if events.exists {
-                  case _: CustomIndigoEvents.GameEvent.SendAction => true
-                  case _                                          => false
-                }
-              then Outcome(viewModel.stopChoosingAbilityPosition).addGlobalEvents(Batch(events))
-              else Outcome(viewModel).addGlobalEvents(Batch(events))
+            case Ability.hexagonHexagonZoneId =>
+              sendCastAbility(
+                CreateHexagonZone(
+                  Ability.UseId.zero,
+                  now,
+                  myId,
+                  viewModel.localMousePosToWorld(click.position),
+                  HexagonZone.healOnTick,
+                  0,
+                  RGBColour.fromIntColour(player.colour).withAlpha(0.5)
+                ),
+                viewModel.gameState,
+                now
+              )
             case id =>
               dom.console.warn(s"Weird, I should not be here with ability id $id")
-              Outcome(viewModel)
+              js.Array()
           }
+
+          if events.exists {
+              case _: CustomIndigoEvents.GameEvent.SendAction => true
+              case _                                          => false
+            }
+          then Outcome(viewModel.stopChoosingAbilityPosition).addGlobalEvents(Batch(events))
+          else Outcome(viewModel).addGlobalEvents(Batch(events))
         case None =>
           Outcome(viewModel)
       }
@@ -180,6 +196,9 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
           )
         case Ability.createPentagonZoneId =>
           js.Array(CustomIndigoEvents.GameEvent.StartChoosingAbility(Ability.createPentagonZoneId))
+
+        case Ability.hexagonHexagonZoneId =>
+          js.Array(CustomIndigoEvents.GameEvent.StartChoosingAbility(Ability.hexagonHexagonZoneId))
 
         case Ability.squareEnrageId =>
           sendCastAbility(Enrage(Ability.UseId.zero, now, myId), gameState, now)

@@ -95,6 +95,4 @@ object PentagonBulletsDrawer {
       )
     }
 
-  private val pentagonZoneAsset = Asset.playerClassAssetMap(PlayerClasses.Pentagon)
-
 }

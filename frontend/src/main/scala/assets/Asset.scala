@@ -97,6 +97,7 @@ object Asset {
         val abilityOverlay   = Asset(abilitiesP / "ability-overlay.png", 30, 30)
         val hexagonFlashHeal = Asset(abilitiesP / "hexagon-flash-heal.png", 30, 30)
         val hexagonHot       = Asset(abilitiesP / "hexagon-hot.png", 30, 30)
+        val hexagonZone      = Asset(abilitiesP / "create-hexagon-zone.png", 30, 30)
         val squareHammerHit  = Asset(abilitiesP / "square-hammer-hit.png", 30, 30)
         val squareTaunt      = Asset(abilitiesP / "square-taunt.png", 30, 30)
         val squareEnrage     = Asset(abilitiesP / "square-enrage.png", 32, 32)
@@ -213,6 +214,7 @@ object Asset {
   val abilityAssetMap: Map[Ability.AbilityId, Asset] = Map(
     Ability.hexagonHexagonHotId      -> ingame.gui.abilities.hexagonHot,
     Ability.hexagonFlashHealId       -> ingame.gui.abilities.hexagonFlashHeal,
+    Ability.hexagonHexagonZoneId     -> ingame.gui.abilities.hexagonZone,
     Ability.squareHammerHit          -> ingame.gui.abilities.squareHammerHit,
     Ability.squareTauntId            -> ingame.gui.abilities.squareTaunt,
     Ability.squareEnrageId           -> ingame.gui.abilities.squareEnrage,

@@ -110,6 +110,15 @@ class InGameScene(
                       myId,
                       now,
                       context.gameToLocal
+                    ) ++ HexagonZoneDrawer.drawAll(
+                      gameState,
+                      viewModel.maybeChoosingAbilityPosition.collect {
+                        case Ability.hexagonHexagonZoneId =>
+                          viewModel.localMousePosToWorld(context.mouse.position)
+                      },
+                      myId,
+                      now,
+                      context.gameToLocal
                     ) ++ PlayerDrawer.drawAll(
                       gameState,
                       gameState.time,
