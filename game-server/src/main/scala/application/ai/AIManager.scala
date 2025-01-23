@@ -77,6 +77,8 @@ class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTran
         aiControllers.addOne(action.entityId -> boss.Boss102Controller)
       case action: SpawnBoss if action.bossName == Boss103.name =>
         ??? // make boss 103 controller
+      case action: SpawnBoss if action.bossName == Boss104.name =>
+        aiControllers.addOne(action.entityId -> boss.Boss104Controller)
       case action: SpawnBoss if action.bossName == Boss110.name =>
         ??? // make boss 110 controller
       case _ =>
