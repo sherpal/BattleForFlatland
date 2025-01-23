@@ -9,6 +9,7 @@ import gamelogic.physics.Complex
 import gamelogic.utils.{IdGeneratorContainer, IdsProducer}
 import gamelogic.gamestate.GameState
 import gamelogic.entities.boss.dawnoftime.Boss110
+import gamelogic.entities.boss.dawnoftime.Boss104
 
 trait BossFactory[Boss <: BossEntity] extends IdsProducer {
 
@@ -88,6 +89,7 @@ object BossFactory {
     Boss101,
     Boss102,
     Boss103,
+    Boss104,
     Boss110
   ).map(factory => factory.name -> factory).toMap
 
