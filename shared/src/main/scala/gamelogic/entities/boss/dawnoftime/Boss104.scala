@@ -3,7 +3,7 @@ package gamelogic.entities.boss.dawnoftime
 import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.WithTarget
 import gamelogic.physics.Complex
-import gamelogic.abilities.Ability
+import gamelogic.abilities.{Ability, AutoAttack}
 import gamelogic.entities.Entity.TeamId
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.WithThreat.ThreatAmount
@@ -59,9 +59,13 @@ final case class Boss104(
   override protected def patchResourceAmount(newResourceAmount: ResourceAmount): WithAbilities =
     this
 
-  override def abilities: Set[AbilityId] = Set.empty
+  override def abilities: Set[AbilityId] = Set(
+    Ability.autoAttackId
+  )
 
-  override def abilityNames: Map[AbilityId, String] = Map.empty
+  override def abilityNames: Map[AbilityId, String] = Map(
+    Ability.autoAttackId -> "Auto Attack"
+  )
 
   override def teamId: TeamId = Entity.teams.mobTeam
 
@@ -97,6 +101,20 @@ final case class Boss104(
   override def maxResourceAmount: Double = 0.0
 
   override def name: String = Boss104.name
+
+  def maybeAutoAttack(time: Long, gameState: GameState): Option[AutoAttack] =
+    Some(
+      AutoAttack(
+        Ability.UseId.zero,
+        time,
+        id,
+        targetId,
+        Boss104.autoAttackDamage,
+        Boss104.autoAttackTickRate,
+        NoResource,
+        Boss104.meleeRange
+      )
+    ).filter(_.canBeCast(gameState, time).isEmpty).filter(canUseAbility(_, time).isEmpty)
 
 }
 
