@@ -37,7 +37,7 @@ final case class LivingDamageZone(
 
   def resourceIdentifier: ResourceIdentifier = Buff.boss102LivingDamageZone
 
-  def endingAction(gameState: GameState, time: Long)(using
+  def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer
   ): Vector[GameAction] = Vector.empty
 }

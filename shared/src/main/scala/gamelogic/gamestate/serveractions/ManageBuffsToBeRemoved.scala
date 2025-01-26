@@ -8,7 +8,12 @@ import gamelogic.utils.IdGeneratorContainer
 final class ManageBuffsToBeRemoved extends ServerAction {
 
   private def removeBuffAction(actionId: GameAction.Id, buff: Buff): RemoveBuff =
-    RemoveBuff(actionId, buff.appearanceTime + buff.duration, buff.bearerId, buff.buffId)
+    RemoveBuff(
+      actionId,
+      buff.appearanceTime + buff.duration,
+      buff.bearerId,
+      buff.buffId
+    )
 
   def apply(currentState: ActionGatherer, nowGenerator: () => Long)(using
       IdGeneratorContainer
@@ -22,7 +27,8 @@ final class ManageBuffsToBeRemoved extends ServerAction {
       .flatMap { buff =>
         removeBuffAction(genActionId(), buff) +: buff.endingAction(
           gameState,
-          startTime
+          startTime,
+          Option.empty
         )
       }
       .toVector

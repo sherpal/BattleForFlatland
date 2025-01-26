@@ -44,7 +44,7 @@ final case class DamageZoneTick(
 
   def resourceIdentifier: ResourceIdentifier = Buff.boss102DamageZoneBuff
 
-  def endingAction(gameState: GameState, time: Long)(using
+  def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer
   ): Vector[GameAction] =
     Vector(RemoveEntity(genActionId(), time, bearerId))

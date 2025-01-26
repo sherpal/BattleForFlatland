@@ -9,38 +9,44 @@ sealed trait Resource {
 
 object Resource {
 
-  case class ResourceAmount(amount: Double, resourceType: Resource) extends PartiallyOrdered[ResourceAmount] {
+  case class ResourceAmount(amount: Double, resourceType: Resource)
+      extends PartiallyOrdered[ResourceAmount] {
     def +[R1 <: Resource](that: ResourceAmount): ResourceAmount =
-      if (this.resourceType == that.resourceType) ResourceAmount(this.amount + that.amount, resourceType)
+      if (this.resourceType == that.resourceType)
+        ResourceAmount(this.amount + that.amount, resourceType)
       else this
 
     def -[R1 <: Resource](that: ResourceAmount): ResourceAmount =
-      if (this.resourceType == that.resourceType) ResourceAmount(this.amount - that.amount, resourceType)
+      if (this.resourceType == that.resourceType)
+        ResourceAmount(this.amount - that.amount, resourceType)
       else this
 
     def max(x: Double): ResourceAmount = ResourceAmount(x max amount, resourceType)
     def min(x: Double): ResourceAmount = ResourceAmount(x min amount, resourceType)
 
-    /**
-      * Returns a [[ResourceAmount]] whose amount is between 0 and `maxValue`.
+    /** Returns a [[ResourceAmount]] whose amount is between 0 and `maxValue`.
       */
-    def clampTo(maxValue: Double): ResourceAmount = ResourceAmount((amount max 0) min maxValue, resourceType)
+    def clampTo(maxValue: Double): ResourceAmount =
+      ResourceAmount((amount max 0) min maxValue, resourceType)
 
-    def tryCompareTo[B >: ResourceAmount](that: B)(implicit evidence$1: AsPartiallyOrdered[B]): Option[Int] =
+    def tryCompareTo[B >: ResourceAmount](
+        that: B
+    )(implicit evidence$1: AsPartiallyOrdered[B]): Option[Int] =
       that match {
-        case that: ResourceAmount if that.resourceType == this.resourceType => Some(this.amount compare that.amount)
-        case _                                                              => None
+        case that: ResourceAmount if that.resourceType == this.resourceType =>
+          Some(this.amount compare that.amount)
+        case _ => None
       }
   }
 
   case object Mana extends Resource {
-    def colour: RGBColour = RGBColour.fromIntColour(0x0000FF)
+    def colour: RGBColour = RGBColour.fromIntColour(0x0000ff)
   }
   case object Energy extends Resource {
-    def colour: RGBColour = RGBColour.fromIntColour(0xFFFF00)
+    def colour: RGBColour = RGBColour.fromIntColour(0xffff00)
   }
   case object Rage extends Resource {
-    def colour: RGBColour = RGBColour.fromIntColour(0xFF0000)
+    def colour: RGBColour = RGBColour.fromIntColour(0xff0000)
   }
 
   case object NoResource extends Resource {
@@ -50,13 +56,13 @@ object Resource {
   val noResourceAmount: ResourceAmount = ResourceAmount(0.0, NoResource)
 
   final val resources: Map[String, Resource] = Map(
-    Mana.toString -> Mana,
-    Energy.toString -> Energy,
+    Mana.toString       -> Mana,
+    Energy.toString     -> Energy,
     NoResource.toString -> NoResource
   )
   private def fromString(resourceStr: String): Resource = resources(resourceStr)
 
-  implicit final val resourceDecoder: Decoder[Resource] = Decoder.decodeString.map(fromString)
-  implicit final val resourceEncoder: Encoder[Resource] = Encoder.encodeString.contramap(_.toString)
+  given Decoder[Resource] = Decoder.decodeString.map(fromString)
+  given Encoder[Resource] = Encoder.encodeString.contramap(_.toString)
 
 }

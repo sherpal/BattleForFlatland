@@ -41,7 +41,7 @@ final case class PentagonZoneTick(
 
   def resourceIdentifier: ResourceIdentifier = Buff.entitiesPentagonZoneBuff
 
-  def endingAction(gameState: GameState, time: Long)(using
+  def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer
   ): Vector[GameAction] =
     Vector(RemoveEntity(genActionId(), time, bearerId))

@@ -32,13 +32,13 @@ final case class PentaDispel(
     gameState
       .allBuffsOfEntity(targetId)
       .filter(_.canBeDispelled)
-      .map(buff =>
+      .flatMap(buff =>
         RemoveBuff(
           id = genActionId(),
           time = time,
           bearerId = buff.bearerId,
           buffId = buff.buffId
-        )
+        ) +: buff.endingAction(gameState, time, Some(casterId))
       )
       .toVector
 

@@ -6,8 +6,11 @@ import gamelogic.gamestate.GameState
 
 /** Removes the buff with given buffId from the bearer with given bearerId.
   */
-final class RemoveBuffTransformer(time: Long, bearerId: Entity.Id, buffId: Buff.Id)
-    extends GameStateTransformer {
+final class RemoveBuffTransformer(
+    time: Long,
+    bearerId: Entity.Id,
+    buffId: Buff.Id
+) extends GameStateTransformer {
   def apply(gameState: GameState): GameState =
     gameState.buffById(bearerId, buffId) match {
       case Some(_: TickerBuff) =>

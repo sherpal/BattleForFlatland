@@ -33,7 +33,7 @@ final case class HexagonZoneTick(
 
   def resourceIdentifier: ResourceIdentifier = Buff.entitiesHexagonZoneBuff
 
-  def endingAction(gameState: GameState, time: Long)(using
+  def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer
   ): Vector[GameAction] =
     Vector(RemoveEntity(genActionId(), time, bearerId))

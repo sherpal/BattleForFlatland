@@ -152,6 +152,7 @@ object Ability {
   val boss110ExplodeBombs: AbilityId       = nextAbilityId()
   val boss110SpawnSmallGuies: AbilityId    = nextAbilityId()
   val boss110CreepingShadowTick: AbilityId = nextAbilityId()
+  val boss104TwinDebuffs: AbilityId        = nextAbilityId()
 
   opaque type AbilityColour <: RGBColour = RGBColour
 
