@@ -40,8 +40,13 @@ trait Buff extends IdsProducer {
   /** Actions that occur when the buff is removed.
     *
     * Example: adds a final heal at the end.
+    *
+    * If the spell disappears because it was dispelled, then ´maybeDispelledBy` will be filled by
+    * the id of the entity who actually dispelled.
     */
-  def endingAction(gameState: GameState, time: Long)(using IdGeneratorContainer): Vector[GameAction]
+  def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
+      IdGeneratorContainer
+  ): Vector[GameAction]
 
   /** Specifies whether this buff can be dispelled by player dispel abilities.
     *
@@ -94,5 +99,6 @@ object Buff {
   val boss103Purified          = nextId()
   val boss103Inflamed          = nextId()
   val boss110BrokenArmor       = nextId()
+  val boss104TwinDebuff        = nextId()
 
 }

@@ -30,6 +30,7 @@ import models.syntax.Pointed
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.docs.BossMetadata
 import models.bff.outofgame.PlayerClasses
+import gamelogic.abilities.boss.boss104.TwinDebuffs
 
 final case class Boss104(
     id: Entity.Id,
@@ -60,11 +61,13 @@ final case class Boss104(
     this
 
   override def abilities: Set[AbilityId] = Set(
-    Ability.autoAttackId
+    Ability.autoAttackId,
+    Ability.boss104TwinDebuffs
   )
 
   override def abilityNames: Map[AbilityId, String] = Map(
-    Ability.autoAttackId -> "Auto Attack"
+    Ability.autoAttackId       -> "Auto Attack",
+    Ability.boss104TwinDebuffs -> "Twin Debuffs"
   )
 
   override def teamId: TeamId = Entity.teams.mobTeam
@@ -138,7 +141,12 @@ object Boss104 extends BossFactory[Boss104] with BossMetadata {
     time = time,
     maxLife = maxLife,
     life = maxLife,
-    speed = Boss102.fullSpeed
+    speed = Boss102.fullSpeed,
+    relevantUsedAbilities = Map(
+      Ability.boss104TwinDebuffs -> Pointed[TwinDebuffs].unit.copy(
+        time = time - TwinDebuffs.cooldown + TwinDebuffs.timeToFirstUse
+      )
+    )
   )
 
   override def initialBossActions(entityId: Id, time: Long)(using
