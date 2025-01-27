@@ -13,6 +13,8 @@ import gamelogic.physics.Complex
 import gamelogic.gamestate.GameState
 import gamelogic.entities.boss.dawnoftime.Boss102
 import gamelogic.gamestate.gameactions.EntityStartsCasting
+import gamelogic.abilities.boss.boss104.TwinDebuffs
+import gamelogic.abilities.Ability.UseId
 
 object Boss104Controller extends AIController[Boss104, SpawnBoss] {
 
@@ -57,8 +59,16 @@ object Boss104Controller extends AIController[Boss104, SpawnBoss] {
               .exists(_.collidesShape(me.shape, position, 0, 0))
         )
 
+        val maybeUseTwinDebuffs =
+          Some(TwinDebuffs(UseId.dummy, startTime, me.id))
+            .filter(me.canUseAbilityBoolean(_, startTime))
+            .map(ability =>
+              EntityStartsCasting(GameAction.Id.dummy, startTime, ability.castingTime, ability)
+            )
+
         useAbility(
           Vector(
+            maybeUseTwinDebuffs,
             me.maybeAutoAttack(startTime, currentGameState)
               .map(ability =>
                 EntityStartsCasting(GameAction.Id.dummy, startTime, ability.castingTime, ability)
