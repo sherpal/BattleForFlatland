@@ -162,6 +162,12 @@ object Asset {
             val sacredGroundArea = Asset(boss103P / "sacred-ground.png", 500, 500)
           }
 
+          object boss104 {
+            private val boss104P = dawnOfTimeP / "boss104"
+
+            val twinDebuff = Asset(boss104P / "twin-debuff.png", 32, 32)
+          }
+
           object boss110 {
             private val boss110P = dawnOfTimeP / "boss110"
 
@@ -249,7 +255,8 @@ object Asset {
     Buff.boss103Punished          -> ingame.gui.boss.dawnOfTime.boss103.punished,
     Buff.boss103Purified          -> ingame.gui.boss.dawnOfTime.boss103.purified,
     Buff.boss103Inflamed          -> ingame.gui.boss.dawnOfTime.boss103.inflamed,
-    Buff.boss110BrokenArmor       -> ingame.gui.boss.dawnOfTime.boss110.brokenArmor
+    Buff.boss110BrokenArmor       -> ingame.gui.boss.dawnOfTime.boss110.brokenArmor,
+    Buff.boss104TwinDebuff        -> ingame.gui.boss.dawnOfTime.boss104.twinDebuff
   )
 
   val markerAssetMap: Map[GameMarker, Asset] = Map(

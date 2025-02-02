@@ -184,6 +184,8 @@ final case class GameState(
 
   def allBuffs: Iterable[Buff] =
     tickerBuffs.flatMap(_._2).values ++ passiveBuffs.flatMap(_._2).values
+  def allTBuffs[T <: Buff](using scala.reflect.Typeable[T]): Iterable[T] =
+    allBuffs.collect { case t: T => t }
   def allBuffsOfEntity(entityId: Entity.Id): Iterator[Buff] =
     tickerBuffs.getOrElse(entityId, Map()).valuesIterator ++
       passiveBuffs.getOrElse(entityId, Map()).valuesIterator

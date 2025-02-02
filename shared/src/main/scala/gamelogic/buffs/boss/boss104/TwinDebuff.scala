@@ -8,8 +8,9 @@ import gamelogic.gamestate.GameState
 import gamelogic.utils.IdGeneratorContainer
 import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.gamestate.gameactions.EntityTakesDamage
-import utils.misc.RGBAColour
+import utils.misc.RGBColour
 import gamelogic.entities.boss.boss104.DebuffCircle
+import gamelogic.gamestate.gameactions.RemoveEntity
 
 final case class TwinDebuff(
     buffId: Buff.Id,
@@ -17,10 +18,12 @@ final case class TwinDebuff(
     bossId: Entity.Id,
     appearanceTime: Long,
     lastTickTime: Long,
-    colour: RGBAColour
+    colour: RGBColour
 ) extends TickerBuff {
 
   override def changeLastTickTime(time: Long): TickerBuff = copy(lastTickTime = time)
+
+  override def canBeDispelled: Boolean = true
 
   override def resourceIdentifier: ResourceIdentifier = Buff.boss104TwinDebuff
 
@@ -30,14 +33,14 @@ final case class TwinDebuff(
 
   override def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(
       using IdGeneratorContainer
-  ): Vector[GameAction] = (for {
-    dispelledById <- maybeDispelledBy
-    dispalledBy   <- gameState.players.get(dispelledById)
-    debuffCircles = gameState.allTEntities[DebuffCircle].values
-    if !debuffCircles.exists(circle =>
-      circle.colour == colour && dispalledBy.collides(circle, time)
-    )
-  } yield EntityTakesDamage(genActionId(), time, dispelledById, 90.0, bossId)).toVector
+  ): Vector[GameAction] =
+    val debuffCircles = gameState.allTEntities[DebuffCircle].values.filter(_.colour == colour)
+    (for {
+      dispelledById <- maybeDispelledBy
+      dispalledBy   <- gameState.players.get(dispelledById)
+      if !debuffCircles.exists(circle => dispalledBy.collides(circle, time))
+    } yield EntityTakesDamage(genActionId(), time, dispelledById, 90.0, bossId)).toVector ++
+      debuffCircles.map(circle => RemoveEntity(genActionId(), time, circle.id))
 
   override def tickEffect(gameState: GameState, time: Long)(using
       IdGeneratorContainer
