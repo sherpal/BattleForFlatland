@@ -125,7 +125,15 @@ object Boss104 extends BossFactory[Boss104] with BossMetadata {
 
   override def intendedFor: Int = 5
 
-  override def maybeAIComposition: Option[List[PlayerClasses]] = None
+  override def maybeAIComposition: Option[List[PlayerClasses]] = Some(
+    List(
+      PlayerClasses.Square,
+      PlayerClasses.Pentagon,
+      PlayerClasses.Pentagon,
+      PlayerClasses.Triangle,
+      PlayerClasses.Hexagon
+    )
+  )
 
   inline def shape: Circle = Boss101.shape
 
