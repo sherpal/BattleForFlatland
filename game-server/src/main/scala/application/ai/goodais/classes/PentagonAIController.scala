@@ -14,6 +14,8 @@ import utils.misc.RGBColour
 import gamelogic.abilities.Ability
 import models.bff.outofgame.gameconfig.PlayerName
 import models.bff.outofgame.PlayerClasses
+import gamelogic.entities.Entity
+import gamelogic.abilities.pentagon.PentaDispel
 
 trait PentagonAIController(index: Int) extends GoodAIController[Pentagon] {
   final val classTag: ClassTag[Pentagon] = implicitly[ClassTag[Pentagon]]
@@ -39,6 +41,17 @@ trait PentagonAIController(index: Int) extends GoodAIController[Pentagon] {
       ),
       gameState
     ).startCasting
+
+  final def maybeDispelUsage(
+      gameState: GameState,
+      time: Long,
+      targetId: Entity.Id,
+      me: Pentagon
+  ) = maybeAbilityUsage(
+    me,
+    PentaDispel(Ability.UseId.dummy, time, me.id, targetId),
+    gameState
+  ).startCasting
 
   final def maybePentagonZoneUsage(
       gameState: GameState,

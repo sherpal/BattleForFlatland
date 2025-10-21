@@ -78,14 +78,14 @@ object Boss102Controller extends AIController[Boss102, SpawnBoss] {
               currentGameState.players.valuesIterator.toVector.map(_.id)
             )
           )
-            .filter(me.canUseAbilityBoolean(_, startTime))
+            .filter(me.canUseAbilityBoolean(_, startTime, currentGameState))
             .map(ability =>
               EntityStartsCasting(GameAction.Id.dummy, startTime, ability.castingTime, ability)
             )
 
         def maybeSpawnHound =
           Some(SpawnHound(Ability.UseId.dummy, startTime, me.id, Complex.zero))
-            .filter(me.canUseAbilityBoolean(_, startTime))
+            .filter(me.canUseAbilityBoolean(_, startTime, currentGameState))
             .map(ability =>
               EntityStartsCasting(GameAction.Id.dummy, startTime, ability.castingTime, ability)
             )
@@ -97,7 +97,7 @@ object Boss102Controller extends AIController[Boss102, SpawnBoss] {
             .getOrElse(target)
           Some(
             PutLivingDamageZoneOnTarget(Ability.UseId.dummy, startTime, me.id, livingDZTarget.id)
-          ).filter(me.canUseAbilityBoolean(_, startTime))
+          ).filter(me.canUseAbilityBoolean(_, startTime, currentGameState))
             .map(ability =>
               EntityStartsCasting(GameAction.Id.dummy, startTime, ability.castingTime, ability)
             )

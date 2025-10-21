@@ -40,7 +40,7 @@ Global / onLoad := {
 val scalaCompilerOptions = List(
   "-deprecation",
   "-feature",
-  "-Xfatal-warnings"
+  "-Werror"
 //  "-unchecked",
 //  "-Xlint",
 //  "-Ywarn-numeric-widen",

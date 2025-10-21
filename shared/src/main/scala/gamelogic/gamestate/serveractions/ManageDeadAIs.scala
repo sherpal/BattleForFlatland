@@ -11,11 +11,16 @@ final class ManageDeadAIs extends ServerAction {
   ): (ActionGatherer, ServerAction.ServerActionOutput) = {
     val now = nowGenerator()
 
-    val actions = currentState.currentGameState.allLivingEntities
-      .filter(_.teamId == Entity.teams.mobTeam)
-      .filter(_.life <= 0)
-      .map(entity => RemoveEntity(genActionId(), now, entity.id))
-      .toVector
+    val actions = (for {
+      entity <- currentState.currentGameState.allLivingEntities
+      if entity.teamId == Entity.teams.mobTeam
+      if entity.life <= 0
+      remove = RemoveEntity(genActionId(), now, entity.id)
+      buffsRemovedActions = for {
+        buff   <- currentState.currentGameState.allBuffsOfEntity(entity.id)
+        action <- buff.bearerDiedAction(currentState.currentGameState, nowGenerator())
+      } yield action
+    } yield Iterator(remove) ++ buffsRemovedActions).flatten.toVector
 
     val (nextCollector, oldestTime, idsToRemove) = currentState.masterAddAndRemoveActions(actions)
 

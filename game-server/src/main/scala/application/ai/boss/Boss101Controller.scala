@@ -43,7 +43,7 @@ object Boss101Controller extends AIController[Boss101, SpawnBoss] {
         val maybeUseAnAbility =
           Option
             .when(
-              me.canUseAbilityBoolean(bigHit, startTime) && bigHit
+              me.canUseAbilityBoolean(bigHit, startTime, currentGameState) && bigHit
                 .isInRangeAndInSight(currentGameState, startTime)
                 .isEmpty
             ) {
@@ -75,20 +75,22 @@ object Boss101Controller extends AIController[Boss101, SpawnBoss] {
                     .maxByOption(_ => Random.nextInt())
                     .getOrElse(target.id)
                 )
-              ).filter(ability => me.canUseAbilityBoolean(ability, startTime)).map { ability =>
-                List(
-                  EntityStartsCasting(GameAction.Id.zero, startTime, ability.castingTime, ability)
-                )
-              }
+              ).filter(ability => me.canUseAbilityBoolean(ability, startTime, currentGameState))
+                .map { ability =>
+                  List(
+                    EntityStartsCasting(GameAction.Id.zero, startTime, ability.castingTime, ability)
+                  )
+                }
             )
             .orElse(
               Some(
                 SmallHit(Ability.UseId.zero, startTime, me.id, target.id, SmallHit.damageAmount)
-              ).filter(ability => me.canUseAbilityBoolean(ability, startTime)).map { ability =>
-                List(
-                  EntityStartsCasting(GameAction.Id.zero, startTime, ability.castingTime, ability)
-                )
-              }
+              ).filter(ability => me.canUseAbilityBoolean(ability, startTime, currentGameState))
+                .map { ability =>
+                  List(
+                    EntityStartsCasting(GameAction.Id.zero, startTime, ability.castingTime, ability)
+                  )
+                }
             )
 
         val shouldINotMove = maybeUseAnAbility.fold(false) { actions =>

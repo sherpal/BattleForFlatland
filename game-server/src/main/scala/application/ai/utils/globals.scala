@@ -193,7 +193,7 @@ def maybeAbilityUsage[T <: Ability](
 ): Option[T] =
   Option
     .when(
-      me.canUseAbilityBoolean(ability, ability.time) && ability.canBeCastBoolean(
+      me.canUseAbilityBoolean(ability, ability.time, gameState) && ability.canBeCastBoolean(
         gameState,
         ability.time
       )

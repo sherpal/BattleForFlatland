@@ -1,7 +1,6 @@
 package application.ai.boss
 
 import application.ai.utils.*
-
 import application.ai.AIController
 import gamelogic.entities.boss.dawnoftime.Boss104
 import gamelogic.gamestate.gameactions.SpawnBoss
@@ -13,7 +12,7 @@ import gamelogic.physics.Complex
 import gamelogic.gamestate.GameState
 import gamelogic.entities.boss.dawnoftime.Boss102
 import gamelogic.gamestate.gameactions.EntityStartsCasting
-import gamelogic.abilities.boss.boss104.TwinDebuffs
+import gamelogic.abilities.boss.boss104.{SpawnBigGuy, TwinDebuffs}
 import gamelogic.abilities.Ability.UseId
 
 object Boss104Controller extends AIController[Boss104, SpawnBoss] {
@@ -61,7 +60,14 @@ object Boss104Controller extends AIController[Boss104, SpawnBoss] {
 
         val maybeUseTwinDebuffs =
           Some(TwinDebuffs(UseId.dummy, startTime, me.id))
-            .filter(me.canUseAbilityBoolean(_, startTime))
+            .filter(me.canUseAbilityBoolean(_, startTime, currentGameState))
+            .map(ability =>
+              EntityStartsCasting(GameAction.Id.dummy, startTime, ability.castingTime, ability)
+            )
+
+        val maybeSpawnBigGuy =
+          Some(SpawnBigGuy(UseId.dummy, startTime, me.id))
+            .filter(me.canUseAbilityBoolean(_, startTime, currentGameState))
             .map(ability =>
               EntityStartsCasting(GameAction.Id.dummy, startTime, ability.castingTime, ability)
             )
@@ -69,6 +75,7 @@ object Boss104Controller extends AIController[Boss104, SpawnBoss] {
         useAbility(
           Vector(
             maybeUseTwinDebuffs,
+            maybeSpawnBigGuy,
             me.maybeAutoAttack(startTime, currentGameState)
               .map(ability =>
                 EntityStartsCasting(GameAction.Id.dummy, startTime, ability.castingTime, ability)

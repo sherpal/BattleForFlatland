@@ -4,6 +4,7 @@ import gamelogic.gamestate.GameState
 import application.ActionTranslator
 import gamelogic.gamestate.GameAction
 import gamelogic.entities.Entity
+
 import scala.collection.mutable
 import gamelogic.physics.pathfinding.Graph
 import gamelogic.gamestate.AddAndRemoveActions
@@ -12,6 +13,7 @@ import gamelogic.entities.classes.Constants
 import gamelogic.entities.boss.boss110.BigGuy
 import gamelogic.entities.boss.*
 import gamelogic.entities.boss.dawnoftime.*
+
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
 import application.TimeManager
@@ -21,6 +23,19 @@ import models.bff.outofgame.PlayerClasses.*
 import models.bff.outofgame.gameconfig.PlayerName
 import application.ai.goodais.bosses.boss101.*
 import application.ai.goodais.bosses.boss102.*
+import application.ai.goodais.bosses.boss104.{
+  Boss104Container,
+  PentagonForBoss104,
+  SquareForBoss104,
+  TriangleForBoss104
+}
+import application.ai.goodais.classes.{
+  HexagonAIController,
+  PentagonAIController,
+  SquareAIController,
+  TriangleAIController
+}
+import models.bff.outofgame.PlayerClasses
 
 class GoodAIManager(
     bossMetadata: BossMetadata,
@@ -70,29 +85,12 @@ class GoodAIManager(
       case action: AddPlayerByClass =>
         action.playerClass.parsePlayerName(action.playerName).foreach {
           case PlayerName.AIPlayerName(cls, index) =>
-            bossMetadata match {
-              case Boss101 =>
-                val makeAI: (Int, Entity.Id) => GoodAIController[?] = cls match
-                  case Square   => SquareForBoss101(_, _)
-                  case Hexagon  => HexagonForBoss101(_, _)
-                  case Triangle => TriangleForBoss101(_, _)
-                  case Pentagon => PentagonForBoss101(_, _)
-
-                aiControllers.addOne(
-                  action.entityId -> makeAI(index, action.entityId)
-                )
-              case Boss102 =>
-                val makeAI: (Int, Entity.Id) => GoodAIController[?] = cls match
-                  case Square   => SquareForBoss102(_, _)
-                  case Hexagon  => HexagonForBoss102(_, _)
-                  case Triangle => TriangleForBoss102(_, _)
-                  case Pentagon => PentagonForBoss102(_, _)
-
-                aiControllers.addOne(
-                  action.entityId -> makeAI(index, action.entityId)
-                )
-              case other =>
-                println(s"I don't handle boss ${other.name}")
+            GoodAIManager.bossAIContainers.get(bossMetadata) match {
+              case Some(container) =>
+                aiControllers
+                  .addOne(action.entityId -> container.controller(cls)(index, action.entityId))
+              case None =>
+                println(s"I don't handle boss ${bossMetadata.name}")
             }
         }
       // todo
@@ -122,6 +120,26 @@ class GoodAIManager(
 
 object GoodAIManager {
 
-  inline def loopRate = 1000 / 60 // 60 fps for ais
+  inline def loopRate: Int = 1000 / 60 // 60 fps for ais
+
+  trait BossAIContainer {
+    def triangle(index: Int, id: Entity.Id): TriangleAIController
+    def square(index: Int, id: Entity.Id): SquareAIController
+    def pentagon(index: Int, id: Entity.Id): PentagonAIController
+    def hexagon(index: Int, id: Entity.Id): HexagonAIController
+
+    final def controller(cls: PlayerClasses): (Int, Entity.Id) => GoodAIController[?] = cls match {
+      case PlayerClasses.Square   => square
+      case PlayerClasses.Hexagon  => hexagon
+      case PlayerClasses.Triangle => triangle
+      case PlayerClasses.Pentagon => pentagon
+    }
+  }
+
+  private val bossAIContainers: Map[BossMetadata, BossAIContainer] = Map(
+    Boss101 -> Boss101Container(),
+    Boss102 -> Boss102Container(),
+    Boss104 -> Boss104Container()
+  )
 
 }

@@ -14,18 +14,18 @@ final case class UseAbility(
     ability: Ability
 ) extends GameAction {
 
-  /**
-    * Important: the time of the ability <strong>has</strong> to be changed by the game master when it's actually
-    * applied
+  /** Important: the time of the ability <strong>has</strong> to be changed by the game master when
+    * it's actually applied
     */
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
-    new CasterUsesAbility(ability)
+    CasterUsesAbility(ability)
 
-  /** This is going to be handled by the Server itself, and hence  */
-  def isLegal(gameState: GameState): Option[String] = gameState.withAbilityEntitiesById(casterId) match {
-    case None => Some(s"Entity ${casterId} does not exist, or is not an entity with abilities")
-    case _    => None
-  }
+  /** This is going to be handled by the Server itself, and hence */
+  def isLegal(gameState: GameState): Option[String] =
+    gameState.withAbilityEntitiesById(casterId) match {
+      case None => Some(s"Entity $casterId does not exist, or is not an entity with abilities")
+      case _    => None
+    }
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

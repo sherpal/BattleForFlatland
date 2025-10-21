@@ -4,18 +4,22 @@ import gamelogic.gamestate.GameState
 import application.ActionTranslator
 import gamelogic.gamestate.GameAction
 import gamelogic.entities.Entity
+
 import scala.collection.mutable
 import gamelogic.physics.pathfinding.Graph
 import gamelogic.gamestate.AddAndRemoveActions
 import gamelogic.gamestate.gameactions.*
 import gamelogic.entities.classes.Constants
-import gamelogic.entities.boss.boss110.BigGuy
+import gamelogic.entities.boss.boss110.BigGuy as Boss110BigGuy
+import gamelogic.entities.boss.boss104.BigGuy as Boss104BigGuy
 import gamelogic.entities.boss.*
 import gamelogic.entities.boss.dawnoftime.*
+
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
 import application.TimeManager
 import gamelogic.gamestate.gameactions.boss102.AddBossHound
+import gamelogic.gamestate.gameactions.boss104.AddBigGuy
 
 class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTranslator)(using
     ExecutionContext
@@ -49,7 +53,8 @@ class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTran
     Vector(
       math.round(Constants.playerRadius).toInt,
       math.round(Constants.bossRadius).toInt,
-      math.round(BigGuy.shape.radius).toInt
+      math.round(Boss110BigGuy.shape.radius).toInt,
+      math.round(Boss104BigGuy.shape.radius).toInt
     )
   )
 
@@ -70,6 +75,8 @@ class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTran
         aiControllers.remove(action.entityId)
       case action: AddBossHound =>
         aiControllers.addOne(action.entityId -> boss.boss102units.BossHoundController())
+      case action: AddBigGuy =>
+        aiControllers.addOne(action.entityId -> boss.boss104units.BigGuyController())
       // todo
       case action: SpawnBoss if action.bossName == Boss101.name =>
         aiControllers.addOne(action.entityId -> boss.Boss101Controller)

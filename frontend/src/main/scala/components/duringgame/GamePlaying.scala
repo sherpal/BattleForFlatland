@@ -18,12 +18,13 @@ import menus.data.User
 import models.bff.ingame.GameUserCredentials
 import be.doeraene.webcomponents.ui5.*
 import services.FrontendEnv
-import be.doeraene.webcomponents.ui5.configkeys.ButtonDesign
+import be.doeraene.webcomponents.ui5.configkeys.{ButtonDesign, IconName}
 import models.bff.ingame.ClockSynchronizationReport
 import models.syntax.Pointed
 import models.bff.ingame.Controls
 import services.logging.log
 import assets.fonts.Fonts
+
 import scala.concurrent.Future
 
 object GamePlaying {
@@ -135,6 +136,8 @@ object GamePlaying {
     val controlsVar = Var(Pointed[Controls].unit)
 
     div(
+      display.flex,
+      justifyContent.start,
       className := "GamePlaying",
       onMountZIO(for {
         controls <- programs.frontend.menus.controls.retrieveControls
@@ -148,8 +151,9 @@ object GamePlaying {
         .map(!_)
         .map(
           if _ then
-            Button(
-              "Stop game",
+            Button.of(
+              _.iconOnly := true,
+              _.icon     := IconName.stop,
               _.events.onClick.mapToUnit --> Observer.fromZIO[Any] { _ =>
                 programs.frontend.ingame.cancelGame(gameCredentials).orDie
               }
@@ -161,12 +165,13 @@ object GamePlaying {
       ),
       child.maybe <-- gameSocket.closedSignal.map(
         Option.when(_)(
-          Button(
+          Button.of(
             _.events.onClick --> { _ =>
               dom.document.location.href = dom.document.location.origin ++ "/static"
             },
-            "Back to home",
-            _.design := ButtonDesign.Emphasized
+            _.iconOnly := true,
+            _.icon     := IconName.home,
+            _.design   := ButtonDesign.Emphasized
           )
         )
       ),
