@@ -55,9 +55,7 @@ final case class GameState(
 
   def entityIsCasting(entityId: Entity.Id): Boolean = entityIsCasting(entityId, 0L)
   def entityIsCasting(entityId: Entity.Id, delay: Long): Boolean =
-    castingEntityInfo.get(entityId).fold(false) { castingInfo =>
-      time + delay - castingInfo.startedTime <= castingInfo.castingTime
-    }
+    castingEntityInfo.get(entityId).fold(false)(_.isCasting(time, delay))
 
   /** Applies the effects of all the current passive buffs to the given actions.
     *

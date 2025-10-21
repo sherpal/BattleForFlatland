@@ -106,6 +106,7 @@ object Asset {
           Asset(abilitiesP / "triangle-direct-hit.png", 30, 30)
         val triangleUpgradeDirectHit = Asset(abilitiesP / "triangle-upgrade-direct-hit.png", 32, 32)
         val triangleStun             = Asset(abilitiesP / "triangle-stun.png", 32, 32)
+        val triangleCut              = Asset(abilitiesP / "triangle-cut.png", 32, 32)
         val triangleEnergyKick =
           Asset(abilitiesP / "triangle-energy-kick.png", 32, 32)
         val pentagonBullet = Asset(abilitiesP / "pentagon-bullet.png", 32, 32)
@@ -229,6 +230,7 @@ object Asset {
     Ability.triangleDirectHit        -> ingame.gui.abilities.triangleDirectHit,
     Ability.triangleUpgradeDirectHit -> ingame.gui.abilities.triangleUpgradeDirectHit,
     Ability.triangleStun             -> ingame.gui.abilities.triangleStun,
+    Ability.triangleCut              -> ingame.gui.abilities.triangleCut,
     Ability.pentagonPentagonBullet   -> ingame.gui.abilities.pentagonBullet,
     Ability.createPentagonZoneId     -> ingame.gui.abilities.pentagonZone,
     Ability.pentagonDispelId         -> ingame.gui.abilities.pentagonDispel
@@ -250,6 +252,7 @@ object Asset {
     Buff.manaFiller               -> ingame.gui.`default-abilities`.manaFiller,
     Buff.triangleUpgradeDirectHit -> ingame.gui.abilities.triangleUpgradeDirectHit,
     Buff.triangleStun             -> ingame.gui.abilities.triangleStun,
+    Buff.silence                  -> ingame.gui.abilities.triangleCut,
     Buff.squareEnrage             -> ingame.gui.abilities.squareEnrage,
     Buff.boss102LivingDamageZone  -> ingame.gui.boss.dawnOfTime.boss102.livingDamageZone,
     Buff.boss103Punished          -> ingame.gui.boss.dawnOfTime.boss103.punished,

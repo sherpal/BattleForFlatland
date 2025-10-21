@@ -81,7 +81,8 @@ object Triangle extends PlayerClassBuilder {
     Ability.triangleEnergyKick,
     Ability.triangleDirectHit,
     Ability.triangleUpgradeDirectHit,
-    Ability.triangleStun
+    Ability.triangleStun,
+    Ability.triangleCut
   )
 
   def startingActions(

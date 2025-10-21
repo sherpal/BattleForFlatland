@@ -99,9 +99,9 @@ trait HexagonAIController(index: Int) extends GoodAIController[Hexagon] {
       gameState: GameState,
       me: Hexagon,
       time: Long,
-      entities: List[Option[Entity]]
+      entities: IterableOnce[Option[Entity]]
   ): Option[EntityStartsCasting] =
-    entities
+    entities.iterator
       .map(maybeEntity =>
         maybeEntity.flatMap(target =>
           maybeAbilityUsage(
@@ -112,5 +112,20 @@ trait HexagonAIController(index: Int) extends GoodAIController[Hexagon] {
         )
       )
       .collectFirst { case Some(cast) => cast }
+
+  def putHotOnFirstWithThreshold(
+      gameState: GameState,
+      me: Hexagon,
+      time: Long,
+      threshold: Double
+  ): Option[EntityStartsCasting] =
+    putHotOnFirstDefined(
+      gameState,
+      me,
+      time,
+      gameState.players.valuesIterator
+        .filter(player => player.life < player.maxLife * threshold)
+        .map(Some(_))
+    )
 
 }

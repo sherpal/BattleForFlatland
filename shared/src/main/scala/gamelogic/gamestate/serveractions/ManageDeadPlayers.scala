@@ -9,11 +9,15 @@ final class ManageDeadPlayers extends ServerAction {
   ): (ActionGatherer, ServerAction.ServerActionOutput) = {
     val now = nowGenerator()
 
-    val actions = currentState.currentGameState.players
-      .filter(_._2.life <= 0)
-      .keys
-      .map(RemoveEntity(genActionId(), now, _))
-      .toVector
+    val actions = (for {
+      entity <- currentState.currentGameState.players.valuesIterator
+      if entity.life <= 0
+      remove = RemoveEntity(genActionId(), now, entity.id)
+      buffsRemovedActions = for {
+        buff   <- currentState.currentGameState.allBuffsOfEntity(entity.id)
+        action <- buff.bearerDiedAction(currentState.currentGameState, nowGenerator())
+      } yield action
+    } yield Iterator(remove) ++ buffsRemovedActions).flatten.toVector
 
     val (nextCollector, oldestTime, idsToRemove) = currentState.masterAddAndRemoveActions(actions)
 

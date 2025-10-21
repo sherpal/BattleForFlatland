@@ -114,7 +114,7 @@ final case class PlayerFrame(
         Anchor.right
       ),
       TextComponent(
-        maybePlayer.fold("Dead")(target => s"${target.life}/${target.maxLife}"),
+        maybePlayer.fold("Dead")(target => s"${math.round(target.life)}/${target.maxLife}"),
         Anchor.right.withOffset(Point(-2, 0)),
         this.width,
         12,

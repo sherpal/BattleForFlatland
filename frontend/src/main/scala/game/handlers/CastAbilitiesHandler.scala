@@ -203,6 +203,14 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
         case Ability.squareEnrageId =>
           sendCastAbility(Enrage(Ability.UseId.zero, now, myId), gameState, now)
 
+        case Ability.triangleCut =>
+          sendCastAbilityWithTarget(
+            Cut(Ability.UseId.zero, now, myId, _),
+            maybeTargetId,
+            gameState,
+            now
+          )
+
         case _ =>
           // todo
           dom.console.warn(s"TODO: implement ability $abilityId")

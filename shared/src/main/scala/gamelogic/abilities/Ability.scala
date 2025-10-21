@@ -1,13 +1,15 @@
 package gamelogic.abilities
 
+import gamelogic.abilities.Ability.AbilityColour
 import gamelogic.entities.Resource.ResourceAmount
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.IdGeneratorContainer
+import gamelogic.utils.{IdGeneratorContainer, IdsProducer, OpaqueLongCompanion}
 import io.circe.{Decoder, Encoder, Json}
+
 import scala.annotation.tailrec
 import gamelogic.buffs.Buff
-import gamelogic.utils.OpaqueLongCompanion
+import gamelogic.gamestate.gameactions.EntityStartsCasting
 import utils.misc.RGBColour
 
 /** A [[gamelogic.abilities.Ability]] represents an action that an entity can take besides moving.
@@ -22,7 +24,7 @@ import utils.misc.RGBColour
   * cooldown to a minimal amount, in order to have a GCD. perhaps in the future, this should be
   * handled automatically.
   */
-trait Ability {
+trait Ability extends IdsProducer {
 
   /** Unique id given manually to each ability. */
   def abilityId: Ability.AbilityId
@@ -51,6 +53,9 @@ trait Ability {
   /** Type of resource needed to use the ability. */
   final def resource: Resource = cost.resourceType
 
+  /** Whether a Triangle can use its cut ability to interrupt casting */
+  def canBeCut: Boolean = false
+
   /** Generates all actions that this ability generates when completed. These actions may depend on
     * the [[gamelogic.gamestate.GameState]] at the time the ability is completed.
     */
@@ -59,7 +64,7 @@ trait Ability {
   /** Change the time and id of this ability, without changing the rest. */
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): Ability
 
-  inline def abilityColour = Ability.abilityColour(abilityId)
+  inline def abilityColour: AbilityColour = Ability.abilityColour(abilityId)
 
   /** Returns None when the ability can indeed be cast, otherwise return Some(error message).
     *
@@ -74,36 +79,16 @@ trait Ability {
 
   protected def canBeCastAll(gameState: GameState, time: Long)(
       checks: (GameState, Long) => Option[String]*
-  ): Option[String] = {
-    @tailrec
-    def canBeCastAllList(
-        remainingChecks: List[(GameState, Long) => Option[String]]
-    ): Option[String] =
-      remainingChecks match {
-        case Nil => None
-        case head :: tail =>
-          head(gameState, time) match {
-            case Some(value) => Some(value)
-            case None        => canBeCastAllList(tail)
-          }
-      }
-
-    canBeCastAllList(checks.toList)
-  }
+  ): Option[String] =
+    checks.iterator.map(_(gameState, time)).collectFirst { case Some(veto) => veto }
 
   /** Returns whether this ability can be cast at that time with this [[GameState]].
     */
   final def canBeCastBoolean(gameState: GameState, time: Long): Boolean =
     canBeCast(gameState, time).isEmpty
 
-  inline def genActionId()(using idGen: IdGeneratorContainer): GameAction.Id = idGen.actionId()
-
-  inline def genBuffId()(using idGen: IdGeneratorContainer): Buff.Id = idGen.buffId()
-
-  inline def genEntityId()(using idGen: IdGeneratorContainer): Entity.Id = idGen.entityId()
-
-  inline def genAbilityUseId()(using idGen: IdGeneratorContainer): Ability.UseId =
-    idGen.abilityUseId()
+  final def toStartCasting(time: Long): EntityStartsCasting =
+    EntityStartsCasting(GameAction.Id.dummy, time, castingTime, this)
 
 }
 
@@ -132,6 +117,7 @@ object Ability {
   val triangleEnergyKick: AbilityId        = nextAbilityId()
   val triangleUpgradeDirectHit: AbilityId  = nextAbilityId()
   val triangleStun: AbilityId              = nextAbilityId()
+  val triangleCut: AbilityId               = nextAbilityId()
   val pentagonPentagonBullet: AbilityId    = nextAbilityId()
   val boss101SmallHitId: AbilityId         = nextAbilityId()
   val squareEnrageId: AbilityId            = nextAbilityId()
@@ -153,6 +139,8 @@ object Ability {
   val boss110SpawnSmallGuies: AbilityId    = nextAbilityId()
   val boss110CreepingShadowTick: AbilityId = nextAbilityId()
   val boss104TwinDebuffs: AbilityId        = nextAbilityId()
+  val boss104SpawnBigGuy: AbilityId        = nextAbilityId()
+  val boss104BigGuyKick: AbilityId         = nextAbilityId()
 
   opaque type AbilityColour <: RGBColour = RGBColour
 
@@ -182,6 +170,9 @@ object Ability {
     case x: boss.boss102.PutLivingDamageZoneOnTarget =>
       customEncode(x, "boss.boss102.PutLivingDamageZoneOnTarget")
     case x: boss.boss102.SpawnHound       => customEncode(x, "boss.boss102.SpawnHound")
+    case x: boss.boss104.SpawnBigGuy      => customEncode(x, "boss.boss104.SpawnBigGuy")
+    case x: boss.boss104.TwinDebuffs      => customEncode(x, "boss.boss104.TwinDebuffs")
+    case x: boss.boss104.BigGuyKick       => customEncode(x, "boss.boss104.BigGuyKick")
     case x: hexagon.FlashHeal             => customEncode(x, "hexagon.FlashHeal")
     case x: hexagon.HexagonHot            => customEncode(x, "hexagon.HexagonHot")
     case x: pentagon.CreatePentagonBullet => customEncode(x, "pentagon.CreatePentagonBullet")
@@ -210,6 +201,9 @@ object Ability {
     ),
     customDecoder[boss.boss102.PutDamageZones]("boss.boss102.PutDamageZones"),
     customDecoder[boss.boss102.SpawnHound]("boss.boss102.SpawnHound"),
+    customDecoder[boss.boss104.BigGuyKick]("boss.boss104.BigGuyKick"),
+    customDecoder[boss.boss104.TwinDebuffs]("boss.boss104.TwinDebuffs"),
+    customDecoder[boss.boss104.SpawnBigGuy]("boss.boss104.SpawnBigGuy"),
     customDecoder[hexagon.FlashHeal]("hexagon.FlashHeal"),
     customDecoder[hexagon.HexagonHot]("hexagon.HexagonHot"),
     customDecoder[pentagon.CreatePentagonBullet]("pentagon.CreatePentagonBullet"),

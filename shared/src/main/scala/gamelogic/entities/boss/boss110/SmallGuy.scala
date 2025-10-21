@@ -7,8 +7,9 @@ import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.NoResource
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
-import gamelogic.entities._
+import gamelogic.entities.*
 import gamelogic.entities.classes.Constants
+import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 
@@ -78,7 +79,7 @@ final case class SmallGuy(
 
   protected def patchResourceAmount(newResourceAmount: Resource.ResourceAmount): SmallGuy = this
 
-  def maybeAutoAttack(time: Long): Option[AutoAttack] =
+  def maybeAutoAttack(time: Long, gameState: GameState): Option[AutoAttack] =
     Some(
       AutoAttack(
         Ability.UseId.zero,
@@ -90,7 +91,7 @@ final case class SmallGuy(
         NoResource,
         SmallGuy.range * 2
       )
-    ).filter(canUseAbilityBoolean(_, time))
+    ).filter(canUseAbilityBoolean(_, time, gameState))
 
   def canBeStunned: Boolean = true
 

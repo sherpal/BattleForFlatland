@@ -6,8 +6,9 @@ import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.NoResource
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
-import gamelogic.entities._
+import gamelogic.entities.*
 import gamelogic.entities.classes.Constants
+import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 
@@ -77,7 +78,7 @@ final case class BossHound(
 
   protected def patchResourceAmount(newResourceAmount: Resource.ResourceAmount): BossHound = this
 
-  def maybeAutoAttack(time: Long): Option[AutoAttack] =
+  def maybeAutoAttack(time: Long, gameState: GameState): Option[AutoAttack] =
     Some(
       AutoAttack(
         Ability.UseId.zero,
@@ -89,7 +90,7 @@ final case class BossHound(
         NoResource,
         BossHound.range * 2
       )
-    ).filter(canUseAbility(_, time).isEmpty)
+    ).filter(canUseAbilityBoolean(_, time, gameState))
 
   def canBeStunned: Boolean = true
 
@@ -97,14 +98,14 @@ final case class BossHound(
 
 object BossHound {
 
-  @inline final def houndMaxLife = 800.0
-  val fullSpeed: Double          = Constants.playerSpeed * 6 / 5
-  val damageOnTick               = 5.0
-  val tickRate                   = 1000L
-  val range: Double              = Constants.playerRadius * 2
+  inline def houndMaxLife = 800.0
+  val fullSpeed: Double   = Constants.playerSpeed * 6 / 5
+  val damageOnTick        = 5.0
+  val tickRate            = 1000L
+  val range: Double       = Constants.playerRadius * 2
 
   final val shape = Shape.regularPolygon(3, Constants.playerRadius)
 
-  @inline final def name: String = "Boss Hound 102"
+  inline def name: String = "Boss Hound 102"
 
 }

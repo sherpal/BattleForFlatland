@@ -40,11 +40,7 @@ class BossHoundController extends AIController[BossHound, AddBossHound] {
       me.rotation
     )
 
-    val maybeAttack =
-      me.maybeAutoAttack(startTime)
-        .map(ability =>
-          EntityStartsCasting(GameAction.Id.dummy, startTime, ability.castingTime, ability)
-        )
+    val maybeAttack = me.maybeAutoAttack(startTime, currentGameState).map(_.toStartCasting(startTime))
 
     Vector(maybeChangeTarget, maybeMove, maybeAttack).flatten
   }

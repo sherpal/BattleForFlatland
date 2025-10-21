@@ -66,7 +66,12 @@ trait TriangleAIController(index: Int) extends GoodAIController[Triangle] {
       gameState
     ).startCasting
 
-  def maybeStunUsage(gameState: GameState, time: Long, me: Triangle, target: Entity) =
+  def maybeStunUsage(
+      gameState: GameState,
+      time: Long,
+      me: Triangle,
+      target: Entity
+  ): Option[EntityStartsCasting] =
     maybeAbilityUsage(me, Stun(Ability.UseId.dummy, time, me.id, target.id), gameState).startCasting
 
 }

@@ -48,6 +48,13 @@ trait Buff extends IdsProducer {
       IdGeneratorContainer
   ): Vector[GameAction]
 
+  /** Actions performed when the bearer of the buff died. By default, this is the same as the
+    * `endingAction`. But you can override it to do something else.
+    */
+  def bearerDiedAction(gameState: GameState, time: Long)(using
+      IdGeneratorContainer
+  ): Vector[GameAction] = endingAction(gameState, time, maybeDispelledBy = Option.empty)
+
   /** Specifies whether this buff can be dispelled by player dispel abilities.
     *
     * By default this is false, but it can be overridden in concrete classes.
@@ -89,6 +96,7 @@ object Buff {
   val energyFiller             = nextId()
   val triangleUpgradeDirectHit = nextId()
   val triangleStun             = nextId()
+  val silence                  = nextId()
   val manaFiller               = nextId()
   val boss102DamageZoneBuff    = nextId()
   val squareEnrage             = nextId()
@@ -100,5 +108,6 @@ object Buff {
   val boss103Inflamed          = nextId()
   val boss110BrokenArmor       = nextId()
   val boss104TwinDebuff        = nextId()
+  val boss104BigGuyCurse       = nextId()
 
 }

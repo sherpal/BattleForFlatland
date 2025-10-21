@@ -30,7 +30,7 @@ import models.syntax.Pointed
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.docs.BossMetadata
 import models.bff.outofgame.PlayerClasses
-import gamelogic.abilities.boss.boss104.TwinDebuffs
+import gamelogic.abilities.boss.boss104.{SpawnBigGuy, TwinDebuffs}
 
 final case class Boss104(
     id: Entity.Id,
@@ -62,12 +62,14 @@ final case class Boss104(
 
   override def abilities: Set[AbilityId] = Set(
     Ability.autoAttackId,
-    Ability.boss104TwinDebuffs
+    Ability.boss104TwinDebuffs,
+    Ability.boss104SpawnBigGuy
   )
 
   override def abilityNames: Map[AbilityId, String] = Map(
     Ability.autoAttackId       -> "Auto Attack",
-    Ability.boss104TwinDebuffs -> "Twin Debuffs"
+    Ability.boss104TwinDebuffs -> "Twin Debuffs",
+    Ability.boss104SpawnBigGuy -> "Big Guy"
   )
 
   override def teamId: TeamId = Entity.teams.mobTeam
@@ -117,7 +119,7 @@ final case class Boss104(
         NoResource,
         Boss104.meleeRange
       )
-    ).filter(_.canBeCast(gameState, time).isEmpty).filter(canUseAbility(_, time).isEmpty)
+    ).filter(_.canBeCast(gameState, time).isEmpty).filter(canUseAbilityBoolean(_, time, gameState))
 
 }
 
@@ -125,7 +127,15 @@ object Boss104 extends BossFactory[Boss104] with BossMetadata {
 
   override def intendedFor: Int = 5
 
-  override def maybeAIComposition: Option[List[PlayerClasses]] = None
+  override def maybeAIComposition: Option[List[PlayerClasses]] = Some(
+    List(
+      PlayerClasses.Square,
+      PlayerClasses.Pentagon,
+      PlayerClasses.Pentagon,
+      PlayerClasses.Triangle,
+      PlayerClasses.Hexagon
+    )
+  )
 
   inline def shape: Circle = Boss101.shape
 
@@ -145,6 +155,9 @@ object Boss104 extends BossFactory[Boss104] with BossMetadata {
     relevantUsedAbilities = Map(
       Ability.boss104TwinDebuffs -> Pointed[TwinDebuffs].unit.copy(
         time = time - TwinDebuffs.cooldown + TwinDebuffs.timeToFirstUse
+      ),
+      Ability.boss104SpawnBigGuy -> Pointed[SpawnBigGuy].unit.copy(
+        time = time - SpawnBigGuy.cooldown + SpawnBigGuy.timeToFirstUse
       )
     )
   )

@@ -109,7 +109,7 @@ final case class Boss102(
         NoResource,
         Boss102.meleeRange
       )
-    ).filter(_.canBeCast(gameState, time).isEmpty).filter(canUseAbility(_, time).isEmpty)
+    ).filter(_.canBeCast(gameState, time).isEmpty).filter(canUseAbilityBoolean(_, time, gameState))
 
 }
 

@@ -54,7 +54,7 @@ final case class EnergyKick(
 }
 
 object EnergyKick {
-  @inline val cooldown: Long     = 700L
-  @inline val energyGain: Double = 5.0
-  @inline val damage: Double     = 15.0 // todo: fix this value
+  inline def cooldown: Long     = 700L
+  inline def energyGain: Double = 5.0
+  inline def damage: Double     = 15.0 // todo: fix this value
 }
