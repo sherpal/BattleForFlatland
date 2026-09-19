@@ -13,6 +13,12 @@ import indigo.shared.scenegraph.Layer.Content
 import gamelogic.buffs.boss.boss104.TwinDebuff
 import utils.misc.RGBColour
 
+/** Everything Boss104 needs on screen.
+  *
+  * A drawer is a pure function of the [[GameState]]: it queries the entities and buffs it cares
+  * about (`allTEntities`, `allTBuffs`) and turns them into indigo scene nodes. It never decides
+  * anything about the game.
+  */
 object Boss104Drawer extends game.drawers.DrawerWithCloneBlanks {
 
   override def cloneLayer(gameState: GameState, now: Long, gameToLocal: Complex => Point): Content =
@@ -80,6 +86,8 @@ object Boss104Drawer extends game.drawers.DrawerWithCloneBlanks {
     val color     = RGBA.fromColorInts(50, 50, 50)
     val barPos    = gameToLocal(bigGuyPos + Complex.i * (bigGuy.shape.radius + 8))
 
+    // `minilifebar`/`minicastingbar` come for free from `game.drawers`; the casting bar is what
+    // tells the Triangle when to interrupt the BigGuyKick, so an add that casts should have one.
     Shape.Polygon(
       Batch(
         bigGuy.shape.vertices.toJSArray.reverse

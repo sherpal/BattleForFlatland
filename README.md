@@ -94,6 +94,12 @@ Before going further, be sure to be able to run the server and the game locally.
 
 ### Create a new Boss
 
+> **If you are an AI agent (or simply want a condensed, task-oriented reference rather than the
+> diary below), read [make-a-boss.md](make-a-boss.md) instead.** It covers the same ground in a
+> structured way: engine model, the list of places where things must be registered, phase-by-phase
+> procedure with acceptance checks, code recipes, and a file index of the Boss104 reference
+> implementation.
+
 One of the easiest way to contribute to the repo is probably to implement a new Boss for the game.
 Implementing a new boss is completely orthogonal to the rest of the code, and hence, there are no real consequence of doing things wrong, if possible.
 

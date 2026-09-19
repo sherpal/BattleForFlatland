@@ -11,6 +11,14 @@ import gamelogic.gamestate.GameState
 import gamelogic.entities.boss.boss104.DebuffCircle
 import gamelogic.buffs.boss.boss104.TwinDebuff
 
+/** Bot for the Pentagons of Boss104.
+  *
+  * Boss104's composition has two Pentagons, so `index` (0 or 1) is what tells them apart: it is
+  * used below both to give each one its own resting spot around the boss, and to jitter their
+  * reaction to the twin debuff circles so that they don't both rush to the same one.
+  *
+  * Outside of the twin debuff phase they just stand at their base position and shoot the boss.
+  */
 case class PentagonForBoss104(index: Int, entityId: Entity.Id) extends PentagonAIController(index) {
 
   private val basePosition = Complex.polar(Constants.bossRadius * 3, index * math.Pi + math.Pi / 4)

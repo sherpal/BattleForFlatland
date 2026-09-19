@@ -136,6 +136,10 @@ object GoodAIManager {
     }
   }
 
+  /** Friendly player-bots, per boss. A boss missing from this map simply has no bots (the manager
+    * prints "I don't handle boss ..."). Note that a boss also needs `maybeAIComposition` defined in
+    * its companion for the lobby to let players add AIs at all.
+    */
   private val bossAIContainers: Map[BossMetadata, BossAIContainer] = Map(
     Boss101 -> Boss101Container(),
     Boss102 -> Boss102Container(),

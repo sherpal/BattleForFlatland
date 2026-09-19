@@ -105,6 +105,8 @@ object Ability {
 
   def abilityIdCount: AbilityId = lastAbilityId
 
+  // Every ability in the game needs a unique id, obtained by appending a line at the END of this
+  // list (the order defines the ids, and `abilityColour` indexes into them).
   val simpleBulletId: AbilityId            = nextAbilityId()
   val hexagonFlashHealId: AbilityId        = nextAbilityId()
   val hexagonHexagonHotId: AbilityId       = nextAbilityId()
