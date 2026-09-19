@@ -87,6 +87,8 @@ object Buff {
   private var lastId: ResourceIdentifier = 0
   def nextId(): ResourceIdentifier       = { lastId += 1; lastId }
 
+  // Each buff kind needs its own identifier here. It is what the frontend uses to pick the icon,
+  // via `assets.Asset.buffAssetMap`.
   val hexagonHotIdentifier     = nextId()
   val boss101BigDotIdentifier  = nextId()
   val squareDefaultShield      = nextId()

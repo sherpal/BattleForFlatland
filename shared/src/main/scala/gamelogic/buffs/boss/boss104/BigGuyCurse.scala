@@ -9,6 +9,12 @@ import gamelogic.gamestate.gameactions.boss104.AddBigGuyDeathMark
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
+/** Invisible, never-ending buff carried by every [[BigGuy]], whose sole purpose is to leave a
+  * [[gamelogic.entities.boss.boss104.BigGuyDeathMark]] behind when its bearer dies.
+  *
+  * Overriding `bearerDiedAction` (instead of `endingAction`, which it defaults to) is the idiomatic
+  * way to implement "when this thing dies, something happens" mechanics.
+  */
 final case class BigGuyCurse(
     buffId: Buff.Id,
     bearerId: Entity.Id,

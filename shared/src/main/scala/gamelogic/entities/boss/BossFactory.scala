@@ -83,6 +83,9 @@ trait BossFactory[Boss <: BossEntity] extends IdsProducer {
 
 object BossFactory {
 
+  /** The list of all bosses known to the game. A new boss must be added here to be offered to
+    * players in the lobby and to be known by the game master.
+    */
   // todo[scala3] change this by imposing that the name of the boss must map to the correct boss factory with match types
   val factoriesByBossName: Map[String, BossFactory[? <: BossEntity]] = List(
     Boss101Dev,

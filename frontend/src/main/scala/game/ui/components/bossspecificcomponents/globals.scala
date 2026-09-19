@@ -9,6 +9,10 @@ import gamelogic.entities.boss.Boss101
 import gamelogic.entities.boss.dawnoftime.Boss102
 import gamelogic.entities.boss.dawnoftime.Boss104
 
+/** Boss-specific HUD elements (on top of the generic game UI). Same rule as `drawerMapping`: every
+  * boss needs a clause or the game throws a `MatchError` while rendering. `Component.empty` is the
+  * placeholder for bosses that need no extra UI.
+  */
 def containerMapping(
     boss: BossEntity
 )(using IndigoViewModel, FrameContext[StartupData]): Component = boss.name match {

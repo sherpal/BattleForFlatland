@@ -12,6 +12,11 @@ import utils.misc.RGBColour
 import gamelogic.entities.boss.boss104.DebuffCircle
 import gamelogic.gamestate.gameactions.RemoveEntity
 
+/** Ticking curse put by [[gamelogic.abilities.boss.boss104.TwinDebuffs]].
+  *
+  * It damages its bearer every second until someone dispels it. The whole mechanic lives in
+  * `endingAction`: dispelling is only safe from inside the [[DebuffCircle]] of the same colour.
+  */
 final case class TwinDebuff(
     buffId: Buff.Id,
     bearerId: Entity.Id,
@@ -31,6 +36,10 @@ final case class TwinDebuff(
 
   override def duration: Long = TwinDebuff.duration
 
+  /** `maybeDispelledBy` is `Some(playerId)` when a player actively removed the buff, and
+    * [[scala.None]] when it simply expired. Here, the dispeller is punished for 90 damage if they
+    * were not standing in a circle of the debuff's colour. Either way the circles are cleaned up.
+    */
   override def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(
       using IdGeneratorContainer
   ): Vector[GameAction] =

@@ -13,6 +13,15 @@ import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff, Wi
 import gamelogic.physics.Complex
 import models.syntax.Pointed
 
+/** Spawns a [[BigGuy]], together with the two buffs it needs to behave:
+  *   - `DamageThreatAware`, without which it would never build a threat table and hence never pick
+  *     a sensible target
+  *   - [[gamelogic.buffs.boss.boss104.BigGuyCurse]], whose only job is to drop a
+  *     [[gamelogic.entities.boss.boss104.BigGuyDeathMark]] where the add dies
+  *
+  * It is an [[gamelogic.gamestate.GameAction.EntityCreatorAction]], which is what lets the
+  * `AIManager` (game-server) attach a controller to the freshly created entity.
+  */
 final case class AddBigGuy(
     id: GameAction.Id,
     time: Long,
@@ -34,6 +43,8 @@ final case class AddBigGuy(
       BigGuy.maxLife,
       Map.empty,
       entityId,
+      // same "fake past usage" trick as Boss104.initialBoss: the kick becomes available
+      // `timeToFirstUse` ms after the add is spawned
       Map(
         Ability.boss104BigGuyKick -> Pointed[BigGuyKick].unit.copy(
           time = time - BigGuyKick.cooldown + BigGuyKick.timeToFirstUse

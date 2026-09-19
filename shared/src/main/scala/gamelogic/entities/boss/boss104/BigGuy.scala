@@ -20,6 +20,21 @@ import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{ConvexPolygon, Shape}
 
+/** The "add" (additional unit) that Boss104 summons with
+  * [[gamelogic.abilities.boss.boss104.SpawnBigGuy]].
+  *
+  * It illustrates the full set of capabilities an add can have, each brought in by one trait:
+  *   - [[MovingBody]]: it has a position and can move
+  *   - [[LivingEntity]]: it has life and can die
+  *   - [[WithThreat]]: it keeps a threat table (fed by the `DamageThreatAware` buff that
+  *     [[gamelogic.gamestate.gameactions.boss104.AddBigGuy]] puts on it at spawn)
+  *   - [[WithTarget]]: it has a current target
+  *   - [[WithAbilities]]: it can cast, here an auto attack and the interruptible
+  *     [[gamelogic.abilities.boss.boss104.BigGuyKick]]
+  *
+  * A simpler add only needs a subset of those. Its brain lives in
+  * `application.ai.boss.boss104units.BigGuyController` (in the game-server sub-project).
+  */
 final case class BigGuy(
     id: Entity.Id,
     time: Long,
@@ -102,6 +117,8 @@ final case class BigGuy(
 }
 
 object BigGuy {
+  // The three numbers that really characterise an add: how much life it has, how big it is, and
+  // (through `abilities` above) what it can do. Everything else is boilerplate.
   inline def maxLife: Double = 800.0
 
   val shape: ConvexPolygon = Shape.regularPolygon(3, 2 * Constants.playerRadius)

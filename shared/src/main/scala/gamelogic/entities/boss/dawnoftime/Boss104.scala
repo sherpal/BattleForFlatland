@@ -32,6 +32,21 @@ import gamelogic.docs.BossMetadata
 import models.bff.outofgame.PlayerClasses
 import gamelogic.abilities.boss.boss104.{SpawnBigGuy, TwinDebuffs}
 
+/** Boss104 is the reference implementation for new bosses: see `make-a-boss.md` at the root of the
+  * repository, which walks through every file of this encounter.
+  *
+  * Its three mechanics are
+  *   - the [[gamelogic.abilities.boss.boss104.TwinDebuffs]]: two players are cursed and two
+  *     matching coloured circles appear on the ground. The Pentagons must dispel each cursed player
+  *     while standing in the circle of the matching colour.
+  *   - the [[gamelogic.abilities.boss.boss104.SpawnBigGuy]]: adds that the Triangle has to tank,
+  *     place, and interrupt.
+  *   - the marks left where the big guys die.
+  *
+  * Note that this is a `case class` on purpose: the `copy` method is what all the
+  * [[gamelogic.entities.MovingBody]]/[[gamelogic.entities.WithThreat]] patch methods below are
+  * implemented with, and `Pointed[Boss104].unit` (used in `initialBoss`) needs it as well.
+  */
 final case class Boss104(
     id: Entity.Id,
     time: Long,
@@ -107,6 +122,13 @@ final case class Boss104(
 
   override def name: String = Boss104.name
 
+  /** Candidate auto attack for this instant, if the boss is allowed to use it right now.
+    *
+    * The two filters are complementary: `canBeCast` checks the ability's own preconditions (here,
+    * being in melee range of the target) while `canUseAbilityBoolean` checks the entity's ones
+    * (owning the ability, cooldown, resource, silence). The [[application.ai.boss]] controller only
+    * has to decide *whether it wants to*, not *whether it may*.
+    */
   def maybeAutoAttack(time: Long, gameState: GameState): Option[AutoAttack] =
     Some(
       AutoAttack(
@@ -146,6 +168,15 @@ object Boss104 extends BossFactory[Boss104] with BossMetadata {
   inline def autoAttackTickRate: Long = 1000L
 
   inline def maxLife: Double = 30000
+
+  /** The boss as it is at the very beginning of the game.
+    *
+    * `relevantUsedAbilities` is pre-filled with *fake past usages* of each ability. Since cooldowns
+    * are computed as `now - ability.time <= ability.cooldown`, seeding the time at
+    * `time - cooldown + timeToFirstUse` makes the ability come off cooldown exactly
+    * `timeToFirstUse` milliseconds after the pull. This is how we give players a warm-up before the
+    * first big mechanic.
+    */
   override def initialBoss(entityId: Id, time: Long): Boss104 = Pointed[Boss104].unit.copy(
     id = entityId,
     time = time,
@@ -176,6 +207,9 @@ object Boss104 extends BossFactory[Boss104] with BossMetadata {
       time: Long
   )(using IdGeneratorContainer): Vector[CreateObstacle] = Obstacle.squareGameArea(time, size)
 
+  /** Actions applied at the origin of time, before anyone is spawned: this is where the topology of
+    * the room is decided. Boss104 simply fights in a big empty square.
+    */
   def stagingBossActions(
       time: Long
   )(using IdGeneratorContainer): Vector[GameAction] =

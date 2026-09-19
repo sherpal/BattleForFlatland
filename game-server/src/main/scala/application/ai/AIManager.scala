@@ -49,6 +49,10 @@ class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTran
         throwable.printStackTrace()
     }
 
+  /** Pathfinding graphs are pre-computed per collision radius. Every entity that has an
+    * [[AIController]] must have its `shape.radius` listed here, otherwise `AIController` logs
+    * "There is no graph for me" and the entity never acts.
+    */
   private val graphManager = GraphManager(
     Vector(
       math.round(Constants.playerRadius).toInt,
@@ -67,6 +71,9 @@ class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTran
 
     val gameState = currentGameState
 
+    // This is where hostile AIs are hooked onto entities: each boss gets a controller when its
+    // SpawnBoss action goes through, and each add gets one when its own creator action does.
+    // Forgetting a clause here is why a freshly implemented boss spawns and then stands still.
     notRemovedActions.foreach {
       case action: CreateObstacle =>
         graphManager.addNewObstacle(action, gameState)

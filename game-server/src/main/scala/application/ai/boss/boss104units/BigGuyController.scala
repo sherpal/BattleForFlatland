@@ -13,6 +13,16 @@ import gamelogic.abilities.Ability
 import gamelogic.abilities.boss.boss104.BigGuyKick
 import gamelogic.gamestate.gameactions.EntityStartsCasting
 
+/** The brain of a [[BigGuy]] add.
+  *
+  * Registered in `AIManager` on the [[AddBigGuy]] action. Note that, unlike the boss, it is a class
+  * and not an object: there is one instance per spawned add.
+  *
+  * It uses `aiMovementToTarget` (straight line) rather than `aiMovementToTargetWithGraph`, since it
+  * does not need to path around obstacles. Beware though that `AIController` still requires a
+  * pathfinding graph for its collision radius: `BigGuy.shape.radius` must appear in the list of
+  * radii given to the `GraphManager` in `AIManager`, otherwise this controller never runs.
+  */
 class BigGuyController extends AIController[BigGuy, AddBigGuy] {
 
   override protected def takeActions(

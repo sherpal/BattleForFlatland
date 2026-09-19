@@ -8,6 +8,15 @@ import gamelogic.gamestate.gameactions.*
 import models.bff.ingame.InGameWSProtocol
 import models.bff.ingame.InGameWSProtocol.*
 
+/** Boopickle picklers for everything travelling on the in-game websocket.
+  *
+  * IMPORTANT: every new [[gamelogic.abilities.Ability]] and every new
+  * [[gamelogic.gamestate.GameAction]] MUST be declared here with `addConcreteType`, or the game
+  * crashes the first time that ability/action is sent over the wire.
+  *
+  * (The hand-written circe codecs found in `GameAction` and `Ability` are legacy and are not used
+  * for in-game traffic; this object is the one that matters.)
+  */
 object BFFPicklers {
 
   implicit val abilityPickler: Pickler[Ability] = compositePickler[Ability]

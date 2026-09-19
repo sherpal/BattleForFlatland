@@ -17,6 +17,11 @@ import gamelogic.gamestate.gameactions.boss104.PutTwinDebuff
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.entities.boss.dawnoftime.Boss104
 
+/** Curses two random players with a [[gamelogic.buffs.boss.boss104.TwinDebuff]] of two different
+  * colours, and drops a [[gamelogic.entities.boss.boss104.DebuffCircle]] of each colour somewhere
+  * in the room. A Pentagon must dispel each cursed player from inside the circle of the matching
+  * colour, or take a big chunk of damage.
+  */
 final case class TwinDebuffs(
     useId: Ability.UseId,
     time: Long,
@@ -30,8 +35,19 @@ final case class TwinDebuffs(
 
   override def abilityId: AbilityId = Ability.boss104TwinDebuffs
 
+  /** Boss abilities delegate legality to their controller (which checks cooldown, silence, etc. via
+    * `canUseAbilityBoolean`), so there is nothing else to veto here.
+    */
   override def canBeCast(gameState: GameState, time: Long): None.type = None
 
+  /** This method is called exactly once, by the game master, when the cast completes; its resulting
+    * actions are then broadcast as-is to every client and AI. It is therefore the *only* place
+    * where randomness is allowed in the whole game logic.
+    *
+    * Every decision taken here (which players, which colours, where the circles land, which ids) is
+    * frozen into the [[PutTwinDebuff]] actions, because their state transformers have to be pure
+    * and replayable on all clients.
+    */
   override def createActions(
       gameState: GameState
   )(using IdGeneratorContainer): Vector[GameAction] = {

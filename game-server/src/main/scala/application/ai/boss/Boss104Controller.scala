@@ -15,6 +15,12 @@ import gamelogic.gamestate.gameactions.EntityStartsCasting
 import gamelogic.abilities.boss.boss104.{SpawnBigGuy, TwinDebuffs}
 import gamelogic.abilities.Ability.UseId
 
+/** The brain of [[Boss104]].
+  *
+  * Registered in `AIManager` on the `SpawnBoss` action carrying Boss104's name. Like most boss AIs
+  * in the game, it boils down to: pick a target, walk to it, then try each ability in decreasing
+  * order of priority.
+  */
 object Boss104Controller extends AIController[Boss104, SpawnBoss] {
 
   override protected def takeActions(
@@ -72,6 +78,9 @@ object Boss104Controller extends AIController[Boss104, SpawnBoss] {
               EntityStartsCasting(GameAction.Id.dummy, startTime, ability.castingTime, ability)
             )
 
+        // `useAbility` picks the FIRST defined candidate of the vector, so the order below is the
+        // priority order: signature abilities (long cooldowns) first, filler auto attack last.
+        // When an ability is used, the boss also stops moving.
         useAbility(
           Vector(
             maybeUseTwinDebuffs,
