@@ -78,13 +78,15 @@ final case class Boss104(
   override def abilities: Set[AbilityId] = Set(
     Ability.autoAttackId,
     Ability.boss104TwinDebuffs,
-    Ability.boss104SpawnBigGuy
+    Ability.boss104SpawnBigGuy,
+    Ability.boss104DeathMarkTriangleAttack
   )
 
   override def abilityNames: Map[AbilityId, String] = Map(
-    Ability.autoAttackId       -> "Auto Attack",
-    Ability.boss104TwinDebuffs -> "Twin Debuffs",
-    Ability.boss104SpawnBigGuy -> "Big Guy"
+    Ability.autoAttackId                   -> "Auto Attack",
+    Ability.boss104TwinDebuffs             -> "Twin Debuffs",
+    Ability.boss104SpawnBigGuy             -> "Big Guy",
+    Ability.boss104DeathMarkTriangleAttack -> "Death Mark Triangle"
   )
 
   override def teamId: TeamId = Entity.teams.mobTeam

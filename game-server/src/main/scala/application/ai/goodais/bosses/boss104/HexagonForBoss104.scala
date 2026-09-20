@@ -10,7 +10,8 @@ import gamelogic.physics.Complex
 import gamelogic.physics.pathfinding.Graph
 
 final case class HexagonForBoss104(index: Int, entityId: Entity.Id)
-    extends HexagonAIController(index) {
+    extends HexagonAIController(index)
+    with DeathMarkTriangleAware[Hexagon] {
 
   protected def takeActions(
       gameState: GameState,
@@ -19,7 +20,7 @@ final case class HexagonForBoss104(index: Int, entityId: Entity.Id)
       startTime: Long,
       timeSinceLastFrame: Long,
       obstacleGraph: Graph
-  ): Vector[GameAction] = {
+  ): Vector[GameAction] = maybeHandleDeathMarkTriangle(gameState, me, startTime).getOrElse {
     import gamelogic.physics.Complex.DoubleWithI
     val (previousPosition, currentPosition, travelledDistance) = someDistanceInfo(startTime, me)
 

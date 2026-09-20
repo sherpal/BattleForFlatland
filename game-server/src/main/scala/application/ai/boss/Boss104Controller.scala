@@ -12,7 +12,7 @@ import gamelogic.physics.Complex
 import gamelogic.gamestate.GameState
 import gamelogic.entities.boss.dawnoftime.Boss102
 import gamelogic.gamestate.gameactions.EntityStartsCasting
-import gamelogic.abilities.boss.boss104.{SpawnBigGuy, TwinDebuffs}
+import gamelogic.abilities.boss.boss104.{DeathMarkTriangleAttack, SpawnBigGuy, TwinDebuffs}
 import gamelogic.abilities.Ability.UseId
 
 /** The brain of [[Boss104]].
@@ -71,6 +71,14 @@ object Boss104Controller extends AIController[Boss104, SpawnBoss] {
               EntityStartsCasting(GameAction.Id.dummy, startTime, ability.castingTime, ability)
             )
 
+        // Only castable while a DeathMarkTriangle stands, which is why `canBeCastBoolean` is
+        // consulted on top of the usual cooldown check.
+        val maybeDeathMarkTriangleAttack =
+          Some(DeathMarkTriangleAttack(UseId.dummy, startTime, me.id))
+            .filter(_.canBeCastBoolean(currentGameState, startTime))
+            .filter(me.canUseAbilityBoolean(_, startTime, currentGameState))
+            .map(_.toStartCasting(startTime))
+
         val maybeSpawnBigGuy =
           Some(SpawnBigGuy(UseId.dummy, startTime, me.id))
             .filter(me.canUseAbilityBoolean(_, startTime, currentGameState))
@@ -83,6 +91,7 @@ object Boss104Controller extends AIController[Boss104, SpawnBoss] {
         // When an ability is used, the boss also stops moving.
         useAbility(
           Vector(
+            maybeDeathMarkTriangleAttack,
             maybeUseTwinDebuffs,
             maybeSpawnBigGuy,
             me.maybeAutoAttack(startTime, currentGameState)
