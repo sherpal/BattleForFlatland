@@ -10,7 +10,8 @@ import gamelogic.gamestate.GameState
 import gamelogic.entities.boss.dawnoftime.Boss104
 
 final case class SquareForBoss104(index: Int, entityId: Entity.Id)
-    extends SquareAIController(index) {
+    extends SquareAIController(index)
+    with DeathMarkTriangleAware[Square] {
 
   override protected def takeActions(
       gameState: GameState,
@@ -19,7 +20,7 @@ final case class SquareForBoss104(index: Int, entityId: Entity.Id)
       startTime: Long,
       timeSinceLastFrame: Long,
       obstacleGraph: Graph
-  ): Vector[GameAction] = {
+  ): Vector[GameAction] = maybeHandleDeathMarkTriangle(gameState, me, startTime).getOrElse {
     import gamelogic.physics.Complex.DoubleWithI
     val (previousPosition, currentPosition, travelledDistance) = someDistanceInfo(startTime, me)
 

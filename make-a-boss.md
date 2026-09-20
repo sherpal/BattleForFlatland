@@ -516,6 +516,48 @@ Needs **no** pickler registration (entities travel as part of actions, never on 
 a drawer (Recipe E) to be visible. Add it to the world with `WithEntity(...)` in an action; remove it
 with a `RemoveEntity` action.
 
+### Recipe C bis — An entity as the state of a multi-stage mechanic
+
+When a mechanic happens in several beats (a zone that becomes safe, a debuff that flips, an attack
+that resolves twice), do **not** try to remember the beat in the AI controller. Put it in an entity
+and let everyone read it. The controller stays stateless, the frontend can draw the current beat,
+the friendly bots can react to it, and a client that joins mid-fight sees the truth.
+
+`DeathMarkTriangle` is the worked example: it *is* the zone (a `Body`, so `containsPoint` does the
+geometry) **and** it is the state machine of Boss104's two-stage finisher.
+
+```scala
+final case class DeathMarkTriangle(id, time, pos, relativeVertices: Vector[Complex], stage: Int)
+    extends Body {
+  override val shape: ConvexPolygon = ConvexPolygon(relativeVertices)
+  def insideIsDeadly: Boolean       = stage == DeathMarkTriangle.firstStage
+  def nextStage: DeathMarkTriangle  = copy(stage = stage + 1)
+}
+```
+
+Advancing the state is a tiny action. Because the entity is already identical on every client, the
+transformer may read it from the game state and still be pure:
+
+```scala
+override def createGameStateTransformer(gameState: GameState): GameStateTransformer =
+  gameState.entityByIdAs[DeathMarkTriangle](triangleId)
+    .fold(GameStateTransformer.identityTransformer)(t => WithEntity(t.nextStage, time))
+```
+
+`WithEntity` overwrites by id, so this is how you update *any* entity in place.
+
+Three things to watch:
+- **`ConvexPolygon` expects positively oriented vertices** and stores them relative to the entity's
+  `pos` (the convention every `Body` follows). If you build one from positions gathered at runtime,
+  re-centre on the centroid and `sortBy(_.arg)` — otherwise `contains` silently answers nonsense.
+  Put that in a companion builder so the invariant cannot be broken.
+- **Keep the fields picklable.** Anything reaching an action's constructor must have a boopickle
+  `Pickler`. `Complex`, `Vector[Complex]`, `RGBColour`, `Int`, `Long` all do; a bespoke enum
+  probably doesn't. A plain `Int` plus named constants is worth the small ugliness.
+- **Gate the ability on the entity instead of on a cooldown**: `canBeCast` returning
+  `Option.unless(gameState.allTEntities[TheEntity].nonEmpty)("...")` makes the ability exist only
+  while the mechanic does, and its cooldown then means "delay between beats".
+
 ### Recipe D — An add (a mob with a brain)
 
 Mix in exactly the capabilities it needs:
@@ -636,6 +678,7 @@ bar and cast bar for free — use them, players need to see a cast bar to know w
 | `I don't handle boss …` printed, bots inert | missing `GoodAIManager.bossAIContainers` entry |
 | Bots exist but "Add AI" is greyed out | `maybeAIComposition` still returns `None` |
 | Clients desync / rubber-band | impure `createGameStateTransformer` |
+| A polygon zone thinks everyone is outside (or inside) | `ConvexPolygon` built from unsorted vertices — re-centre on the centroid and `sortBy(_.arg)` |
 
 ---
 
@@ -645,13 +688,31 @@ bar and cast bar for free — use them, players need to see a cast bar to know w
 sbt sharedJVM/compile game-server/compile frontend/compile
 ```
 
-Tests (game logic is deterministic and immutable, so it tests well — see
-[`testutils/ActionComposer`](shared/src/test/scala/testutils/ActionComposer.scala), which lets you
-pipeline actions and assert on the state at any point):
+Tests (game logic is deterministic and immutable, so it tests well):
 
 ```bash
 sbt sharedJVM/test
 ```
+
+Two test patterns are worth writing for every new boss, because they cover the two failure modes
+that otherwise only show up in a live game:
+
+1. **Story tests** — [`testutils/ActionComposer`](shared/src/test/scala/testutils/ActionComposer.scala)
+   pipelines actions (`>>`), computes actions from the current state (`>>>`) and lets you assert at
+   any point (`>>>>`). Extend
+   [`StoryTeller`](shared/src/test/scala/gamelogic/gamestate/abilitiesstories/StoryTeller.scala) for
+   the id plumbing. [`Boss104Specs`](shared/src/test/scala/gamelogic/gamestate/abilitiesstories/bosses/dawnoftime/Boss104Specs.scala)
+   plays the whole death-mark-triangle mechanic this way, including a hand-rolled `killBigGuy` that
+   mimics what `ManageDeadAIs` does — you can drive `bearerDiedAction` and `createActions` directly
+   rather than standing up a server.
+2. **Pickler round trips** — [`BFFPicklersSpecs`](shared/src/test/scala/communication/BFFPicklersSpecs.scala)
+   pickles and unpickles each new ability and action. Deleting one `addConcreteType` line turns it
+   from green to `IllegalArgumentException: This CompositePickler doesn't know class ...`, which is
+   exactly the runtime crash it exists to prevent. Add your boss' types to it.
+
+> Note: `gamelogic.physics.shape.TriangulationChecks."Triangulate a pentagon gives 3 triangles"` is
+> a known-flaky property test (`empty.minBy` in `Shape.earClipping`, roughly one run in four). It is
+> unrelated to boss work — don't chase it.
 
 To actually play, three processes (full details in [README.md](README.md#launching-all-the-required-programs)):
 
@@ -675,7 +736,9 @@ The game is at `http://localhost:3000`.
 
 The complete worked example. Boss104 has three mechanics: *twin debuffs* (coordinated Pentagon
 dispels from inside matching coloured circles), *big guys* (adds the Triangle tanks, positions and
-interrupts), and death marks left where big guys die.
+interrupts), and the *death mark triangle* — once three big guys have died, the triangle formed by
+their death marks becomes a two-stage attack that first punishes standing inside it, then punishes
+standing outside.
 
 | Concern | File |
 |---|---|
@@ -687,10 +750,13 @@ interrupts), and death marks left where big guys die.
 | Buff — death trigger | [BigGuyCurse.scala](shared/src/main/scala/gamelogic/buffs/boss/boss104/BigGuyCurse.scala) |
 | Entity — passive marker | [DebuffCircle.scala](shared/src/main/scala/gamelogic/entities/boss/boss104/DebuffCircle.scala), [BigGuyDeathMark.scala](shared/src/main/scala/gamelogic/entities/boss/boss104/BigGuyDeathMark.scala) |
 | Entity — full-featured add | [BigGuy.scala](shared/src/main/scala/gamelogic/entities/boss/boss104/BigGuy.scala) |
-| Actions | [PutTwinDebuff.scala](shared/src/main/scala/gamelogic/gamestate/gameactions/boss104/PutTwinDebuff.scala), [AddBigGuy.scala](shared/src/main/scala/gamelogic/gamestate/gameactions/boss104/AddBigGuy.scala), [AddBigGuyDeathMark.scala](shared/src/main/scala/gamelogic/gamestate/gameactions/boss104/AddBigGuyDeathMark.scala) |
+| Ability — two-stage finisher | [DeathMarkTriangleAttack.scala](shared/src/main/scala/gamelogic/abilities/boss/boss104/DeathMarkTriangleAttack.scala) |
+| Entity — zone *and* state machine | [DeathMarkTriangle.scala](shared/src/main/scala/gamelogic/entities/boss/boss104/DeathMarkTriangle.scala) |
+| Actions | [PutTwinDebuff.scala](shared/src/main/scala/gamelogic/gamestate/gameactions/boss104/PutTwinDebuff.scala), [AddBigGuy.scala](shared/src/main/scala/gamelogic/gamestate/gameactions/boss104/AddBigGuy.scala), [AddBigGuyDeathMark.scala](shared/src/main/scala/gamelogic/gamestate/gameactions/boss104/AddBigGuyDeathMark.scala), [AddDeathMarkTriangle.scala](shared/src/main/scala/gamelogic/gamestate/gameactions/boss104/AddDeathMarkTriangle.scala), [DeathMarkTriangleNextStage.scala](shared/src/main/scala/gamelogic/gamestate/gameactions/boss104/DeathMarkTriangleNextStage.scala) |
 | Boss AI | [Boss104Controller.scala](game-server/src/main/scala/application/ai/boss/Boss104Controller.scala) |
 | Add AI | [BigGuyController.scala](game-server/src/main/scala/application/ai/boss/boss104units/BigGuyController.scala) |
-| Friendly bots | [boss104/](game-server/src/main/scala/application/ai/goodais/bosses/boss104/) — see `PentagonForBoss104` (circle assignment via `index`) and `TriangleForBoss104` (add tanking + interrupting) |
+| Friendly bots | [boss104/](game-server/src/main/scala/application/ai/goodais/bosses/boss104/) — see `PentagonForBoss104` (circle assignment via `index`), `TriangleForBoss104` (add tanking + interrupting) and `DeathMarkTriangleAware` (behaviour shared by all four classes) |
+| Tests | [Boss104Specs.scala](shared/src/test/scala/gamelogic/gamestate/abilitiesstories/bosses/dawnoftime/Boss104Specs.scala), [BFFPicklersSpecs.scala](shared/src/test/scala/communication/BFFPicklersSpecs.scala) |
 | Rendering | [Boss104Drawer.scala](frontend/src/main/scala/game/drawers/bossspecificdrawers/Boss104Drawer.scala) |
 
 ---

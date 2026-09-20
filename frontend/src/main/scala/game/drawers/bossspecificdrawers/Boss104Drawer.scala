@@ -5,7 +5,7 @@ import gamelogic.gamestate.GameState
 import indigo.*
 
 import scala.scalajs.js
-import gamelogic.entities.boss.boss104.{BigGuy, BigGuyDeathMark, DebuffCircle}
+import gamelogic.entities.boss.boss104.{BigGuy, BigGuyDeathMark, DeathMarkTriangle, DebuffCircle}
 
 import scala.scalajs.js.JSConverters.*
 import game.gameutils.toIndigo
@@ -32,7 +32,34 @@ object Boss104Drawer extends game.drawers.DrawerWithCloneBlanks {
     drawDebuffCircles(gameState, gameToLocal) ++ drawDebuffColoursOnPlayers(
       gameState,
       gameToLocal
-    ) ++ drawBigGuys(gameState, gameToLocal) ++ drawBigGuyDeathMarkers(gameState, gameToLocal)
+    ) ++ drawBigGuys(gameState, gameToLocal) ++ drawBigGuyDeathMarkers(
+      gameState,
+      gameToLocal
+    ) ++ drawDeathMarkTriangles(gameState, gameToLocal)
+
+  /** The zone of the two-stage finisher: mostly transparent so that players can still see each
+    * other and the boss through it, with solid edges so that its exact boundary is unambiguous.
+    *
+    * The colour says which side is currently lethal: red while being inside is deadly, green once
+    * the triangle has become the only safe place.
+    */
+  private def drawDeathMarkTriangles(
+      gameState: GameState,
+      gameToLocal: Complex => Point
+  ): js.Array[SceneNode] =
+    gameState.allTEntities[DeathMarkTriangle].values.toJSArray.map { triangle =>
+      val colour = if triangle.insideIsDeadly then RGBColour.red else RGBColour.green
+
+      Shape
+        .Polygon(
+          // reversed like the big guys: `gameToLocal` flips the vertical axis, and hence the
+          // orientation of the polygon
+          Batch(triangle.vertices.toJSArray.reverse.map(gameToLocal)),
+          fill = Fill.Color(colour.toIndigo.withAlpha(0.15)),
+          stroke = Stroke(3, colour.toIndigo)
+        )
+        .withDepth(Depth.far)
+    }
 
   private def drawBigGuyDeathMarkers(
       gameState: GameState,

@@ -19,7 +19,9 @@ import gamelogic.buffs.boss.boss104.TwinDebuff
   *
   * Outside of the twin debuff phase they just stand at their base position and shoot the boss.
   */
-case class PentagonForBoss104(index: Int, entityId: Entity.Id) extends PentagonAIController(index) {
+case class PentagonForBoss104(index: Int, entityId: Entity.Id)
+    extends PentagonAIController(index)
+    with DeathMarkTriangleAware[Pentagon] {
 
   private val basePosition = Complex.polar(Constants.bossRadius * 3, index * math.Pi + math.Pi / 4)
 
@@ -30,7 +32,9 @@ case class PentagonForBoss104(index: Int, entityId: Entity.Id) extends PentagonA
       startTime: Long,
       timeSinceLastFrame: Long,
       obstacleGraph: Graph
-  ): Vector[GameAction] = handleTwinCircle(me, currentGameState, startTime).getOrElse {
+  ): Vector[GameAction] = maybeHandleDeathMarkTriangle(currentGameState, me, startTime)
+    .orElse(handleTwinCircle(me, currentGameState, startTime))
+    .getOrElse {
 
     if currentPosition.distanceTo(basePosition) > 20 then {
       // go to base position

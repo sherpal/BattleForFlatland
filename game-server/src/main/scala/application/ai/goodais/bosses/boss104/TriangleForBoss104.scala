@@ -21,7 +21,8 @@ import gamelogic.physics.pathfinding.Graph
   *   - have the common behaviour
   */
 final case class TriangleForBoss104(index: Int, entityId: Entity.Id)
-    extends TriangleAIController(index) {
+    extends TriangleAIController(index)
+    with DeathMarkTriangleAware[Triangle] {
   override protected def takeActions(
       currentGameState: GameState,
       me: Triangle,
@@ -30,7 +31,9 @@ final case class TriangleForBoss104(index: Int, entityId: Entity.Id)
       timeSinceLastFrame: Long,
       obstacleGraph: Graph
   ): Vector[GameAction] =
-    handleBigGuy(me, currentGameState, startTime, timeSinceLastFrame).getOrElse {
+    maybeHandleDeathMarkTriangle(currentGameState, me, startTime)
+      .orElse(handleBigGuy(me, currentGameState, startTime, timeSinceLastFrame))
+      .getOrElse {
       // todo
 
       Vector.empty

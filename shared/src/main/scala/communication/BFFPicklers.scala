@@ -56,6 +56,7 @@ object BFFPicklers {
     .addConcreteType[boss.boss104.TwinDebuffs]
     .addConcreteType[boss.boss104.SpawnBigGuy]
     .addConcreteType[boss.boss104.BigGuyKick]
+    .addConcreteType[boss.boss104.DeathMarkTriangleAttack]
 
   implicit val gameActionPickler: Pickler[GameAction] = compositePickler[GameAction]
     .addConcreteType[boss102.AddBossHound]
@@ -67,6 +68,8 @@ object BFFPicklers {
     .addConcreteType[boss104.AddBigGuy]
     .addConcreteType[boss104.PutTwinDebuff]
     .addConcreteType[boss104.AddBigGuyDeathMark]
+    .addConcreteType[boss104.AddDeathMarkTriangle]
+    .addConcreteType[boss104.DeathMarkTriangleNextStage]
     .addConcreteType[boss110.AddBigGuies]
     .addConcreteType[boss110.AddBombPods]
     .addConcreteType[boss110.AddSmallGuy]
