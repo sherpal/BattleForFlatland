@@ -38,33 +38,43 @@ class BigGuyController extends AIController[BigGuy, AddBigGuy] {
     .fold(Vector.empty[GameAction]) { target =>
       val maybeChangeTarget = changeTarget(me, target.id, startTime)
 
-      val maybeMove = aiMovementToTarget(
-        me.id,
-        startTime,
-        timeSinceLastFrame,
-        currentPosition,
-        me.shape.radius,
-        target.currentPosition(startTime),
-        BigGuy.range,
-        BigGuy.fullSpeed,
-        BigGuy.fullSpeed / 10,
-        me.speed,
-        me.moving,
-        me.rotation
-      )
+      val maybeMove = Option
+        .unless(currentGameState.entityIsCasting(me.id))(
+          aiMovementToTarget(
+            me.id,
+            startTime,
+            timeSinceLastFrame,
+            currentPosition,
+            me.shape.radius,
+            target.currentPosition(startTime),
+            BigGuy.range,
+            BigGuy.fullSpeed,
+            BigGuy.fullSpeed / 10,
+            me.speed,
+            me.moving,
+            me.rotation
+          )
+        )
+        .flatten
 
       val maybeAttack =
         me.maybeAutoAttack(startTime, currentGameState).map(_.toStartCasting(startTime))
 
-      val maybeKick = application.ai.utils
+      val maybeKick: Vector[GameAction] = application.ai.utils
         .maybeAbilityUsage(
           me,
           BigGuyKick(Ability.UseId.dummy, startTime, me.id, target.id),
           currentGameState
         )
         .map(_.toStartCasting(startTime))
+        .fold(maybeMove.toVector) { cast =>
+          Vector(
+            Some(cast),
+            stopMoving(startTime, me.id, me.moving, currentPosition, me.speed, me.rotation)
+          ).flatten
+        }
 
-      Vector(maybeChangeTarget, maybeKick, maybeMove, maybeAttack).flatten
+      Vector(maybeChangeTarget, maybeKick, maybeAttack).flatten
     }
 
   override protected def getMe(gameState: GameState, entityId: Id): Option[BigGuy] =

@@ -29,7 +29,7 @@ final case class DeathMarkTriangleAttack(
 
   override def abilityId: AbilityId = Ability.boss104DeathMarkTriangleAttack
 
-  override def cooldown: Long = DeathMarkTriangleAttack.cooldown
+  override def cooldown: Long = 0L
 
   override def castingTime: Long = DeathMarkTriangleAttack.castingTime
 
@@ -80,8 +80,4 @@ object DeathMarkTriangleAttack {
 
   inline def castingTime: Long = 5000
 
-  /** Time between the two resolutions of the attack: players get this, plus the casting time, to
-    * run back into the triangle.
-    */
-  inline def cooldown: Long = 3000
 }
