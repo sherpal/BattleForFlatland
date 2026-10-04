@@ -51,7 +51,8 @@ case class IndigoViewModel(
   )
 
   def withChoosingAbilityPosition(abilityId: AbilityId): IndigoViewModel = copy(
-    maybeChoosingAbilityPosition = Some(abilityId)
+    maybeChoosingAbilityPosition =
+      maybeChoosingAbilityPosition.filter(_ == abilityId).fold(Some(abilityId))(_ => None)
   )
 
   def stopChoosingAbilityPosition: IndigoViewModel = copy(

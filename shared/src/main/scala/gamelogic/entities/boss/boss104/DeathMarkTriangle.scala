@@ -47,9 +47,8 @@ final case class DeathMarkTriangle(
 
   /** Damage that a player standing at that position takes when the attack resolves. */
   def damageAt(position: Complex): Double =
-    if shape.contains(position, pos, rotation) == insideIsDeadly then
-      DeathMarkTriangle.deadlyDamage
-    else DeathMarkTriangle.safeDamage
+    if shape.contains(position, pos, rotation) == insideIsDeadly then DeathMarkTriangle.deadlyDamage
+    else DeathMarkTriangle.safeDamage(stage)
 
 }
 
@@ -58,8 +57,8 @@ object DeathMarkTriangle {
   inline def firstStage: Int  = 1
   inline def secondStage: Int = 2
 
-  inline def deadlyDamage: Double = 60.0
-  inline def safeDamage: Double   = 10.0
+  inline def deadlyDamage: Double           = 90.0
+  inline def safeDamage(stage: Int): Double = 10 + 20 * stage
 
   /** Builds the triangle from the world positions of the three death marks.
     *

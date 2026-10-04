@@ -171,6 +171,27 @@ def aiMovementToTarget(
 
 }
 
+def stopMoving(
+    time: Long,
+    entityId: Entity.Id,
+    currentlyMoving: Boolean,
+    currentPosition: Complex,
+    speed: Double,
+    rotation: Double
+): Option[MovingBodyMoves] =
+  Option.when(currentlyMoving)(
+    MovingBodyMoves(
+      GameAction.Id.dummy,
+      time,
+      entityId,
+      currentPosition,
+      rotation,
+      rotation,
+      speed,
+      moving = false
+    )
+  )
+
 def findTarget(me: WithThreat & WithPosition, currentGameState: GameState): Option[PlayerClass] =
   (for {
     biggestThreat <- me.damageThreats.maxByOption(_._2)

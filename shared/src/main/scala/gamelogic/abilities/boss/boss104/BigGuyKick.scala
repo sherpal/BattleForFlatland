@@ -48,5 +48,5 @@ object BigGuyKick {
 
   val damage: Double = 50.0
 
-  val range: Distance = BigGuy.shape.radius * 2.2
+  val range: Distance = BigGuy.shape.radius * 1000
 }
