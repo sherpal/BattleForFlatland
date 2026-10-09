@@ -169,7 +169,7 @@ object Boss104 extends BossFactory[Boss104] with BossMetadata {
   inline def autoAttackDamage: Double = 5.0
   inline def autoAttackTickRate: Long = 1000L
 
-  inline def maxLife: Double = 30000
+  inline def maxLife: Double = 22000
 
   /** The boss as it is at the very beginning of the game.
     *
@@ -203,7 +203,7 @@ object Boss104 extends BossFactory[Boss104] with BossMetadata {
       IdGeneratorContainer
   ): Vector[GameAction] = Vector.empty
 
-  val size = 500.0
+  val size = 400.0
 
   def gameBoundariesActions(
       time: Long
