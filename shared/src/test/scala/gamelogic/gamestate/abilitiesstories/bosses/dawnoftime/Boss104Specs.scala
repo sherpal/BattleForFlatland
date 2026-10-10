@@ -7,11 +7,7 @@ import gamelogic.entities.Entity
 import gamelogic.entities.boss.boss104.{BigGuyDeathMark, DeathMarkTriangle}
 import gamelogic.gamestate.abilitiesstories.StoryTeller
 import gamelogic.gamestate.gameactions.boss104.{AddBigGuy, DeathMarkTriangleNextStage}
-import gamelogic.gamestate.gameactions.{
-  AddPlayerByClass,
-  EntityTakesDamage,
-  RemoveEntity
-}
+import gamelogic.gamestate.gameactions.{AddPlayerByClass, EntityTakesDamage, RemoveEntity}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import models.bff.outofgame.PlayerClasses
@@ -80,7 +76,7 @@ final class Boss104Specs extends StoryTeller {
         // the geometry actually works: whatever order the marks came in, the polygon is properly
         // oriented and knows its inside from its outside
         assertEquals(triangle.damageAt(insidePosition), DeathMarkTriangle.deadlyDamage)
-        assertEquals(triangle.damageAt(outsidePosition), DeathMarkTriangle.safeDamage)
+        assertEquals(triangle.damageAt(outsidePosition), DeathMarkTriangle.safeDamage(1))
       }
 
     composer(initialGameState)
@@ -96,8 +92,9 @@ final class Boss104Specs extends StoryTeller {
       DeathMarkTriangleAttack(Ability.UseId.zero, time, bossId).createActions(gameState)
 
     def damageTo(entityId: Entity.Id, actions: Vector[GameAction]): Double =
-      actions.collectFirst { case damage: EntityTakesDamage if damage.entityId == entityId =>
-        damage.amount
+      actions.collectFirst {
+        case damage: EntityTakesDamage if damage.entityId == entityId =>
+          damage.amount
       }.get
 
     val composer = ActionComposer.empty >> start >> playerIn >> playerOut >>
@@ -114,7 +111,7 @@ final class Boss104Specs extends StoryTeller {
         // first stage: being inside is what kills
         val actions = attackAt(40)(gs)
         assertEquals(damageTo(playerIn.entityId, actions), DeathMarkTriangle.deadlyDamage)
-        assertEquals(damageTo(playerOut.entityId, actions), DeathMarkTriangle.safeDamage)
+        assertEquals(damageTo(playerOut.entityId, actions), DeathMarkTriangle.safeDamage(1))
         assertEquals(actions.count(_.isInstanceOf[DeathMarkTriangleNextStage]), 1)
         assertEquals(actions.count(_.isInstanceOf[RemoveEntity]), 0)
       } >>> attackAt(40) >>>> { (gs: GameState) =>
@@ -124,7 +121,7 @@ final class Boss104Specs extends StoryTeller {
 
         // second stage: the very same ability now does the exact opposite
         val actions = attackAt(50)(gs)
-        assertEquals(damageTo(playerIn.entityId, actions), DeathMarkTriangle.safeDamage)
+        assertEquals(damageTo(playerIn.entityId, actions), DeathMarkTriangle.safeDamage(2))
         assertEquals(damageTo(playerOut.entityId, actions), DeathMarkTriangle.deadlyDamage)
         assertEquals(actions.count(_.isInstanceOf[DeathMarkTriangleNextStage]), 0)
         // the triangle and the three marks it was built on

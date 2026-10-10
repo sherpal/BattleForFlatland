@@ -70,6 +70,7 @@ trait Buff extends IdsProducer {
 
 }
 
+//noinspection TypeAnnotation
 object Buff {
 
   opaque type Id = Long

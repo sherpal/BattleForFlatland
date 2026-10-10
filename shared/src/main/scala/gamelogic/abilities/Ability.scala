@@ -4,7 +4,7 @@ import gamelogic.abilities.Ability.AbilityColour
 import gamelogic.entities.Resource.ResourceAmount
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.{IdGeneratorContainer, IdsProducer, OpaqueLongCompanion}
+import gamelogic.utils.{IdGeneratorContainer, IdsProducer, OpaqueIntCompanion, OpaqueLongCompanion}
 import io.circe.{Decoder, Encoder, Json}
 
 import scala.annotation.tailrec
@@ -95,10 +95,10 @@ trait Ability extends IdsProducer {
 object Ability {
 
   opaque type UseId = Long
-
   object UseId extends OpaqueLongCompanion[UseId]
 
-  type AbilityId = Int
+  opaque type AbilityId = Int
+  object AbilityId extends OpaqueIntCompanion[AbilityId]
 
   private var lastAbilityId: AbilityId   = 0
   private def nextAbilityId(): AbilityId = { lastAbilityId += 1; lastAbilityId }

@@ -197,7 +197,7 @@ object Boss103 extends BossFactory[Boss103] with BossMetadata {
 
   val name: String = "Boss 103"
 
-  def intendedFor: AbilityId = 5
+  def intendedFor: Int = 5
 
   def maybeAIComposition: Option[List[PlayerClasses]] = Option.empty
 
