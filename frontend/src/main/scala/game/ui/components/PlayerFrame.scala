@@ -16,6 +16,7 @@ import indigo.shared.events.MouseEvent.Click
 import game.ui.*
 import assets.fonts.Fonts
 import gamelogic.abilities.WithTargetAbility
+import game.ui.bossplugins.BossGUIPlugin
 
 /** @param myId
   *   id of the playing player
@@ -86,7 +87,7 @@ final case class PlayerFrame(
               fill = Fill.Color(RGBA.fromColorInts(204, 255, 255).withAlpha(alpha)),
               stroke = Stroke(1, RGBA.Black)
             )
-            .withDepth(Depth.far),
+            .withDepth(PlayerFrame.backgroundDepth),
           playerImageAsset.indigoGraphic(
             bounds.position + Point(10),
             Some(RGBA.fromColorInts(player.rgb._1, player.rgb._2, player.rgb._3).withAlpha(alpha)),
@@ -97,8 +98,11 @@ final case class PlayerFrame(
                 js.Array(
                   Shape.Box(bounds, fill = Fill.Color(RGBA.Zero), stroke = Stroke(3, RGBA.Red))
                 )
-              else js.Array())
+              else js.Array()) ++ bossDecorations(bounds, alpha)
     }
+
+  private def bossDecorations(bounds: Rectangle, alpha: Double): js.Array[SceneNode] =
+    BossGUIPlugin.current.playerFrameDecorations(playerId, bounds, alpha)
 
   val lifeBar = new Container(theWidth - 20, 20, Anchor.topRight) {
 
@@ -171,4 +175,16 @@ final case class PlayerFrame(
         Fonts.m
       )
     )
+}
+
+object PlayerFrame {
+
+  /** Depth of the frame's background, behind everything else in the frame. */
+  val backgroundDepth: Depth = Depth.far
+
+  /** Depth just in front of the frame's background, but behind the rest of its content (texts,
+    * bars, buffs...). Useful for tinting the background of the frame.
+    */
+  val overBackgroundDepth: Depth = Depth(backgroundDepth.toInt - 1)
+
 }

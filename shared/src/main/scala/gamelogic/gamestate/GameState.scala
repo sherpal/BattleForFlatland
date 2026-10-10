@@ -187,7 +187,7 @@ final case class GameState(
   def allBuffsOfEntity(entityId: Entity.Id): Iterator[Buff] =
     tickerBuffs.getOrElse(entityId, Map()).valuesIterator ++
       passiveBuffs.getOrElse(entityId, Map()).valuesIterator
-  def hasBuffOfType[T <: Buff](entityId: Entity.Id)(using scala.reflect.Typeable[T]) =
+  def hasBuffOfType[T <: Buff](entityId: Entity.Id)(using scala.reflect.Typeable[T]): Boolean =
     allBuffsOfEntity(entityId).exists {
       case _: T => true
       case _    => false

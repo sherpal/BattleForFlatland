@@ -78,6 +78,7 @@ game-server/src/main/scala/application/ai/
 
 frontend/src/main/scala/
   game/drawers/bossspecificdrawers/Boss104Drawer.scala
+  game/ui/bossplugins/Boss104GUIPlugin.scala      ← boss-specific tweaks of the generic HUD
   assets/Asset.scala                              ← buff icons etc.
 frontend/public/assets/in-game/gui/boss/dawn-of-time/boss104/   ← 32×32 PNGs
 ```
@@ -107,6 +108,7 @@ silently inert boss, not a compile error.
 | " | `case action: SpawnBoss if action.bossName == BossXxx.name =>` | [`AIManager.scala`](game-server/src/main/scala/application/ai/AIManager.scala) | boss spawns and stands still forever |
 | " | `case BossXxx.name => …` | [`game/drawers/bossspecificdrawers/globals.scala`](frontend/src/main/scala/game/drawers/bossspecificdrawers/globals.scala) | **`MatchError` at render time** |
 | " | `case BossXxx.name => …` | [`game/ui/components/bossspecificcomponents/globals.scala`](frontend/src/main/scala/game/ui/components/bossspecificcomponents/globals.scala) | **`MatchError` at render time** |
+| a **GUI plugin** (optional) | `case BossXxx.name => BossXxxGUIPlugin` | [`game/ui/bossplugins/globals.scala`](frontend/src/main/scala/game/ui/bossplugins/globals.scala) | plugin silently ignored (the default case falls back to `BossGUIPlugin.empty`) |
 | an **add** (mob with its own AI) | `case action: AddYourAdd => aiControllers.addOne(action.entityId -> …)` | [`AIManager.scala`](game-server/src/main/scala/application/ai/AIManager.scala) | add spawns and stands still |
 | " | its `shape.radius` in the `GraphManager(Vector(...))` radii list | [`AIManager.scala`](game-server/src/main/scala/application/ai/AIManager.scala) | console warn `There is no graph for me`, add never moves |
 | **friendly bots** | a `BossAIContainer` + an entry in `bossAIContainers` | [`GoodAIManager.scala`](game-server/src/main/scala/application/ai/GoodAIManager.scala) | `I don't handle boss …` printed; bots inert |
@@ -288,6 +290,11 @@ its effects (damage taken, life bars) or a temporary `println` in the controller
    extending `DrawerWithCloneBlanks`, and swap the placeholder in `drawerMapping` for it (Recipe E).
 3. **Boss-specific HUD** (optional): a `Component` in `bossspecificcomponents`, wired into
    `containerMapping`. `Boss102Component` is the example; `Boss104` leaves it `Component.empty`.
+4. **Boss GUI plugin** (optional): when a mechanic needs the *generic* HUD to look different
+   rather than a new HUD element — typically, a debuff whose nature must be readable from the
+   player frames — write an `object BossXxxGUIPlugin extends BossGUIPlugin` in
+   [`game/ui/bossplugins/`](frontend/src/main/scala/game/ui/bossplugins/) and add it to
+   `pluginMapping` (Recipe F).
 
 **Check**: you can *see* the mechanic and play around it.
 
@@ -644,6 +651,37 @@ The querying vocabulary you will use constantly, from
 [`game/drawers/globals.scala`](frontend/src/main/scala/game/drawers/globals.scala) give adds a life
 bar and cast bar for free — use them, players need to see a cast bar to know when to interrupt.
 
+### Recipe F — A boss GUI plugin
+
+[`BossGUIPlugin`](frontend/src/main/scala/game/ui/bossplugins/BossGUIPlugin.scala) is a trait of
+hooks, one per generic component that supports being altered, each defaulting to "do nothing". The
+component asks `BossGUIPlugin.current` (the plugin of the boss being fought) for extra scene nodes.
+Override only what you need:
+
+```scala
+object BossXxxGUIPlugin extends BossGUIPlugin {
+  override def playerFrameDecorations(playerId: Entity.Id, bounds: Rectangle, alpha: Double)(
+      using viewModel: IndigoViewModel
+  ): js.Array[SceneNode] =
+    viewModel.gameState.allBuffsOfEntity(playerId)
+      .collectFirst { case debuff: TwinDebuff => debuff.colour.toIndigo }
+      .fold(js.Array[SceneNode]()) { colour =>
+        js.Array(
+          Shape.Box(bounds, Fill.Color(colour.withAlpha(0.45 * alpha)))
+            .withDepth(PlayerFrame.overBackgroundDepth),            // tint behind the frame content
+          Shape.Box(bounds.contract(4), Fill.Color(RGBA.Zero), Stroke(4, colour))  // contour on top
+        )
+      }
+}
+```
+
+Then `case BossXxx.name => BossXxxGUIPlugin` in `pluginMapping`. Unlike `drawerMapping` and
+`containerMapping`, this mapping has a default case: a boss without a plugin needs no clause.
+
+Like a drawer, a plugin is a pure function of the game state. If a mechanic needs to alter a
+component that has no hook yet, add a no-op hook to the trait and call it from that component —
+see how [`PlayerFrame`](frontend/src/main/scala/game/ui/components/PlayerFrame.scala) does it.
+
 ---
 
 ## 6. Hard rules
@@ -758,6 +796,7 @@ standing outside.
 | Friendly bots | [boss104/](game-server/src/main/scala/application/ai/goodais/bosses/boss104/) — see `PentagonForBoss104` (circle assignment via `index`), `TriangleForBoss104` (add tanking + interrupting) and `DeathMarkTriangleAware` (behaviour shared by all four classes) |
 | Tests | [Boss104Specs.scala](shared/src/test/scala/gamelogic/gamestate/abilitiesstories/bosses/dawnoftime/Boss104Specs.scala), [BFFPicklersSpecs.scala](shared/src/test/scala/communication/BFFPicklersSpecs.scala) |
 | Rendering | [Boss104Drawer.scala](frontend/src/main/scala/game/drawers/bossspecificdrawers/Boss104Drawer.scala) |
+| GUI plugin — twin debuff colour on player frames | [Boss104GUIPlugin.scala](frontend/src/main/scala/game/ui/bossplugins/Boss104GUIPlugin.scala) |
 
 ---
 
