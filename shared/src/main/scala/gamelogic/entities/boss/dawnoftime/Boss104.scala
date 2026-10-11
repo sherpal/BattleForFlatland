@@ -1,36 +1,24 @@
 package gamelogic.entities.boss.dawnoftime
 
-import gamelogic.entities.boss.BossEntity
-import gamelogic.entities.WithTarget
-import gamelogic.physics.Complex
-import gamelogic.abilities.{Ability, AutoAttack}
-import gamelogic.entities.Entity.TeamId
-import gamelogic.entities.Entity.Id
-import gamelogic.entities.WithThreat.ThreatAmount
-import gamelogic.entities.WithAbilities
-import gamelogic.entities.WithThreat
-import gamelogic.entities.WithPosition.Angle
-import gamelogic.physics.shape.Circle
 import gamelogic.abilities.Ability.AbilityId
-import gamelogic.entities.MovingBody
-import gamelogic.entities.LivingEntity
-import gamelogic.entities.Resource.ResourceAmount
-import gamelogic.entities.Entity
-import gamelogic.entities.boss.BossFactory
-import gamelogic.gamestate.GameAction
-import gamelogic.utils.IdGeneratorContainer
-import gamelogic.gamestate.GameState
-import gamelogic.entities.Resource.NoResource
-import gamelogic.entities.boss.Boss101
-import gamelogic.gamestate.gameactions.CreateObstacle
-import gamelogic.physics.Complex.i
-import gamelogic.entities.staticstuff.Obstacle
-import gamelogic.utils.IdsProducer
-import models.syntax.Pointed
 import gamelogic.abilities.WithTargetAbility.Distance
-import gamelogic.docs.BossMetadata
-import models.bff.outofgame.PlayerClasses
 import gamelogic.abilities.boss.boss104.{SpawnBigGuy, TwinDebuffs}
+import gamelogic.abilities.{Ability, AutoAttack}
+import gamelogic.docs.BossMetadata
+import gamelogic.entities.Entity.{Id, TeamId}
+import gamelogic.entities.Resource.{NoResource, ResourceAmount}
+import gamelogic.entities.WithPosition.Angle
+import gamelogic.entities.*
+import gamelogic.entities.WithThreat.ThreatAmount
+import gamelogic.entities.boss.{Boss101, BossEntity, BossFactory}
+import gamelogic.entities.staticstuff.Obstacle
+import gamelogic.gamestate.{GameAction, GameState}
+import gamelogic.gamestate.gameactions.CreateObstacle
+import gamelogic.physics.Complex
+import gamelogic.physics.shape.Circle
+import gamelogic.utils.IdGeneratorContainer
+import models.bff.outofgame.PlayerClasses
+import models.syntax.Pointed
 
 /** Boss104 is the reference implementation for new bosses: see `make-a-boss.md` at the root of the
   * repository, which walks through every file of this encounter.
@@ -174,10 +162,9 @@ object Boss104 extends BossFactory[Boss104] with BossMetadata {
   /** The boss as it is at the very beginning of the game.
     *
     * `relevantUsedAbilities` is pre-filled with *fake past usages* of each ability. Since cooldowns
-    * are computed as `now - ability.time <= ability.cooldown`, seeding the time at
-    * `time - cooldown + timeToFirstUse` makes the ability come off cooldown exactly
-    * `timeToFirstUse` milliseconds after the pull. This is how we give players a warm-up before the
-    * first big mechanic.
+    * are computed as `now - ability.time <= ability.cooldown`, seeding the time at `time - cooldown
+    * + timeToFirstUse` makes the ability come off cooldown exactly `timeToFirstUse` milliseconds
+    * after the pull. This is how we give players a warm-up before the first big mechanic.
     */
   override def initialBoss(entityId: Id, time: Long): Boss104 = Pointed[Boss104].unit.copy(
     id = entityId,

@@ -1,10 +1,9 @@
 package gamelogic.abilities.boss.boss104
 
-import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.abilities.WithTargetAbility.Distance
-import gamelogic.abilities.pentagon.PentaDispel
 import gamelogic.abilities.triangle.Cut
+import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.buffs.abilities.classes.Silenced
 import gamelogic.entities.Resource.ResourceAmount
 import gamelogic.entities.boss.boss104.BigGuy

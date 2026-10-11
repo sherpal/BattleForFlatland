@@ -1,10 +1,8 @@
 package gamelogic.gamestate.statetransformers
 
 import gamelogic.gamestate.gameactions.{EndGame, GameStart}
-import gamelogic.gamestate.{GameState, ImmutableActionCollector}
-import zio.UIO
+import gamelogic.gamestate.GameState
 import zio.test.ZIOSpecDefault
-import zio.test.Assertion.*
 import zio.test.*
 import gamelogic.utils.IdGeneratorContainer
 

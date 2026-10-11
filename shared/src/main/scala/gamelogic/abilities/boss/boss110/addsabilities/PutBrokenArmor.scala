@@ -3,15 +3,13 @@ package gamelogic.abilities.boss.boss110.addsabilities
 import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.{Ability, WithTargetAbility}
+import gamelogic.buffs.Buff
+import gamelogic.buffs.boss.boss110.BrokenArmor
 import gamelogic.docs.{AbilityInfoFromMetadata, AbilityMetadata}
-import gamelogic.entities.boss.dawnoftime.Boss110
 import gamelogic.entities.{Entity, Resource}
+import gamelogic.gamestate.gameactions.{PutSimpleBuff, RemoveBuff}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
-import gamelogic.buffs.boss.boss110.BrokenArmor
-import gamelogic.gamestate.gameactions.RemoveBuff
-import gamelogic.gamestate.gameactions.PutSimpleBuff
-import gamelogic.buffs.Buff
 
 /** Puts The [[gamelogic.buffs.boss.boss110.BrokenArmor]] debuff on the target.
   */

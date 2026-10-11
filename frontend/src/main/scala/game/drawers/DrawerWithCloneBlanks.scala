@@ -2,7 +2,6 @@ package game.drawers
 
 import indigo.*
 
-import scala.scalajs.js
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 

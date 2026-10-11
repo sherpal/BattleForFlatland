@@ -1,8 +1,6 @@
 package game.drawers.effects
 
-import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
-import gamelogic.physics.shape.Shape
 import assets.Asset
 import indigo.*
 import game.scenes.ingame.InGameScene.StartupData

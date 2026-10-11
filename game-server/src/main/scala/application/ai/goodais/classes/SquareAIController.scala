@@ -3,7 +3,6 @@ package application.ai.goodais.classes
 import application.ai.goodais.GoodAIController
 import gamelogic.entities.classes.Square
 import scala.reflect.ClassTag
-import gamelogic.entities.boss.BossEntity
 import application.ai.utils.maybeAbilityUsage
 import gamelogic.gamestate.GameState
 import gamelogic.entities.Entity

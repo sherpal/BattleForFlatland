@@ -63,7 +63,7 @@ trait Boss102GoodAIController[EntityType <: MovingBody & WithPosition]
   private val dangerRadiusSquared = math.pow(dangerRadius, 2)
 
   private val boundsSize = Boss102.size - 10 - Constants.playerRadius
-  private val bounds = Polygon(
+  Polygon(
     Vector(
       Complex(boundsSize, boundsSize),
       Complex(-boundsSize, boundsSize),

@@ -10,7 +10,6 @@ import be.doeraene.webcomponents.ui5.configkeys.MessageStripDesign
 import menus.data.User
 import components.router.Routes
 import components.router.Route
-import utils.laminarzio.*
 import be.doeraene.webcomponents.ui5.configkeys.IllustratedMessageType
 import services.FrontendEnv
 import components.login.Login
@@ -80,5 +79,5 @@ import components.duringgame.DuringGameMainPage
           )
         )
       )
-  }(scala.concurrent.ExecutionContext.global)
+  }(using scala.concurrent.ExecutionContext.global)
 }

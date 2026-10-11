@@ -2,7 +2,6 @@ package models.bff.ingame
 
 import models.bff.ingame.Controls.InputCode
 import models.syntax.Pointed
-import gamelogic.gameextras.GameMarker
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import services.localstorage.LocalStorage

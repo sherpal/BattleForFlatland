@@ -8,7 +8,6 @@ import gamelogic.physics.shape.Circle
 import gamelogic.entities.PolygonBody
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
-import gamelogic.gamestate.GameAction
 
 class GraphManager(initialRadiuses: Iterable[Int]) {
 

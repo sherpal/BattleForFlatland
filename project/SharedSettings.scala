@@ -17,7 +17,7 @@ object SharedSettings {
       "io.github.cquiroz"            %%% "scala-java-time" % "2.6.0",
       "com.lihaoyi"                  %%% "scalatags"       % "0.13.1",
       "com.softwaremill.magnolia1_3" %%% "magnolia"        % "1.3.7",
-      "org.scala-lang"                 % "scala-reflect"   % "2.13.1" % Provided,
+      //"org.scala-lang"                 % "scala-reflect"   % "2.13.1" % Provided,
       "org.planet42"                 %%% "laika-core"      % "0.19.5",
       "io.suzaku"                    %%% "boopickle"       % "1.5.0",
       "org.scalacheck"               %%% "scalacheck"      % "1.18.0" % Test,

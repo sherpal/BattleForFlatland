@@ -31,7 +31,7 @@ object Resource {
 
     def tryCompareTo[B >: ResourceAmount](
         that: B
-    )(implicit evidence$1: AsPartiallyOrdered[B]): Option[Int] =
+    )(using AsPartiallyOrdered[B]): Option[Int] =
       that match {
         case that: ResourceAmount if that.resourceType == this.resourceType =>
           Some(this.amount compare that.amount)

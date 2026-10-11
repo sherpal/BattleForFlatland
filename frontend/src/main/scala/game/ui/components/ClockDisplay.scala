@@ -1,6 +1,5 @@
 package game.ui.components
 
-import indigo.*
 import game.ui.*
 
 import scala.scalajs.js

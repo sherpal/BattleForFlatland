@@ -6,11 +6,9 @@ import gamelogic.gamestate.GameAction
 import gamelogic.entities.Entity
 
 import scala.collection.mutable
-import gamelogic.physics.pathfinding.Graph
 import gamelogic.gamestate.AddAndRemoveActions
 import gamelogic.gamestate.gameactions.*
 import gamelogic.entities.classes.Constants
-import gamelogic.entities.boss.boss110.BigGuy
 import gamelogic.entities.boss.*
 import gamelogic.entities.boss.dawnoftime.*
 
@@ -19,16 +17,10 @@ import scala.concurrent.ExecutionContext
 import application.TimeManager
 import application.ai.goodais.GoodAIController
 import gamelogic.docs.BossMetadata
-import models.bff.outofgame.PlayerClasses.*
 import models.bff.outofgame.gameconfig.PlayerName
 import application.ai.goodais.bosses.boss101.*
 import application.ai.goodais.bosses.boss102.*
-import application.ai.goodais.bosses.boss104.{
-  Boss104Container,
-  PentagonForBoss104,
-  SquareForBoss104,
-  TriangleForBoss104
-}
+import application.ai.goodais.bosses.boss104.Boss104Container
 import application.ai.goodais.classes.{
   HexagonAIController,
   PentagonAIController,

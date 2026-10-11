@@ -68,7 +68,7 @@ final case class GameConfiguration(
   /** Removes [[PlayerType.ArtificialIntelligence]] and restore all [[PlayerType.Observer]] as
     * [[PlayerType.Human]].
     */
-  def removeAis: GameConfiguration =
+  private def removeAis: GameConfiguration =
     copy(playersInfo = playersInfo.collect {
       case (name, info) if info.playerType != PlayerType.ArtificialIntelligence =>
         (name, info.copy(playerType = PlayerType.Human))
@@ -99,9 +99,9 @@ final case class GameConfiguration(
     }
 
   private def validator = FieldsValidator(
-    playersInfo.map((name, playerInfo) =>
-      name -> PlayerInfo.playerInfoValidator.contraMap[this.type](_.playersInfo(name))
-    ) ++ Map(
+    playersInfo.keys
+      .map(name => name -> PlayerInfo.playerInfoValidator.contraMap[this.type](_.playersInfo(name)))
+      .toMap ++ Map(
       "Boss Name" -> Validator.simpleValidator(
         (t: this.type) => BossMetadata.maybeMetadataByName(bossName).isDefined,
         (t: this.type) => s"${t.bossName} is not an existing boss."
@@ -109,7 +109,7 @@ final case class GameConfiguration(
     )
   )
 
-  def validate = validator.validate(this)
+  def validate: Map[String, List[String]] = validator.validate(this)
 
 }
 

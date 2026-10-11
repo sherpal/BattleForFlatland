@@ -4,15 +4,11 @@ import indigo.*
 import indigo.scenes.*
 import indigoextras.subsystems.*
 import game.IndigoModel
-import game.scenes.loading.LoadingScene.StartupData
 import game.IndigoViewModel
-import indigo.scenes.SceneEvent.Next
 import game.events.CustomIndigoEvents
 import game.BackendCommWrapper
-import assets.Asset
 import models.bff.ingame.InGameWSProtocol
 
-import scala.scalajs.js
 import game.scenes.loading.LoadingState.NotStarted
 import game.scenes.loading.LoadingState.InProgress
 import game.scenes.loading.LoadingState.WaitingForOthers

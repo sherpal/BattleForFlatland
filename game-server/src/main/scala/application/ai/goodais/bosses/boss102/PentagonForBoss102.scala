@@ -7,7 +7,6 @@ import gamelogic.physics.Complex
 import gamelogic.gamestate.GameAction
 import gamelogic.gamestate.GameState
 import gamelogic.physics.pathfinding.Graph
-import gamelogic.gamestate.gameactions.MovingBodyMoves
 
 final case class PentagonForBoss102(index: Int, entityId: Entity.Id)
     extends PentagonAIController(index)

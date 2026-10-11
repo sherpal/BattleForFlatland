@@ -17,11 +17,6 @@ object TriangulationChecks extends Properties("TriangulationChecks") {
 
   property("Triangulate a pentagon gives 3 triangles") =
     forAll(polygonGen(5, Shape.translatedRegularPolygon(4, 10, Complex(10, 10)))) { polygon =>
-      val vertices = polygon.vertices
-      val ears     = polygon.ears
-
-      // println(ears.map(_.det).sum)
-
       Shape.earClipping(polygon.vertices).length == 3
     }
 

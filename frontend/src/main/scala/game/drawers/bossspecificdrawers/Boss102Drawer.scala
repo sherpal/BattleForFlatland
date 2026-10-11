@@ -6,7 +6,6 @@ import gamelogic.gamestate.GameState
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
 import gamelogic.physics.Complex
-import game.gameutils.toIndigo
 import assets.Asset
 import gamelogic.buffs.boss.boss102.LivingDamageZone
 import gamelogic.entities.boss.boss102.BossHound

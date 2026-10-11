@@ -3,7 +3,6 @@ package gamelogic.gamestate.gameactions
 import gamelogic.gamestate.GameState
 import zio.ZIO
 import zio.test.ZIOSpecDefault
-import zio.test.Assertion.*
 import zio.test.*
 import gamelogic.utils.IdGeneratorContainer
 

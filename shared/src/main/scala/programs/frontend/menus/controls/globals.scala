@@ -2,9 +2,8 @@ package programs.frontend.menus.controls
 
 import models.bff.ingame.{Controls, KeyboardControls}
 import models.syntax.Pointed
-import services.localstorage._
-import zio.{UIO, ZIO}
-import io.circe.generic.auto._
+import services.localstorage.*
+import zio.ZIO
 import services.logging.Logging
 
 /** Retrieve the [[Controls]] from the local storage if it exists, or the default one otherwise. */

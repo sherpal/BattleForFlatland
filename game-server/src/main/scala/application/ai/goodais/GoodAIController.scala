@@ -56,7 +56,7 @@ trait GoodAIController[
       gameState: GameState,
       graphs: Double => Option[Graph]
   ): Vector[GameAction] =
-    val startTime          = now
+    now
     val timeSinceLastFrame = now - lastTimeStamp
     val shouldRun          = timeSinceLastFrame > loopRate
     if shouldRun then

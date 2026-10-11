@@ -1,14 +1,13 @@
 package programs.frontend.login
 
 import errors.ErrorADT
-//import io.circe.generic.auto.*
-import models.users.{LoginUser, NewUser, RouteDefinitions, User}
+import models.users.{LoginUser, NewUser, User}
 import models.validators.FieldsValidator
 import services.http.*
 import urldsl.language.QueryParameters.dummyErrorImpl.*
 import urldsl.vocabulary.Printer
 import utils.ziohelpers.fieldsValidateOrFail
-import zio.{UIO, URIO, ZIO}
+import zio.{URIO, ZIO}
 
 def confirmRegistrationCall(registrationKey: String): URIO[HttpClient, Either[ErrorADT, Int]] =
   (for {
@@ -38,7 +37,8 @@ def register(
   } yield statusCode)
     .refineOrDie(ErrorADT.onlyErrorADT)
 
-val me: ZIO[HttpClient, ErrorADT, User] = get[User](models.users.Routes.me).refineOrDie(ErrorADT.onlyErrorADT)
+val me: ZIO[HttpClient, ErrorADT, User] =
+  get[User](models.users.Routes.me).refineOrDie(ErrorADT.onlyErrorADT)
 
 val amISuperUser: URIO[HttpClient, Boolean] =
   getStatus(models.users.Routes.superUser).map(_ / 100 == 2).catchAll(_ => ZIO.succeed(false))
@@ -46,5 +46,7 @@ val amISuperUser: URIO[HttpClient, Boolean] =
 given Printer[Long] = (t: Long) => t.toString
 
 def users(from: Long, to: Long): ZIO[HttpClient, ErrorADT, List[User]] =
-  get[List[User]](models.users.Routes.donwloadUsers, param[Long]("from") & param[Long]("to"))((from, to))
+  get[List[User]](models.users.Routes.donwloadUsers, param[Long]("from") & param[Long]("to"))(
+    (from, to)
+  )
     .refineOrDie(ErrorADT.onlyErrorADT)

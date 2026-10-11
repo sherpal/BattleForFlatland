@@ -7,7 +7,6 @@ import gamelogic.gamestate.GameState
 import application.ai.utils.maybeAbilityUsage
 import gamelogic.abilities.pentagon.CreatePentagonBullet
 import gamelogic.physics.Complex
-import gamelogic.gamestate.gameactions.boss102.PutDamageZone
 import gamelogic.abilities.pentagon.CreatePentagonZone
 import gamelogic.entities.classes.pentagon.PentagonZone
 import utils.misc.RGBColour

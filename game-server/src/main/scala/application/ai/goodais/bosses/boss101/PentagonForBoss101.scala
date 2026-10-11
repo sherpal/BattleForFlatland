@@ -1,16 +1,9 @@
 package application.ai.goodais.bosses.boss101
 
-import application.ai.goodais.GoodAIController
 import gamelogic.entities.classes.Pentagon
-import scala.reflect.ClassTag
-import models.bff.outofgame.gameconfig.PlayerName
 import gamelogic.gamestate.{GameAction, GameState}
-import models.bff.outofgame.PlayerClasses
 
-import application.ai.utils.maybeAbilityUsage
 import gamelogic.entities.boss.Boss101
-import gamelogic.entities.movingstuff.PentagonBullet
-import gamelogic.abilities.pentagon.CreatePentagonBullet
 import application.ai.goodais.classes.PentagonAIController
 import gamelogic.physics.Complex
 import gamelogic.entities.Entity
@@ -27,7 +20,6 @@ final case class PentagonForBoss101(index: Int, entityId: Entity.Id)
       timeSinceLastFrame: Long,
       obstacleGraph: Graph
   ): Vector[GameAction] = {
-    import gamelogic.physics.Complex.DoubleWithI
     val (previousPosition, currentPosition, travelledDistance) = someDistanceInfo(startTime, me)
 
     val actions: Vector[GameAction] = gameState.bosses.values.headOption match {

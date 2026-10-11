@@ -1,15 +1,11 @@
 package gamelogic.abilities.triangle
 
-import gamelogic.abilities.WithTargetAbility
-import gamelogic.abilities.Ability
-import gamelogic.entities.Entity
-import gamelogic.entities.Resource
+import gamelogic.abilities.{Ability, WithTargetAbility}
+import gamelogic.entities.{Entity, Resource}
+import gamelogic.entities.Resource.Energy
+import gamelogic.gamestate.gameactions.{EntityResourceChanges, EntityTakesDamage}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
-import gamelogic.gamestate.GameState
-import gamelogic.entities.Resource.Energy
-import gamelogic.gamestate.gameactions.EntityTakesDamage
-import gamelogic.gamestate.gameactions.EntityResourceChanges
 
 /** Gives back some energy to the caster, while dealing small damages to the target.
   *

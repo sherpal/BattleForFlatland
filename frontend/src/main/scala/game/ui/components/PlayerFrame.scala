@@ -1,10 +1,7 @@
 package game.ui.components
 
-import game.scenes.ingame.InGameScene
 import game.IndigoViewModel
 import gamelogic.entities.Entity
-import indigo.shared.FrameContext
-import game.scenes.ingame.InGameScene.StartupData
 import indigo.*
 import game.ui.components.buffcontainers.BuffContainer
 
@@ -12,7 +9,6 @@ import scala.scalajs.js
 import models.bff.outofgame.PlayerClasses
 import assets.Asset
 import game.events.CustomIndigoEvents
-import indigo.shared.events.MouseEvent.Click
 import game.ui.*
 import assets.fonts.Fonts
 import gamelogic.abilities.WithTargetAbility
@@ -34,7 +30,7 @@ final case class PlayerFrame(
     playerClass: PlayerClasses,
     inGroup: Boolean,
     anchor: Anchor = Anchor.topLeft
-)(using context: FrameContext[StartupData], viewModel: IndigoViewModel)
+)(using viewModel: IndigoViewModel)
     extends Component {
 
   val maybeAlivePlayer = viewModel.gameState.players.get(playerId)

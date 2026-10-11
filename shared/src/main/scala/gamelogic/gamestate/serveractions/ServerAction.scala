@@ -2,9 +2,7 @@ package gamelogic.gamestate.serveractions
 
 import gamelogic.gamestate.serveractions.ServerAction.ServerActionOutput
 import gamelogic.gamestate.{ActionGatherer, GameAction}
-import gamelogic.utils.IdGeneratorContainer
-import gamelogic.gamestate.ActionGatherer
-import gamelogic.utils.IdsProducer
+import gamelogic.utils.{IdGeneratorContainer, IdsProducer}
 
 trait ServerAction extends IdsProducer {
 

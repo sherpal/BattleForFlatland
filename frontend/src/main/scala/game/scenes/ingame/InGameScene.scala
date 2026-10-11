@@ -21,13 +21,10 @@ import assets.Asset
 import indigo.shared.events.MouseEvent.Click
 import models.bff.ingame.InGameWSProtocol
 import game.drawers.PentagonBulletsDrawer
-import gamelogic.abilities.pentagon.CreatePentagonZone
 import gamelogic.abilities.Ability
-import assets.fonts.Fonts
 import gamelogic.gamestate.gameactions.markers.UpdateMarker
 import game.drawers.*
 import game.handlers.*
-import game.drawers.bossspecificdrawers.Boss102Drawer
 import game.sounds.SoundsManager
 
 class InGameScene(
@@ -58,13 +55,6 @@ class InGameScene(
 
     val gameState = viewModel.gameState
     val now       = serverTime
-
-    def text(message: String, point: Point) = TextBox(message, 400, 30)
-      .withFontFamily(FontFamily.cursive)
-      .withColor(RGBA.White)
-      .withFontSize(Pixels(16))
-      .withStroke(TextStroke(RGBA.Red, Pixels(1)))
-      .withPosition(point)
 
     val localCameraPos       = context.gameToLocal(viewModel.currentCameraPosition)
     val playerCenteredCamera = Camera.LookAt(localCameraPos)
@@ -149,7 +139,6 @@ class InGameScene(
     case FrameTick =>
       val gameMousePos                 = context.localToGame(context.mouse.position)
       val (newModel, triggeredActions) = backendCommWrapper.transform(model)
-      val nowGameTime                  = context.gameTime.running
       val gameState                    = newModel.projectedGameState
       gameState.players.get(myId) match {
         case Some(player) =>

@@ -1,19 +1,9 @@
 package application.ai.goodais.bosses.boss101
 
-import application.ai.goodais.GoodAIController
 import gamelogic.entities.classes.Triangle
-import scala.reflect.ClassTag
-import models.bff.outofgame.gameconfig.PlayerName
 import gamelogic.gamestate.{GameAction, GameState}
-import models.bff.outofgame.PlayerClasses
-import gamelogic.entities.classes.Constants
 import gamelogic.entities.boss.Boss101
-import gamelogic.buffs.Buff
-import application.ai.utils.maybeAbilityUsage
 import gamelogic.abilities.WithTargetAbility
-import gamelogic.abilities.triangle.UpgradeDirectHit
-import gamelogic.abilities.triangle.DirectHit
-import gamelogic.abilities.triangle.EnergyKick
 import gamelogic.gamestate.gameactions.MovingBodyMoves
 import application.ai.goodais.classes.TriangleAIController
 import gamelogic.physics.Complex
@@ -31,7 +21,6 @@ final case class TriangleForBoss101(index: Int, entityId: Entity.Id)
       timeSinceLastFrame: Long,
       obstacleGraph: Graph
   ): Vector[GameAction] = {
-    import gamelogic.physics.Complex.DoubleWithI
     val (previousPosition, currentPosition, travelledDistance) = someDistanceInfo(startTime, me)
 
     val actions: Vector[GameAction] = gameState.bosses.values.headOption match {

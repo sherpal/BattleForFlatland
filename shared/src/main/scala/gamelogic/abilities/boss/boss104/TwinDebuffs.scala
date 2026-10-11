@@ -1,21 +1,18 @@
 package gamelogic.abilities.boss.boss104
 
 import gamelogic.abilities.Ability
-import gamelogic.entities.Entity
-import gamelogic.utils.IdGeneratorContainer
+import gamelogic.abilities.Ability.{AbilityId, UseId}
+import gamelogic.entities.{Entity, Resource}
 import gamelogic.entities.Resource.ResourceAmount
-import gamelogic.abilities.Ability.AbilityId
-import gamelogic.abilities.Ability.UseId
-import gamelogic.gamestate.GameAction
-import gamelogic.gamestate.GameState
-import gamelogic.entities.Resource
-import utils.misc.RGBAColour
-import gamelogic.physics.Complex
-import utils.misc.RGBColour
-import scala.util.Random
-import gamelogic.gamestate.gameactions.boss104.PutTwinDebuff
-import gamelogic.entities.classes.PlayerClass
 import gamelogic.entities.boss.dawnoftime.Boss104
+import gamelogic.entities.classes.PlayerClass
+import gamelogic.gamestate.{GameAction, GameState}
+import gamelogic.gamestate.gameactions.boss104.PutTwinDebuff
+import gamelogic.physics.Complex
+import gamelogic.utils.IdGeneratorContainer
+import utils.misc.RGBColour
+
+import scala.util.Random
 
 /** Curses two random players with a [[gamelogic.buffs.boss.boss104.TwinDebuff]] of two different
   * colours, and drops a [[gamelogic.entities.boss.boss104.DebuffCircle]] of each colour somewhere

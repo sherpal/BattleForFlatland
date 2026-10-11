@@ -5,7 +5,6 @@ import gamelogic.entities.Entity
 import gamelogic.entities.Resource
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
-import gamelogic.gamestate.GameState
 import gamelogic.docs.{AbilityInfoFromMetadata, AbilityMetadata}
 import gamelogic.physics.Complex
 import gamelogic.entities.boss.dawnoftime.Boss110
@@ -15,7 +14,7 @@ final case class SpawnBigGuies(useId: Ability.UseId, time: Long, casterId: Entit
     extends Ability
     with AbilityInfoFromMetadata[SpawnBigGuies.type] {
 
-  def metadata = SpawnBigGuies
+  def metadata: SpawnBigGuies.type = SpawnBigGuies
 
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(0.0, Resource.NoResource)
 
@@ -46,8 +45,8 @@ object SpawnBigGuies extends AbilityMetadata {
 
   import Complex.DoubleWithI
 
-  val bigGuiesPositions: List[Complex] =
-    List(
+  private val bigGuiesPositions: Vector[Complex] =
+    Vector(
       -1,
       0,
       1

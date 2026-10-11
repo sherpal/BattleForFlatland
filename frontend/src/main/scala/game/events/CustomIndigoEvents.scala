@@ -1,7 +1,6 @@
 package game.events
 
 import indigo.shared.events.GlobalEvent
-import gamelogic.gamestate.AddAndRemoveActions
 import gamelogic.gamestate.GameAction
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.entities.Entity

@@ -5,21 +5,19 @@ import ziocask.WithZIOEndpoints
 import models.bff.outofgame.MenuGameWithPlayers
 import menus.data.APIResponse
 import io.circe.Decoder
-import io.circe.parser.decode
 import menus.data.JoinGameFormData
 import zio.*
 import errors.ErrorADT
 import menus.data.User
 import menus.data.CreateGameFormData
-import models.bff.outofgame.gameconfig.PlayerInfo
 import menus.data.ChangePlayerInfoFormData
 import io.circe.Encoder
 import menus.data.MenuGameComm
 import services.events
 import java.util.concurrent.atomic.AtomicBoolean
-import models.bff.outofgame.gameconfig.GameConfiguration
 import menus.data.*
 
+//noinspection TypeAnnotation
 class MenuGameRoutes()(using
     val runtime: zio.Runtime[BackendEnv],
     ac: castor.Context,
@@ -137,7 +135,7 @@ class MenuGameRoutes()(using
       case None => unauthenticatedResponse
       case Some(user) =>
         cask.WsHandler { channel =>
-          var isOpen    = AtomicBoolean(true)
+          val isOpen    = AtomicBoolean(true)
           val isOpenZIO = ZIO.succeed(isOpen.get())
 
           def sendMsg(msg: MenuGameComm) = ZIO.succeed(
@@ -200,9 +198,6 @@ class MenuGameRoutes()(using
         }
 
     }
-
-  private def runEffectToFuture[R >: BackendEnv, E <: Throwable, A](effect: ZIO[R, E, A]) =
-    Unsafe.unsafe(implicit unsafe => runtime.unsafe.runToFuture(effect))
 
   private def runEffect[R >: BackendEnv, E <: Throwable, A](effect: ZIO[R, E, A]) =
     Unsafe.unsafe(implicit unsafe => runtime.unsafe.run(effect).getOrThrow())

@@ -1,21 +1,10 @@
 package application.ai.goodais.bosses.boss101
 
-import application.ai.goodais.GoodAIController
 import gamelogic.entities.classes.Hexagon
-import scala.reflect.ClassTag
-import models.bff.outofgame.gameconfig.PlayerName
 import gamelogic.gamestate.{GameAction, GameState}
-import models.bff.outofgame.PlayerClasses
 import gamelogic.entities.boss.Boss101
-import application.ai.utils.maybeAbilityUsage
-import gamelogic.abilities.hexagon.HexagonHot
-import gamelogic.entities.classes.Square
-import gamelogic.abilities.boss.boss101.BigDot
 import gamelogic.buffs.Buff
-import gamelogic.buffs.DoT
 import gamelogic.entities.Entity
-import gamelogic.buffs.HoT
-import gamelogic.abilities.hexagon.FlashHeal
 import application.ai.goodais.classes.HexagonAIController
 import gamelogic.physics.Complex
 import gamelogic.physics.pathfinding.Graph

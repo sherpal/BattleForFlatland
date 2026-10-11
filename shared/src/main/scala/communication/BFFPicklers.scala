@@ -1,6 +1,5 @@
 package communication
 
-import boopickle.CompositePickler
 import boopickle.Default.*
 import gamelogic.abilities.*
 import gamelogic.gamestate.GameAction

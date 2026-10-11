@@ -1,12 +1,9 @@
 package game.ui.components
 
-import game.scenes.ingame.InGameScene
 import game.IndigoViewModel
 import game.ui.*
 import indigo.*
-import game.scenes.ingame.InGameScene.StartupData
 import game.ui.components.grid.GridContainer
-import game.events.CustomIndigoEvents.UIEvent.*
 
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
@@ -15,7 +12,7 @@ import gamelogic.entities.Entity
 case class PlayerFrameContainer(
     myId: Entity.Id,
     offset: Point
-)(using context: FrameContext[InGameScene.StartupData], viewModel: IndigoViewModel)
+)(using viewModel: IndigoViewModel)
     extends Component {
 
   def alpha: Double = 1.0

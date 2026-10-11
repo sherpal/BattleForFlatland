@@ -2,16 +2,13 @@ package components.beforegame
 
 import com.raquo.laminar.api.L.*
 import be.doeraene.webcomponents.ui5.*
-import be.doeraene.webcomponents.ui5.compat.*
 import menus.data.User
 import services.FrontendEnv
 import services.menugames
 import utils.laminarzio.*
 import be.doeraene.webcomponents.ui5.configkeys.ButtonDesign
-import scala.scalajs.js
 import utils.websocket.JsonWebSocket
 import menus.data.MenuGameComm
-import com.raquo.airstream.ownership.Owner
 import models.bff.outofgame.MenuGameWithPlayers
 import be.doeraene.webcomponents.ui5.configkeys.IconName
 import be.doeraene.webcomponents.ui5.scaladsl.colour.Colour
@@ -24,14 +21,12 @@ import models.bff.outofgame.gameconfig.PlayerStatus
 import gamelogic.docs.BossMetadata
 import models.bff.outofgame.gameconfig.GameConfiguration
 import zio.*
-import models.bff.outofgame.gameconfig.PlayerStatus.Ready
 import models.bff.outofgame.gameconfig.PlayerStatus.NotReady
 import errors.ErrorADT
 import java.util.concurrent.TimeUnit
 import models.bff.ingame.GameUserCredentials
 import services.localstorage.LocalStorage
 import gamelogic.entities.boss.Boss101
-import models.bff.outofgame.gameconfig.PlayerType
 import models.bff.outofgame.gameconfig.PlayerName.HumanPlayerName
 import models.bff.outofgame.gameconfig.PlayerName.AIPlayerName
 

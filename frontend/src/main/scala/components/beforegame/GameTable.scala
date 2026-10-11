@@ -2,7 +2,6 @@ package components.beforegame
 
 import com.raquo.laminar.api.L.*
 import be.doeraene.webcomponents.ui5.*
-import be.doeraene.webcomponents.ui5.compat.*
 import zio.Runtime
 import services.FrontendEnv
 import utils.laminarzio.*
@@ -10,11 +9,10 @@ import menus.data.User
 import be.doeraene.webcomponents.ui5.configkeys.MessageStripDesign
 import models.bff.outofgame.MenuGameWithPlayers
 import be.doeraene.webcomponents.ui5.configkeys.IconName
-import scala.languageFeature.experimental
 import be.doeraene.webcomponents.ui5.configkeys.ButtonDesign
 import utils.websocket.JsonWebSocket
 import menus.data.MenuGameComm
-import services.menugames.{menuGames, createGame}
+import services.menugames.createGame
 import be.doeraene.webcomponents.ui5.configkeys.ValueState
 
 object GameTable {

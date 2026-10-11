@@ -1,14 +1,11 @@
 package gamelogic.gamestate
 
-import boopickle.Default._
-import gamelogic.entities.Entity
-import gamelogic.gamestate.gameactions._
-import gamelogic.gamestate.statetransformers.GameStateTransformer
-import io.circe.{Decoder, Encoder, Json}
-import gamelogic.utils.GameActionIdGenerator
-import io.circe.Codec
 import boopickle.Pickler
+import gamelogic.entities.Entity
+import gamelogic.gamestate.gameactions.*
+import gamelogic.gamestate.statetransformers.GameStateTransformer
 import gamelogic.utils.IdGeneratorContainer
+import io.circe.{Codec, Decoder, Encoder, Json}
 
 trait GameAction extends Ordered[GameAction] {
 
@@ -36,7 +33,7 @@ trait GameAction extends Ordered[GameAction] {
     */
   def createGameStateTransformer(gameState: GameState): GameStateTransformer
 
-  def createAndApplyGameStateTransformer(gameState: GameState): GameState =
+  private def createAndApplyGameStateTransformer(gameState: GameState): GameState =
     createGameStateTransformer(gameState)(gameState)
 
   /** Returns whether this action is legal at that particular point in time, i.e., for that
@@ -68,9 +65,9 @@ object GameAction {
 
   object Id extends gamelogic.utils.OpaqueLongCompanion[Id]
 
-  import cats.syntax.functor._
-  import io.circe.generic.auto._
-  import io.circe.syntax._
+  import cats.syntax.functor.*
+  import io.circe.generic.auto.*
+  import io.circe.syntax.*
 
   private def customEncode[A <: GameAction](a: A, name: String)(implicit
       encoder: Encoder[A]

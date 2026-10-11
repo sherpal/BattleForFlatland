@@ -33,9 +33,9 @@ final case class HexagonForBoss104(index: Int, entityId: Entity.Id)
 
     val actions: Vector[GameAction] = gameState.bosses.values.headOption match {
       case Some(theBoss) =>
-        val maybeTank = maybeTankWithNotEnoughHot(gameState, me)
+        maybeTankWithNotEnoughHot(gameState, me)
 
-        val entityWithBossDebuffAndNoHotFromMe = gameState.players.values.find { player =>
+        gameState.players.values.find { player =>
           val buffs = gameState.allBuffsOfEntity(player.id)
           buffs.count(_.resourceIdentifier == Buff.boss101BigDotIdentifier) > countOfMyHotOnEntity(
             gameState,

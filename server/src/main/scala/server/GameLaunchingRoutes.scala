@@ -1,18 +1,13 @@
 package server
 
 import ziocask.WithZIOEndpoints
-import menus.data.GameCredentials
 import menus.data.APIResponse
 import services.{events, menugames}
 import zio.*
-import menus.data.AllGameCredentials
-import models.bff.outofgame.MenuGameWithPlayers
 import menus.data.GameCredentialsWithGameInfo
 
 class GameLaunchingRoutes()(using
-    val runtime: zio.Runtime[BackendEnv],
-    ac: castor.Context,
-    log: cask.util.Logger
+    val runtime: zio.Runtime[BackendEnv]
 ) extends cask.Routes
     with WithZIOEndpoints[BackendEnv] {
 

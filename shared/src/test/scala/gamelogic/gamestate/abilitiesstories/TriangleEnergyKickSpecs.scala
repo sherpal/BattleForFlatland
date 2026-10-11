@@ -17,7 +17,7 @@ final class TriangleEnergyKickSpecs extends StoryTeller {
       EnergyKick(genAbilityUseId(), 3, player.entityId, hound.entityId)
     val useEnergyKick = useAbilityFromAbility(ability)
 
-    val composer = ActionComposer.empty >>
+    ActionComposer.empty >>
       start >>
       player >> hound >>>
       (gs => ability.createActions(gs)) >> useEnergyKick >>>> { (gs: GameState) =>
@@ -39,7 +39,7 @@ final class TriangleEnergyKickSpecs extends StoryTeller {
       EnergyKick(genAbilityUseId(), 3, player.entityId, hound.entityId)
     val useEnergyKick = useAbilityFromAbility(ability)
 
-    val composer = ActionComposer.empty >>
+    ActionComposer.empty >>
       start >>
       player >> hound >>
       someEnergyLoss >>>> { (gs: GameState) =>

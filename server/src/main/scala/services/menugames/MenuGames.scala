@@ -6,7 +6,6 @@ import menus.data.User
 import errors.ErrorADT
 import models.bff.outofgame.gameconfig.PlayerInfo
 import models.bff.outofgame.gameconfig.GameConfiguration
-import menus.data.AllGameCredentials
 import services.localstorage.LocalStorage
 import menus.data.GameCredentialsWithGameInfo
 import models.bff.outofgame.PlayerClasses

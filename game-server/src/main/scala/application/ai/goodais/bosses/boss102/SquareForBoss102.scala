@@ -7,8 +7,6 @@ import gamelogic.physics.Complex
 import gamelogic.gamestate.GameAction
 import gamelogic.gamestate.GameState
 import gamelogic.physics.pathfinding.Graph
-import gamelogic.gamestate.gameactions.MovingBodyMoves
-import gamelogic.entities.boss.boss102.BossHound
 
 final case class SquareForBoss102(index: Int, entityId: Entity.Id)
     extends SquareAIController(index)

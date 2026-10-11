@@ -2,7 +2,6 @@ package game.handlers
 
 import indigo.*
 import game.IndigoViewModel
-import models.bff.ingame.Controls
 
 import scala.scalajs.js
 import game.scenes.ingame.InGameScene

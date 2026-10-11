@@ -1,13 +1,11 @@
 package gamelogic.gamestate.gameactions
 
-import gamelogic.abilities.SimpleBullet
 import gamelogic.abilities.hexagon.FlashHeal
 import gamelogic.gamestate.{GameAction, GameState, ImmutableActionCollector}
 import gamelogic.physics.Complex
 import models.bff.outofgame.PlayerClasses
-import zio.{UIO, ZIO}
+import zio.ZIO
 import zio.test.ZIOSpecDefault
-import zio.test.Assertion._
 import zio.test._
 import gamelogic.utils.IdGeneratorContainer
 import gamelogic.entities.Entity
@@ -101,7 +99,7 @@ object ImmutableActionCollectorSpecs extends ZIOSpecDefault {
     test("Adding two players makes gameState with two players") {
       val collector     = ImmutableActionCollector(GameState.empty)
       val gameStart     = GameStart(idGen.actionId(), 1)
-      val firstPlayerId = idGen.entityId()
+      idGen.entityId()
       val firstPlayer = AddPlayerByClass(
         idGen.actionId(),
         3,

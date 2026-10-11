@@ -2,10 +2,9 @@ package gamelogic.buffs
 
 import gamelogic.buffs.abilities.classes.{Silenced, TriangleStunDebuff, UpgradeDirectHit}
 import gamelogic.buffs.ai.{DamageThreatAware, HealingThreatAware}
-import gamelogic.buffs.boss.boss104.BigGuyCurse
+import gamelogic.buffs.boss.boss110.BrokenArmor
 import gamelogic.buffs.resourcebuffs.{EnergyFiller, ManaFiller, RageFiller}
 import gamelogic.entities.Entity
-import gamelogic.buffs.boss.boss110.BrokenArmor
 
 /** A lot of buffs (especially the "never ending" ones) simply require
   *   - a bearerId [[gamelogic.entities.Entity.Id]]

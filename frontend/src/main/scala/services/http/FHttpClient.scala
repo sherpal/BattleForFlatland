@@ -3,9 +3,7 @@ package services.http
 import errors.ErrorADT
 import io.circe.{Decoder, Encoder}
 import org.scalajs.dom
-import org.scalajs.dom.XMLHttpRequest
 import services.http.HttpClient.{apiPrefix, csrfTokenName, Path, Query}
-import urldsl.language.{PathSegment, QueryParameters}
 import zio.{Task, UIO, ZIO, ZLayer}
 import io.circe.parser.decode
 import org.scalajs.dom.RequestInit
@@ -24,8 +22,6 @@ object FHttpClient {
         .find(_.startsWith(s"$csrfTokenName="))
         .map(_.drop(csrfTokenName.length + 1))
     )
-
-    private final class RequestFailed(code: Int) extends Exception(s"Error code: $code")
 
     def decoderToBodyReader[R](decoder: Decoder[R]): String => Either[io.circe.Error, R] = {
       given Decoder[R] = decoder

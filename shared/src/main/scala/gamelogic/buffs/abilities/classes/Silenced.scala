@@ -1,9 +1,8 @@
 package gamelogic.buffs.abilities.classes
 
 import gamelogic.buffs.Buff.ResourceIdentifier
-import gamelogic.buffs.{ActionPreventerBuff, Buff, PassiveBuff, SilencingBuff}
+import gamelogic.buffs.{Buff, PassiveBuff, SilencingBuff}
 import gamelogic.entities.Entity
-import gamelogic.gamestate.gameactions.UseAbility
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 

@@ -6,12 +6,8 @@ import game.scenes.ingame.InGameScene.StartupData
 import game.IndigoViewModel
 import gamelogic.gamestate.GameAction
 import gamelogic.gamestate.gameactions.*
-import gamelogic.gamestate.gameactions.boss110.AddCreepingShadow
-import gamelogic.abilities.boss.boss103.SacredGround
-import gamelogic.abilities.boss.boss103.CleansingNova
 import gamelogic.abilities.square.Cleave
 import gamelogic.entities.Entity
-import utils.misc.RGBColour
 import gamelogic.physics.Complex
 import scala.scalajs.js.JSConverters.*
 import gamelogic.entities.classes.Constants

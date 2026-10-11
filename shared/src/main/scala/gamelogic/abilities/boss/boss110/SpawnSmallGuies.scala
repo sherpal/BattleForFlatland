@@ -1,15 +1,13 @@
 package gamelogic.abilities.boss.boss110
 
 import gamelogic.abilities.Ability
-import gamelogic.entities.Entity
-import gamelogic.entities.Resource
-import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.IdGeneratorContainer
-import gamelogic.gamestate.GameState
 import gamelogic.docs.{AbilityInfoFromMetadata, AbilityMetadata}
-import gamelogic.physics.Complex
+import gamelogic.entities.{Entity, Resource}
 import gamelogic.entities.boss.dawnoftime.Boss110
 import gamelogic.gamestate.gameactions.boss110.AddSmallGuy
+import gamelogic.gamestate.{GameAction, GameState}
+import gamelogic.physics.Complex
+import gamelogic.utils.IdGeneratorContainer
 
 final case class SpawnSmallGuies(useId: Ability.UseId, time: Long, casterId: Entity.Id)
     extends Ability

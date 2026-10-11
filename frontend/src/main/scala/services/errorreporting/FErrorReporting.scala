@@ -4,7 +4,6 @@ import be.doeraene.webcomponents.ui5.*
 import com.raquo.laminar.api.L.*
 import org.scalajs.dom
 import zio.ZIO
-import be.doeraene.webcomponents.ui5.configkeys.IllustratedMessageType
 import java.io.StringWriter
 import java.io.PrintWriter
 import be.doeraene.webcomponents.ui5.configkeys.MessageStripDesign

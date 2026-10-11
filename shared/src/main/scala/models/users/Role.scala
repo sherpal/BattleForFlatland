@@ -12,14 +12,15 @@ sealed trait Role extends PartiallyOrdered[Role] {
 
   def allUnder: List[Role] = under ++ under.flatMap(_.allUnder)
 
-  override def tryCompareTo[B >: Role](that: B)(implicit evidence$1: AsPartiallyOrdered[B]): Option[Int] = that match {
-    case that: Role =>
-      if (that == this) Some(0)
-      else if (that.allUnder.contains(this)) Some(1)
-      else if (this.allUnder.contains(that)) Some(-1)
-      else None
-    case _ => None
-  }
+  override def tryCompareTo[B >: Role](that: B)(using AsPartiallyOrdered[B]): Option[Int] =
+    that match {
+      case that: Role =>
+        if (that == this) Some(0)
+        else if (that.allUnder.contains(this)) Some(1)
+        else if (this.allUnder.contains(that)) Some(-1)
+        else None
+      case _ => None
+    }
 }
 
 object Role {

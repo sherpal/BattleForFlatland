@@ -1,16 +1,12 @@
 package gamelogic.abilities.boss.boss110.addsabilities
 
-import gamelogic.docs.AbilityMetadata
 import gamelogic.abilities.Ability
-import gamelogic.abilities.WithTargetAbility
-import gamelogic.docs.AbilityInfoFromMetadata
-import gamelogic.entities.Entity
-import gamelogic.entities.Resource
-import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.utils.IdGeneratorContainer
-import gamelogic.gamestate.GameState
+import gamelogic.docs.{AbilityInfoFromMetadata, AbilityMetadata}
+import gamelogic.entities.{Entity, Resource}
 import gamelogic.entities.boss.boss110.CreepingShadow
 import gamelogic.gamestate.gameactions.EntityTakesDamage
+import gamelogic.gamestate.{GameAction, GameState}
+import gamelogic.utils.IdGeneratorContainer
 
 /** Cast by the (normaly) unique instance of [[CreepingShadow]] when it collides the boss. It deals
   * damages to every player.

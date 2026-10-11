@@ -1,27 +1,15 @@
 package gamelogic.gamestate.abilitiesstories
 
-import gamelogic.gamestate.gameactions.boss102.AddBossHound
-import gamelogic.utils.IdGeneratorContainer
-import gamelogic.gamestate.GameAction
-import gamelogic.entities.Entity
-import gamelogic.gamestate.gameactions.AddPlayerByClass
-import models.bff.outofgame.PlayerClasses
 import gamelogic.gamestate.GameState
-import gamelogic.gamestate.gameactions.GameStart
-import gamelogic.gamestate.gameactions.UseAbility
 import gamelogic.abilities.triangle.Stun
 import gamelogic.gamestate.gameactions.MovingBodyMoves
 import gamelogic.entities.boss.boss102.BossHound
 import gamelogic.physics.Complex
 import testutils.ActionComposer
-import gamelogic.abilities.Ability
 import gamelogic.buffs.abilities.classes.TriangleStunDebuff
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.gameactions.EntityStartsCasting
 import gamelogic.abilities.hexagon.FlashHeal
-import gamelogic.gamestate.gameactions.SpawnBoss
-import gamelogic.entities.boss.BossFactory
-import gamelogic.entities.boss.Boss101
 
 final class TriangleStunSpecs extends StoryTeller {
 
@@ -79,7 +67,7 @@ final class TriangleStunSpecs extends StoryTeller {
     val houndTakesDamage =
       EntityTakesDamage(genActionId(), 4, addingHound.entityId, 10, addingPlayer.entityId)
 
-    val composer = ActionComposer.empty >>
+    ActionComposer.empty >>
       start >>
       addingHound >>
       addingPlayer >>>

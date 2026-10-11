@@ -8,7 +8,6 @@ import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
 import game.events.CustomIndigoEvents
 import gamelogic.entities.classes.PlayerClass
-import models.bff.ingame.Controls.InputCode
 import game.scenes.ingame.InGameScene.StartupData
 import scala.collection.mutable
 import models.bff.ingame.UserInput

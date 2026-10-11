@@ -8,9 +8,6 @@ import urldsl.language.PathSegment
 
 import scala.language.implicitConversions
 import scala.collection.mutable
-import scala.scalajs.js
-import scala.scalajs.js.annotation.JSImport
-import scala.util.Try
 import models.bff.outofgame.PlayerClasses
 
 class Asset private (val path: PathSegment[Unit, ?], val name: String, width: Int, height: Int)

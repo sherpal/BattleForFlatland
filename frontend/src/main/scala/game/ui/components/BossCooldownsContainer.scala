@@ -4,10 +4,8 @@ import game.ui.*
 import indigo.*
 import scala.scalajs.js
 import game.ui.Component.EventRegistration
-import gamelogic.entities.Entity
 import game.IndigoViewModel
 import game.ui.components.grid.GridContainer
-import utils.misc.RGBColour
 import assets.Asset
 import scala.scalajs.js.JSConverters.*
 import assets.fonts.Fonts

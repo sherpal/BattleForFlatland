@@ -3,7 +3,7 @@ package services.http
 import errors.ErrorADT
 import io.circe.{Decoder, Encoder}
 import services.http.HttpClient.{Path, Query}
-import zio.{UIO, ZIO}
+import zio.ZIO
 
 def get[R]: GetFilled[R] = new GetFilled[R]
 

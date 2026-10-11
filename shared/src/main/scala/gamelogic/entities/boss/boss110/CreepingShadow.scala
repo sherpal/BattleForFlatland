@@ -1,32 +1,29 @@
 package gamelogic.entities.boss.boss110
 
-import gamelogic.entities.MovingBody
-import gamelogic.entities.WithPosition
-import gamelogic.physics.Complex
-import gamelogic.physics.Complex
-import gamelogic.entities.Entity
-import gamelogic.physics.shape.Shape
-import gamelogic.physics.shape.Circle
-import gamelogic.entities.WithPosition
-import gamelogic.gamestate.GameState
-import gamelogic.entities.boss.dawnoftime.Boss110
-import gamelogic.entities.WithChangingRadius
-import gamelogic.entities.classes.Constants
-import gamelogic.entities.WithThreat
-import gamelogic.entities.WithAbilities
 import gamelogic.abilities.Ability
-import gamelogic.entities.Resource
+import gamelogic.entities.*
+import gamelogic.entities.boss.dawnoftime.Boss110
+import gamelogic.entities.classes.Constants
+import gamelogic.gamestate.GameState
+import gamelogic.physics.Complex
+import gamelogic.physics.shape.{Circle, Shape}
 
-/**
-  * Instance of the [[CreepingShadow]] in [[Boss110]].
+/** Instance of the [[CreepingShadow]] in [[Boss110]].
   *
-  * @param id id of the entity
-  * @param time last update time
-  * @param pos position at that time
-  * @param radius current radius of the shadow (may --and will!-- change during the game)
-  * @param sourceId entity id of the boss
-  * @param direction where the shadow is moving to
-  * @param moving whether its moving
+  * @param id
+  *   id of the entity
+  * @param time
+  *   last update time
+  * @param pos
+  *   position at that time
+  * @param radius
+  *   current radius of the shadow (may --and will!-- change during the game)
+  * @param sourceId
+  *   entity id of the boss
+  * @param direction
+  *   where the shadow is moving to
+  * @param moving
+  *   whether its moving
   */
 final case class CreepingShadow(
     id: Entity.Id,
@@ -52,15 +49,18 @@ final case class CreepingShadow(
 
   def maxResourceAmount: Double = 0.0
 
-  protected def patchResourceAmount(newResourceAmount: Resource.ResourceAmount): CreepingShadow = this
+  protected def patchResourceAmount(newResourceAmount: Resource.ResourceAmount): CreepingShadow =
+    this
 
   def healingThreats: Map[Entity.Id, WithThreat.ThreatAmount] = Map.empty
 
   def damageThreats: Map[Entity.Id, WithThreat.ThreatAmount] = Map.empty
 
-  def changeDamageThreats(threatId: Entity.Id, delta: WithThreat.ThreatAmount): CreepingShadow = this
+  def changeDamageThreats(threatId: Entity.Id, delta: WithThreat.ThreatAmount): CreepingShadow =
+    this
 
-  def changeHealingThreats(threatId: Entity.Id, delta: WithThreat.ThreatAmount): CreepingShadow = this
+  def changeHealingThreats(threatId: Entity.Id, delta: WithThreat.ThreatAmount): CreepingShadow =
+    this
 
   def teamId: Entity.TeamId = Entity.teams.mobTeam
 
@@ -89,12 +89,11 @@ object CreepingShadow {
   def extractCreepingShadow(gameState: GameState, entityId: Entity.Id): Option[CreepingShadow] =
     gameState.entityByIdAs[CreepingShadow](entityId)
 
-  /**
-    * Computes the current position and the current radius of the [[CreepingShadow]].
+  /** Computes the current position and the current radius of the [[CreepingShadow]].
     *
-    * The position is simply the center of mass of all [[SmallGuy]]s, while the radius is directly proportional to
-    * the number of [[SmallGuy]]s, and is such that the whole game area is covered if there are at least
-    * 10 [[SmallGuy]]s.
+    * The position is simply the center of mass of all [[SmallGuy]]s, while the radius is directly
+    * proportional to the number of [[SmallGuy]]s, and is such that the whole game area is covered
+    * if there are at least 10 [[SmallGuy]]s.
     */
   def computePositionAndRadius(gameState: GameState, currentTime: Long): (Complex, Double) = {
     val smallGuies = gameState.allTEntities[SmallGuy].values.toList

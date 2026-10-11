@@ -1,6 +1,6 @@
 package services.logging
 
-import zio.{Task, UIO}
+import zio.UIO
 
 trait Logging {
 

@@ -58,8 +58,6 @@ class GameMaster(
     */
   private var readyPlayers = Set.empty[String]
 
-  private var currentBehaviour: GameMasterBehaviour = scala.compiletime.uninitialized
-
   def now = System.currentTimeMillis
 
   inline def actionBuffer = actionTranslator.actionBuffer
@@ -176,8 +174,6 @@ class GameMaster(
 
   def letsBegin(): Unit = shouldBegin.set(true)
 
-  private var runningThread: Option[Thread] = Option.empty
-
   private val performanceMonitor = PerformanceMonitor()
 
   def performanceSummary = performanceMonitor.retrieveSummary
@@ -214,9 +210,8 @@ class GameMaster(
             .fold(Vector.empty[GameAction])(
               _.initialBossActions(bossId, timeNow - 1)
             )
-            .toVector
         }
-        val bossFactories = BossFactory.factoriesByBossName.get(bossName).toVector
+        BossFactory.factoriesByBossName.get(bossName).toVector
 
         val newPendingActions =
           bossCreationActions :+ GameStart(idGeneratorContainer.actionId(), now)
@@ -255,7 +250,6 @@ class GameMaster(
       }
     })
     thread.start()
-    runningThread = Some(thread)
   }
 
   extension (behaviour: GameMasterBehaviour) {

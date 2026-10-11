@@ -4,20 +4,15 @@ import game.ui.*
 import indigo.*
 
 import scala.scalajs.js
-import game.scenes.ingame.InGameScene
 import game.IndigoViewModel
-import game.scenes.ingame.InGameScene.StartupData
 import gamelogic.entities.Entity
-import game.events.CustomIndigoEvents
 
 import scala.scalajs.js.JSConverters.*
-import gamelogic.buffs.Buff
-import game.ui.components.grid.GridContainer
 
 case class BuffContainer(
     entityId: Entity.Id,
     anchor: Anchor
-)(using context: FrameContext[StartupData], viewModel: IndigoViewModel)
+)(using viewModel: IndigoViewModel)
     extends Component {
 
   override def alpha = 1.0

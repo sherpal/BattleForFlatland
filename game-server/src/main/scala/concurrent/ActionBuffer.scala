@@ -1,9 +1,6 @@
 package concurrent
 
 import java.util.concurrent.atomic.AtomicReference
-import scala.reflect.ClassTag
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 
 class ActionBuffer[T] extends Buffer[T] {
   private val buffer = AtomicReference(Vector.empty[T])

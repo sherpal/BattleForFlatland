@@ -1,15 +1,12 @@
 package gamelogic.abilities.boss.boss110
 
 import gamelogic.abilities.Ability
-import gamelogic.entities.Entity
-import gamelogic.entities.Resource
+import gamelogic.docs.{AbilityInfoFromMetadata, AbilityMetadata}
+import gamelogic.entities.{Entity, Resource}
+import gamelogic.entities.boss.boss110.BombPod
+import gamelogic.gamestate.gameactions.{EntityTakesDamage, RemoveEntity}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
-import gamelogic.gamestate.GameState
-import gamelogic.docs.{AbilityInfoFromMetadata, AbilityMetadata}
-import gamelogic.entities.boss.boss110.BombPod
-import gamelogic.gamestate.gameactions.EntityTakesDamage
-import gamelogic.gamestate.gameactions.RemoveEntity
 
 /** Check that each bomb pod touches exactly one player. If not, they explode and they kill
   * everybody (dealing them 1000 damage). Otherwise, they do nothing.
@@ -18,7 +15,7 @@ final case class ExplodeBombs(useId: Ability.UseId, time: Long, casterId: Entity
     extends Ability
     with AbilityInfoFromMetadata[ExplodeBombs.type] {
 
-  def metadata = ExplodeBombs
+  def metadata: ExplodeBombs.type = ExplodeBombs
 
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(0.0, Resource.NoResource)
 

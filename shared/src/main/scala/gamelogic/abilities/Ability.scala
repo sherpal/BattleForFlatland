@@ -3,13 +3,10 @@ package gamelogic.abilities
 import gamelogic.abilities.Ability.AbilityColour
 import gamelogic.entities.Resource.ResourceAmount
 import gamelogic.entities.{Entity, Resource}
+import gamelogic.gamestate.gameactions.EntityStartsCasting
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.{IdGeneratorContainer, IdsProducer, OpaqueIntCompanion, OpaqueLongCompanion}
 import io.circe.{Decoder, Encoder, Json}
-
-import scala.annotation.tailrec
-import gamelogic.buffs.Buff
-import gamelogic.gamestate.gameactions.EntityStartsCasting
 import utils.misc.RGBColour
 
 /** A [[gamelogic.abilities.Ability]] represents an action that an entity can take besides moving.
@@ -158,9 +155,9 @@ object Ability {
   inline def gcd = 200L
 
   /** Encoding. Replace this by more performant stuff in the future. */
-  import cats.syntax.functor._
-  import io.circe.generic.auto._
-  import io.circe.syntax._
+  import cats.syntax.functor.*
+  import io.circe.generic.auto.*
+  import io.circe.syntax.*
 
   private def customEncode[A <: Ability](a: A, name: String)(using Encoder[A]): Json =
     a.asJson.mapObject(_.add("ability_name", Json.fromString(name)))

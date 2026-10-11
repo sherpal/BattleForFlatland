@@ -12,7 +12,6 @@ import java.nio.ByteBuffer
 import models.bff.ingame.InGameWSProtocol.*
 import io.undertow.Undertow
 import application.*
-import models.bff.outofgame.MenuGameWithPlayers
 import gamelogic.gamestate.GameAction
 import gamelogic.utils.IdGeneratorContainer
 import concurrent.*

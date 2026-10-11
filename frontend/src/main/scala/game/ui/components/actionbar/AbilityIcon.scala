@@ -1,6 +1,6 @@
 package game.ui.components.actionbar
 
-import game.ui.{Anchor, Component}
+import game.ui.Component
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.abilities.Ability
 import assets.Asset
@@ -9,7 +9,6 @@ import game.ui.Component.EventRegistration
 import indigo.*
 import scala.scalajs.js
 import game.ui.components.{GraphicComponent, StatusBar}
-import gamelogic.entities.EntityCastingInfo
 import gamelogic.gamestate.gameactions.EntityStartsCasting
 
 final case class AbilityIcon(

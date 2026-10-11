@@ -1,8 +1,5 @@
 package game.drawers.effects
 
-import gamelogic.gamestate.GameState
-import gamelogic.physics.shape.BoundingBox
-import utils.misc.RGBAColour
 import indigo.*
 import game.scenes.ingame.InGameScene.StartupData
 import game.IndigoViewModel

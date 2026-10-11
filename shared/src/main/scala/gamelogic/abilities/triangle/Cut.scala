@@ -4,9 +4,8 @@ import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.buffs.Buff
-import gamelogic.buffs.abilities.classes.Silenced
 import gamelogic.entities.Resource.Energy
-import gamelogic.entities.{Entity, Resource, WithAbilities}
+import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.{EntityCastingInterrupted, PutSimpleBuff}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer

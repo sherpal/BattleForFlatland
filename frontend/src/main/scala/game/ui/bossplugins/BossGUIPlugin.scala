@@ -2,6 +2,7 @@ package game.ui.bossplugins
 
 import game.IndigoViewModel
 import gamelogic.entities.Entity
+import gamelogic.entities.Entity.Id
 import indigo.*
 
 import scala.scalajs.js
@@ -29,14 +30,18 @@ trait BossGUIPlugin {
     */
   def playerFrameDecorations(playerId: Entity.Id, bounds: Rectangle, alpha: Double)(using
       IndigoViewModel
-  ): js.Array[SceneNode] = js.Array()
+  ): js.Array[SceneNode]
 
 }
 
 object BossGUIPlugin {
 
   /** The plugin that changes nothing. */
-  val empty: BossGUIPlugin = new BossGUIPlugin {}
+  val empty: BossGUIPlugin = new BossGUIPlugin {
+    override def playerFrameDecorations(playerId: Id, bounds: Rectangle, alpha: Double)(using
+        IndigoViewModel
+    ): js.Array[SceneNode] = js.Array()
+  }
 
   /** The plugin of the boss currently fought (or [[empty]] if there is no boss). */
   def current(using viewModel: IndigoViewModel): BossGUIPlugin =

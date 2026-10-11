@@ -3,7 +3,6 @@ package game.ui
 import indigo.*
 
 import scala.scalajs.js
-import game.events.CustomIndigoEvents
 import game.ui.Component.{EventRegistration, EventResult}
 
 final case class UIParent[StartupData, ViewModel](

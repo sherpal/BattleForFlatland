@@ -4,10 +4,8 @@ import gamelogic.entities.Entity
 import game.IndigoViewModel
 import scala.scalajs.js
 import indigo.*
-import game.scenes.ingame.InGameScene.StartupData
 import game.ui.*
 import game.ui.Component.EventRegistration
-import gamelogic.entities.{LivingEntity, MovingBody}
 import gamelogic.entities.WithName
 import assets.Asset
 import gamelogic.entities.WithAbilities
@@ -18,7 +16,6 @@ import assets.fonts.Fonts
 import gamelogic.abilities.WithTargetAbility
 
 final case class TargetFrame(myId: Entity.Id)(using
-    context: FrameContext[StartupData],
     viewModel: IndigoViewModel
 ) extends Component {
 

@@ -6,13 +6,10 @@ import indigo.*
 import scala.scalajs.js
 import game.ui.Component.EventRegistration
 import gamelogic.entities.Entity
-import game.scenes.ingame.InGameScene.StartupData
 import game.IndigoViewModel
 import scala.scalajs.js.JSConverters.*
-import assets.Asset
 
 final case class ActionBar(playerId: Entity.Id)(using
-    context: FrameContext[StartupData],
     viewModel: IndigoViewModel
 ) extends Component {
 

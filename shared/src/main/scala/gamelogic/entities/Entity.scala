@@ -1,10 +1,5 @@
 package gamelogic.entities
 
-import io.circe.Codec
-import io.circe.Decoder
-import io.circe.Encoder
-import boopickle.Pickler
-import models.syntax.Pointed
 import gamelogic.utils.OpaqueLongCompanion
 
 /** An entity is anything that exist in the game. */

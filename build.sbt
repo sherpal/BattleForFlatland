@@ -7,7 +7,7 @@ name := "Battle for Flatland"
 
 version := "0.2"
 
-ThisBuild / scalaVersion := "3.5.0"
+ThisBuild / scalaVersion := "3.9.0"
 
 Global / onLoad := {
   val scalaVersionValue = (frontend / scalaVersion).value
@@ -40,15 +40,22 @@ Global / onLoad := {
 val scalaCompilerOptions = List(
   "-deprecation",
   "-feature",
-  "-Werror"
-//  "-unchecked",
-//  "-Xlint",
-//  "-Ywarn-numeric-widen",
-//  "-Ywarn-value-discard"
-  // "-Ywarn-dead-code"
+  "-Werror",
+  "-Wunused:linted",
+  "-deprecation",
+  "-unchecked",
+  "-language:higherKinds",
+  "-feature",
+  "-language:implicitConversions"
 )
 
 ThisBuild / scalacOptions := scalaCompilerOptions
+
+inThisBuild(
+  List(
+    semanticdbEnabled := true // enable SemanticDB
+  )
+)
 
 lazy val `shared` = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)

@@ -11,7 +11,6 @@ import gamelogic.entities.*
 import gamelogic.entities.classes.Constants
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
-import gamelogic.physics.shape.{Polygon, Shape}
 
 final case class SmallGuy(
     id: Entity.Id,

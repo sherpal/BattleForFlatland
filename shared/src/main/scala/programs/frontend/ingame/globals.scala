@@ -5,7 +5,6 @@ import java.util.concurrent.TimeUnit
 import errors.ErrorADT
 import models.bff.Routes
 import models.bff.ingame.InGameWSProtocol.{Ping, Pong}
-import models.users.User
 import services.http.*
 import utils.ziohelpers.unsuccessfulStatusCode
 import zio.*

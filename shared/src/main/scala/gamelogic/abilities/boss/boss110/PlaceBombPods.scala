@@ -5,7 +5,6 @@ import gamelogic.entities.Entity
 import gamelogic.entities.Resource
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
-import gamelogic.gamestate.GameState
 import gamelogic.docs.{AbilityInfoFromMetadata, AbilityMetadata}
 import gamelogic.gamestate.gameactions.UseAbility
 import gamelogic.gamestate.gameactions.boss110.AddBombPods

@@ -1,6 +1,5 @@
 package application.ai.boss
 
-import gamelogic.entities.Entity
 import application.ai.AIController
 import gamelogic.entities.boss.Boss101
 import gamelogic.gamestate.gameactions.*

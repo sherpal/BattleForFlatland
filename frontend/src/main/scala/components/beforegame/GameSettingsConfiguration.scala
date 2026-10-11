@@ -2,13 +2,12 @@ package components.beforegame
 
 import com.raquo.laminar.api.L.*
 import be.doeraene.webcomponents.ui5.*
-import services.FrontendEnv
 import models.syntax.Pointed
 import models.bff.ingame.GameplaySettings
 
 object GameSettingsConfiguration {
 
-  def apply()(using zio.Runtime[FrontendEnv]): HtmlElement = {
+  def apply(): HtmlElement = {
     val gameplaySettingsVar = Var(Pointed[GameplaySettings].unit)
 
     val volumeUpdater = gameplaySettingsVar.updater[GameplaySettings.Volume]((settings, volume) =>

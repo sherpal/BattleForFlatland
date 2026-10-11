@@ -3,13 +3,9 @@ package game
 import com.raquo.laminar.api.A.*
 import gamelogic.gamestate.AddAndRemoveActions
 import models.bff.ingame.InGameWSProtocol
-import gamelogic.gamestate.ActionGatherer
 import game.scenes.ingame.InGameScene.InGameModel
 
-import scala.scalajs.js
-import scala.scalajs.js.JSConverters.*
 import indigo.shared.collections.Batch
-import org.scalajs.dom.CustomEvent
 import game.events.CustomIndigoEvents
 
 class BackendCommWrapper(

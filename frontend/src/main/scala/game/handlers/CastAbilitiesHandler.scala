@@ -9,7 +9,6 @@ import game.scenes.ingame.InGameScene
 import indigo.scenes.SceneContext
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameState
-import models.bff.ingame.Controls
 import gamelogic.abilities.*
 
 import org.scalajs.dom
@@ -22,7 +21,6 @@ import gamelogic.abilities.triangle.*
 import gamelogic.physics.Complex
 import indigo.shared.events.MouseEvent.Click
 import gamelogic.entities.classes.pentagon.PentagonZone
-import utils.misc.RGBAColour
 import utils.misc.RGBColour
 import models.bff.ingame.UserInput.AbilityInput
 import gamelogic.entities.classes.hexagon.HexagonZone

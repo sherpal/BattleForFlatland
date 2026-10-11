@@ -3,14 +3,13 @@ package gamelogic.entities.classes
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.buffs.Buff
-import gamelogic.entities.Entity
 import gamelogic.entities.Resource.{Energy, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.GameAction
 import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.physics.Complex
-import gamelogic.physics.shape.{Polygon, Shape}
+import gamelogic.physics.shape.{ConvexPolygon, Polygon, Shape}
 import gamelogic.utils.IdGeneratorContainer
 import models.bff.outofgame.PlayerClasses
 
@@ -71,7 +70,7 @@ final case class Triangle(
 
 object Triangle extends PlayerClassBuilder {
 
-  val shape = Shape.regularPolygon(3, Constants.playerRadius)
+  val shape: ConvexPolygon = Shape.regularPolygon(3, Constants.playerRadius)
 
   def initialResourceAmount: ResourceAmount = ResourceAmount(100, Energy)
 

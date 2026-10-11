@@ -3,7 +3,6 @@ package utils.ziohelpers
 import zio.test.ZIOSpecDefault
 import zio.*
 import zio.test.*
-import zio.test.Assertion.*
 
 object ZioHelpersSpecs extends ZIOSpecDefault {
   def spec = suite("failIfWith")(

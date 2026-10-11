@@ -2,14 +2,9 @@ package server
 
 import io.circe.parser.decode
 import cask.model.Request
-import cask.model.Response.Raw
 import cask.router.Result
 import zio.*
-import zio.Exit.Success
-import zio.Exit.Failure
 import menus.data.User
-import io.circe.syntax.EncoderOps
-import errors.ErrorADT
 import cask.main.Routes
 
 object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] {

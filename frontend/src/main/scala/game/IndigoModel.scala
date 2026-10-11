@@ -1,11 +1,9 @@
 package game
 
 import scala.scalajs.js
-import gamelogic.gamestate.ActionGatherer
 import game.scenes.loading.LoadingState
 import gamelogic.gamestate.GameState
 import game.scenes.ingame.InGameScene
-import indigo.Seconds
 
 class IndigoModel(
     val inGameState: InGameScene.InGameModel,

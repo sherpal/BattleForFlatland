@@ -2,14 +2,11 @@ package game.ui.components.buffcontainers
 
 import gamelogic.entities.Entity
 import gamelogic.buffs.Buff
-import game.scenes.ingame.InGameScene
 import game.IndigoViewModel
 import game.ui.*
 import indigo.*
-import game.scenes.ingame.InGameScene.StartupData
 import assets.Asset
 import scala.scalajs.js
-import game.events.CustomIndigoEvents
 import game.ui.components.StatusBar
 
 import scala.scalajs.js.JSConverters.*
@@ -19,7 +16,7 @@ final case class BuffIcon(
     buff: Buff,
     iconSize: Int,
     offset: Point = Point.zero
-)(using context: FrameContext[StartupData], viewModel: IndigoViewModel)
+)(using viewModel: IndigoViewModel)
     extends Component {
   val buffAsset = Asset.buffAssetMap.get(buff.resourceIdentifier)
 

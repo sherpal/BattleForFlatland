@@ -10,7 +10,6 @@ import gamelogic.physics.pathfinding.Graph
 
 import scala.Ordering.Double.TotalOrdering
 import gamelogic.abilities.Ability
-import gamelogic.gamestate.gameactions.EntityStartsCasting
 
 /** This is the same as `aiMovementToTarget`, but uses the underlying
   * [[gamelogic.physics.pathfinding.Graph]] to walk in.

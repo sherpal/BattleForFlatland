@@ -5,8 +5,6 @@ import game.ui.*
 
 import scala.scalajs.js
 import assets.Asset
-import game.ui.components.StatusBar.Horizontal
-import game.ui.components.StatusBar.Vertical
 import game.ui.Component.EventRegistration
 
 final case class StatusBar(

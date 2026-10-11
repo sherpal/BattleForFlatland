@@ -9,7 +9,6 @@ import gamelogic.physics.Complex
 import gamelogic.physics.pathfinding.Graph
 import application.ai.utils.findTarget
 
-import scala.concurrent.duration.*
 import gamelogic.abilities.Ability
 
 /** The AIController trait contains all the boilerplate that you need for implementing an AI.
@@ -54,14 +53,14 @@ trait AIController[
       gameState: GameState,
       graphs: Double => Option[Graph]
   ): Vector[GameAction] =
-    val startTime          = now
+    now
     val timeSinceLastFrame = now - lastTimeStamp
     val shouldRun          = timeSinceLastFrame > loopRate
     if shouldRun then
       getMe(gameState, myId).fold(Vector.empty) { me =>
         val startTime       = now
         val currentPosition = me.currentPosition(startTime)
-        val maybeTarget     = findTarget(me, gameState)
+        findTarget(me, gameState)
         graphs(me.shape.radius) match {
           case Some(graph) =>
             val result = takeActions(

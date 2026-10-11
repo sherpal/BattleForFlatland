@@ -1,12 +1,9 @@
 package assets.fonts
 
 import indigo.*
-import io.circe.Decoder
-import org.scalajs.dom
 import zio.ZIO
 
 import scala.scalajs.js
-import scala.scalajs.js.JSConverters.*
 
 class Fonts(glyphsInfo: Map[(Fonts.AllowedColor, Fonts.AllowedSize), (String, GlyphInfo)]) {
 

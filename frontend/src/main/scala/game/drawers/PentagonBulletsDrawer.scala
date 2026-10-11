@@ -10,8 +10,6 @@ import game.gameutils.*
 import gamelogic.entities.Entity
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.entities.classes.pentagon.PentagonZone
-import assets.Asset
-import models.bff.outofgame.PlayerClasses
 
 object PentagonBulletsDrawer {
 

@@ -4,7 +4,6 @@ import gamelogic.entities.Entity
 import game.ui.*
 import indigo.*
 import scala.scalajs.js
-import game.ui.Component.EventRegistration
 import game.IndigoViewModel
 import assets.Asset
 import game.gameutils.*

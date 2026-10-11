@@ -6,13 +6,9 @@ import indigo.*
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
 import assets.Asset
-import game.ui.components.StatusBar
-import game.ui.Anchor
 import game.gameutils.LocalCache
 import gamelogic.entities.Entity
 import gamelogic.entities.classes.PlayerClass
-import game.ui.Container
-import game.ui.Component
 import gamelogic.abilities.Ability
 import game.gameutils.toIndigo
 

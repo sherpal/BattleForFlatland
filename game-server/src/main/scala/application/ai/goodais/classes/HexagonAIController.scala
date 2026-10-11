@@ -15,7 +15,6 @@ import scala.reflect.ClassTag
 import gamelogic.abilities.Ability
 import models.bff.outofgame.gameconfig.PlayerName
 import models.bff.outofgame.PlayerClasses
-import gamelogic.entities.LivingEntity
 import gamelogic.entities.classes.PlayerClass
 
 trait HexagonAIController(index: Int) extends GoodAIController[Hexagon] {

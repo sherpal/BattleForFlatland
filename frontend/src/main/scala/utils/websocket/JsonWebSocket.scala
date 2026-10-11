@@ -9,7 +9,6 @@ import org.scalajs.dom.{Event, WebSocket}
 import urldsl.language.QueryParameters.dummyErrorImpl.*
 import urldsl.language.*
 import zio.*
-import utils.laminarzio.onMountZIO
 import utils.laminarzio.onMountUnmountCallbackWithStateZIO
 import com.raquo.laminar.nodes.ReactiveElement
 import services.FrontendEnv

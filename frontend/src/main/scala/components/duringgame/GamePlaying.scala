@@ -1,31 +1,28 @@
 package components.duringgame
 
+import assets.fonts.Fonts
+import be.doeraene.webcomponents.ui5.*
+import be.doeraene.webcomponents.ui5.configkeys.{ButtonDesign, IconName}
 import com.raquo.laminar.api.L.*
-import com.raquo.laminar.nodes.ReactiveHtmlElement
 import communication.BFFPicklers.*
 import gamelogic.entities.Entity
-import gamelogic.gamestate
 import gamelogic.physics.Complex
+import menus.data.User
 import models.bff.Routes.*
-import models.bff.ingame.InGameWSProtocol
+import models.bff.ingame.{
+  ClockSynchronizationReport,
+  Controls,
+  GameUserCredentials,
+  InGameWSProtocol
+}
 import models.bff.ingame.InGameWSProtocol.{Ping, Pong, Ready, YourEntityIdIs}
+import models.syntax.Pointed
 import org.scalajs.dom
-import org.scalajs.dom.html
+import services.FrontendEnv
+import services.logging.log
 import utils.laminarzio.*
 import utils.websocket.BoopickleWebSocket
 import zio.*
-import menus.data.User
-import models.bff.ingame.GameUserCredentials
-import be.doeraene.webcomponents.ui5.*
-import services.FrontendEnv
-import be.doeraene.webcomponents.ui5.configkeys.{ButtonDesign, IconName}
-import models.bff.ingame.ClockSynchronizationReport
-import models.syntax.Pointed
-import models.bff.ingame.Controls
-import services.logging.log
-import assets.fonts.Fonts
-
-import scala.concurrent.Future
 
 object GamePlaying {
   def apply(gameId: String, user: User, secret: String, port: Int)(using
@@ -44,19 +41,18 @@ object GamePlaying {
         host = dom.document.location.hostname ++ s":$port"
       )
 
-    val actionsFromServerEvents: EventStream[gamestate.AddAndRemoveActions] =
-      gameSocket.inEvents.collect {
-        case InGameWSProtocol.AddAndRemoveActions(
-              actionsToAdd,
-              oldestTimeToRemove,
-              idsOfActionsToRemove
-            ) =>
-          gamelogic.gamestate.AddAndRemoveActions(
+    gameSocket.inEvents.collect {
+      case InGameWSProtocol.AddAndRemoveActions(
             actionsToAdd,
             oldestTimeToRemove,
             idsOfActionsToRemove
-          )
-      }
+          ) =>
+        gamelogic.gamestate.AddAndRemoveActions(
+          actionsToAdd,
+          oldestTimeToRemove,
+          idsOfActionsToRemove
+        )
+    }
 
     val playerIdEvents: EventStream[Entity.Id] =
       gameSocket.inEvents.collect { case YourEntityIdIs(id) => id }.take(1)

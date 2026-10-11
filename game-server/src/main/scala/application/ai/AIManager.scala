@@ -6,7 +6,6 @@ import gamelogic.gamestate.GameAction
 import gamelogic.entities.Entity
 
 import scala.collection.mutable
-import gamelogic.physics.pathfinding.Graph
 import gamelogic.gamestate.AddAndRemoveActions
 import gamelogic.gamestate.gameactions.*
 import gamelogic.entities.classes.Constants

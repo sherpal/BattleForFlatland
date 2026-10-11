@@ -1,20 +1,20 @@
 package gamelogic.entities.boss.boss110
 
 import gamelogic.entities.Entity.TeamId
-import gamelogic.entities.classes.Constants
-import gamelogic.entities.{Body, Entity}
+import gamelogic.entities.{Body, Entity, WithPosition}
 import gamelogic.physics.Complex
-import gamelogic.physics.shape.Circle
-import gamelogic.physics.shape.Shape
-import gamelogic.entities.WithPosition
+import gamelogic.physics.shape.{Circle, Shape}
 
-/**
-  * Entity representing a bomb placed by the Boss.
+/** Entity representing a bomb placed by the Boss.
   *
-  * @param id id of the bomb
-  * @param time time at which the bomb appeared
-  * @param pos position of the bomb
-  * @param powderMonkeyId entity id of the entity who placed the bomb
+  * @param id
+  *   id of the bomb
+  * @param time
+  *   time at which the bomb appeared
+  * @param pos
+  *   position of the bomb
+  * @param powderMonkeyId
+  *   entity id of the entity who placed the bomb
   */
 final case class BombPod(
     id: Entity.Id,

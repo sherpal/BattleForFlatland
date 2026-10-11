@@ -1,17 +1,13 @@
 package gamelogic.gamestate.gameactions.boss110
 
-import gamelogic.gamestate.GameAction
-import gamelogic.gamestate.GameState
-import gamelogic.gamestate.statetransformers.GameStateTransformer
-import gamelogic.gamestate.GameState
-import gamelogic.entities.Entity
-import gamelogic.physics.Complex
 import cats.kernel.Monoid
-import gamelogic.gamestate.statetransformers.WithEntity
+import gamelogic.entities.Entity
 import gamelogic.entities.boss.boss110.BombPod
+import gamelogic.gamestate.{GameAction, GameState}
+import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
+import gamelogic.physics.Complex
 
-/**
-  * Puts a [[BombPod]] on the game for each elements of the `idsAndPositions` [[List]].
+/** Puts a [[BombPod]] on the game for each elements of the `idsAndPositions` [[List]].
   */
 final case class AddBombPods(
     id: GameAction.Id,
@@ -22,9 +18,8 @@ final case class AddBombPods(
 
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     Monoid[GameStateTransformer].combineAll(
-      idsAndPositions.map {
-        case (entityId, position) =>
-          new WithEntity(BombPod(entityId, time, position, powderMonkeyId), time)
+      idsAndPositions.map { case (entityId, position) =>
+        new WithEntity(BombPod(entityId, time, position, powderMonkeyId), time)
       }
     )
 

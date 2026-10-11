@@ -8,7 +8,6 @@ import gamelogic.buffs.Buff
 import gamelogic.abilities.triangle.UpgradeDirectHit
 import application.ai.utils.maybeAbilityUsage
 import gamelogic.abilities.triangle.DirectHit
-import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.Entity
 import scala.reflect.ClassTag
 import gamelogic.abilities.triangle.EnergyKick

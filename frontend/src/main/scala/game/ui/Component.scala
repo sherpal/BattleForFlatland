@@ -1,7 +1,6 @@
 package game.ui
 
 import indigo.*
-import game.ui.AnchorPoint.*
 
 import scala.reflect.Typeable
 

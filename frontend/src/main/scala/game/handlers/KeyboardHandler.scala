@@ -2,7 +2,6 @@ package game.handlers
 
 import indigo.*
 import models.bff.ingame.Controls.*
-import models.bff.ingame.Controls.KeyInputModifier.WithShift
 import models.bff.ingame.Controls
 import models.bff.ingame.UserInput
 import game.scenes.ingame.InGameScene.StartupData

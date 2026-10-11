@@ -6,7 +6,6 @@ import gamelogic.abilities.triangle.Cut
 import gamelogic.entities.Entity
 import gamelogic.entities.boss.boss104.{BigGuy, BigGuyDeathMark}
 import gamelogic.entities.classes.{Constants, Triangle}
-import gamelogic.gamestate.gameactions.MovingBodyMoves
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import gamelogic.physics.pathfinding.Graph

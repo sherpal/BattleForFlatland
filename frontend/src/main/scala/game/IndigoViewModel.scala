@@ -3,16 +3,12 @@ package game
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import gamelogic.entities.Entity
-import gamelogic.entities.boss.Boss101
 import indigo.*
 import scala.scalajs.js
 import gamelogic.abilities.Ability.AbilityId
 import game.scenes.ingame.InGameScene
-import indigo.shared.events.MouseEvent.MouseDown
 import indigo.shared.events.MouseEvent.Click
 import game.ui.*
-import game.ui.components.grid.GridContainer
-import scala.scalajs.js.JSConverters.*
 import game.scenes.ingame.InGameScene.StartupData
 import models.bff.outofgame.PlayerClasses
 import game.viewmodelmisc.Telemetry

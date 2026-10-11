@@ -1,39 +1,31 @@
 package gamelogic.entities.boss.dawnoftime
 
-import gamelogic.entities.boss.BossEntity
-import gamelogic.entities.boss.BossFactory
-
-import gamelogic.gamestate.gameactions.boss110.AddCreepingShadow
 import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
-import gamelogic.abilities.boss.boss110.SpawnBigGuies
+import gamelogic.abilities.boss.boss110.{
+  ExplodeBombs,
+  PlaceBombPods,
+  SpawnBigGuies,
+  SpawnSmallGuies
+}
 import gamelogic.abilities.{Ability, AutoAttack}
-import gamelogic.entities.Entity
+import gamelogic.docs.BossMetadata
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
-import gamelogic.entities.boss.{Boss101, BossEntity, BossFactory}
+import gamelogic.entities.boss.boss110.{BigGuy, BombPod}
+import gamelogic.entities.boss.{BossEntity, BossFactory}
 import gamelogic.entities.staticstuff.Obstacle
-import gamelogic.gamestate.gameactions.CreateObstacle
-import gamelogic.gamestate.{GameAction, GameState}
+import gamelogic.entities.{Entity, Resource}
+import gamelogic.gamestate.gameactions.boss110.AddCreepingShadow
+import gamelogic.gamestate.gameactions.{CreateObstacle, RemoveEntity}
+import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.Circle
 import gamelogic.utils.IdGeneratorContainer
-import models.syntax.Pointed
-import gamelogic.entities.boss.boss102.BossHound
-import gamelogic.gamestate.gameactions.RemoveEntity
-import gamelogic.entities.boss.boss102.DamageZone
-import gamelogic.buffs.Buff
-import gamelogic.gamestate.gameactions.RemoveBuff
-import gamelogic.entities.Resource
-import gamelogic.abilities.boss.boss110.ExplodeBombs
-import gamelogic.abilities.boss.boss110.PlaceBombPods
-import gamelogic.entities.boss.boss110.BigGuy
-import gamelogic.entities.boss.boss110.BombPod
-import gamelogic.abilities.boss.boss110.SpawnSmallGuies
-import gamelogic.docs.BossMetadata
 import models.bff.outofgame.PlayerClasses
+import models.syntax.Pointed
 
 final case class Boss110(
     id: Entity.Id,

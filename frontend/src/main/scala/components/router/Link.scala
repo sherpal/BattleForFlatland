@@ -2,9 +2,8 @@ package components.router
 
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import org.scalajs.dom.html
 import urldsl.language.{PathSegment, PathSegmentWithQueryParams, QueryParameters}
-import be.doeraene.webcomponents.ui5.{Link => UI5Link, *}
+import be.doeraene.webcomponents.ui5.{Link => UI5Link}
 
 object Link {
 

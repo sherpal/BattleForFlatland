@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 
 import services.localstorage.LocalStorage.Key
 import io.circe.{Decoder, Encoder, Json}
-import zio.{ZIO, ZLayer}
+import zio.ZIO
 
 import scala.concurrent.duration.Duration
 
@@ -111,9 +111,9 @@ object LocalStorage {
     extension [T](key: Key[T]) {
       def value: String = key
 
-      def store(t: T)(using Encoder[T]) = storeAt(key, t)
+      def store(t: T)(using Encoder[T]): ZIO[LocalStorage, Throwable, Unit] = storeAt(key, t)
 
-      def retrieve(using Decoder[T]) = retrieveFrom(key)
+      def retrieve(using Decoder[T]): ZIO[LocalStorage, Throwable, Option[T]] = retrieveFrom(key)
     }
   }
 }

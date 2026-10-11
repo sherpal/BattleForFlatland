@@ -1,9 +1,7 @@
 package components.router
 
 import com.raquo.laminar.api.L.*
-import com.raquo.laminar.nodes.ReactiveElement
 import org.scalajs.dom
-import org.scalajs.dom.Element
 
 object Routes {
 

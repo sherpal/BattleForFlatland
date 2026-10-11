@@ -9,7 +9,7 @@ import org.scalajs.dom
 import org.scalajs.dom.MessageEvent
 import org.scalajs.dom.{Event, WebSocket}
 import urldsl.language.{PathSegment, PathSegmentWithQueryParams, QueryParameters}
-import zio.{CancelableFuture, UIO, ZIO}
+import zio.ZIO
 
 import scala.scalajs.js.typedarray.{ArrayBuffer, Uint8Array}
 import com.raquo.laminar.nodes.ReactiveElement

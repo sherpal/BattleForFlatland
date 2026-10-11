@@ -2,7 +2,6 @@ package server
 
 import io.circe.parser.decode
 import menus.data.APIResponse
-import menus.data.AllGameCredentials
 import errors.ErrorADT
 import menus.data.GameCredentialsWithGameInfo
 import java.util.concurrent.atomic.AtomicReference

@@ -4,7 +4,6 @@ import cask.model.Request
 import cask.model.Response.Raw
 import cask.router.Result
 import java.nio.file.Files
-import java.nio.file.Paths
 import java.nio.file.attribute.BasicFileAttributeView
 import scala.util.Try
 import scala.util.Failure
