@@ -56,9 +56,7 @@ final case class Boss104(
   override def shape: Circle = Boss101.shape
 
   override def changeDamageThreats(threatId: Id, delta: ThreatAmount): WithThreat =
-    copy(damageThreats =
-      damageThreats + (threatId -> (damageThreats.getOrElse(threatId, 0.0) + delta))
-    )
+    copy(damageThreats = damageThreats.addAmount(threatId, delta))
 
   override protected def patchResourceAmount(newResourceAmount: ResourceAmount): WithAbilities =
     this
@@ -104,9 +102,7 @@ final case class Boss104(
   override def changeTarget(newTargetId: Id): WithTarget = copy(targetId = newTargetId)
 
   override def changeHealingThreats(threatId: Id, delta: ThreatAmount): WithThreat =
-    copy(healingThreats =
-      healingThreats + (threatId -> (healingThreats.getOrElse(threatId, 0.0) + delta))
-    )
+    copy(healingThreats = healingThreats.addAmount(threatId, delta))
 
   override def maxResourceAmount: Double = 0.0
 

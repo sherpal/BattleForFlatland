@@ -4,6 +4,7 @@ import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.entities.Resource.{Rage, ResourceAmount}
+import gamelogic.entities.WithThreat.ThreatAmount
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.ThreatToEntityChange
 import gamelogic.gamestate.{GameAction, GameState}
@@ -41,6 +42,6 @@ final case class Taunt(useId: Ability.UseId, time: Long, casterId: Entity.Id, ta
 
 object Taunt {
 
-  @inline final def damageThreatAmount = 400.0
+  inline def damageThreatAmount: ThreatAmount = ThreatAmount.fromValue(400.0)
 
 }

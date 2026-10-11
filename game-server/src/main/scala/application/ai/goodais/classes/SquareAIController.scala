@@ -1,20 +1,19 @@
 package application.ai.goodais.classes
 
 import application.ai.goodais.GoodAIController
-import gamelogic.entities.classes.Square
-import scala.reflect.ClassTag
 import application.ai.utils.maybeAbilityUsage
-import gamelogic.gamestate.GameState
-import gamelogic.entities.Entity
-import gamelogic.abilities.square.Taunt
-import gamelogic.abilities.square.Enrage
-import gamelogic.abilities.square.HammerHit
-import gamelogic.abilities.square.Cleave
-import gamelogic.buffs.Buff
-import gamelogic.entities.WithThreat
 import gamelogic.abilities.Ability
+import gamelogic.abilities.square.{Cleave, Enrage, HammerHit, Taunt}
+import gamelogic.buffs.Buff
+import gamelogic.entities.{Entity, WithThreat}
+import gamelogic.entities.WithThreat.ThreatAmount
+import gamelogic.entities.classes.Square
+import gamelogic.gamestate.GameState
 import models.bff.outofgame.PlayerClasses
 import models.bff.outofgame.gameconfig.PlayerName
+
+import scala.math.Ordered.orderingToOrdered
+import scala.reflect.ClassTag
 
 trait SquareAIController(index: Int) extends GoodAIController[Square] {
   final val classTag: ClassTag[Square] = implicitly[ClassTag[Square]]
@@ -24,7 +23,7 @@ trait SquareAIController(index: Int) extends GoodAIController[Square] {
   def isMyThreatTowardsTargetEnough(
       target: WithThreat,
       me: Square,
-      threshold: Double = 2000
+      threshold: ThreatAmount = ThreatAmount.fromValue(2000)
   ): Boolean =
     (for {
       myThreatToBoss <- target.damageThreats.get(me.id)

@@ -51,14 +51,10 @@ final case class Boss103(
   def changeTarget(newTargetId: Entity.Id): Boss103 = copy(targetId = newTargetId)
 
   def changeDamageThreats(threatId: Entity.Id, delta: ThreatAmount): Boss103 =
-    copy(damageThreats =
-      damageThreats + (threatId -> (damageThreats.getOrElse(threatId, 0.0) + delta))
-    )
+    copy(damageThreats = damageThreats.addAmount(threatId, delta))
 
   def changeHealingThreats(threatId: Entity.Id, delta: ThreatAmount): Boss103 =
-    copy(healingThreats =
-      healingThreats + (threatId -> (healingThreats.getOrElse(threatId, 0.0) + delta))
-    )
+    copy(healingThreats = healingThreats.addAmount(threatId, delta))
 
   protected def patchLifeTotal(newLife: Double): Boss103 = copy(life = newLife)
 

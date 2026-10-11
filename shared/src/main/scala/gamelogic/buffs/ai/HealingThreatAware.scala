@@ -3,6 +3,7 @@ package gamelogic.buffs.ai
 import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.buffs.{Buff, PassiveBuff}
 import gamelogic.entities.Entity
+import gamelogic.entities.WithThreat.ThreatAmount
 import gamelogic.gamestate.gameactions.{EntityGetsHealed, ThreatToEntityChange}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
@@ -30,7 +31,7 @@ final case class HealingThreatAware(
           gameAction.time,
           bearerId,
           gameAction.sourceId,
-          gameAction.amount,
+          ThreatAmount.fromValue(gameAction.amount),
           isDamageThreat = false
         )
       )

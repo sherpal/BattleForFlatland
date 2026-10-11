@@ -77,14 +77,10 @@ final case class Boss102(
   def teamId: Entity.TeamId = Entity.teams.mobTeam
 
   def changeDamageThreats(threatId: Id, delta: ThreatAmount): Boss102 =
-    copy(damageThreats =
-      damageThreats + (threatId -> (damageThreats.getOrElse(threatId, 0.0) + delta))
-    )
+    copy(damageThreats = damageThreats.addAmount(threatId, delta))
 
   def changeHealingThreats(threatId: Id, delta: ThreatAmount): Boss102 =
-    copy(healingThreats =
-      healingThreats + (threatId -> (healingThreats.getOrElse(threatId, 0.0) + delta))
-    )
+    copy(healingThreats = healingThreats.addAmount(threatId, delta))
 
   def changeTarget(newTargetId: Id): Boss102 = copy(targetId = newTargetId)
 

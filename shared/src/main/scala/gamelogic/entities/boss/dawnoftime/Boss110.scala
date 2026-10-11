@@ -102,15 +102,12 @@ final case class Boss110(
   def changeDamageThreats(
       threatId: gamelogic.entities.Entity.Id,
       delta: gamelogic.entities.WithThreat.ThreatAmount
-  ): Boss110 = copy(damageThreats =
-    damageThreats + (threatId -> (damageThreats.getOrElse(threatId, 0.0) + delta))
-  )
+  ): Boss110 = copy(damageThreats = damageThreats.addAmount(threatId, delta))
+
   def changeHealingThreats(
       threatId: gamelogic.entities.Entity.Id,
       delta: gamelogic.entities.WithThreat.ThreatAmount
-  ): Boss110 = copy(healingThreats =
-    healingThreats + (threatId -> (healingThreats.getOrElse(threatId, 0.0) + delta))
-  )
+  ): Boss110 = copy(healingThreats = healingThreats.addAmount(threatId, delta))
 
   def maybeAutoAttack(time: Long, gameState: GameState): Option[AutoAttack] =
     Some(

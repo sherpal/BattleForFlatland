@@ -1,15 +1,18 @@
 package game.ui.components
 
-import game.ui.*
-import indigo.*
-import scala.scalajs.js
+import assets.Asset
+import assets.fonts.Fonts
 import game.IndigoViewModel
+import game.ui.*
 import game.ui.Component.EventRegistration
 import game.ui.components.grid.GridContainer
-import scala.scalajs.js.JSConverters.*
-import assets.Asset
+import gamelogic.entities.WithThreat.ThreatAmount
+import indigo.*
 import utils.misc.RGBColour
-import assets.fonts.Fonts
+
+import scala.math.Ordered.orderingToOrdered
+import scala.scalajs.js
+import scala.scalajs.js.JSConverters.*
 
 final case class BossThreadMeter()(using viewModel: IndigoViewModel) extends Component {
 
@@ -30,8 +33,8 @@ final case class BossThreadMeter()(using viewModel: IndigoViewModel) extends Com
 
   val maxThreatValue = damageThreats.headOption
     .map(_._2)
-    .filter(_ > 0)
-    .getOrElse(1.0)
+    .filter(_ > ThreatAmount.zero)
+    .getOrElse(ThreatAmount.one)
 
   override def width: Int = 150
 
@@ -45,8 +48,8 @@ final case class BossThreadMeter()(using viewModel: IndigoViewModel) extends Com
         new Container(width, 15) {
           val children = js.Array(
             StatusBar(
-              amount,
-              maxThreatValue,
+              amount.value,
+              maxThreatValue.value,
               _ => RGBA.fromColorInts(colour.red, colour.green, colour.blue),
               Asset.ingame.gui.bars.minimalist,
               StatusBar.Horizontal,

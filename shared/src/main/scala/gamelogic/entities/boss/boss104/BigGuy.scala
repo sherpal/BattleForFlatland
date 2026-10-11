@@ -72,12 +72,12 @@ final case class BigGuy(
 
   override def canBeStunned: Boolean = true
 
-  override protected def patchLifeTotal(newLife: ThreatAmount): BigGuy = copy(life = newLife)
+  override protected def patchLifeTotal(newLife: Double): BigGuy = copy(life = newLife)
 
   override def healingThreats: Map[Id, ThreatAmount] = Map() // don't care about healing threat
 
   override def changeDamageThreats(threatId: Id, delta: ThreatAmount): BigGuy = copy(
-    damageThreats = damageThreats + (threatId -> damageThreats.get(threatId).fold(delta)(_ + delta))
+    damageThreats = damageThreats.addAmount(threatId, delta)
   )
 
   override def changeHealingThreats(threatId: Id, delta: ThreatAmount): BigGuy = this
@@ -92,7 +92,7 @@ final case class BigGuy(
 
   override def resourceAmount: Resource.ResourceAmount = Resource.ResourceAmount(0.0, NoResource)
 
-  override def maxResourceAmount: ThreatAmount = 0.0
+  override def maxResourceAmount: Double = 0.0
 
   override protected def patchResourceAmount(newResourceAmount: Resource.ResourceAmount): BigGuy =
     this
