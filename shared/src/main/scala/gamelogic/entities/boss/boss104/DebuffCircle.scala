@@ -17,7 +17,7 @@ final case class DebuffCircle(
     colour: RGBColour
 ) extends Body {
 
-  override def rotation: Angle = 0
+  override def rotation: Angle = Angle.zero
 
   override def shape: Shape = DebuffCircle.shape
 

@@ -1,16 +1,15 @@
 package application.ai.goodais.bosses.boss102
 
 import application.ai.goodais.GoodAIController
-import gamelogic.entities.*
-import gamelogic.gamestate.GameState
-import gamelogic.physics.Complex
-import gamelogic.entities.boss.boss102.DamageZone
 import gamelogic.buffs.boss.boss102.LivingDamageZone
-import gamelogic.physics.shape.Circle
-import gamelogic.physics.shape.Polygon
+import gamelogic.entities.*
+import gamelogic.entities.WithPosition.Angle
+import gamelogic.entities.boss.boss102.{BossHound, DamageZone}
 import gamelogic.entities.boss.dawnoftime.Boss102
 import gamelogic.entities.classes.Constants
-import gamelogic.entities.boss.boss102.BossHound
+import gamelogic.gamestate.GameState
+import gamelogic.physics.Complex
+import gamelogic.physics.shape.{Circle, Polygon}
 
 trait Boss102GoodAIController[EntityType <: MovingBody & WithPosition]
     extends GoodAIController[EntityType] {
@@ -78,11 +77,13 @@ trait Boss102GoodAIController[EntityType <: MovingBody & WithPosition]
   } yield Complex(x, y)).toVector
 
   private case class CircleWithPos(pos: Complex) {
-    def contains(point: Complex) = Circle(dangerRadius).contains(point, pos, 0)
+    def contains(point: Complex) = Circle(dangerRadius).contains(point, pos, Angle.zero)
 
     def closestPointTo(z: Complex): Vector[Complex] =
       if (pos - z).modulus2 < 1 then
-        (0 until 4).toVector.map(j => pos + dangerRadius * Complex.rotation(j * 2 * math.Pi / 4))
+        (0 until 4).toVector.map(j =>
+          pos + dangerRadius * Complex.rotation(Angle.Pi * Angle.fromDouble(j.toDouble * 2 / 4))
+        )
       else Vector(pos + (z - pos).normalized * dangerRadius)
 
     def intersectionsWith(that: CircleWithPos): Vector[Complex] =

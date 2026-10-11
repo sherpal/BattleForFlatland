@@ -29,7 +29,7 @@ final case class DeathMarkTriangle(
     stage: Int
 ) extends Body {
 
-  override def rotation: Angle = 0
+  override def rotation: Angle = Angle.zero
 
   override val shape: ConvexPolygon = ConvexPolygon(relativeVertices)
 

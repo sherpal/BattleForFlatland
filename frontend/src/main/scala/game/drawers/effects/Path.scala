@@ -2,6 +2,7 @@ package game.drawers.effects
 
 import gamelogic.physics.Complex
 import indigo.*
+import gamelogic.entities.WithPosition.Angle
 
 import scala.util.Random
 
@@ -31,10 +32,13 @@ trait Path extends (Seconds => Complex) {
   def *(z: Complex): Path = Path.factory(maybeDuration, t => apply(t) * z)
 
   /** Rotates the path by the given angle. */
-  def rotation(angle: Double): Path = this * Complex.rotation(angle)
+  def rotation(angle: Angle): Path = this * Complex.rotation(angle)
+
+  private def randomAngleBetween(min: Angle, max: Angle): Angle =
+    Angle.fromDouble(Random.between(min.value, max.value))
 
   /** Applies a random rotation with angle between `-maxAngle` and `maxAngle` */
-  def jitter(maxAngle: Double): Path = rotation(Random.between(-maxAngle, maxAngle))
+  def jitter(maxAngle: Angle): Path = rotation(randomAngleBetween(-maxAngle, maxAngle))
 
   /** Follows `this` path and then `that` path. If `this` path is infinite, then `that` path is
     * never followed.
@@ -78,28 +82,28 @@ object Path {
 
   def positiveSegment(duration: Seconds): Path = positiveRealLine.stopAfter(duration)
 
-  def segment(duration: Seconds, angle: Double, speed: Double): Path =
+  def segment(duration: Seconds, angle: Angle, speed: Double): Path =
     positiveSegment(duration) * Complex.rotation(angle) * speed
 
-  def goUp(duration: Seconds, speed: Double): Path    = segment(duration, math.Pi / 2, speed)
+  def goUp(duration: Seconds, speed: Double): Path    = segment(duration, Angle.Pi / 2, speed)
   def goDown(duration: Seconds, speed: Double): Path  = -goUp(duration, speed)
   def goRight(duration: Seconds, speed: Double): Path = positiveSegment(duration) * speed
   def goLeft(duration: Seconds, speed: Double): Path  = -goRight(duration, speed)
 
   def circleLoop(radius: Double, loopDuration: Seconds): Path =
     infiniteFactory(t =>
-      radius * Complex.rotation(2 * math.Pi * t.toDouble / loopDuration.toDouble)
+      radius * Complex.rotation(Angle.Tau * Angle.fromDouble(t.toDouble / loopDuration.toDouble))
     )
 
   def circle(duration: Seconds, radius: Double): Path =
     circleLoop(radius, duration).stopAfter(duration)
 
-  def arc(duration: Seconds, radius: Double, fromAngle: Double, toAngle: Double): Path =
+  def arc(duration: Seconds, radius: Double, fromAngle: Angle, toAngle: Angle): Path =
     finiteFactory(
       duration,
       t =>
         radius * Complex.rotation(
-          fromAngle + t.toDouble * (toAngle - fromAngle) / duration.toDouble
+          fromAngle + (toAngle - fromAngle) * Angle.fromDouble(t.toDouble / duration.toDouble)
         )
     )
 

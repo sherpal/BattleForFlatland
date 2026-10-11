@@ -156,14 +156,14 @@ object Boss103 extends BossFactory[Boss103] with BossMetadata {
   )(using IdGeneratorContainer): Vector[GameAction] = {
     val pillarShape = Shape.regularPolygon(3, pillarRadius)
     def pillar(index: Int): CreateObstacle = {
-      val angle = 2 * math.Pi * index / sizeNumber
+      val angle = Angle.Tau * Angle.fromDouble(index.toDouble / sizeNumber)
 
       val pillarAction = CreateObstacle(
         genActionId(),
         time,
         genEntityId(),
-        pillarPositionRadius * Complex.rotation(angle + math.Pi / 6),
-        pillarShape.vertices.map(_ * Complex.rotation(angle + math.Pi / 6 + math.Pi))
+        pillarPositionRadius * Complex.rotation(angle + Angle.Pi / 6),
+        pillarShape.vertices.map(_ * Complex.rotation(angle + Angle.Pi / 6 + Angle.Pi))
       )
 
       pillarAction

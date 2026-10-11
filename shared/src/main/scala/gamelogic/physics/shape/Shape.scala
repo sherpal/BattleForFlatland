@@ -1,24 +1,25 @@
 package gamelogic.physics.shape
 
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.physics.Complex
 
-import scala.Ordering.Double.TotalOrdering
+import scala.math.Ordered.orderingToOrdered
 
 trait Shape {
   val boundingBox: BoundingBox
 
   def collides(
       thisTranslation: Complex,
-      thisRotation: Double,
+      thisRotation: Angle,
       that: Shape,
       thatTranslation: Complex,
-      thatRotation: Double
+      thatRotation: Angle
   ): Boolean
 
-  def intersectSegment(translation: Complex, rotation: Double, z1: Complex, z2: Complex): Boolean
+  def intersectSegment(translation: Complex, rotation: Angle, z1: Complex, z2: Complex): Boolean
 
   def contains(point: Complex): Boolean
-  def contains(point: Complex, translation: Complex, rotation: Double): Boolean
+  def contains(point: Complex, translation: Complex, rotation: Angle): Boolean
 
   val radius: Double
 
@@ -78,10 +79,13 @@ object Shape {
   ) {
     val det: Double        = (z - prev).crossProduct(next - z)
     def triangle: Triangle = Triangle(prev, z, next)
-    def angle: Double = {
+
+    def angle: Angle = {
       val arg1 = (prev - z).arg
       val arg2 = (next - z).arg
-      (if (arg1 < 0) arg1 + 2 * math.Pi else arg1) - (if (arg2 < 0) arg2 + 2 * math.Pi else arg2)
+      (if arg1 < Angle.zero then arg1 + Angle.Tau else arg1) - (if arg2 < Angle.zero then
+                                                                  arg2 + Angle.Tau
+                                                                else arg2)
     }
     def isVertex(v: Complex): Boolean = v == z || v == next || v == prev
   }
@@ -119,21 +123,23 @@ object Shape {
 
   def regularPolygon(nbrSides: Int, radius: Double = 1): ConvexPolygon = new ConvexPolygon(
     (0 until nbrSides)
-      .map(j => radius * Complex.exp(Complex.i * 2 * math.Pi * j / nbrSides))
+      .map(j => radius * Complex.exp(Complex.i * Angle.Tau.value * j / nbrSides))
       .toVector
   )
 
-  def regularPolygon(nbrSides: Int, radius: Double, rotation: Double): ConvexPolygon =
+  def regularPolygon(nbrSides: Int, radius: Double, rotation: Angle): ConvexPolygon =
     new ConvexPolygon(
       (0 until nbrSides)
-        .map(j => radius * Complex.rotation(2 * math.Pi * j / nbrSides + rotation))
+        .map(j =>
+          radius * Complex.rotation(Angle.Tau * Angle.fromDouble(j.toDouble / nbrSides) + rotation)
+        )
         .toVector
     )
 
   def translatedRegularPolygon(nbrSides: Int, radius: Double, translation: Complex): ConvexPolygon =
     new ConvexPolygon(
       (0 until nbrSides)
-        .map(j => translation + radius * Complex.exp(Complex.i * 2 * math.Pi * j / nbrSides))
+        .map(j => translation + radius * Complex.exp(Complex.i * Angle.Tau.value * j / nbrSides))
         .toVector
     )
 

@@ -10,7 +10,7 @@ import gamelogic.physics.shape.Circle
 case class BigGuyDeathMark(id: Entity.Id, time: Long, pos: Complex) extends Body {
   override def shape: Circle = BigGuyDeathMark.shape
 
-  override def rotation: Angle = 0
+  override def rotation: Angle = Angle.zero
 
   override def teamId: TeamId = Entity.teams.mobTeam
 }

@@ -7,6 +7,7 @@ import gamelogic.physics.quadtree.ShapeQT
 import gamelogic.physics.shape.Circle
 import gamelogic.entities.PolygonBody
 import gamelogic.entities.Entity
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.gamestate.GameState
 
 class GraphManager(initialRadiuses: Iterable[Int]) {
@@ -28,7 +29,7 @@ class GraphManager(initialRadiuses: Iterable[Int]) {
       ManhattanGraph(
         10,
         100,
-        pos => !shapeQT.collides(Circle(entityRadius), pos, 0),
+        pos => !shapeQT.collides(Circle(entityRadius), pos, Angle.zero),
         entityRadius + 5
       )
 

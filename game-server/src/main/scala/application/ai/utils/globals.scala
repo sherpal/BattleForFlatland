@@ -176,7 +176,7 @@ def stopMoving(
     currentlyMoving: Boolean,
     currentPosition: Complex,
     speed: Double,
-    rotation: Double
+    rotation: Angle
 ): Option[MovingBodyMoves] =
   Option.when(currentlyMoving)(
     MovingBodyMoves(

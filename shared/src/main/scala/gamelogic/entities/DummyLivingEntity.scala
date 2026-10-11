@@ -14,7 +14,7 @@ final case class DummyLivingEntity(
     id: Entity.Id,
     time: Long,
     pos: Complex,
-    direction: Double,
+    direction: Angle,
     moving: Boolean,
     life: Double,
     colour: Int,
@@ -34,7 +34,7 @@ final case class DummyLivingEntity(
     relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability)
   )
 
-  val rotation: Double = 0.0
+  val rotation: Angle = Angle.zero
 
   val maxLife: Double = 100.0
 

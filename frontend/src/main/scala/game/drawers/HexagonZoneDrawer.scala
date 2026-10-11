@@ -25,7 +25,7 @@ object HexagonZoneDrawer {
       position =>
         drawHexaZone(
           position,
-          0,
+          Angle.zero,
           gameToLocal,
           HexagonZone.shape.radius,
           playerColorsCache.retrieve(myId, gameState.players)

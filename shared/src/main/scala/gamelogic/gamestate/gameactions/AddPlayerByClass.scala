@@ -1,7 +1,8 @@
 package gamelogic.gamestate.gameactions
 
 import gamelogic.entities.Entity
-import gamelogic.entities.classes._
+import gamelogic.entities.WithPosition.Angle
+import gamelogic.entities.classes.*
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
 import gamelogic.gamestate.{GameAction, GameState}
@@ -25,9 +26,9 @@ final case class AddPlayerByClass(
             entityId,
             time,
             position,
-            0.0,
+            Angle.zero,
             moving = false,
-            0.0,
+            Angle.zero,
             Square.initialMaxLife,
             colour,
             Map(),
@@ -45,9 +46,9 @@ final case class AddPlayerByClass(
             entityId,
             time,
             position,
-            0.0,
+            Angle.zero,
             moving = false,
-            0.0,
+            Angle.zero,
             Hexagon.initialMaxLife,
             colour,
             Map(),
@@ -65,9 +66,9 @@ final case class AddPlayerByClass(
             entityId,
             time,
             position,
-            0.0,
+            Angle.zero,
             moving = false,
-            0.0,
+            Angle.zero,
             Triangle.initialMaxLife,
             colour,
             Map(),
@@ -85,9 +86,9 @@ final case class AddPlayerByClass(
             entityId,
             time,
             position,
-            0.0,
+            Angle.zero,
             moving = false,
-            0.0,
+            Angle.zero,
             Pentagon.initialMaxLife,
             colour,
             Map(),

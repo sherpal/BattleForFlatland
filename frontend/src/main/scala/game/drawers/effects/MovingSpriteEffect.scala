@@ -1,11 +1,13 @@
 package game.drawers.effects
 
+import assets.Asset
+import game.IndigoViewModel
+import game.scenes.ingame.InGameScene.StartupData
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import indigo.*
-import assets.Asset
-import game.scenes.ingame.InGameScene.StartupData
-import game.IndigoViewModel
+
 import scala.scalajs.js
 
 /** Creates an effect which follows the given `path`. A sprite with the given `texture` is created.
@@ -31,7 +33,7 @@ final class MovingSpriteEffect(
     startTime: Seconds,
     path: Path,
     runningToTimeDelta: Long,
-    rotation: (GameState, Seconds) => Double,
+    rotation: (GameState, Seconds) => Angle,
     worldAnchorPosition: (GameState, Long) => Complex,
     anchor: (Double, Double) = (0.5, 0.5)
 ) extends GameEffect {
@@ -43,7 +45,7 @@ final class MovingSpriteEffect(
     val now     = context.gameTime.running.toMillis.toLong + runningToTimeDelta
     val running = context.gameTime.running - startTime
     val imageRotation = Radians(
-      -rotation(viewModel.gameState, running)
+      -rotation(viewModel.gameState, running).value
     )
     val position = path(running) + worldAnchorPosition(viewModel.gameState, now)
 

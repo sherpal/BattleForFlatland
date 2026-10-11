@@ -7,6 +7,7 @@ import gamelogic.abilities.boss.boss104.DeathMarkTriangleAttack
 import gamelogic.abilities.hexagon.CreateHexagonZone
 import gamelogic.buffs.Buff
 import gamelogic.entities.Entity
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.boss.boss104.DeathMarkTriangle
 import gamelogic.entities.boss.dawnoftime.Boss104
 import gamelogic.entities.classes.Hexagon
@@ -122,7 +123,7 @@ final case class HexagonForBoss104(index: Int, entityId: Entity.Id)
             me.id,
             triangle.pos,
             HexagonZone.healOnTick,
-            0,
+            Angle.zero,
             RGBColour.fromIntColour(me.colour).withAlpha(0.5)
           ),
           gameState

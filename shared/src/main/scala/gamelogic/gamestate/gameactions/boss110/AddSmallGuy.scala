@@ -4,12 +4,12 @@ import gamelogic.physics.Complex
 import gamelogic.entities.boss.boss110.SmallGuy
 import gamelogic.gamestate.GameAction
 import gamelogic.entities.Entity
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.gamestate.statetransformers.WithEntity
 import gamelogic.gamestate.statetransformers.GameStateTransformer
 import gamelogic.gamestate.GameState
 
-/**
-  * Adds an instance of a [[SmallGuy]] in the game.
+/** Adds an instance of a [[SmallGuy]] in the game.
   */
 final case class AddSmallGuy(id: GameAction.Id, time: Long, entityId: Entity.Id, position: Complex)
     extends GameAction
@@ -21,8 +21,8 @@ final case class AddSmallGuy(id: GameAction.Id, time: Long, entityId: Entity.Id,
         entityId,
         time,
         position,
-        0,
-        0,
+        Angle.zero,
+        Angle.zero,
         SmallGuy.fullSpeed,
         moving = false,
         SmallGuy.maxLife,

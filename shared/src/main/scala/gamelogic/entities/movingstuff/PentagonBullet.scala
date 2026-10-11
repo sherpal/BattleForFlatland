@@ -7,9 +7,9 @@ import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.Circle
 
-/** A [[PentagonBullet]] is spawned by the ability of the [[gamelogic.entities.classes.Pentagon]]. It moves on a strait
-  * line for a given range until it hits an enemy. The hit enemy takes an amount of damage equal to the `damage`
-  * property.
+/** A [[PentagonBullet]] is spawned by the ability of the [[gamelogic.entities.classes.Pentagon]].
+  * It moves on a strait line for a given range until it hits an enemy. The hit enemy takes an
+  * amount of damage equal to the `damage` property.
   */
 final case class PentagonBullet(
     id: Entity.Id,
@@ -28,14 +28,14 @@ final case class PentagonBullet(
       position: Complex,
       direction: Angle,
       rotation: Angle,
-      speed: Angle,
+      speed: Double,
       moving: Boolean
   ): PentagonBullet =
     copy(time = time, pos = position, direction = direction, speed = speed)
 
   def shape: Circle = PentagonBullet.shape
 
-  def rotation: Angle = 0.0
+  def rotation: Angle = Angle.zero
 
   def moving: Boolean = true
 

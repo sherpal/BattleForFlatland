@@ -1,5 +1,6 @@
 package gamelogic.gamestate.gameactions
 
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.{DummyMob, Entity}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
@@ -14,7 +15,10 @@ final case class AddDummyMob(
 ) extends GameAction {
 
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
-    new WithEntity(DummyMob(entityId, time, position, DummyMob.speed, moving = false, 0.0, 0.0), time = time)
+    new WithEntity(
+      DummyMob(entityId, time, position, DummyMob.speed, moving = false, Angle.zero, Angle.zero),
+      time = time
+    )
 
   def isLegal(gameState: GameState): None.type = None
 

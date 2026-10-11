@@ -1,16 +1,17 @@
 package game.drawers.effects
 
-import gamelogic.physics.Complex
 import assets.Asset
-import indigo.*
-import game.scenes.ingame.InGameScene.StartupData
 import game.IndigoViewModel
+import game.scenes.ingame.InGameScene.StartupData
+import gamelogic.entities.WithPosition.Angle
+import gamelogic.physics.Complex
+import indigo.*
 
 import scala.scalajs.js
 
 final class FlashingShape(
     position: Complex,
-    rotation: Double,
+    rotation: Angle,
     startTime: Seconds,
     duration: Seconds,
     animationsCrops: js.Array[Rectangle],
@@ -37,7 +38,7 @@ final class FlashingShape(
         Material.Bitmap(texture.assetName)
       ).withCrop(currentCrop)
         .withRef(currentCrop.size.toPoint / 2)
-        .withRotation(Radians(-rotation))
+        .withRotation(Radians(-rotation.value))
         .withPosition(viewModel.gameToLocal(position))
         .withScale(size.toVector / currentCrop.size.toVector)
     )

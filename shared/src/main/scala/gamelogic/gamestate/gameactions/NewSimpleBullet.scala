@@ -1,5 +1,6 @@
 package gamelogic.gamestate.gameactions
 
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.{Entity, SimpleBulletBody}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithSimpleBullet}
@@ -13,7 +14,7 @@ final case class NewSimpleBullet(
     bulletId: Entity.Id,
     pos: Complex,
     speed: Double,
-    direction: Double,
+    direction: Angle,
     ownerId: Entity.Id,
     range: Double
 ) extends GameAction {
@@ -24,6 +25,15 @@ final case class NewSimpleBullet(
 
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     new WithSimpleBullet(
-      SimpleBulletBody(bulletId, time, pos, speed, SimpleBulletBody.defaultRadius, direction, range, ownerId)
+      SimpleBulletBody(
+        bulletId,
+        time,
+        pos,
+        speed,
+        SimpleBulletBody.defaultRadius,
+        direction,
+        range,
+        ownerId
+      )
     )
 }

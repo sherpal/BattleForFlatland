@@ -1,19 +1,17 @@
 package application.ai.boss
 
-import application.ai.utils.*
 import application.ai.AIController
-import gamelogic.entities.boss.dawnoftime.Boss104
-import gamelogic.gamestate.gameactions.SpawnBoss
-import gamelogic.entities.classes.PlayerClass
-import gamelogic.physics.pathfinding.Graph
-import gamelogic.entities.Entity.Id
-import gamelogic.gamestate.GameAction
-import gamelogic.physics.Complex
-import gamelogic.gamestate.GameState
-import gamelogic.entities.boss.dawnoftime.Boss102
-import gamelogic.gamestate.gameactions.EntityStartsCasting
-import gamelogic.abilities.boss.boss104.{DeathMarkTriangleAttack, SpawnBigGuy, TwinDebuffs}
+import application.ai.utils.*
 import gamelogic.abilities.Ability.UseId
+import gamelogic.abilities.boss.boss104.{DeathMarkTriangleAttack, SpawnBigGuy, TwinDebuffs}
+import gamelogic.entities.Entity.Id
+import gamelogic.entities.WithPosition.Angle
+import gamelogic.entities.boss.dawnoftime.{Boss102, Boss104}
+import gamelogic.entities.classes.PlayerClass
+import gamelogic.gamestate.{GameAction, GameState}
+import gamelogic.gamestate.gameactions.{EntityStartsCasting, SpawnBoss}
+import gamelogic.physics.Complex
+import gamelogic.physics.pathfinding.Graph
 
 /** The brain of [[Boss104]].
   *
@@ -61,7 +59,7 @@ object Boss104Controller extends AIController[Boss104, SpawnBoss] {
           obstacleGraph,
           position =>
             !currentGameState.obstacles.valuesIterator
-              .exists(_.collidesShape(me.shape, position, 0, 0))
+              .exists(_.collidesShape(me.shape, position, Angle.zero, 0))
         )
 
         val maybeUseTwinDebuffs =

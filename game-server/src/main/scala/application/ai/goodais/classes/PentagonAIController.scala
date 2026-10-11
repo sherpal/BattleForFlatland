@@ -1,20 +1,21 @@
 package application.ai.goodais.classes
 
 import application.ai.goodais.GoodAIController
-import gamelogic.entities.classes.Pentagon
-import scala.reflect.ClassTag
-import gamelogic.gamestate.GameState
 import application.ai.utils.maybeAbilityUsage
-import gamelogic.abilities.pentagon.CreatePentagonBullet
-import gamelogic.physics.Complex
-import gamelogic.abilities.pentagon.CreatePentagonZone
-import gamelogic.entities.classes.pentagon.PentagonZone
-import utils.misc.RGBColour
 import gamelogic.abilities.Ability
-import models.bff.outofgame.gameconfig.PlayerName
-import models.bff.outofgame.PlayerClasses
+import gamelogic.abilities.pentagon.{CreatePentagonBullet, CreatePentagonZone, PentaDispel}
 import gamelogic.entities.Entity
-import gamelogic.abilities.pentagon.PentaDispel
+import gamelogic.entities.WithPosition.Angle
+import gamelogic.entities.classes.Pentagon
+import gamelogic.entities.classes.pentagon.PentagonZone
+import gamelogic.gamestate.GameState
+import gamelogic.gamestate.gameactions.EntityStartsCasting
+import gamelogic.physics.Complex
+import models.bff.outofgame.PlayerClasses
+import models.bff.outofgame.gameconfig.PlayerName
+import utils.misc.RGBColour
+
+import scala.reflect.ClassTag
 
 trait PentagonAIController(index: Int) extends GoodAIController[Pentagon] {
   final val classTag: ClassTag[Pentagon] = implicitly[ClassTag[Pentagon]]
@@ -25,8 +26,8 @@ trait PentagonAIController(index: Int) extends GoodAIController[Pentagon] {
       gameState: GameState,
       time: Long,
       me: Pentagon,
-      direction: Double
-  ) =
+      direction: Angle
+  ): Option[EntityStartsCasting] =
     maybeAbilityUsage(
       me,
       CreatePentagonBullet(

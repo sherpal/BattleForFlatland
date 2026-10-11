@@ -1,6 +1,7 @@
 package gamelogic.gamestate.gameactions.boss102
 
 import gamelogic.entities.Entity
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.boss.boss102.BossHound
 import gamelogic.gamestate.GameAction.{EntityCreatorAction, Id}
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
@@ -15,8 +16,8 @@ final case class AddBossHound(id: GameAction.Id, time: Long, entityId: Entity.Id
       entityId,
       time,
       position,
-      0.0,
-      0.0,
+      Angle.zero,
+      Angle.zero,
       BossHound.fullSpeed,
       moving = false,
       BossHound.houndMaxLife,

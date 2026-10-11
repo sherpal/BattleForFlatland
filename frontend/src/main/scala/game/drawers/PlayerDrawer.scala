@@ -1,16 +1,17 @@
 package game.drawers
 
-import gamelogic.physics.Complex
+import assets.Asset
+import game.gameutils.{toIndigo, LocalCache}
+import gamelogic.abilities.Ability
+import gamelogic.entities.Entity
+import gamelogic.entities.WithPosition.Angle
+import gamelogic.entities.classes.PlayerClass
 import gamelogic.gamestate.GameState
+import gamelogic.physics.Complex
 import indigo.*
+
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
-import assets.Asset
-import game.gameutils.LocalCache
-import gamelogic.entities.Entity
-import gamelogic.entities.classes.PlayerClass
-import gamelogic.abilities.Ability
-import game.gameutils.toIndigo
 
 object PlayerDrawer extends Drawer {
 
@@ -37,7 +38,8 @@ object PlayerDrawer extends Drawer {
           gameToLocal(
             currentPlayerPos + Complex.polar(
               player.shape.radius,
-              player.rotation + offset * 2 * math.Pi / player.shape.vertices.length
+              player.rotation + Angle.Pi * Angle
+                .fromDouble(offset.toDouble * 2) / player.shape.vertices.length
             )
           )
         }
@@ -59,7 +61,7 @@ object PlayerDrawer extends Drawer {
         .withTint(playerColor)
     ).withPosition(localCurrentPos)
       .withRef(asset.center)
-      .withRotation(Radians(-player.rotation))
+      .withRotation(Radians(-player.rotation.value))
       .withScale(asset.scaleTo(2 * player.shape.radius)) +: Shape.Circle(
       localNosePos,
       2,

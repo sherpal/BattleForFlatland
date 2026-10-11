@@ -1,31 +1,28 @@
 package game.scenes.ingame
 
+import assets.Asset
+import game.{BackendCommWrapper, IndigoModel, IndigoViewModel}
+import game.drawers.*
+import game.events.CustomIndigoEvents
+import game.handlers.*
+import game.scenes.ingame.InGameScene.StartupData
+import game.sounds.SoundsManager
+import gamelogic.abilities.Ability
+import gamelogic.entities.Entity
+import gamelogic.entities.WithPosition.Angle
+import gamelogic.gamestate.*
+import gamelogic.gamestate.gameactions.*
+import gamelogic.gamestate.gameactions.markers.UpdateMarker
+import gamelogic.physics.Complex
 import indigo.*
 import indigo.scenes.*
-import game.IndigoModel
-import game.IndigoViewModel
-import game.scenes.ingame.InGameScene.StartupData
-import scala.scalajs.js.JSConverters.*
-import gamelogic.physics.Complex
-import gamelogic.entities.Entity
-import gamelogic.gamestate.gameactions.*
-import gamelogic.gamestate.*
-import game.BackendCommWrapper
-
-import scala.scalajs.js
-import game.events.CustomIndigoEvents
-import models.bff.ingame.Controls
+import indigo.shared.events.MouseEvent.Click
 import models.bff.ingame.Controls.*
 import models.bff.ingame.Controls.KeyInputModifier.WithShift
-import assets.Asset
-import indigo.shared.events.MouseEvent.Click
-import models.bff.ingame.InGameWSProtocol
-import game.drawers.PentagonBulletsDrawer
-import gamelogic.abilities.Ability
-import gamelogic.gamestate.gameactions.markers.UpdateMarker
-import game.drawers.*
-import game.handlers.*
-import game.sounds.SoundsManager
+import models.bff.ingame.{Controls, InGameWSProtocol}
+
+import scala.scalajs.js
+import scala.scalajs.js.JSConverters.*
 
 class InGameScene(
     myId: Entity.Id,
@@ -151,7 +148,8 @@ class InGameScene(
               (if controls.downKey.isActionDown(context) then -1 else 0)
 
           val maybePlayerDirection =
-            if playerX == 0 && playerY == 0 then None else Some(Math.atan2(playerY, playerX))
+            if playerX == 0 && playerY == 0 then None
+            else Some(Angle.fromDouble(Math.atan2(playerY, playerX)))
 
           val rotation = (for {
             targetId <- model.maybeTarget
@@ -171,7 +169,7 @@ class InGameScene(
                 gameState.obstacles.values
               )
             ),
-            maybePlayerDirection.getOrElse(0),
+            maybePlayerDirection.getOrElse(Angle.zero),
             rotation,
             player.speed,
             maybePlayerDirection.isDefined

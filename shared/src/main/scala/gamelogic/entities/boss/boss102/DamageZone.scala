@@ -23,7 +23,7 @@ final case class DamageZone(
 
   lazy val shape: Circle = new Circle(radius)
 
-  def rotation: Angle = 0.0
+  def rotation: Angle = Angle.zero
 
   def buff(buffId: Buff.Id): DamageZoneTick = DamageZoneTick(buffId, id, time, time)
 

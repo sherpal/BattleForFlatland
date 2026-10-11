@@ -1,7 +1,10 @@
 package gamelogic.physics
 
+import gamelogic.entities.WithPosition.Angle
+import scala.math.Ordered.orderingToOrdered
+
 import scala.language.implicitConversions
-import scala.math._
+import scala.math.*
 import scala.util.Try
 
 final case class Complex(re: Double, im: Double) {
@@ -60,13 +63,13 @@ final case class Complex(re: Double, im: Double) {
     */
   def orthogonal: Complex = Complex(-im, re)
 
-  def rotate(angle: Double): Complex = this * Complex.rotation(angle)
+  def rotate(angle: Angle): Complex = this * Complex.rotation(angle)
 
   def normalized: Complex = this / modulus
 
   def safeNormalized: Complex = if (modulus == 0) 0 else normalized
 
-  def arg: Double = atan2(im, re) // arg in (-pi, pi)
+  def arg: Angle = Angle.fromDouble(atan2(im, re)) // arg in (-pi, pi)
 
   def unary_- : Complex = Complex(-re, -im)
 
@@ -114,10 +117,10 @@ object Complex {
 
   def exp(z: Complex): Complex = math.exp(z.re) * Complex(math.cos(z.im), math.sin(z.im))
 
-  def log(z: Complex): Complex = Complex(math.log(!z), z.arg) // principal branch of log
+  def log(z: Complex): Complex = Complex(math.log(!z), z.arg.value) // principal branch of log
 
-  def log(z: Complex, branch: Double): Complex =
-    Complex(math.log(!z), z.arg + (if (z.arg < branch) 2 * Pi else 0))
+  def log(z: Complex, branch: Angle): Complex =
+    Complex(math.log(!z), (z.arg + (if z.arg < branch then Angle.Tau else Angle.zero)).value)
 
   def sqrt(z: Complex): Complex = exp(log(z) / 2)
 
@@ -127,10 +130,10 @@ object Complex {
 
   def cos(z: Complex): Complex = (exp(i * z) + exp(-i * z)) / 2
 
-  def rotation(angle: Double): Complex = Complex(math.cos(angle), math.sin(angle))
+  def rotation(angle: Angle): Complex = Complex(math.cos(angle.value), math.sin(angle.value))
 
-  def polar(radius: Double, angle: Double): Complex =
-    Complex(radius * math.cos(angle), radius * math.sin(angle))
+  def polar(radius: Double, angle: Angle): Complex =
+    Complex(radius * math.cos(angle.value), radius * math.sin(angle.value))
 
   trait ComplexIsNumeric extends Numeric[Complex] {
     override def plus(x: Complex, y: Complex): Complex = x + y

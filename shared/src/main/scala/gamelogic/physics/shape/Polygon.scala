@@ -1,6 +1,7 @@
 package gamelogic.physics.shape
 
 import gamelogic.physics.Complex
+import gamelogic.entities.WithPosition.Angle
 
 import scala.Ordering.Double.TotalOrdering
 
@@ -8,7 +9,7 @@ trait Polygon extends Shape {
   val vertices: Vector[Complex]
   lazy val triangulation: Vector[Triangle]
 
-  def ears = for (j <- vertices.indices) yield {
+  def ears: Seq[Triangle] = for (j <- vertices.indices) yield {
     val z1 = if j == 0 then vertices.last else vertices(j - 1)
     val z2 = vertices(j)
     val z3 = if j + 1 == vertices.length then vertices.head else vertices(j + 1)
@@ -29,10 +30,10 @@ trait Polygon extends Shape {
 
   def collides(
       thisTranslation: Complex,
-      thisRotation: Double,
+      thisRotation: Angle,
       that: Shape,
       thatTranslation: Complex,
-      thatRotation: Double
+      thatRotation: Angle
   ): Boolean =
     boundingBox.intersect(that.boundingBox, thisTranslation, thatTranslation) && {
       that match {
@@ -57,7 +58,7 @@ trait Polygon extends Shape {
   val boundingBox: BoundingBox =
     BoundingBox(center.re - radius, center.im - radius, center.re + radius, center.im + radius)
 
-  def intersectSegment(translation: Complex, rotation: Double, z1: Complex, z2: Complex): Boolean =
+  def intersectSegment(translation: Complex, rotation: Angle, z1: Complex, z2: Complex): Boolean =
     triangulation.exists { triangle =>
       val actualVertices = triangle.vertices.map(_ * Complex.rotation(rotation) + translation)
       triangle.contains(z1.re, z1.im, rotation, translation) ||
@@ -72,13 +73,13 @@ trait Polygon extends Shape {
   def contains(point: Complex): Boolean =
     boundingBox.contains(point) && triangulation.exists(_.contains(point.re, point.im))
 
-  def contains(point: Complex, translation: Complex, rotation: Double): Boolean =
+  def contains(point: Complex, translation: Complex, rotation: Angle): Boolean =
     boundingBox.contains(point - translation) && triangulation
       .exists(_.contains(point.re, point.im, rotation, translation))
 
-  def edges: Vector[Segment] = vertices.zip(vertices.tail :+ vertices(0)).map(Segment.tupled(_))
+  def edges: Vector[Segment] = vertices.zip(vertices.tail :+ vertices(0)).map(Segment.tupled)
 
-  def translateAndRotationVertices(translation: Complex, rotation: Double): Vector[Complex] =
+  def translateAndRotationVertices(translation: Complex, rotation: Angle): Vector[Complex] =
     vertices.map(_.rotate(rotation) + translation)
 
   /** Returns the polygon where all the edges are translated radius away to the exterior.

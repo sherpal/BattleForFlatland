@@ -1,15 +1,16 @@
 package game.drawers
 
-import indigo.*
+import game.gameutils.*
+import gamelogic.entities.Entity
+import gamelogic.entities.WithPosition.Angle
+import gamelogic.entities.classes.PlayerClass
+import gamelogic.entities.classes.pentagon.PentagonZone
 import gamelogic.gamestate.GameState
+import gamelogic.physics.Complex
+import indigo.*
 
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
-import gamelogic.physics.Complex
-import game.gameutils.*
-import gamelogic.entities.Entity
-import gamelogic.entities.classes.PlayerClass
-import gamelogic.entities.classes.pentagon.PentagonZone
 
 object PentagonBulletsDrawer {
 
@@ -53,7 +54,7 @@ object PentagonBulletsDrawer {
 
   private def drawPentaZone(
       position: Complex,
-      rotation: Double,
+      rotation: Angle,
       gameToLocal: Complex => Point,
       radius: Double,
       color: RGBA
@@ -86,7 +87,7 @@ object PentagonBulletsDrawer {
     ) ++ maybePositionToPlaceZone.toJSArray.map { position =>
       drawPentaZone(
         position,
-        0,
+        Angle.zero,
         gameToLocal,
         PentagonZone.shape.radius,
         playerColorsCache.retrieve(myId, gameState.players)

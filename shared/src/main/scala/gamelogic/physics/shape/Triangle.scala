@@ -1,6 +1,7 @@
 package gamelogic.physics.shape
 
 import gamelogic.physics.Complex
+import gamelogic.entities.WithPosition.Angle
 
 final case class Triangle(x0: Double, y0: Double, x1: Double, y1: Double, x2: Double, y2: Double) {
 
@@ -8,10 +9,10 @@ final case class Triangle(x0: Double, y0: Double, x1: Double, y1: Double, x2: Do
 
   val det: Double = Complex(x1 - x0, y1 - y0).crossProduct(Complex(x2 - x0, y2 - y0))
 
-  inline def overlapDisk(
+  def overlapDisk(
       that: Circle,
       center: Complex,
-      rot: Double = 0,
+      rot: Angle = Angle.zero,
       translation: Complex = 0
   ): Boolean = {
     val transformedVertices = vertices.map(_ * Complex.rotation(rot) + translation)
@@ -38,11 +39,11 @@ final case class Triangle(x0: Double, y0: Double, x1: Double, y1: Double, x2: Do
     )
   }
 
-  @inline def overlap(
+  def overlap(
       that: Triangle,
-      rot: Double = 0,
+      rot: Angle = Angle.zero,
       trans: Complex = 0,
-      rotThat: Double = 0,
+      rotThat: Angle = Angle.zero,
       transThat: Complex = 0
   ): Boolean = {
     val cs     = effectiveCoordinates(rot, trans)
@@ -146,14 +147,18 @@ final case class Triangle(x0: Double, y0: Double, x1: Double, y1: Double, x2: Do
     that.contains(cs(2).re, cs(2).im, csThat)
   }
 
-  def effectiveCoordinates(rotation: Double, translation: Complex): Vector[Complex] =
+  def effectiveCoordinates(rotation: Angle, translation: Complex): Vector[Complex] =
     vertices.map(z => z * Complex.rotation(rotation) + translation)
 
-  def contains(x: Double, y: Double, rotation: Double = 0, translation: Complex = 0): Boolean = {
+  def contains(
+      x: Double,
+      y: Double,
+      rotation: Angle = Angle.zero,
+      translation: Complex = 0
+  ): Boolean = {
     val cs =
-      if (rotation == 0 && translation == Complex(0, 0)) vertices
-      else
-        effectiveCoordinates(rotation, translation)
+      if rotation == Angle.zero && translation == Complex(0, 0) then vertices
+      else effectiveCoordinates(rotation, translation)
     contains(x, y, cs)
   }
 

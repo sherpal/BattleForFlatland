@@ -18,7 +18,7 @@ import gamelogic.utils.IdsProducer
   */
 final case class Obstacle(id: Entity.Id, time: Long, pos: Complex, shape: Polygon)
     extends PolygonBody {
-  def rotation: Angle = 0.0
+  def rotation: Angle = Angle.zero
 
   def teamId: TeamId = Entity.teams.neutralTeam
 

@@ -1,17 +1,19 @@
 package game.drawers.effects
 
-import indigo.*
-import scala.scalajs.js
-import game.scenes.ingame.InGameScene.StartupData
+import assets.Asset
 import game.IndigoViewModel
-import gamelogic.gamestate.GameAction
-import gamelogic.gamestate.gameactions.*
+import game.scenes.ingame.InGameScene.StartupData
 import gamelogic.abilities.square.Cleave
 import gamelogic.entities.Entity
-import gamelogic.physics.Complex
-import scala.scalajs.js.JSConverters.*
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.classes.Constants
-import assets.Asset
+import gamelogic.gamestate.GameAction
+import gamelogic.gamestate.gameactions.*
+import gamelogic.physics.Complex
+import indigo.*
+
+import scala.scalajs.js
+import scala.scalajs.js.JSConverters.*
 
 final class EffectsManager(currentEffects: js.Array[GameEffect], playerId: Entity.Id) {
 
@@ -43,7 +45,7 @@ final class EffectsManager(currentEffects: js.Array[GameEffect], playerId: Entit
             context.gameTime.running,
             Path
               .goDown(Seconds(2), 40)
-              .jitter(math.Pi / 16) + gameState.players.get(playerId).fold(Complex.zero)(_.pos)
+              .jitter(Angle.Pi / 16) + gameState.players.get(playerId).fold(Complex.zero)(_.pos)
           )
         )
       case EntityTakesDamage(_, time, entityId, amount, sourceId) if sourceId == playerId =>
@@ -52,7 +54,7 @@ final class EffectsManager(currentEffects: js.Array[GameEffect], playerId: Entit
             amount.toInt.toString,
             "white",
             context.gameTime.running,
-            Path.goUp(Seconds(2), 40).jitter(math.Pi / 16) + gameState
+            Path.goUp(Seconds(2), 40).jitter(Angle.Pi / 16) + gameState
               .movingBodyEntityById(entityId)
               .fold(Complex.zero)(entity => entity.pos + entity.shape.radius * Complex.i)
           )
@@ -65,7 +67,7 @@ final class EffectsManager(currentEffects: js.Array[GameEffect], playerId: Entit
             context.gameTime.running,
             Path
               .goUp(Seconds(2), 40)
-              .jitter(math.Pi / 16) + gameState
+              .jitter(Angle.Pi / 16) + gameState
               .movingBodyEntityById(entityId)
               .fold(Complex.zero)(_.pos)
           )
@@ -74,7 +76,7 @@ final class EffectsManager(currentEffects: js.Array[GameEffect], playerId: Entit
         gameState.players.get(casterId).map { player =>
           FlashingShape(
             ability.position + player.shape.radius * Complex.rotation(ability.rotation),
-            math.Pi + ability.rotation,
+            Angle.Pi + ability.rotation,
             context.gameTime.running,
             Millis(750L).toSeconds, {
               val cropSize = Size(135 / 3, 40)
@@ -95,8 +97,8 @@ final class EffectsManager(currentEffects: js.Array[GameEffect], playerId: Entit
             .arc(
               Millis(200).toSeconds,
               Constants.playerRadius * 1.5,
-              angle - math.Pi / 4,
-              angle + math.Pi / 4
+              angle - Angle.Pi / 4,
+              angle + Angle.Pi / 4
             )
         } yield MovingSpriteEffect(
           Asset.ingame.gui.abilities.triangleDirectHitEffect,

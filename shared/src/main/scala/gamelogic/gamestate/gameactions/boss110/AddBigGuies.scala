@@ -2,6 +2,7 @@ package gamelogic.gamestate.gameactions.boss110
 
 import cats.kernel.Monoid
 import gamelogic.entities.Entity
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.boss.boss110.BigGuy
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
@@ -26,8 +27,8 @@ final case class AddBigGuies(
             entityId,
             time,
             startingPosition,
-            0,
-            0,
+            Angle.zero,
+            Angle.zero,
             BigGuy.fullSpeed,
             moving = false,
             BigGuy.maxLife,

@@ -3,10 +3,11 @@ package gamelogic
 import gamelogic.physics.shape.{ConvexPolygon, Polygon, Shape}
 import org.scalacheck.Gen
 import gamelogic.physics.shape.Triangle
+import gamelogic.entities.WithPosition.Angle
 
 package object physics {
 
-  final val angleGen = Gen.choose(0.0, 2 * math.Pi)
+  final val angleGen: Gen[Angle] = Gen.choose(0.0, 2 * math.Pi).map(Angle.fromDouble)
 
   def regularPolygonGen(nbrSides: Int): Gen[ConvexPolygon] =
     for {

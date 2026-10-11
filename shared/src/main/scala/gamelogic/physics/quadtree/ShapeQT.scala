@@ -1,5 +1,6 @@
 package gamelogic.physics.quadtree
 
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.{Entity, PolygonBody}
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.Shape
@@ -30,7 +31,7 @@ final class ShapeQT(val shapes: Vector[PolygonBody]) {
     if ids.isEmpty then this else new ShapeQT(shapes.filterNot(ids contains _.id))
 
   /** Checks whether there is a shape among these colliding the other given shape. */
-  def collides(shape: Shape, translation: Complex, rotation: Double): Boolean =
+  def collides(shape: Shape, translation: Complex, rotation: Angle): Boolean =
     shapes.exists(body => body.collidesShape(shape, translation, rotation, 0))
 
   /** Checks whether the given shape is in here. */

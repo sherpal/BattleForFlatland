@@ -2,6 +2,7 @@ package gamelogic.gamestate.abilitiesstories.bosses.dawnoftime
 
 import gamelogic.gamestate.abilitiesstories.StoryTeller
 import gamelogic.entities.Entity
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import testutils.ActionComposer
@@ -51,7 +52,8 @@ final class Boss110Specs extends StoryTeller {
   test("Changing radius then moving works") {
     val addCreepingShadow = addCreepingShadowAction(0)
     val changeRadius      = changeRadiusAction(1, addCreepingShadow.entityId, 1)
-    val moving            = entityMoves(2, addCreepingShadow.entityId, 0, 1, 0, 0, moving = true)
+    val moving =
+      entityMoves(2, addCreepingShadow.entityId, 0, Angle.one, Angle.zero, 0, moving = true)
 
     val composer = ActionComposer.empty >> start >> addCreepingShadow >> changeRadius >>>> {
       (gs: GameState) =>

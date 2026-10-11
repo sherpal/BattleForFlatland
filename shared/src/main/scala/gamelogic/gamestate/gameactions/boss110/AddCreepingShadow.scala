@@ -1,6 +1,7 @@
 package gamelogic.gamestate.gameactions.boss110
 
 import gamelogic.entities.Entity
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.boss.boss110.CreepingShadow
 import gamelogic.entities.boss.dawnoftime.Boss110
 import gamelogic.gamestate.{GameAction, GameState}
@@ -34,7 +35,7 @@ final case class AddCreepingShadow(
         Complex(-Boss110.halfWidth, 0),
         1.0,
         sourceId,
-        0.0,
+        Angle.zero,
         moving = false,
         Map.empty
       ),

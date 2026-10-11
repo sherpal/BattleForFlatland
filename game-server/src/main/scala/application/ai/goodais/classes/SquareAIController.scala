@@ -5,10 +5,12 @@ import application.ai.utils.maybeAbilityUsage
 import gamelogic.abilities.Ability
 import gamelogic.abilities.square.{Cleave, Enrage, HammerHit, Taunt}
 import gamelogic.buffs.Buff
-import gamelogic.entities.{Entity, WithThreat}
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
 import gamelogic.entities.classes.Square
+import gamelogic.entities.{Entity, WithThreat}
 import gamelogic.gamestate.GameState
+import gamelogic.gamestate.gameactions.EntityStartsCasting
 import models.bff.outofgame.PlayerClasses
 import models.bff.outofgame.gameconfig.PlayerName
 
@@ -57,7 +59,12 @@ trait SquareAIController(index: Int) extends GoodAIController[Square] {
       gameState
     ).startCasting
 
-  final def maybeCleaveUsage(gameState: GameState, time: Long, me: Square, direction: Double) =
+  final def maybeCleaveUsage(
+      gameState: GameState,
+      time: Long,
+      me: Square,
+      direction: Angle
+  ): Option[EntityStartsCasting] =
     maybeAbilityUsage(
       me,
       Cleave(Ability.UseId.dummy, time, me.id, me.pos, direction),

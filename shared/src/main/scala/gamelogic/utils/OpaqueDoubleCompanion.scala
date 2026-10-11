@@ -11,7 +11,7 @@ trait OpaqueDoubleCompanion[L >: Double <: Double] {
   }
 
   inline def zero: L = 0.0
-  inline def one: L = 1.0
+  inline def one: L  = 1.0
 
   inline def dummy: L = 1.0
 

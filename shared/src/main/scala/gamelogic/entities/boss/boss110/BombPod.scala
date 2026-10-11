@@ -27,7 +27,7 @@ final case class BombPod(
 
   def shape: Shape = BombPod.shape
 
-  def rotation: WithPosition.Angle = 0
+  def rotation: WithPosition.Angle = WithPosition.Angle.zero
 
 }
 

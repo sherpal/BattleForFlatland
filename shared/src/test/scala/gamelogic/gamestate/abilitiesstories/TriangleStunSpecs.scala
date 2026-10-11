@@ -1,15 +1,14 @@
 package gamelogic.gamestate.abilitiesstories
 
-import gamelogic.gamestate.GameState
+import gamelogic.abilities.hexagon.FlashHeal
 import gamelogic.abilities.triangle.Stun
-import gamelogic.gamestate.gameactions.MovingBodyMoves
+import gamelogic.buffs.abilities.classes.TriangleStunDebuff
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.boss.boss102.BossHound
+import gamelogic.gamestate.GameState
+import gamelogic.gamestate.gameactions.{EntityStartsCasting, EntityTakesDamage, MovingBodyMoves}
 import gamelogic.physics.Complex
 import testutils.ActionComposer
-import gamelogic.buffs.abilities.classes.TriangleStunDebuff
-import gamelogic.gamestate.gameactions.EntityTakesDamage
-import gamelogic.gamestate.gameactions.EntityStartsCasting
-import gamelogic.abilities.hexagon.FlashHeal
 
 final class TriangleStunSpecs extends StoryTeller {
 
@@ -153,7 +152,16 @@ final class TriangleStunSpecs extends StoryTeller {
     val ability         = Stun(useId, 3, addingPlayer.entityId, addingHound.entityId)
     val playerStunHound = useAbilityFromAbility(ability)
     val houndMoves =
-      MovingBodyMoves(genActionId(), 4, addingHound.entityId, 1, 0, 0, BossHound.fullSpeed, true)
+      MovingBodyMoves(
+        genActionId(),
+        4,
+        addingHound.entityId,
+        1,
+        Angle.zero,
+        Angle.zero,
+        BossHound.fullSpeed,
+        true
+      )
 
     val composer = ActionComposer.empty >>
       start >>

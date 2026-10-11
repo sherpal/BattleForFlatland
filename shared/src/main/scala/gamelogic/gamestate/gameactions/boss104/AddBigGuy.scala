@@ -6,10 +6,11 @@ import gamelogic.buffs.Buff
 import gamelogic.buffs.ai.DamageThreatAware
 import gamelogic.buffs.boss.boss104.BigGuyCurse
 import gamelogic.entities.Entity
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.boss.boss104.BigGuy
-import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.{EntityCreatorAction, Id}
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff, WithEntity}
+import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import models.syntax.Pointed
 
@@ -36,8 +37,8 @@ final case class AddBigGuy(
       entityId,
       time,
       position,
-      0.0,
-      0.0,
+      Angle.zero,
+      Angle.zero,
       BigGuy.fullSpeed,
       moving = false,
       BigGuy.maxLife,

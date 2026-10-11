@@ -1,29 +1,28 @@
 package game.handlers
 
-import indigo.*
 import game.IndigoViewModel
-
-import scala.scalajs.js
 import game.events.CustomIndigoEvents
 import game.scenes.ingame.InGameScene
-import indigo.scenes.SceneContext
-import gamelogic.entities.Entity
-import gamelogic.gamestate.GameState
 import gamelogic.abilities.*
-
-import org.scalajs.dom
-import gamelogic.gamestate.gameactions.*
-import gamelogic.gamestate.GameAction
 import gamelogic.abilities.hexagon.*
 import gamelogic.abilities.pentagon.*
 import gamelogic.abilities.square.*
 import gamelogic.abilities.triangle.*
-import gamelogic.physics.Complex
-import indigo.shared.events.MouseEvent.Click
-import gamelogic.entities.classes.pentagon.PentagonZone
-import utils.misc.RGBColour
-import models.bff.ingame.UserInput.AbilityInput
+import gamelogic.entities.Entity
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.classes.hexagon.HexagonZone
+import gamelogic.entities.classes.pentagon.PentagonZone
+import gamelogic.gamestate.{GameAction, GameState}
+import gamelogic.gamestate.gameactions.*
+import gamelogic.physics.Complex
+import indigo.*
+import indigo.scenes.SceneContext
+import indigo.shared.events.MouseEvent.Click
+import models.bff.ingame.UserInput.AbilityInput
+import org.scalajs.dom
+import utils.misc.RGBColour
+
+import scala.scalajs.js
 
 class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
 
@@ -45,7 +44,7 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
                   myId,
                   viewModel.localMousePosToWorld(click.position),
                   PentagonZone.damageOnTick,
-                  0,
+                  Angle.zero,
                   RGBColour.fromIntColour(player.colour).withAlpha(0.5)
                 ),
                 viewModel.gameState,
@@ -59,7 +58,7 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
                   myId,
                   viewModel.localMousePosToWorld(click.position),
                   HexagonZone.healOnTick,
-                  0,
+                  Angle.zero,
                   RGBColour.fromIntColour(player.colour).withAlpha(0.5)
                 ),
                 viewModel.gameState,

@@ -1,12 +1,19 @@
 package gamelogic.physics.shape
 
 import gamelogic.physics.Complex
+import gamelogic.entities.WithPosition.Angle
 
 final class Circle(val radius: Double) extends Curved {
 
   val boundingBox: BoundingBox = BoundingBox(-radius, -radius, radius, radius)
 
-  def intersectSegment(translation: Complex, x0: Double, y0: Double, x1: Double, y1: Double): Boolean = {
+  def intersectSegment(
+      translation: Complex,
+      x0: Double,
+      y0: Double,
+      x1: Double,
+      y1: Double
+  ): Boolean = {
     val vx = x1 - x0
     val vy = y1 - y0
     val zx = x0 - translation.re
@@ -33,29 +40,35 @@ final class Circle(val radius: Double) extends Curved {
   }
 
   def overlapTriangle(t: Triangle): Boolean =
-    t.contains(0, 0) || intersectSegment(t.x0, t.y0, t.x1, t.y1) ||
-      intersectSegment(t.x0, t.y0, t.x2, t.y2) || intersectSegment(t.x1, t.y1, t.x2, t.y2)
+    t.contains(0, 0) || intersectSegment(0, t.x0, t.y0, t.x1, t.y1) ||
+      intersectSegment(0, t.x0, t.y0, t.x2, t.y2) || intersectSegment(0, t.x1, t.y1, t.x2, t.y2)
 
   def collides(
       thisTranslation: Complex,
-      thisRotation: Double,
+      thisRotation: Angle,
       that: Shape,
       thatTranslation: Complex,
-      thatRotation: Double
+      thatRotation: Angle
   ): Boolean = that match {
     case that: Circle =>
       val dx = thisTranslation.re - thatTranslation.re
       val dy = thisTranslation.im - thatTranslation.im
       dy * dy + dx * dx <= (radius + that.radius) * (radius + that.radius)
-    case that: Polygon => that.collides(thatTranslation, thatRotation, this, thisTranslation, thisRotation)
+    case that: Polygon =>
+      that.collides(thatTranslation, thatRotation, this, thisTranslation, thisRotation)
   }
 
   def contains(point: Complex): Boolean = point.modulus <= radius
 
-  def contains(point: Complex, translation: Complex, rotation: Double): Boolean =
+  def contains(point: Complex, translation: Complex, rotation: Angle): Boolean =
     contains(point - translation)
 
-  def intersectSegment(translation: Complex, rotation: Double, z1: Complex, z2: Complex): Boolean = {
+  def intersectSegment(
+      translation: Complex,
+      rotation: Angle,
+      z1: Complex,
+      z2: Complex
+  ): Boolean = {
     val dir     = z2 - z1
     val dirMod  = dir.modulus
     val unitVec = dir / dirMod

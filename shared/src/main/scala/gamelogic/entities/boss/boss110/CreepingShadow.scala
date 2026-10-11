@@ -68,7 +68,7 @@ final case class CreepingShadow(
 
   def shape: Shape = new Circle(radius)
 
-  def rotation: WithPosition.Angle = 0.0
+  def rotation: WithPosition.Angle = WithPosition.Angle.zero
 
   def move(
       time: Long,

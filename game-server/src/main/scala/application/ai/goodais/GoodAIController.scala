@@ -12,6 +12,8 @@ import application.ai.GoodAIManager
 import models.bff.outofgame.gameconfig.PlayerName
 import gamelogic.buffs.Buff
 import gamelogic.abilities.Ability
+import gamelogic.entities.WithPosition.Angle
+
 import scala.reflect.ClassTag
 
 trait GoodAIController[
@@ -156,7 +158,7 @@ trait GoodAIController[
   final def buffsOnMe(gameState: GameState, me: EntityType): List[Buff] =
     gameState.allBuffsOfEntity(me.id).toList
 
-  final def stopMoving(time: Long, me: EntityType, currentPosition: Complex, rotation: Double) =
+  final def stopMoving(time: Long, me: EntityType, currentPosition: Complex, rotation: Angle) =
     Option.when(me.moving)(
       MovingBodyMoves(
         GameAction.Id.dummy,

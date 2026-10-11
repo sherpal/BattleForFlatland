@@ -13,6 +13,7 @@ import gamelogic.physics.pathfinding.Graph
 import scala.util.Random
 import application.ai.AIController
 import gamelogic.abilities.Ability
+import gamelogic.entities.WithPosition.Angle
 
 object Boss102Controller extends AIController[Boss102, SpawnBoss] {
   protected def takeActions(
@@ -66,7 +67,7 @@ object Boss102Controller extends AIController[Boss102, SpawnBoss] {
           obstacleGraph,
           position =>
             !currentGameState.obstacles.valuesIterator
-              .exists(_.collidesShape(me.shape, position, 0, 0))
+              .exists(_.collidesShape(me.shape, position, Angle.zero, 0))
         )
 
         def maybePutDamageZones =

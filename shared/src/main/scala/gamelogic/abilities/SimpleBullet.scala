@@ -3,6 +3,7 @@ package gamelogic.abilities
 import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.entities.Entity
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.gamestate.gameactions.NewSimpleBullet
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
@@ -13,7 +14,7 @@ final case class SimpleBullet(
     time: Long,
     casterId: Entity.Id,
     startingPosition: Complex,
-    direction: Double
+    direction: Angle
 ) extends Ability {
   val abilityId: AbilityId = Ability.simpleBulletId
   val cooldown: Long       = 0L

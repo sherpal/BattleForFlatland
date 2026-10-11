@@ -1,9 +1,10 @@
 package application.ai.goodais.bosses.boss104
 
 import application.ai.goodais.classes.TriangleAIController
-import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.abilities.triangle.Cut
+import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.entities.Entity
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.boss.boss104.{BigGuy, BigGuyDeathMark}
 import gamelogic.entities.classes.{Constants, Triangle}
 import gamelogic.gamestate.{GameAction, GameState}
@@ -33,10 +34,10 @@ final case class TriangleForBoss104(index: Int, entityId: Entity.Id)
     maybeHandleDeathMarkTriangle(currentGameState, me, startTime)
       .orElse(handleBigGuy(me, currentGameState, startTime, timeSinceLastFrame))
       .getOrElse {
-      // todo
+        // todo
 
-      Vector.empty
-    }
+        Vector.empty
+      }
 
   def handleBigGuy(
       me: Triangle,
@@ -59,7 +60,7 @@ final case class TriangleForBoss104(index: Int, entityId: Entity.Id)
       val deathTargetPosition =
         Complex.polar(
           Constants.bossRadius * 3,
-          currentNumberOfDeathMarks * 2 * math.Pi / 3
+          Angle.Pi * Angle.fromDouble(currentNumberOfDeathMarks * 2.0 / 3)
         )
 
       val (previousPosition, currentPosition, travelledDistance) = someDistanceInfo(time, me)
@@ -95,7 +96,7 @@ final case class TriangleForBoss104(index: Int, entityId: Entity.Id)
 
       val movement = maybeGoToBigGuy
         .orElse(maybePlaceBigGuy)
-        .orElse(stopMoving(time, me, currentPosition, 0).map(Vector(_)))
+        .orElse(stopMoving(time, me, currentPosition, Angle.zero).map(Vector(_)))
         .getOrElse(Vector.empty)
 
       movement ++ maybeCutBigGuy
