@@ -1,13 +1,13 @@
-package gamelogic.gamestate.gameactions.boss103
+package gamelogic.gamestate.gameactions.sirofvice
 
 import gamelogic.buffs.Buff
-import gamelogic.buffs.boss.boss103.Inflamed
+import gamelogic.buffs.boss.sirofvice.Inflamed
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
 import gamelogic.gamestate.{GameAction, GameState}
 
-/** Puts the [[gamelogic.buffs.boss.boss103.Inflamed]] on the target. */
+/** Puts the [[gamelogic.buffs.boss.sirofvice.Inflamed]] on the target. */
 final case class PutInflamedDebuff(
     id: GameAction.Id,
     time: Long,
@@ -17,7 +17,13 @@ final case class PutInflamedDebuff(
 ) extends GameAction {
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     new WithBuff(
-      Inflamed(buffId = buffId, bearerId = bearerId, appearanceTime = time, lastTickTime = time, sourceId = sourceId)
+      Inflamed(
+        buffId = buffId,
+        bearerId = bearerId,
+        appearanceTime = time,
+        lastTickTime = time,
+        sourceId = sourceId
+      )
     )
 
   def isLegal(gameState: GameState): None.type = None

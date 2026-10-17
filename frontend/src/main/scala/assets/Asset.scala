@@ -139,6 +139,19 @@ object Asset {
       object boss {
         private val bossP = guiP / "boss"
 
+        object firstRaid {
+          private val firstRaidP = bossP / "first-raid"
+
+          object sirOfVice {
+            private val sirOfViceP = firstRaidP / "sir-of-vice"
+
+            val punished         = Asset(sirOfViceP / "punished.png", 32, 32)
+            val purified         = Asset(sirOfViceP / "purified.png", 32, 32)
+            val inflamed         = Asset(sirOfViceP / "inflamed.png", 32, 32)
+            val sacredGroundArea = Asset(sirOfViceP / "sacred-ground.png", 500, 500)
+          }
+        }
+
         object dawnOfTime {
           private val dawnOfTimeP = bossP / "dawn-of-time"
 
@@ -151,15 +164,6 @@ object Asset {
             val damageZoneAnimation =
               Asset(boss102P / "damage-zone-animation.png", 768, 64)
           }
-          object boss103 {
-            private val boss103P = dawnOfTimeP / "boss103"
-
-            val punished         = Asset(boss103P / "boss103-punished.png", 32, 32)
-            val purified         = Asset(boss103P / "boss103-purified.png", 32, 32)
-            val inflamed         = Asset(boss103P / "boss103-inflamed.png", 32, 32)
-            val sacredGroundArea = Asset(boss103P / "sacred-ground.png", 500, 500)
-          }
-
           object boss104 {
             private val boss104P = dawnOfTimeP / "boss104"
 
@@ -252,9 +256,9 @@ object Asset {
     Buff.silence                  -> ingame.gui.abilities.triangleCut,
     Buff.squareEnrage             -> ingame.gui.abilities.squareEnrage,
     Buff.boss102LivingDamageZone  -> ingame.gui.boss.dawnOfTime.boss102.livingDamageZone,
-    Buff.boss103Punished          -> ingame.gui.boss.dawnOfTime.boss103.punished,
-    Buff.boss103Purified          -> ingame.gui.boss.dawnOfTime.boss103.purified,
-    Buff.boss103Inflamed          -> ingame.gui.boss.dawnOfTime.boss103.inflamed,
+    Buff.sirOfVicePunished        -> ingame.gui.boss.firstRaid.sirOfVice.punished,
+    Buff.sirOfVicePurified        -> ingame.gui.boss.firstRaid.sirOfVice.purified,
+    Buff.sirOfViceInflamed        -> ingame.gui.boss.firstRaid.sirOfVice.inflamed,
     Buff.boss110BrokenArmor       -> ingame.gui.boss.dawnOfTime.boss110.brokenArmor,
     Buff.boss104TwinDebuff        -> ingame.gui.boss.dawnOfTime.boss104.twinDebuff
   )

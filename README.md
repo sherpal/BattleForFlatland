@@ -61,10 +61,10 @@ Run
 sbt game-server-launcher/assembly
 ```
 
-Then run
+Then run, from the root of the project (the launcher looks for the game server jar relatively to it)
 
 ```
-java -jar .\game-server-launcher\target\scala-3.5.0\game-server-launcher.jar
+java -jar .\game-server-launcher\target\game-server-launcher.jar
 ```
 
 ### Compile the game server
@@ -75,13 +75,16 @@ The game-server-launcher will launch the fat game-server jar. You can obtained t
 sbt game-server/assembly
 ```
 
+The jar is written to `game-server/target/game-server.jar` (whatever the Scala version), which is where the launcher picks it up.
+Since games run from that jar, **you need to run this command again after any change in the `shared` or `game-server` sub-projects**, otherwise the games you launch will not see your changes.
+
 ### Launching all the required programs
 
 There are three programs that must be ran in dev mode:
 
 - `server/reStart` in `sbt`: runs the backend (port 9000) (If you want to play with other people, you should use `sbt "server/reStart -DisProd=true"` instead).
 - `sbt ~frontend/fastLinkJS` and, in the `frontend` directory, `npm run dev`: runs the frontend with hot reload (port 3000) (If you want to play with other people, you should instead use the `build` alias command to build the frontend inside the backend's public directory.)
-- `java -jar .\game-server-launcher\target\scala-3.5.0\game-server-launcher.jar`: runs the game-server-launcher (after you compiled it once with `sbt game-server-launcher/assembly`)
+- `java -jar .\game-server-launcher\target\game-server-launcher.jar`: runs the game-server-launcher (after you compiled it once with `sbt game-server-launcher/assembly`)
 
 You should be redirected to `http://localhost:3000`.
 
@@ -114,6 +117,7 @@ The class representing the boss itself should live in a subpackage of the `gamel
 This subpackage should have a name corresponding to a theme for a group of boss.
 For example, if you wanted to reproduce in Battle For Flatland a raid coming from your favourite MMO, this package could be named after that raid, in a parodic manner!
 The Boss104 will sit in the `dawnoftime` package, gathering bosses that where made at the beginning of development and who mostly served as proof of concepts (although we tried to make them interesting, still).
+The `firstraid` package follows the raid idea: it gathers the bosses of the first raid of the game, starting with Sir of Vice.
 
 The boss class should extend `gamelogic.entities.boss.BossEntity` and have a companion object extending `gamelogic.entities.boss.BossFactory[T] with gamelogic.docs.BossMetadata` with `T` the class of your boss.
 It is also convenient to make it a `case class` for copy method.
@@ -175,9 +179,11 @@ case action: SpawnBoss if action.bossName == Boss104.name =>
 Note that this way of doing could change in the future.
 In that case, I will hopefully not forget to change this doc.
 
-Note that we are here using the pathfinding algorithm to make the boss move.
-You can chose not to do that, and instead (for example) go in straight line to target (if the boss domain is convex) or implement your own.
-In that case, you should give an implementation of the `gamelogic.physics.pathfinding.Graph` trait.
+Note that we are here using the pathfinding algorithm to make the boss move (via `aiMovementToTargetWithGraph`).
+The `AIController` receives a `gamelogic.physics.pathfinding.Graph` (a `VisibilityGraph`, built from the obstacles of the room for the radius of the entity) which finds the shortest path around obstacles, and is cheap enough to be asked at every frame.
+The boss only considers itself in range of its target when nothing stands in between.
+You can chose not to use it, and instead (for example) go in straight line to target with `aiMovementToTarget`, but that only works if the room is convex.
+For rooms with pillars or walls in the middle (like the one of Sir of Vice), the graph is what makes the boss walk around them.
 
 #### Adding the first ability
 
@@ -451,7 +457,7 @@ Therefore, AIs are not a good thing to fine tune the boss, more than "if even th
 The first thing to do is to define what will be the AI team composition for the boss.
 This is done by giving an implementation for the `maybeAIComposition` method of `Boss104`.
 Up to now, it returned `None` which indicates "this boss has no AI implementation" (the UI then forbids the players to add AIs).
-We then change the implementation to return a list containing 1 square, 1 hexagon, 1 triangle and 2 hexagons.
+We then change the implementation to return a list containing 1 square, 1 hexagon, 1 triangle and 2 pentagons.
 
 If you now go to create a game and select the Boss 104, you will see that the "Add AI" and "Fill with AIs" buttons are enabled.
 If you click on them, you will see that fellow AIs will be added to join you.
@@ -474,6 +480,8 @@ The `entityId` is used by the AI to know exactly which entity it controls, and s
 Coding the AI actually requires you to implement the `takeActions` method.
 It is similar as for the one for the boss.
 It returns a list of actions that the AI takes at this instant, given the current game state.
+
+> A note about movement: the `preGameMovement` method used by most bots walks in a straight line. If the room of your boss has obstacles in the middle, use `maybeMoveTowards` instead, which goes around them thanks to the graph given to `takeActions`. It also tells you when the bot has arrived and stopped, which is when it can start casting (moving interrupts casts). The bots of Sir of Vice are built that way.
 
 > A note about state: ideally everything should be pure here, but you can be assured that for a given entity id (and index), there will be only one instance created when the game starts and staying alive until the end of the game. Moreover, it is single thread and, as such, you can put state in variables within the class if you so desire.
 
@@ -579,7 +587,7 @@ We need to do that procedure once for each ability that the boss will have. Some
 
 #### Attack animation
 
-> this section is from and old version of the guide. It's mostly correct though, even though `CleansingNova` is not referenced above, it's from another boss.
+> this section is from and old version of the guide. It's mostly correct though, even though `CleansingNova` is not referenced above: it's an ability of Sir of Vice (which, in the end, shows it with its drawer rather than with an effect).
 
 One thing that may be missing in the case of the cleansing nova is an animation to show that it actually happened. To do that, we could for example show a line for half a second between the boss and each target.
 
@@ -595,7 +603,7 @@ case UseAbility(_, time, casterId, _, _: CleansingNova) => ???
 
 The `???` will need to be filled with (some) an instance of `game.ui.effects.GameEffect`.
 
-To that end, we add a package `game.ui.effects.boss.boss103` and we create a class `CleansingNovaEffect` extending `GameEffect`. A `GameEffect` is a purely mutable object that is quite low level and very close to pixi.js, the drawing library used by BFF. Basically, it is asked from you to
+To that end, we add a package `game.ui.effects.boss.sirofvice` and we create a class `CleansingNovaEffect` extending `GameEffect`. A `GameEffect` is a purely mutable object that is quite low level and very close to pixi.js, the drawing library used by BFF. Basically, it is asked from you to
 
 - inform the ui when and how to destroy the effect (usually after some amount of time)
 - how to update it
@@ -609,7 +617,26 @@ When you implemented all of this, your effect will be triggered and destroyed ac
 
 Testing the game logic is actually not that hard, since everything is immutable. Moreover, if all actions are known, the game is completely deterministic! The randomness that occurs during the game are on AIs' side. But once the actions have been create, they determine the game entirely.
 
-The tests contains a class `testutils.ActionComposer` which allows you to create a pipeline of actions, and "peak" at any point in time to check that everything works as expected (by using asserts). For example, you could have one action creating an entity, following with an action killing the entity. If you look at the game state after the first action, you should witness that the entity is indeed there, and after the second action it should have disappeared.
+The tests contains a class `testutils.ActionComposer` which allows you to create a pipeline of actions, and "peak" at any point in time to check that everything works as expected (by using asserts). For example, you could have one action creating an entity, following with an action killing the entity. If you look at the game state after the first action, you should witness that the entity is indeed there, and after the second action it should have disappeared. The `Boss104Specs` and `SirOfViceSpecs` tell the stories of the mechanics of these bosses that way.
+
+Every ability and action must be registered in `communication.BFFPicklers`, otherwise the game crashes the first time they are sent. The `BFFPicklersSpecs` round trips catch a forgotten registration: add the abilities and actions of your boss to them.
+
+All of these run with
+
+```
+sbt sharedJVM/test
+```
+
+### Simulating a whole fight
+
+The `simulation.SirOfViceSimulation` (in the `game-server` tests) plays a whole fight against Sir of Vice with the friendly bots, with the actual game master logic and AIs but without any browser, and prints what happens (abilities used, deaths, life of everyone...).
+It runs in real time, so it only runs when asked to, with the number of seconds to simulate:
+
+```
+BFF_SIMULATION=120 sbt "game-server/testOnly simulation.SirOfViceSimulation"
+```
+
+It's the quickest way to check that the bots of a new boss survive its mechanics. Copy it for your boss!
 
 ## Internal
 

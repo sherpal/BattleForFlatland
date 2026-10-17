@@ -1,8 +1,8 @@
-package gamelogic.gamestate.gameactions.boss103
+package gamelogic.gamestate.gameactions.sirofvice
 
 import cats.kernel.Monoid
 import gamelogic.buffs.Buff
-import gamelogic.buffs.boss.boss103.Purified
+import gamelogic.buffs.boss.sirofvice.Purified
 import gamelogic.entities.Entity
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, RemoveBuffTransformer, WithBuff}
 import gamelogic.gamestate.{GameAction, GameState}
@@ -22,16 +22,14 @@ final case class PutPurifiedDebuff(
         .fold(List[GameStateTransformer]())(
           _.valuesIterator
             .collect { case buff: Purified if buff.buffId != buffId => buff }
-            .map(
-              buff => new RemoveBuffTransformer(time, bearerId, buff.buffId)
-            )
+            .map(buff => new RemoveBuffTransformer(time, bearerId, buff.buffId))
             .toList
         )
     ) ++ new WithBuff(
       Purified(
-        buffId         = buffId,
-        bearerId       = bearerId,
-        sourceId       = sourceId,
+        buffId = buffId,
+        bearerId = bearerId,
+        sourceId = sourceId,
         appearanceTime = time
       )
     )

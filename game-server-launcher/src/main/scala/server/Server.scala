@@ -12,6 +12,11 @@ object Server extends cask.MainRoutes {
 
   val gameProcesses = AtomicReference(Map.empty[String, os.SubProcess])
 
+  /** The fat jar built by `sbt game-server/assembly` (see `stableAssemblyOutputPath` in build.sbt),
+    * relative to the root of the project, where the launcher is expected to run.
+    */
+  val gameServerJar: os.Path = os.pwd / "game-server" / "target" / "game-server.jar"
+
   @cask.get("/health-check")
   def hello() = "ok"
 
@@ -64,13 +69,18 @@ object Server extends cask.MainRoutes {
         val errMessage = s"Error while retrieving game gameInfo: ${err.repr}"
         System.err.println(errMessage)
         cask.Response(errMessage, statusCode = 400)
+      case Right(_) if !os.exists(gameServerJar) =>
+        val errMessage =
+          s"No game server at $gameServerJar, run `sbt game-server/assembly` from the root of the project."
+        System.err.println(errMessage)
+        cask.Response(errMessage, statusCode = 500)
       case Right(gameInfo) =>
-        println(s"Launching game >>>>")
+        println(s"Launching game >>>> ($gameServerJar)")
         val process = os
           .proc(
             "java",
             "-jar",
-            "game-server/target/scala-3.5.0/game-server.jar",
+            gameServerJar.toString,
             gameServerReadyUrl,
             22222, // todo: un-hardcode this in the future...
             GameCredentialsWithGameInfo.encode(gameInfo)

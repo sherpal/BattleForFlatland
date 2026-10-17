@@ -139,6 +139,58 @@ trait GoodAIController[
 
   }
 
+  /** Walks towards `targetPosition`, going around the obstacles thanks to the `graph`.
+    *
+    * Contrary to [[preGameMovement]], this works in rooms which are not convex. If the target
+    * position can not be reached, we go as close as possible.
+    *
+    * @param closeEnough
+    *   distance to the target below which we consider that we arrived
+    * @return
+    *   [[scala.None]] if we are arrived and not moving anymore (it is then safe to start casting),
+    *   otherwise the actions to emit to keep going (which may be empty if we are already going in
+    *   the right direction, or a single stop action once arrived).
+    */
+  def maybeMoveTowards(
+      time: Long,
+      me: EntityType,
+      currentPosition: Complex,
+      targetPosition: Complex,
+      graph: Graph,
+      closeEnough: Double = 5.0
+  ): Option[Vector[GameAction]] = {
+    val maybeNextWaypoint =
+      if currentPosition.distanceTo(targetPosition) < closeEnough then None
+      else
+        graph
+          .findPath(currentPosition, targetPosition)
+          .flatMap(_.find(_.distanceTo(currentPosition) > 1.0))
+
+    maybeNextWaypoint match {
+      case None => stopMoving(time, me, currentPosition, me.rotation).map(Vector(_))
+      case Some(waypoint) =>
+        val direction = (waypoint - currentPosition).arg
+        val alreadyGoingThere =
+          me.moving && Complex.rotation(direction).distanceTo(Complex.rotation(me.direction)) < 1e-3
+        Some(
+          Option
+            .unless(alreadyGoingThere)(
+              MovingBodyMoves(
+                GameAction.Id.dummy,
+                time,
+                me.id,
+                currentPosition,
+                direction,
+                direction,
+                me.speed,
+                moving = true
+              )
+            )
+            .toVector
+        )
+    }
+  }
+
   /** Returns a triplet containing information about the current and past positions of the entity
     *
     * @param time

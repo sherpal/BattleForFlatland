@@ -1,18 +1,19 @@
-package gamelogic.abilities.boss.boss103
+package gamelogic.abilities.boss.sirofvice
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.docs.{AbilityInfoFromMetadata, AbilityMetadata}
-import gamelogic.entities.boss.dawnoftime.Boss103
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.EntityTakesDamage
-import gamelogic.gamestate.gameactions.boss103.PutPurifiedDebuff
+import gamelogic.gamestate.gameactions.sirofvice.PutPurifiedDebuff
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
 
-/** Puts a [[gamelogic.buffs.boss.boss103.Purified]] debuff on all enemies closer than a certain
-  * distance, and deals a certain amount of damage to each of them.
+/** Puts a [[gamelogic.buffs.boss.sirofvice.Purified]] debuff on all enemies closer than `radius`
+  * from `position`, and deals a certain amount of damage to each of them.
+  *
+  * This is the "aura" of the boss: its AI uses it each time it is available, centred on itself.
   *
   * The amount of damage that each player takes is given by [[SacredGround#damage]] divided by
   *   - 1 if there is only one player hit
@@ -71,12 +72,14 @@ object SacredGround extends AbilityMetadata {
 
   val cooldown: Long    = 2000L
   val castingTime: Long = 0L
-  val range: Double     = Boss103.pillarPositionRadius
-  val damage: Double    = 30.0
+
+  /** Radius of the aura. Melee players are in it, the others must stay out of it. */
+  val radius: Double = 180.0
+  val damage: Double = 30.0
 
   def name: String = "Sacred Ground"
 
   def timeToFirstAbility: Long = 0L
 
-  def abilityId: AbilityId = Ability.boss103SacredGroundId
+  def abilityId: AbilityId = Ability.sirOfViceSacredGround
 }

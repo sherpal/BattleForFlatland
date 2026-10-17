@@ -13,6 +13,7 @@ import gamelogic.entities.boss.boss110.BigGuy as Boss110BigGuy
 import gamelogic.entities.boss.boss104.BigGuy as Boss104BigGuy
 import gamelogic.entities.boss.*
 import gamelogic.entities.boss.dawnoftime.*
+import gamelogic.entities.boss.firstraid.SirOfVice
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
@@ -88,8 +89,8 @@ class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTran
         aiControllers.addOne(action.entityId -> boss.Boss101Controller)
       case action: SpawnBoss if action.bossName == Boss102.name =>
         aiControllers.addOne(action.entityId -> boss.Boss102Controller)
-      case action: SpawnBoss if action.bossName == Boss103.name =>
-        ??? // make boss 103 controller
+      case action: SpawnBoss if action.bossName == SirOfVice.name =>
+        aiControllers.addOne(action.entityId -> boss.SirOfViceController)
       case action: SpawnBoss if action.bossName == Boss104.name =>
         aiControllers.addOne(action.entityId -> boss.Boss104Controller)
       case action: SpawnBoss if action.bossName == Boss110.name =>

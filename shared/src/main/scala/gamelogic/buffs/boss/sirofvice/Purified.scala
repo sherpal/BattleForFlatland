@@ -1,4 +1,4 @@
-package gamelogic.buffs.boss.boss103
+package gamelogic.buffs.boss.sirofvice
 
 import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.buffs.{Buff, PassiveBuff}
@@ -28,7 +28,7 @@ final case class Purified(
 
   def duration: Long = Purified.duration
 
-  def resourceIdentifier: ResourceIdentifier = Buff.boss103Purified
+  def resourceIdentifier: ResourceIdentifier = Buff.sirOfVicePurified
 
   def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer

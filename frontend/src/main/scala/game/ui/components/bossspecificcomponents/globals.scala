@@ -8,6 +8,7 @@ import game.scenes.ingame.InGameScene.StartupData
 import gamelogic.entities.boss.Boss101
 import gamelogic.entities.boss.dawnoftime.Boss102
 import gamelogic.entities.boss.dawnoftime.Boss104
+import gamelogic.entities.boss.firstraid.SirOfVice
 
 /** Boss-specific HUD elements (on top of the generic game UI). Same rule as `drawerMapping`: every
   * boss needs a clause or the game throws a `MatchError` while rendering. `Component.empty` is the
@@ -16,7 +17,8 @@ import gamelogic.entities.boss.dawnoftime.Boss104
 def containerMapping(
     boss: BossEntity
 )(using IndigoViewModel, FrameContext[StartupData]): Component = boss.name match {
-  case Boss101.name => Component.empty
-  case Boss102.name => Boss102Component()
-  case Boss104.name => Component.empty
+  case Boss101.name   => Component.empty
+  case Boss102.name   => Boss102Component()
+  case Boss104.name   => Component.empty
+  case SirOfVice.name => Component.empty
 }

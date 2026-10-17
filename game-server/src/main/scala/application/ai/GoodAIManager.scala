@@ -21,6 +21,8 @@ import models.bff.outofgame.gameconfig.PlayerName
 import application.ai.goodais.bosses.boss101.*
 import application.ai.goodais.bosses.boss102.*
 import application.ai.goodais.bosses.boss104.Boss104Container
+import application.ai.goodais.bosses.sirofvice.SirOfViceContainer
+import gamelogic.entities.boss.firstraid.SirOfVice
 import application.ai.goodais.classes.{
   HexagonAIController,
   PentagonAIController,
@@ -133,9 +135,10 @@ object GoodAIManager {
     * its companion for the lobby to let players add AIs at all.
     */
   private val bossAIContainers: Map[BossMetadata, BossAIContainer] = Map(
-    Boss101 -> Boss101Container(),
-    Boss102 -> Boss102Container(),
-    Boss104 -> Boss104Container()
+    Boss101   -> Boss101Container(),
+    Boss102   -> Boss102Container(),
+    Boss104   -> Boss104Container(),
+    SirOfVice -> SirOfViceContainer()
   )
 
 }

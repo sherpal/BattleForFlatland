@@ -8,10 +8,23 @@ import gamelogic.abilities.boss.boss104.{
   SpawnBigGuy,
   TwinDebuffs
 }
+import gamelogic.abilities.boss.sirofvice.{
+  CleansingNova,
+  HolyFlame,
+  HolyWrath,
+  Punishment,
+  SacredGround
+}
 import gamelogic.buffs.Buff
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction
 import gamelogic.gamestate.gameactions.boss104.*
+import gamelogic.gamestate.gameactions.sirofvice.{
+  PutHolyWrathChain,
+  PutInflamedDebuff,
+  PutPunishedDebuff,
+  PutPurifiedDebuff
+}
 import gamelogic.physics.Complex
 import utils.misc.RGBColour
 
@@ -52,6 +65,21 @@ final class BFFPicklersSpecs extends munit.FunSuite {
       AddDeathMarkTriangle(actionId, 1L, entityId, Vector[Complex](-150, 150, Complex(0, 150)))
     )
     roundTripAction(DeathMarkTriangleNextStage(actionId, 1L, entityId))
+  }
+
+  test("Sir of Vice abilities survive a boopickle round trip") {
+    roundTripAbility(CleansingNova(useId, 1L, entityId))
+    roundTripAbility(HolyFlame(useId, 1L, entityId, entityId))
+    roundTripAbility(HolyWrath(useId, 1L, entityId, entityId))
+    roundTripAbility(Punishment(useId, 1L, entityId))
+    roundTripAbility(SacredGround(useId, 1L, entityId, somewhere, 10.0))
+  }
+
+  test("Sir of Vice actions survive a boopickle round trip") {
+    roundTripAction(PutInflamedDebuff(actionId, 1L, buffId, entityId, entityId))
+    roundTripAction(PutHolyWrathChain(actionId, 1L, entityId, Vector[Complex](0, somewhere)))
+    roundTripAction(PutPunishedDebuff(actionId, 1L, buffId, entityId, entityId, somewhere))
+    roundTripAction(PutPurifiedDebuff(actionId, 1L, buffId, entityId, entityId))
   }
 
 }

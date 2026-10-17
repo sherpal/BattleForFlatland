@@ -12,21 +12,17 @@ import scala.Ordering.Double.TotalOrdering
 import gamelogic.abilities.Ability
 
 /** This is the same as `aiMovementToTarget`, but uses the underlying
-  * [[gamelogic.physics.pathfinding.Graph]] to walk in.
+  * [[gamelogic.physics.pathfinding.Graph]] to walk around obstacles.
   *
   * The logic for the algorithm is as follows:
-  *   - If the target position is close (< maxDistance), then we do as in `aiMovementToTarget`
-  *   - If not, we check whether the `targetPosition` is a legal position.
-  *   - If the target position is legal, we use the A* algorithm on the graph (adding to it the
-  *     current and target positions
-  *   - If the target position is not legal, we do the same but with the position in the graph who
-  *     is the closest to the target position.
+  *   - If the target is close (< maxDistance) and nothing stands in between, then we do as in
+  *     `aiMovementToTarget`
+  *   - Otherwise, we ask the graph for the shortest path towards the target (or towards the closest
+  *     legal position if the target position is not legal for us), and we head towards the first
+  *     waypoint of that path.
   *
-  * The requirement on the given graph is that any point on the graph is a legal position (on the
-  * graph means vertices *and* edges.
-  *
-  * @param isPositionLegal
-  *   for a given position, returns whether this ai unit can be there.
+  * The path is recomputed at each call. This is fine because computing it is cheap, and because it
+  * is the actual shortest path, so it does not change abruptly from one frame to the next.
   */
 def aiMovementToTargetWithGraph(
     entityId: Entity.Id,
@@ -41,13 +37,13 @@ def aiMovementToTargetWithGraph(
     currentSpeed: Double,
     currentlyMoving: Boolean,
     currentRotation: Angle,
-    graph: Graph,
-    isPositionLegal: Complex => Boolean
+    graph: Graph
 ): Option[MovingBodyMoves] = {
 
   val distanceToTarget = currentPosition.distanceTo(targetPosition)
 
-  if distanceToTarget <= maxDistance then
+  if distanceToTarget <= maxDistance && graph.isSegmentClear(currentPosition, targetPosition, 0)
+  then
     aiMovementToTarget(
       entityId,
       time,
@@ -63,43 +59,29 @@ def aiMovementToTargetWithGraph(
       currentRotation
     )
   else {
-
-    val maybeActualTargetPosition =
-      if (isPositionLegal(targetPosition)) Some(targetPosition)
-      else graph.closestPointTo(targetPosition)
-
-    maybeActualTargetPosition
-      .flatMap(actualTargetPosition =>
-        graph
-          .addVertices(currentPosition, actualTargetPosition)
-          .euclideanA_*(currentPosition, actualTargetPosition)
-      )
-      .map {
-        case start :: next :: _ =>
-          val toTarget = next - start
+    // waypoints closer than that are considered reached, so that we don't turn around them
+    val reachedDistance = 1.0
+    graph
+      .findPath(currentPosition, targetPosition)
+      .flatMap(_.find(_.distanceTo(currentPosition) > reachedDistance)) match {
+      case Some(nextWaypoint) =>
+        val toWaypoint = nextWaypoint - currentPosition
+        Some(
           MovingBodyMoves(
             GameAction.Id.zero,
             time,
             entityId,
             currentPosition,
-            toTarget.arg,
-            toTarget.arg,
+            toWaypoint.arg,
+            toWaypoint.arg,
             fullSpeed,
             moving = true
           )
-        case _ =>
-          // didn't find a path, we simply idle
-          MovingBodyMoves(
-            GameAction.Id.zero,
-            time,
-            entityId,
-            currentPosition,
-            currentRotation,
-            currentRotation,
-            fullSpeed,
-            moving = false
-          )
-      }
+        )
+      case None =>
+        // either there is no path, or we are already as close as we can be: we simply idle
+        stopMoving(time, entityId, currentlyMoving, currentPosition, fullSpeed, currentRotation)
+    }
   }
 
 }

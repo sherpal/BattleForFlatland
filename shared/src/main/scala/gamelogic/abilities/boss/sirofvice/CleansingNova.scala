@@ -1,14 +1,17 @@
-package gamelogic.abilities.boss.boss103
+package gamelogic.abilities.boss.sirofvice
 
 import gamelogic.abilities.Ability
-import gamelogic.abilities.Ability.{AbilityId, UseId}
+import gamelogic.abilities.Ability.UseId
 import gamelogic.docs.{AbilityInfoFromMetadata, AbilityMetadata}
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-/** Deals a deadly amount of damage to every player in sight of the boss. */
+/** Deals a deadly amount of damage to every player in sight of the boss.
+  *
+  * The only way to survive it is to hide behind one of the pillars of the room during the cast.
+  */
 final case class CleansingNova(useId: Ability.UseId, time: Long, casterId: Entity.Id)
     extends Ability
     with AbilityInfoFromMetadata[CleansingNova.type] {
@@ -37,10 +40,10 @@ object CleansingNova extends AbilityMetadata {
 
   val damage: Double = 300.0
 
-  val name: String = "CleansingNova"
+  val name: String = "Cleansing Nova"
 
   val timeToFirstAbility: Long = 30000L
 
-  def abilityId: Ability.AbilityId = Ability.boss103CleansingNovaId
+  def abilityId: Ability.AbilityId = Ability.sirOfViceCleansingNova
 
 }

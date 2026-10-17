@@ -1,16 +1,16 @@
-package gamelogic.abilities.boss.boss103
+package gamelogic.abilities.boss.sirofvice
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.docs.{AbilityInfoFromMetadata, AbilityMetadata}
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.EntityCastingInterrupted
-import gamelogic.gamestate.gameactions.boss103.PutPunishedDebuff
+import gamelogic.gamestate.gameactions.sirofvice.PutPunishedDebuff
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-/** Curse all players with the [[gamelogic.buffs.boss.boss103.Punished]] keeping them from doing
-  * anything for some time.
+/** Interrupts all players, and puts on them the [[gamelogic.buffs.boss.sirofvice.Punished]] debuff,
+  * keeping them from doing anything until they take damage.
   */
 final case class Punishment(useId: Ability.UseId, time: Long, casterId: Entity.Id)
     extends Ability
@@ -28,7 +28,8 @@ final case class Punishment(useId: Ability.UseId, time: Long, casterId: Entity.I
           time,
           genBuffId(),
           player.id,
-          casterId
+          casterId,
+          player.currentPosition(time)
         )
       )
     }.toVector
@@ -41,12 +42,12 @@ final case class Punishment(useId: Ability.UseId, time: Long, casterId: Entity.I
 
 object Punishment extends AbilityMetadata {
 
-  val cooldown    = 20000L
-  val castingTime = 1500L
+  val cooldown: Long    = 30000L
+  val castingTime: Long = 1500L
 
-  val timeToFirstAbility = 20000L
+  val timeToFirstAbility: Long = 20000L
 
   def name: String = "Punishment"
 
-  def abilityId: AbilityId = Ability.boss103PunishmentId
+  def abilityId: AbilityId = Ability.sirOfVicePunishment
 }

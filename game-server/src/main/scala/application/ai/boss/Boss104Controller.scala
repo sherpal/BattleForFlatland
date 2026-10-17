@@ -5,7 +5,6 @@ import application.ai.utils.*
 import gamelogic.abilities.Ability.UseId
 import gamelogic.abilities.boss.boss104.{DeathMarkTriangleAttack, SpawnBigGuy, TwinDebuffs}
 import gamelogic.entities.Entity.Id
-import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.boss.dawnoftime.{Boss102, Boss104}
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.gamestate.{GameAction, GameState}
@@ -56,10 +55,7 @@ object Boss104Controller extends AIController[Boss104, SpawnBoss] {
           me.speed,
           me.moving,
           me.rotation,
-          obstacleGraph,
-          position =>
-            !currentGameState.obstacles.valuesIterator
-              .exists(_.collidesShape(me.shape, position, Angle.zero, 0))
+          obstacleGraph
         )
 
         val maybeUseTwinDebuffs =

@@ -1,4 +1,4 @@
-package gamelogic.buffs.boss.boss103
+package gamelogic.buffs.boss.sirofvice
 
 import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.buffs.{Buff, TickerBuff}
@@ -7,7 +7,9 @@ import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-/** Deals an increasing amount of damage over time. */
+/** Deals an increasing amount of damage over time (`baseDamage` on the first tick, then twice that,
+  * and so on). Can be dispelled.
+  */
 final case class Inflamed(
     buffId: Buff.Id,
     bearerId: Entity.Id,
@@ -32,7 +34,7 @@ final case class Inflamed(
 
   def duration: Long = Inflamed.duration
 
-  def resourceIdentifier: ResourceIdentifier = Buff.boss103Inflamed
+  def resourceIdentifier: ResourceIdentifier = Buff.sirOfViceInflamed
 
   def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer
@@ -45,11 +47,9 @@ object Inflamed {
 
   val tickRate: Long = 2000L
 
-  /** Last tick will deal 80 damage which nearly kills the target. This leaves a small chance to
-    * player to survive even if they mess up.
-    */
+  /** Four ticks of 5, 10, 15 and 20 damage: half the life of most players if nobody dispels it. */
   val duration: Long = 8000L
 
-  val baseDamage: Double = 20.0
+  val baseDamage: Double = 5.0
 
 }

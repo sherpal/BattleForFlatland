@@ -92,6 +92,14 @@ def esModule = Def.settings(scalaJSLinkerConfig ~= {
   _.withModuleKind(ModuleKind.ESModule)
 })
 
+/** Puts the fat jar directly in the target directory (e.g. `game-server/target/game-server.jar`)
+  * instead of the default `target/scala-<version>/`, so that the paths used to launch it don't change
+  * with the Scala version.
+  */
+def stableAssemblyOutputPath = Def.settings(
+  assembly / assemblyOutputPath := target.value / (assembly / assemblyJarName).value
+)
+
 lazy val `game-server-launcher` = project
   .in(file("./game-server-launcher"))
   .settings(
@@ -99,7 +107,8 @@ lazy val `game-server-launcher` = project
       "com.lihaoyi" %% "cask" % "0.9.1"
     ),
     assembly / mainClass       := Some("server.Server"),
-    assembly / assemblyJarName := "game-server-launcher.jar"
+    assembly / assemblyJarName := "game-server-launcher.jar",
+    stableAssemblyOutputPath
   )
   .dependsOn(`shared-backend`)
 
@@ -111,6 +120,7 @@ lazy val `game-server` = project
     ),
     assembly / mainClass       := Some("server.Server"),
     assembly / assemblyJarName := "game-server.jar",
+    stableAssemblyOutputPath,
     SharedSettings()
   )
   .dependsOn(`shared-backend`)

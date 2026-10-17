@@ -20,6 +20,13 @@ object TriangulationChecks extends Properties("TriangulationChecks") {
       Shape.earClipping(polygon.vertices).length == 3
     }
 
+  property("Triangulating a clockwise polygon gives counter-clockwise triangles") =
+    forAll(polygonGen(5, Shape.translatedRegularPolygon(4, 10, Complex(10, 10)))) { polygon =>
+      val triangles = Shape.earClipping(polygon.vertices.reverse)
+      triangles.length == 3 && triangles.forall(_.det > 0) &&
+      math.abs(triangles.map(_.det / 2).sum - math.abs(Shape.signedArea(polygon.vertices))) < 1e-6
+    }
+
   property("Generate point in triangle gives point in triangle") = forAll(for {
     triangle <- triangleGen()
     point    <- pointInTriangleGen(triangle)

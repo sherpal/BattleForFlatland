@@ -85,7 +85,9 @@ frontend/public/assets/in-game/gui/boss/dawn-of-time/boss104/   ← 32×32 PNGs
 
 > **Naming**: the *theme* package (`dawnoftime`) groups bosses by flavour and holds the boss class.
 > The *per-boss* packages (`boss104`) hold everything that boss owns. Pick a new theme package only
-> if you are starting a new group of bosses.
+> if you are starting a new group of bosses. The `firstraid` theme (bosses of the first raid) names
+> its bosses instead of numbering them: `firstraid/SirOfVice.scala`, with per-boss packages
+> `sirofvice`, ability ids `Ability.sirOfViceXxx` and assets under `gui/boss/first-raid/sir-of-vice/`.
 
 ---
 
@@ -115,7 +117,7 @@ silently inert boss, not a compile error.
 | " | implement `maybeAIComposition` | your boss' companion | "Add AI" buttons stay disabled in the lobby |
 
 > **Note on circe**: `GameAction` and `Ability` also carry hand-written circe `Encoder`/`Decoder`
-> instances. These are **legacy and not used for in-game traffic** (boopickle is). Boss103/104/110
+> instances. These are **legacy and not used for in-game traffic** (boopickle is). Sir of Vice/Boss104/Boss110
 > actions are absent from them and the game works fine. Do not bother extending them unless you have
 > a specific reason.
 
@@ -196,12 +198,10 @@ object BossXxxController extends AIController[BossXxx, SpawnBoss] {
       .map { target =>
         val maybeChangeTarget = changeTarget(me, target.id, startTime)
         val maybeMove = aiMovementToTargetWithGraph(
-          me.id, startTime, startTime - timeSinceLastFrame, currentPosition, me.shape.radius,
+          me.id, startTime, timeSinceLastFrame, currentPosition, me.shape.radius,
           target.currentPosition(startTime + 100), BossXxx.meleeRange,
           BossXxx.fullSpeed, BossXxx.fullSpeed / 4, me.speed, me.moving, me.rotation,
-          obstacleGraph,
-          position => !currentGameState.obstacles.valuesIterator
-            .exists(_.collidesShape(me.shape, position, 0, 0))
+          obstacleGraph
         )
         useAbility(Vector.empty, maybeChangeTarget, maybeMove)
       }
@@ -216,7 +216,10 @@ case action: SpawnBoss if action.bossName == BossXxx.name =>
   aiControllers.addOne(action.entityId -> boss.BossXxxController)
 ```
 
-> `aiMovementToTargetWithGraph` uses the pathfinding graph. `aiMovementToTarget` (no graph) walks
+> `aiMovementToTargetWithGraph` uses the pathfinding graph (a
+> [`VisibilityGraph`](shared/src/main/scala/gamelogic/physics/pathfinding/VisibilityGraph.scala),
+> cheap enough to be queried at every frame) to walk around obstacles, and only considers the
+> target reached when it is in range **and** in line of sight. `aiMovementToTarget` (no graph) walks
 > in a straight line — fine for a convex arena or an add that doesn't need to route around walls.
 > Both are in [`application/ai/utils/globals.scala`](game-server/src/main/scala/application/ai/utils/globals.scala).
 > Note `AIManager`'s `GraphManager` is constructed with a **fixed list of collision radii**; an
@@ -322,6 +325,11 @@ override def maybeAIComposition: Option[List[PlayerClasses]] = Some(List(
 3. Create a `BossXxxContainer extends BossAIContainer` wiring the four, and add
    `BossXxx -> BossXxxContainer()` to `GoodAIManager.bossAIContainers`.
 
+> **Movement**: `preGameMovement` walks in a straight line. In a room with pillars or walls, use
+> `maybeMoveTowards(time, me, currentPosition, target, obstacleGraph)` instead: it routes around
+> obstacles, and returns `None` once arrived and stopped — which is exactly when it is safe to start
+> casting (moving interrupts casts). `SirOfViceBot` is built around it.
+>
 > **State**: `takeActions` should ideally be pure, but each controller instance is created once per
 > entity at game start, lives until the end, and is driven single-threaded — so mutable `var`s in
 > the class are safe when you genuinely need memory.
@@ -748,9 +756,16 @@ that otherwise only show up in a live game:
    from green to `IllegalArgumentException: This CompositePickler doesn't know class ...`, which is
    exactly the runtime crash it exists to prevent. Add your boss' types to it.
 
-> Note: `gamelogic.physics.shape.TriangulationChecks."Triangulate a pentagon gives 3 triangles"` is
-> a known-flaky property test (`empty.minBy` in `Shape.earClipping`, roughly one run in four). It is
-> unrelated to boss work — don't chase it.
+3. **Headless simulation** — [`SirOfViceSimulation`](game-server/src/test/scala/simulation/SirOfViceSimulation.scala)
+   plays a whole encounter with the friendly bots, with the real server actions and AIs but no
+   client, and prints a timeline (abilities, deaths, life totals, positions). It runs in real time,
+   so it only runs on demand:
+
+   ```bash
+   BFF_SIMULATION=120 sbt "game-server/testOnly simulation.SirOfViceSimulation"
+   ```
+
+   Copy it for a new boss: it is the fastest way to check that the bots survive the mechanics.
 
 To actually play, three processes (full details in [README.md](README.md#launching-all-the-required-programs)):
 
@@ -759,7 +774,7 @@ sbt game-server/assembly game-server-launcher/assembly
 ```
 
 ```bash
-java -jar ./game-server-launcher/target/scala-3.5.0/game-server-launcher.jar
+java -jar ./game-server-launcher/target/game-server-launcher.jar
 ```
 
 then `server/reStart` plus `~frontend/fastLinkJS` in sbt and `npm run dev` in `frontend/`.

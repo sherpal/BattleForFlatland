@@ -1,4 +1,4 @@
-package gamelogic.buffs.boss.boss103
+package gamelogic.buffs.boss.sirofvice
 
 import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.buffs.{Buff, PassiveBuff}
@@ -42,7 +42,7 @@ final case class Punished(
 
   def duration: Long = Punished.duration
 
-  def resourceIdentifier: ResourceIdentifier = Buff.boss103Punished
+  def resourceIdentifier: ResourceIdentifier = Buff.sirOfVicePunished
 
   def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer
@@ -51,6 +51,6 @@ final case class Punished(
 
 object Punished {
 
-  val duration: Long = 20000L
+  val duration: Long = 12000L
 
 }

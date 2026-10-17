@@ -90,6 +90,17 @@ object Shape {
     def isVertex(v: Complex): Boolean = v == z || v == next || v == prev
   }
 
+  /** Signed area of the polygon with the given vertices: positive if they are counter-clockwise
+    * (the convention used throughout the game), negative otherwise.
+    */
+  def signedArea(vertices: Vector[Complex]): Double =
+    vertices.indices.map { j =>
+      vertices(j).crossProduct(vertices(if j == vertices.length - 1 then 0 else j + 1))
+    }.sum / 2
+
+  /** Triangulates the (simple) polygon with the given vertices. The vertices can be given in any
+    * orientation, the returned triangles are always counter-clockwise.
+    */
   def earClipping(vertices: Vector[Complex]): Vector[Triangle] = {
     @scala.annotation.tailrec
     def earClippingAcc(vs: Vector[Complex], acc: List[Triangle]): Vector[Triangle] =
@@ -118,7 +129,11 @@ object Shape {
           earClippingAcc(beforeCorner ++ afterCorner.tail, process.triangle :: acc)
       }
 
-    earClippingAcc(vertices, List()).sortWith((t1, t2) => t1.det > t2.det)
+    // the algorithm below assumes counter-clockwise vertices (convex corners have a positive det)
+    val counterClockwiseVertices =
+      if signedArea(vertices) < 0 then vertices.reverse else vertices
+
+    earClippingAcc(counterClockwiseVertices, List()).sortWith((t1, t2) => t1.det > t2.det)
   }
 
   def regularPolygon(nbrSides: Int, radius: Double = 1): ConvexPolygon = new ConvexPolygon(

@@ -126,10 +126,10 @@ object Ability {
   val squareCleaveId: AbilityId                 = nextAbilityId()
   val createPentagonZoneId: AbilityId           = nextAbilityId()
   val putLivingDamageZoneId: AbilityId          = nextAbilityId()
-  val boss103CleansingNovaId: AbilityId         = nextAbilityId()
-  val boss103PunishmentId: AbilityId            = nextAbilityId()
-  val boss103SacredGroundId: AbilityId          = nextAbilityId()
-  val boss103HolyFlameId: AbilityId             = nextAbilityId()
+  val sirOfViceCleansingNova: AbilityId         = nextAbilityId()
+  val sirOfVicePunishment: AbilityId            = nextAbilityId()
+  val sirOfViceSacredGround: AbilityId          = nextAbilityId()
+  val sirOfViceHolyFlame: AbilityId             = nextAbilityId()
   val pentagonDispelId: AbilityId               = nextAbilityId()
   val boss110SpawnBigGuies: AbilityId           = nextAbilityId()
   val boss110BigGuyBrokenArmor: AbilityId       = nextAbilityId()
@@ -141,6 +141,7 @@ object Ability {
   val boss104SpawnBigGuy: AbilityId             = nextAbilityId()
   val boss104BigGuyKick: AbilityId              = nextAbilityId()
   val boss104DeathMarkTriangleAttack: AbilityId = nextAbilityId()
+  val sirOfViceHolyWrath: AbilityId             = nextAbilityId()
 
   opaque type AbilityColour <: RGBColour = RGBColour
 
