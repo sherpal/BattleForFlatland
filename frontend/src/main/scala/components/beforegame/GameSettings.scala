@@ -463,6 +463,33 @@ object GameSettings {
       )
     }
 
+    // only re-rendered when the boss or my class change, so that the reader does not lose their tab
+    def gameDocs = div(
+      display.flex,
+      flexWrap.wrap,
+      alignItems.start,
+      styleProp("gap") := "1em",
+      marginTop        := "1em",
+      div(
+        flex := "1 1 400px",
+        child <-- gameDataEvents
+          .map(_.game.gameConfiguration.bossName)
+          .distinct
+          .map(GameDocs.bossDocs)
+      ),
+      div(
+        flex := "1 1 400px",
+        child <-- gameDataEvents
+          .map(
+            _.game.gameConfiguration.playersInfo.values
+              .find(_.playerName.name == user.name)
+              .flatMap(_.maybePlayerClass)
+          )
+          .distinct
+          .map(GameDocs.classesDocs)
+      )
+    )
+
     // emit to this bus to show a toast. use sparsely
     val toastBus = new EventBus[String]
 
@@ -498,6 +525,7 @@ object GameSettings {
               .filter(_.isGameCreator(user))
               .map(launchGameButton(toastBus.writer))
           ),
+          gameDocs,
           gameProblemsDialog,
           playerUpdateFailureDialog,
           onMountZIO(for {

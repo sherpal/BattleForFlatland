@@ -17,7 +17,7 @@ final case class FlashHeal(
 ) extends WithTargetAbility {
   val abilityId: AbilityId = Ability.hexagonFlashHealId
   val cooldown: Long       = 0L
-  val castingTime: Long    = 1000L
+  val castingTime: Long    = FlashHeal.castingTime
 
   def createActions(
       gameState: GameState
@@ -35,7 +35,7 @@ final case class FlashHeal(
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): FlashHeal =
     copy(time = newTime, useId = newId)
 
-  val cost: ResourceAmount = ResourceAmount(10, Mana)
+  val cost: ResourceAmount = FlashHeal.cost
 
   def range: Distance = WithTargetAbility.healRange
 
@@ -46,5 +46,9 @@ final case class FlashHeal(
 object FlashHeal {
 
   final val healAmount: Double = 45
+
+  final val castingTime: Long = 1000L
+
+  final val cost: ResourceAmount = ResourceAmount(10, Mana)
 
 }

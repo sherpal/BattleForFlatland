@@ -21,7 +21,7 @@ final case class HammerHit(
   val cooldown: Long       = Ability.gcd
   val castingTime: Long    = 0L
 
-  def cost: Resource.ResourceAmount = ResourceAmount(20, Rage)
+  def cost: Resource.ResourceAmount = HammerHit.cost
 
   def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
     Vector(
@@ -39,5 +39,7 @@ final case class HammerHit(
 object HammerHit {
 
   @inline def damage: Double = 50.0
+
+  @inline def cost: ResourceAmount = ResourceAmount(20, Rage)
 
 }

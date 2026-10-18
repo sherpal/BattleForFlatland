@@ -103,6 +103,7 @@ silently inert boss, not a compile error.
 | " | `.addConcreteType[boss.bossXxx.Yyy]` on `abilityPickler` | [`communication/BFFPicklers.scala`](shared/src/main/scala/communication/BFFPicklers.scala) | **game crashes** the first time the ability is sent over the websocket |
 | " | add the id to the caster's `abilities` **and** `abilityNames` | the entity class | `canUseAbility` returns `"You don't have that ability"`; ability silently never fires |
 | " | make an AI actually emit `EntityStartsCasting` for it | the relevant `AIController` | ability is legal but never used |
+| " | add an `AbilityDoc` for it to the boss' `abilitiesDoc` (with `.castBy("Add name")` if an add casts it) | your boss' companion | players don't see it in the lobby; `GameDocsSpecs` fails for the boss' own abilities |
 | a new **`GameAction`** | `.addConcreteType[bossXxx.YourAction]` on `gameActionPickler` | [`BFFPicklers.scala`](shared/src/main/scala/communication/BFFPicklers.scala) | **game crashes** on broadcast |
 | a new **`Buff`** | `val bossXxxYyy = nextId()` in `Buff`'s companion | [`gamelogic/buffs/Buff.scala`](shared/src/main/scala/gamelogic/buffs/Buff.scala) | no `resourceIdentifier` |
 | " | a 32×32 PNG + an `Asset` + an entry in `buffAssetMap` | [`assets/Asset.scala`](frontend/src/main/scala/assets/Asset.scala) | buff has no icon in player frames |
@@ -115,6 +116,7 @@ silently inert boss, not a compile error.
 | " | its `shape.radius` in the `GraphManager(Vector(...))` radii list | [`AIManager.scala`](game-server/src/main/scala/application/ai/AIManager.scala) | console warn `There is no graph for me`, add never moves |
 | **friendly bots** | a `BossAIContainer` + an entry in `bossAIContainers` | [`GoodAIManager.scala`](game-server/src/main/scala/application/ai/GoodAIManager.scala) | `I don't handle boss …` printed; bots inert |
 | " | implement `maybeAIComposition` | your boss' companion | "Add AI" buttons stay disabled in the lobby |
+| " | implement `description` and `abilitiesDoc` (build the texts from your constants, see Boss104) | your boss' companion | does not compile |
 
 > **Note on circe**: `GameAction` and `Ability` also carry hand-written circe `Encoder`/`Decoder`
 > instances. These are **legacy and not used for in-game traffic** (boopickle is). Sir of Vice/Boss104/Boss110

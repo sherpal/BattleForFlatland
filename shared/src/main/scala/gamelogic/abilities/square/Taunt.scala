@@ -18,7 +18,7 @@ final case class Taunt(useId: Ability.UseId, time: Long, casterId: Entity.Id, ta
   val cooldown: Long       = Ability.gcd
   val castingTime: Long    = 0L
 
-  def cost: Resource.ResourceAmount = ResourceAmount(10, Rage)
+  def cost: Resource.ResourceAmount = Taunt.cost
 
   def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] = Vector(
     ThreatToEntityChange(
@@ -43,5 +43,7 @@ final case class Taunt(useId: Ability.UseId, time: Long, casterId: Entity.Id, ta
 object Taunt {
 
   inline def damageThreatAmount: ThreatAmount = ThreatAmount.fromValue(400.0)
+
+  inline def cost: ResourceAmount = ResourceAmount(10, Rage)
 
 }

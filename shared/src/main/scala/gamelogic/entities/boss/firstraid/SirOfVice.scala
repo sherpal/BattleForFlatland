@@ -5,7 +5,9 @@ import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.boss.sirofvice.{CleansingNova, HolyFlame, HolyWrath, Punishment}
 import gamelogic.abilities.{Ability, AutoAttack}
 import gamelogic.buffs.boss.sirofvice.Inflamed
-import gamelogic.docs.BossMetadata
+import gamelogic.abilities.boss.sirofvice.SacredGround
+import gamelogic.buffs.boss.sirofvice.{Punished, Purified}
+import gamelogic.docs.{formatNumber, formatPeriod, formatSeconds, AbilityDoc, BossMetadata}
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
@@ -261,4 +263,52 @@ object SirOfVice extends BossFactory[SirOfVice] with BossMetadata {
     walls ++ pillars
   }
 
+
+  def description: String =
+    "First boss of the first raid. The fight takes place in a hexagonal hall with six pillars. " ++
+      "Melee players fight within the boss' aura, while everybody else must stay out of it. " ++
+      "Spread out, get ready to be frozen, and hide behind a pillar when the boss unleashes its " ++
+      "Cleansing Nova."
+
+  def abilitiesDoc: Vector[AbilityDoc] = Vector(
+    AbilityDoc(
+      Ability.autoAttackId,
+      "Auto Attack",
+      s"Melee attack dealing ${formatNumber(autoAttackDamage)} damage to its target.",
+      autoAttackTickRate,
+      0L
+    ),
+    AbilityDoc.fromMetadata(
+      SacredGround,
+      s"Aura hitting all players within ${formatNumber(SacredGround.radius)} units of the boss. " ++
+        s"The ${formatNumber(SacredGround.damage)} damage is split between them (the more players " ++
+        "in it, the less each one takes), and they are silenced for " ++
+        s"${formatSeconds(Purified.duration)}: they can't use abilities costing mana."
+    ),
+    AbilityDoc.fromMetadata(
+      HolyFlame,
+      "Sets a random player other than its target on fire, dealing increasing damage every " ++
+        s"${formatPeriod(Inflamed.tickRate)} (${formatNumber(Inflamed.baseDamage)}, then " ++
+        s"${formatNumber(2 * Inflamed.baseDamage)}, and so on) for " ++
+        s"${formatSeconds(Inflamed.duration)}. Can be dispelled."
+    ),
+    AbilityDoc.fromMetadata(
+      HolyWrath,
+      s"Hits a random player for ${formatNumber(HolyWrath.baseDamage)} damage, then jumps to the " ++
+        s"closest player within ${formatNumber(HolyWrath.jumpRange)} units not hit yet, and so on. " ++
+        s"Each jump deals ${formatNumber(HolyWrath.damageMultiplier)} times more damage than the " ++
+        "previous one: spread out!"
+    ),
+    AbilityDoc.fromMetadata(
+      Punishment,
+      "Interrupts all players, and freezes them until they take damage (for at most " ++
+        s"${formatSeconds(Punished.duration)}). Healers typically step into the aura right " ++
+        "before, so that it frees them."
+    ),
+    AbilityDoc.fromMetadata(
+      CleansingNova,
+      s"Deals ${formatNumber(CleansingNova.damage)} damage to every player in sight of the boss. " ++
+        "Hide behind a pillar!"
+    )
+  )
 }

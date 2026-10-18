@@ -16,7 +16,7 @@ final case class BigHit(useId: Ability.UseId, time: Long, casterId: Entity.Id, t
 
   def cooldown: Long = BigHit.cooldown
 
-  def castingTime: Long = 1000L
+  def castingTime: Long = BigHit.castingTime
 
   def cost: Resource.ResourceAmount = ResourceAmount(0, NoResource)
 
@@ -48,5 +48,6 @@ object BigHit {
 
   final val timeToFirstBigHit: Long = 15000L
   final val cooldown: Long          = 30000L
+  final val castingTime: Long       = 1000L
 
 }

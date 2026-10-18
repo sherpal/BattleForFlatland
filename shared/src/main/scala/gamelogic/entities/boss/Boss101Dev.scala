@@ -19,7 +19,7 @@ import gamelogic.utils.IdGeneratorContainer
 import models.syntax.Pointed
 import gamelogic.gamestate.gameactions.RemoveBuff
 import gamelogic.buffs.Buff
-import gamelogic.docs.BossMetadata
+import gamelogic.docs.{formatNumber, AbilityDoc, BossMetadata}
 import models.bff.outofgame.PlayerClasses
 
 /** This is a clone of the [[Boss101]] with low life to test how the end of a boss behaves in
@@ -163,4 +163,10 @@ object Boss101Dev extends BossFactory[Boss101Dev] with BossMetadata {
     }.toVector
 
   def playersStartingPosition: Complex = -100 * Complex.i
+
+  def description: String =
+    s"A copy of ${Boss101.name} with only ${formatNumber(maxLife)} life points, to quickly test " ++
+      "how the end of a fight behaves."
+
+  def abilitiesDoc: Vector[AbilityDoc] = Boss101.abilitiesDoc
 }

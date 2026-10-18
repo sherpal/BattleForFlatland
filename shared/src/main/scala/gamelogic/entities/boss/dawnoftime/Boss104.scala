@@ -4,7 +4,10 @@ import gamelogic.abilities.Ability.AbilityId
 import gamelogic.abilities.WithTargetAbility.Distance
 import gamelogic.abilities.boss.boss104.{SpawnBigGuy, TwinDebuffs}
 import gamelogic.abilities.{Ability, AutoAttack}
-import gamelogic.docs.BossMetadata
+import gamelogic.abilities.boss.boss104.{BigGuyKick, DeathMarkTriangleAttack}
+import gamelogic.buffs.boss.boss104.TwinDebuff
+import gamelogic.docs.{formatNumber, formatPeriod, AbilityDoc, BossMetadata}
+import gamelogic.entities.boss.boss104.{BigGuy, DeathMarkTriangle}
 import gamelogic.entities.Entity.{Id, TeamId}
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
@@ -204,4 +207,67 @@ object Boss104 extends BossFactory[Boss104] with BossMetadata {
 
   val name: String = "Boss 104"
 
+
+  def description: String =
+    "Two players regularly get cursed, and the Pentagons must dispel them from the right spot. " ++
+      "Meanwhile the boss summons big guys that the Triangle must keep in check and interrupt. " ++
+      "Where the big guys die matters: three of them leave a deadly triangle on the ground."
+
+  def abilitiesDoc: Vector[AbilityDoc] = Vector(
+    AbilityDoc(
+      Ability.autoAttackId,
+      "Auto Attack",
+      s"Melee attack dealing ${formatNumber(autoAttackDamage)} damage to its target.",
+      autoAttackTickRate,
+      0L
+    ),
+    AbilityDoc(
+      Ability.boss104TwinDebuffs,
+      "Twin Debuffs",
+      "Curses two random players with debuffs of two different colours, dealing " ++
+        s"${formatNumber(TwinDebuff.damageOnTick)} damage every " ++
+        s"${formatPeriod(TwinDebuff.tickRate)}, and drops a circle of each colour in the room. " ++
+        "The curses must be dispelled by a Pentagon standing in the circle of the matching " ++
+        s"colour, otherwise the Pentagon takes ${formatNumber(TwinDebuff.wrongDispelDamage)} damage.",
+      TwinDebuffs.cooldown,
+      TwinDebuffs.castingTime
+    ),
+    AbilityDoc(
+      Ability.boss104SpawnBigGuy,
+      "Big Guy",
+      s"Summons a big guy with ${formatNumber(BigGuy.maxLife)} life points. When a big guy dies, " ++
+        "it leaves a death mark on the ground. When three death marks are down, they form a " ++
+        "Death Mark Triangle.",
+      SpawnBigGuy.cooldown,
+      SpawnBigGuy.castingTime
+    ),
+    AbilityDoc(
+      Ability.boss104DeathMarkTriangleAttack,
+      "Death Mark Triangle",
+      "Only cast while a Death Mark Triangle stands in the room, twice in a row. The first time, " ++
+        s"players inside the triangle take ${formatNumber(DeathMarkTriangle.deadlyDamage)} " ++
+        "damage, and players outside of it " ++
+        s"${formatNumber(DeathMarkTriangle.safeDamage(DeathMarkTriangle.firstStage))}. The " ++
+        "second time, it's the opposite: players outside take " ++
+        s"${formatNumber(DeathMarkTriangle.deadlyDamage)} damage, and players inside " ++
+        s"${formatNumber(DeathMarkTriangle.safeDamage(DeathMarkTriangle.secondStage))}.",
+      0L,
+      DeathMarkTriangleAttack.castingTime
+    ),
+    AbilityDoc(
+      Ability.autoAttackId,
+      "Auto Attack",
+      s"Melee attack dealing ${formatNumber(BigGuy.damageOnTick)} damage to its target.",
+      BigGuy.tickRate,
+      0L
+    ).castBy("Big Guy"),
+    AbilityDoc(
+      Ability.boss104BigGuyKick,
+      "Kick",
+      s"Kicks its target for ${formatNumber(BigGuyKick.damage)} damage. Can be interrupted " ++
+        "(with the Triangle's Cut, for example).",
+      BigGuyKick.cooldown,
+      BigGuyKick.castingTime
+    ).castBy("Big Guy")
+  )
 }

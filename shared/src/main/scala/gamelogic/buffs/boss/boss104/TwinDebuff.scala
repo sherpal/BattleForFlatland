@@ -48,7 +48,13 @@ final case class TwinDebuff(
       dispelledById <- maybeDispelledBy
       dispalledBy   <- gameState.players.get(dispelledById)
       if !debuffCircles.exists(circle => dispalledBy.collides(circle, time))
-    } yield EntityTakesDamage(genActionId(), time, dispelledById, 90.0, bossId)).toVector ++
+    } yield EntityTakesDamage(
+      genActionId(),
+      time,
+      dispelledById,
+      TwinDebuff.wrongDispelDamage,
+      bossId
+    )).toVector ++
       debuffCircles.map(circle => RemoveEntity(genActionId(), time, circle.id))
 
   override def tickEffect(gameState: GameState, time: Long)(using
@@ -62,5 +68,8 @@ final case class TwinDebuff(
 object TwinDebuff {
   inline def tickRate: Long       = 1000L
   inline def damageOnTick: Double = 10.0
+
+  /** Damage taken by a player who dispels the debuff outside of the circle of its colour. */
+  inline def wrongDispelDamage: Double = 90.0
   inline def duration: Long       = 60000L
 }

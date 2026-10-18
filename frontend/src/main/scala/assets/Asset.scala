@@ -57,7 +57,8 @@ class Asset private (val path: PathSegment[Unit, ?], val name: String, width: In
     .withRotation(rotation)
     .withScale(scaleTo(targetSize))
 
-  private lazy val pathStr = "/" ++ path.createPart()
+  /** Absolute url of the asset, usable for example as the `src` of an `img`. */
+  lazy val pathStr = "/" ++ path.createPart()
 
 }
 

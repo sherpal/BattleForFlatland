@@ -2,7 +2,12 @@ package gamelogic.entities.classes
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
+import gamelogic.abilities.WithTargetAbility
+import gamelogic.abilities.hexagon.{CreateHexagonZone, FlashHeal, HexagonHot}
 import gamelogic.buffs.Buff
+import gamelogic.buffs.resourcebuffs.ManaFiller
+import gamelogic.docs.{formatNumber, formatPeriod, formatSeconds, AbilityDoc}
+import gamelogic.entities.classes.hexagon.HexagonZone
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{Mana, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
@@ -93,4 +98,42 @@ object Hexagon extends PlayerClassBuilder {
   def shape: Polygon = Shape.regularPolygon(6, Constants.playerRadius)
 
   def initialMaxLife: Double = 100
+
+  def description: String =
+    "The healer. The Hexagon keeps its allies alive, by healing them directly or over time. Its " ++
+      s"mana pool is big (${formatNumber(initialResourceAmount.amount)}) but regenerates slowly " ++
+      s"(${formatNumber(ManaFiller.manaRefillPerSecond * ManaFiller.tickEveryNSeconds)} every " ++
+      s"${formatPeriod(ManaFiller.tickEveryNSeconds * 1000L)}): don't waste it!"
+
+  def abilitiesDoc: Vector[AbilityDoc] = Vector(
+    AbilityDoc(
+      Ability.hexagonFlashHealId,
+      "Flash Heal",
+      s"Heals an ally (within ${formatNumber(WithTargetAbility.healRange)} units) for " ++
+        s"${formatNumber(FlashHeal.healAmount)} life points.",
+      0L,
+      FlashHeal.castingTime,
+      FlashHeal.cost
+    ),
+    AbilityDoc(
+      Ability.hexagonHexagonHotId,
+      "Heal Over Time",
+      s"Heals an ally for ${formatNumber(HexagonHot.healOnTick)} life points every " ++
+        s"${formatPeriod(HexagonHot.tickRate)}, for ${formatSeconds(HexagonHot.duration)}. Can " ++
+        "be cast while moving.",
+      HexagonHot.cooldown,
+      0L,
+      HexagonHot.cost
+    ),
+    AbilityDoc(
+      Ability.hexagonHexagonZoneId,
+      "Hexagon Zone",
+      "Creates a healing zone at the chosen location for " ++
+        s"${formatSeconds(HexagonZone.duration)}. Every ${formatPeriod(HexagonZone.tickRate)}, " ++
+        s"allies standing in it are healed for ${formatNumber(HexagonZone.healOnTick)} life points.",
+      CreateHexagonZone.cooldown,
+      CreateHexagonZone.castingTime,
+      CreateHexagonZone.cost
+    )
+  )
 }

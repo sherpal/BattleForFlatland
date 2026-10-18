@@ -17,10 +17,10 @@ final case class HexagonHot(
     targetId: Entity.Id
 ) extends WithTargetAbility {
   val abilityId: AbilityId = Ability.hexagonHexagonHotId
-  val cooldown: Long       = 4000L
+  val cooldown: Long       = HexagonHot.cooldown
   val castingTime: Long    = 0L
 
-  def cost: Resource.ResourceAmount = ResourceAmount(15, Mana)
+  def cost: Resource.ResourceAmount = HexagonHot.cost
 
   def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] = Vector(
     UpdateConstantHot(
@@ -51,5 +51,8 @@ object HexagonHot {
   inline def healOnTick = 15.0
   inline def duration   = 15000L
   inline def tickRate   = 3000L
+  inline def cooldown   = 4000L
+
+  val cost: ResourceAmount = ResourceAmount(15, Mana)
 
 }

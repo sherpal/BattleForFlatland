@@ -20,11 +20,18 @@ final case class BasicShield(
   def actionTransformer(gameAction: GameAction): Vector[GameAction] =
     Vector(gameAction match {
       case gameAction: EntityTakesDamage if gameAction.entityId == bearerId =>
-        gameAction.copy(amount = gameAction.amount * 0.8)
+        gameAction.copy(amount = gameAction.amount * BasicShield.damageMultiplier)
       case _ => gameAction
     })
 
   def duration: Long = -1L
 
   def resourceIdentifier: ResourceIdentifier = Buff.squareDefaultShield
+}
+
+object BasicShield {
+
+  /** Multiplier applied to all damage taken by the bearer. */
+  inline def damageMultiplier: Double = 0.8
+
 }

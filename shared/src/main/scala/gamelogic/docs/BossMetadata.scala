@@ -1,12 +1,11 @@
 package gamelogic.docs
 
-import models.bff.outofgame.PlayerClasses
 import gamelogic.entities.boss.BossFactory
-import models.bff.outofgame.gameconfig.PlayerInfo
+import models.bff.outofgame.PlayerClasses
+import models.bff.outofgame.gameconfig.{PlayerInfo, PlayerName, PlayerStatus, PlayerType}
 import utils.misc.RGBColour
-import models.bff.outofgame.gameconfig.PlayerStatus
-import models.bff.outofgame.gameconfig.PlayerType
-import models.bff.outofgame.gameconfig.PlayerName
+
+import scala.annotation.tailrec
 
 /** The [[BossMetadata]] describe the common metadata that boss entities must provide.
   */
@@ -23,6 +22,12 @@ trait BossMetadata {
   /** Number of players this boss is intended to be fought against. */
   def intendedFor: Int
 
+  /** Player-facing description of the encounter and its main mechanics (in English). */
+  def description: String
+
+  /** Player-facing documentation of the abilities of the boss, and of the ones of its adds. */
+  def abilitiesDoc: Vector[AbilityDoc]
+
   /** Composition of a team form of all AIs. None if the boss does not support AIs. */
   def maybeAIComposition: Option[List[PlayerClasses]]
 
@@ -36,6 +41,7 @@ trait BossMetadata {
 
   final def fillWithAI(currentClasses: Vector[PlayerClasses]): Option[Vector[PlayerClasses]] =
     maybeAIComposition.map(_.toVector).map { _ =>
+      @tailrec
       def addNext(accumulatedClasses: Vector[PlayerClasses]): Vector[PlayerClasses] =
         nextAvailableAI(currentClasses ++ accumulatedClasses) match {
           case None            => accumulatedClasses
@@ -85,8 +91,8 @@ object BossMetadata {
       metadata
     }
 
-  def firstBossName = allBossNames.head
+  def firstBossName: String = allBossNames.head
 
-  inline def allBossNames = BossFactory.factoriesByBossName.keys.toVector.sorted
+  inline def allBossNames: Vector[String] = BossFactory.factoriesByBossName.keys.toVector.sorted
 
 }

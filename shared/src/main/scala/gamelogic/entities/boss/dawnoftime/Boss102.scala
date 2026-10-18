@@ -22,7 +22,8 @@ import gamelogic.gamestate.gameactions.RemoveEntity
 import gamelogic.entities.boss.boss102.DamageZone
 import gamelogic.buffs.Buff
 import gamelogic.gamestate.gameactions.RemoveBuff
-import gamelogic.docs.BossMetadata
+import gamelogic.buffs.boss.boss102.{DamageZoneTick, LivingDamageZone}
+import gamelogic.docs.{formatNumber, formatPeriod, formatSeconds, AbilityDoc, BossMetadata}
 import models.bff.outofgame.PlayerClasses
 
 final case class Boss102(
@@ -218,4 +219,47 @@ object Boss102 extends BossFactory[Boss102] with BossMetadata {
           ) contains buff.resourceIdentifier =>
         RemoveBuff(genActionId(), time, buff.bearerId, buff.buffId)
     }
+
+
+  def description: String =
+    "The boss of the hounds. While the tank keeps it busy, the boss fills the room with damage " ++
+      "zones and summons hounds over and over. Damage dealers must take care of the hounds before " ++
+      "they overwhelm the healers, and everybody must spread to avoid hurting each other."
+
+  def abilitiesDoc: Vector[AbilityDoc] = Vector(
+    AbilityDoc(
+      Ability.autoAttackId,
+      "Auto Attack",
+      s"Melee attack dealing ${formatNumber(autoAttackDamage)} damage to its target.",
+      autoAttackTickRate,
+      0L
+    ),
+    AbilityDoc.fromMetadata(
+      PutDamageZones,
+      "Puts a damage zone under each player. Players standing in a zone take " ++
+        s"${formatNumber(DamageZoneTick.damageOnTick)} damage every " ++
+        s"${formatPeriod(DamageZoneTick.tickRate)}. Zones stay until the end of the fight, so " ++
+        "choose wisely where they land!"
+    ),
+    AbilityDoc.fromMetadata(
+      PutLivingDamageZoneOnTarget,
+      "Curses a random player other than its target for " ++
+        s"${formatSeconds(LivingDamageZone.duration)}. Every " ++
+        s"${formatPeriod(LivingDamageZone.tickRate)}, all other players within " ++
+        s"${formatNumber(LivingDamageZone.range)} units of the cursed player take " ++
+        s"${formatNumber(PutLivingDamageZoneOnTarget.damage)} damage."
+    ),
+    AbilityDoc.fromMetadata(
+      SpawnHound,
+      s"Summons a hound with ${formatNumber(BossHound.houndMaxLife)} life points. Hounds run " ++
+        "faster than players, and attack them in melee."
+    ),
+    AbilityDoc(
+      Ability.autoAttackId,
+      "Bite",
+      s"Melee attack dealing ${formatNumber(BossHound.damageOnTick)} damage to its target.",
+      BossHound.tickRate,
+      0L
+    ).castBy("Hound")
+  )
 }

@@ -18,7 +18,7 @@ import gamelogic.utils.IdGeneratorContainer
 import models.syntax.Pointed
 import gamelogic.gamestate.gameactions.RemoveBuff
 import gamelogic.buffs.Buff
-import gamelogic.docs.BossMetadata
+import gamelogic.docs.{formatNumber, formatPeriod, formatSeconds, AbilityDoc, BossMetadata}
 import models.bff.outofgame.PlayerClasses
 
 /** Very first boss to be coded. Probably not the most exiting one but the goal was to have a first
@@ -174,4 +174,35 @@ object Boss101 extends BossFactory[Boss101] with BossMetadata {
     }.toVector
 
   def playersStartingPosition: Complex = -100 * Complex.i
+
+  def description: String =
+    "The very first boss of Battle for Flatland, and the best place to learn the basics. The tank " ++
+      "must take the boss' big hits, while the healers keep up with the damage over time it puts " ++
+      "on the others."
+
+  def abilitiesDoc: Vector[AbilityDoc] = Vector(
+    AbilityDoc(
+      Ability.boss101SmallHitId,
+      "Small Hit",
+      s"Melee attack dealing ${formatNumber(SmallHit.damageAmount)} damage to its target.",
+      SmallHit.cooldown,
+      0L
+    ),
+    AbilityDoc(
+      Ability.boss101BigHitId,
+      "Big Hit",
+      s"Hits its target for ${formatNumber(BigHit.damageAmount)} damage. Only a tank can survive " ++
+        "it.",
+      BigHit.cooldown,
+      BigHit.castingTime
+    ),
+    AbilityDoc(
+      Ability.boss101BigDotId,
+      "Big Dot",
+      s"Deals ${formatNumber(BigDot.damageOnTick)} damage every ${formatPeriod(BigDot.tickRate)} " ++
+        s"for ${formatSeconds(BigDot.duration)} to a random player other than its target.",
+      BigDot.cooldown,
+      0L
+    )
+  )
 }

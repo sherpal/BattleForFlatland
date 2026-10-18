@@ -9,7 +9,10 @@ import gamelogic.abilities.boss.boss110.{
   SpawnSmallGuies
 }
 import gamelogic.abilities.{Ability, AutoAttack}
-import gamelogic.docs.BossMetadata
+import gamelogic.abilities.boss.boss110.addsabilities.{CreepingShadowTick, PutBrokenArmor}
+import gamelogic.buffs.boss.boss110.BrokenArmor
+import gamelogic.docs.{formatNumber, formatPeriod, formatSeconds, AbilityDoc, BossMetadata}
+import gamelogic.entities.boss.boss110.SmallGuy
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
@@ -243,4 +246,51 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
       Ability.boss110SpawnSmallGuies
     )
 
+
+  def description: String =
+    s"A fight for ${intendedFor} players. The boss summons big guys on one side of the room, " ++
+      "breaking the armour of whoever they attack, and small guys on the other side. A creeping " ++
+      "shadow follows the small guys around: if it reaches the boss, everybody suffers. And " ++
+      "every now and then, bombs must be covered, one player per bomb."
+
+  def abilitiesDoc: Vector[AbilityDoc] = Vector(
+    AbilityDoc(
+      Ability.autoAttackId,
+      "Auto Attack",
+      s"Melee attack dealing ${formatNumber(autoAttackDamage)} damage to its target.",
+      autoAttackTickRate,
+      0L
+    ),
+    AbilityDoc.fromMetadata(
+      SpawnBigGuies,
+      s"Summons three big guys with ${formatNumber(BigGuy.maxLife)} life points each, that attack " ++
+        "players in melee and break their armour."
+    ),
+    AbilityDoc.fromMetadata(
+      SpawnSmallGuies,
+      s"Summons two small guys with ${formatNumber(SmallGuy.maxLife)} life points each. The more " ++
+        "small guys there are, the bigger the creeping shadow gets."
+    ),
+    AbilityDoc.fromMetadata(
+      PlaceBombPods,
+      s"Places ${PlaceBombPods.numberOfBombs} bombs in the room, that explode " ++
+        s"${formatSeconds(ExplodeBombs.cooldown + ExplodeBombs.castingTime)} later."
+    ),
+    AbilityDoc.fromMetadata(
+      ExplodeBombs,
+      "Each bomb must be covered by exactly one player when they explode. Otherwise, everybody " ++
+        "dies."
+    ),
+    AbilityDoc.fromMetadata(
+      PutBrokenArmor,
+      s"Doubles the damage its target takes for ${formatSeconds(BrokenArmor.duration)}. " ++
+        "Stacks, so the tanks should take turns."
+    ).castBy("Big Guy"),
+    AbilityDoc.fromMetadata(
+      CreepingShadowTick,
+      "The shadow moves towards the small guys. While it touches the boss, all players take " ++
+        s"${formatNumber(CreepingShadowTick.damageOnTick)} damage every " ++
+        s"${formatPeriod(CreepingShadowTick.cooldown)}: keep the small guys away from the boss!"
+    ).castBy("Creeping Shadow")
+  )
 }

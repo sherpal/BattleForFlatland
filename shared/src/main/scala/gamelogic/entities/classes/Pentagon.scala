@@ -2,7 +2,11 @@ package gamelogic.entities.classes
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
+import gamelogic.abilities.pentagon.{CreatePentagonBullet, CreatePentagonZone, PentaDispel}
 import gamelogic.buffs.Buff
+import gamelogic.docs.{formatNumber, formatPeriod, formatSeconds, AbilityDoc}
+import gamelogic.entities.classes.pentagon.PentagonZone
+import gamelogic.entities.movingstuff.PentagonBullet
 import gamelogic.entities.Entity.{Id, TeamId}
 import gamelogic.entities.Resource.ResourceAmount
 import gamelogic.entities.WithPosition.Angle
@@ -85,4 +89,40 @@ object Pentagon extends PlayerClassBuilder {
 
   final val initialMaxLife: Double                = 100
   final val initialResourceAmount: ResourceAmount = ResourceAmount(300.0, Resource.Mana)
+
+  def description: String =
+    "The ranged damage dealer. The Pentagon shoots its enemies from afar, and is the only one " ++
+      "able to dispel the nasty debuffs that bosses put on players."
+
+  def abilitiesDoc: Vector[AbilityDoc] = Vector(
+    AbilityDoc(
+      Ability.pentagonPentagonBullet,
+      "Pentagon Bullet",
+      "Fires a bullet in the chosen direction. It travels up to " ++
+        s"${formatNumber(PentagonBullet.defaultRange)} units and deals " ++
+        s"${formatNumber(CreatePentagonBullet.damage)} damage to the first enemy it hits.",
+      CreatePentagonBullet.cooldown,
+      CreatePentagonBullet.castingTime,
+      CreatePentagonBullet.cost
+    ),
+    AbilityDoc(
+      Ability.createPentagonZoneId,
+      "Pentagon Zone",
+      "Creates a damaging zone at the chosen location for " ++
+        s"${formatSeconds(PentagonZone.duration)}. Every ${formatPeriod(PentagonZone.tickRate)}, " ++
+        s"enemies standing in it take ${formatNumber(PentagonZone.damageOnTick)} damage.",
+      CreatePentagonZone.cooldown,
+      CreatePentagonZone.castingTime,
+      CreatePentagonZone.cost
+    ),
+    AbilityDoc(
+      Ability.pentagonDispelId,
+      PentaDispel.name,
+      "Removes all the effects that can be dispelled from an ally. Beware: this includes the " ++
+        "beneficial ones!",
+      PentaDispel.cooldown,
+      0L,
+      PentaDispel.cost
+    )
+  )
 }

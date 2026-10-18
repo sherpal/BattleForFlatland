@@ -21,11 +21,27 @@ final case class RageFiller(
 
   def actionTransformer(gameAction: GameAction): Vector[GameAction] = gameAction match {
     case gameAction: EntityTakesDamage if gameAction.entityId == bearerId =>
-      Vector(gameAction, EntityResourceChanges(gameAction.id, gameAction.time, bearerId, 5.0, Rage))
+      Vector(
+        gameAction,
+        EntityResourceChanges(
+          gameAction.id,
+          gameAction.time,
+          bearerId,
+          RageFiller.rageOnDamageTaken,
+          Rage
+        )
+      )
     case _ => Vector(gameAction)
   }
 
   def duration: Long = -1L
 
   def resourceIdentifier: ResourceIdentifier = Buff.rageFiller
+}
+
+object RageFiller {
+
+  /** Rage gained by the bearer each time they take damage. */
+  inline def rageOnDamageTaken: Double = 5.0
+
 }

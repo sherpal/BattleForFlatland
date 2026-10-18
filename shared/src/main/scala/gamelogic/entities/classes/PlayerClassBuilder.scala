@@ -1,6 +1,7 @@
 package gamelogic.entities.classes
 
 import gamelogic.abilities.Ability
+import gamelogic.docs.AbilityDoc
 import gamelogic.entities.Entity
 import gamelogic.entities.Resource.ResourceAmount
 import gamelogic.gamestate.GameAction
@@ -33,5 +34,11 @@ trait PlayerClassBuilder extends IdsProducer {
 
   /** The initial and "normal" max resource that the class has. */
   def initialResourceAmount: ResourceAmount
+
+  /** Player-facing description of the class and its role (in English). */
+  def description: String
+
+  /** Player-facing documentation of each of the [[abilities]] of the class. */
+  def abilitiesDoc: Vector[AbilityDoc]
 
 }
