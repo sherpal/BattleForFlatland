@@ -133,7 +133,7 @@ lazy val frontend = project
   .settings(
     libraryDependencies ++= List(
       "com.raquo"       %%% "laminar"            % "17.0.0",
-      "be.doeraene"     %%% "web-components-ui5" % "2.0.0",
+      "be.doeraene"     %%% "web-components-ui5" % "2.27.0",
       "io.indigoengine" %%% "indigo"             % indigoVersion,
       "io.indigoengine" %%% "indigo-extras"      % indigoVersion,
       "io.indigoengine" %%% "indigo-json-circe"  % indigoVersion

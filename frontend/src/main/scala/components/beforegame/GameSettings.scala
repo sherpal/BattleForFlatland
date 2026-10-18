@@ -23,12 +23,14 @@ import models.bff.outofgame.gameconfig.GameConfiguration
 import zio.*
 import models.bff.outofgame.gameconfig.PlayerStatus.NotReady
 import errors.ErrorADT
+
 import java.util.concurrent.TimeUnit
 import models.bff.ingame.GameUserCredentials
 import services.localstorage.LocalStorage
 import gamelogic.entities.boss.Boss101
 import models.bff.outofgame.gameconfig.PlayerName.HumanPlayerName
 import models.bff.outofgame.gameconfig.PlayerName.AIPlayerName
+import services.localstorage.LocalStorage.Key
 
 object GameSettings {
 
@@ -207,13 +209,10 @@ object GameSettings {
                   .map(_.get.name)
                   .map(currentConfig.withBossName)
                   .map(_.metadata) --> gameConfigUpdateBus.writer,
+                _.value := currentBossName,
                 gameConfigUpdateEvents --> Observer.empty,
                 BossMetadata.allBossNames.map(bossName =>
-                  Select.option(
-                    _.value := bossName,
-                    bossName,
-                    _.selected := (currentBossName == bossName)
-                  )
+                  Select.option(_.value := bossName, bossName)
                 ),
                 onMountZIO(
                   gameConfigKey.retrieve
@@ -287,22 +286,16 @@ object GameSettings {
                 TableCompat.row.cell(
                   if isMe then
                     Select(
+                      _.value <-- playerInfoSignal.map(_.maybePlayerClass.fold("")(_.value)),
                       _.events.onChange
                         .map(
                           _.detail.selectedOption.maybeValue
                             .flatMap(PlayerClasses.playerClassByName)
                         )
                         .map(playerInfo.withClass) --> playerUpdateBus.writer,
-                      _.option(
-                        ""
-                      ),
-                      PlayerClasses.allChoices.map { cls =>
-                        Select.option(
-                          _.value := cls.value,
-                          cls.value,
-                          _.selected := playerInfo.maybePlayerClass.contains(cls)
-                        )
-                      }
+                      _.option(""),
+                      PlayerClasses.allChoices
+                        .map(cls => Select.option(_.value := cls.value, cls.value))
                     )
                   else playerInfo.maybePlayerClass.map(_.toString).getOrElse("Not Chosen")
                 ),
@@ -556,8 +549,9 @@ object GameSettings {
     )
   }
 
-  val credentialsStorageKey = LocalStorage.key[GameUserCredentials]("game-credentials")
-  val gamePortKey           = LocalStorage.key[Int]("game-server-port")
+  val credentialsStorageKey: Key[GameUserCredentials] =
+    LocalStorage.key[GameUserCredentials]("game-credentials")
+  val gamePortKey: Key[RuntimeFlags] = LocalStorage.key[Int]("game-server-port")
 
   private val playerInfoKey = LocalStorage.key[PlayerInfo]("player-info")
   private val gameConfigKey = LocalStorage.key[GameConfiguration.GameConfigMetadata]("game-config")
