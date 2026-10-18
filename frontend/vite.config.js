@@ -1,29 +1,10 @@
-import { resolve } from 'path'
-import { scalaMetadata } from "./scala-metadata"
-import { createHtmlPlugin } from 'vite-plugin-html'
-
 import { defineConfig } from 'vite'
 
-const scalaVersion = scalaMetadata.scalaVersion
-
-export default defineConfig(({ command, mode, ssrBuild }) => {
-
-  const htmlPlugin = createHtmlPlugin()
-
-  const mainJS = `/target/scala-${scalaVersion}/frontend-${mode === 'production' ? 'opt' : 'fastopt'}/main.js`
-  console.log('mainJS', mainJS)
-  const script = `<script type="module" src="${mainJS}"></script>`
+export default defineConfig(() => {
 
   return {
     publicDir: './public',
-    plugins: createHtmlPlugin({
-      minify: process.env.NODE_ENV === 'production',
-      inject: {
-        data: {
-          script
-        }
-      }
-    }),
+    plugins: [],
     server: {
       port: 3000,
       proxy: {
@@ -36,6 +17,21 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
         }
       }
     },
-    base: "/static/"
+    base: "/static/",
+    build: {
+      chunkSizeWarningLimit: 2000,
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            groups: [
+              {
+                name: 'ui5',
+                test: /node_modules[\\/]@ui5/
+              }
+            ]
+          }
+        }
+      }
+    }
   }
 })

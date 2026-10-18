@@ -1,6 +1,5 @@
 import sbt.Keys._
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
-import java.nio.charset.StandardCharsets
 import scala.sys.process.Process
 
 name := "Battle for Flatland"
@@ -10,20 +9,6 @@ version := "0.2"
 ThisBuild / scalaVersion := "3.9.0"
 
 Global / onLoad := {
-  val scalaVersionValue = (frontend / scalaVersion).value
-  val outputFile        = baseDirectory.value / "frontend" / "scala-metadata.js"
-  IO.writeLines(
-    outputFile,
-    s"""
-       |const scalaVersion = "$scalaVersionValue"
-       |
-       |exports.scalaMetadata = {
-       |  scalaVersion: scalaVersion
-       |}
-       |""".stripMargin.split("\n").toList,
-    StandardCharsets.UTF_8
-  )
-
   println("""
   |    ____        __  __  __        ____              ________      __  __                __
   |   / __ )____ _/ /_/ /_/ /__     / __/___  _____   / ____/ /___ _/ /_/ /___ _____  ____/ /
@@ -139,7 +124,12 @@ lazy val frontend = project
       "io.indigoengine" %%% "indigo-json-circe"  % indigoVersion
     ),
     esModule,
-    scalaJSUseMainModuleInitializer := true
+    scalaJSUseMainModuleInitializer := true,
+    // these are used by the magic %MODE% thing from vite (see frontend/index.html)
+    Compile / fastLinkJS / scalaJSLinkerOutputDirectory :=
+      baseDirectory.value / "target" / "development",
+    Compile / fullLinkJS / scalaJSLinkerOutputDirectory :=
+      baseDirectory.value / "target" / "production"
   )
   .dependsOn(`shared`.js)
 
