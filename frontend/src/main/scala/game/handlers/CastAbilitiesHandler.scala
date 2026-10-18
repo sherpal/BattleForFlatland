@@ -102,11 +102,17 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
       abilityId <- Option.when(abilityIndex < abilities.length)(abilities(abilityIndex))
     } yield {
       inline def maybeTargetId = viewModel.maybeTargetId
+      // only looked at when the current target is not valid for the ability
+      def maybeMouseOverId: Option[Entity.Id] =
+        if context.startUpData.controls.mouseOverEnabled then
+          viewModel.uiParent.maybeEntityIdAt(context.frameContext, viewModel, context.mouse.position)
+        else None
       abilityId match {
         case Ability.hexagonFlashHealId =>
           sendCastAbilityWithTarget(
             targetId => FlashHeal(Ability.UseId.zero, now, myId, targetId),
             maybeTargetId,
+            maybeMouseOverId,
             gameState,
             now
           )
@@ -114,6 +120,7 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
           sendCastAbilityWithTarget(
             targetId => HexagonHot(Ability.UseId.zero, now, myId, targetId),
             maybeTargetId,
+            maybeMouseOverId,
             gameState,
             now
           )
@@ -121,6 +128,7 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
           sendCastAbilityWithTarget(
             targetId => Taunt(Ability.UseId.zero, now, myId, targetId),
             maybeTargetId,
+            maybeMouseOverId,
             gameState,
             now
           )
@@ -129,6 +137,7 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
           sendCastAbilityWithTarget(
             targetId => HammerHit(Ability.UseId.zero, now, myId, targetId),
             maybeTargetId,
+            maybeMouseOverId,
             gameState,
             now
           )
@@ -149,6 +158,7 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
           sendCastAbilityWithTarget(
             targetId => EnergyKick(Ability.UseId.zero, now, myId, targetId),
             maybeTargetId,
+            maybeMouseOverId,
             gameState,
             now
           )
@@ -157,6 +167,7 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
             targetId =>
               DirectHit(Ability.UseId.zero, now, myId, targetId, DirectHit.directHitDamage),
             maybeTargetId,
+            maybeMouseOverId,
             gameState,
             now
           )
@@ -167,6 +178,7 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
           sendCastAbilityWithTarget(
             targetId => Stun(Ability.UseId.zero, now, myId, targetId),
             maybeTargetId,
+            maybeMouseOverId,
             gameState,
             now
           )
@@ -188,6 +200,7 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
           sendCastAbilityWithTarget(
             targetId => PentaDispel(Ability.UseId.zero, now, myId, targetId),
             maybeTargetId,
+            maybeMouseOverId,
             gameState,
             now
           )
@@ -204,6 +217,7 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
           sendCastAbilityWithTarget(
             Cut(Ability.UseId.zero, now, myId, _),
             maybeTargetId,
+            maybeMouseOverId,
             gameState,
             now
           )
@@ -218,35 +232,57 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
 
   private def maybeMe(gameState: GameState) = gameState.players.get(myId)
 
+  /** Casts the ability on the current target. If that is not possible (no target, or not a valid
+    * one), falls back to the entity under the mouse, if the ability can legally be cast on it.
+    */
   def sendCastAbilityWithTarget(
       ability: Entity.Id => Ability,
       maybeTargetId: Option[Entity.Id],
+      maybeMouseOverId: => Option[Entity.Id],
       gameState: GameState,
       time: Long
-  ): js.Array[CustomIndigoEvents] =
-    maybeTargetId match {
-      case None =>
-        if (scala.scalajs.LinkingInfo.developmentMode) {
-          dom.console.warn("No target")
-        }
-        js.Array(CustomIndigoEvents.GameEvent.ErrorMessage("No target"))
-      case Some(targetId) => sendCastAbility(ability(targetId), gameState, time)
+  ): js.Array[CustomIndigoEvents] = {
+    val targetAbilityOrError: Either[String, Ability] = maybeTargetId match {
+      case None => Left("No target")
+      case Some(targetId) =>
+        val targetAbility = ability(targetId)
+        illegalReason(targetAbility, gameState, time).toLeft(targetAbility)
     }
+
+    targetAbilityOrError match {
+      case Right(targetAbility) => sendCastAbility(targetAbility, gameState, time)
+      case Left(errorMessage) =>
+        maybeMouseOverId
+          .filterNot(maybeTargetId.contains[Entity.Id])
+          .map(ability)
+          .filter(illegalReason(_, gameState, time).isEmpty)
+          .fold(errorEvents(errorMessage))(sendCastAbility(_, gameState, time))
+    }
+  }
 
   def sendCastAbility(
       ability: Ability,
       gameState: GameState,
       time: Long
-  ): js.Array[CustomIndigoEvents] = {
-    val action = EntityStartsCasting(GameAction.Id.zero, time, ability.castingTime, ability)
-    action.isLegalDelay(gameState, deltaTimeWithServer + 100) match {
-      case Some(errorMessage) =>
-        if (scala.scalajs.LinkingInfo.developmentMode) {
-          dom.console.warn(errorMessage)
-        }
-        js.Array(CustomIndigoEvents.GameEvent.ErrorMessage(errorMessage))
-      case None => js.Array(CustomIndigoEvents.GameEvent.SendAction(action))
+  ): js.Array[CustomIndigoEvents] =
+    illegalReason(ability, gameState, time) match {
+      case Some(errorMessage) => errorEvents(errorMessage)
+      case None =>
+        js.Array(CustomIndigoEvents.GameEvent.SendAction(entityStartsCasting(ability, time)))
     }
+
+  private def entityStartsCasting(ability: Ability, time: Long) =
+    EntityStartsCasting(GameAction.Id.zero, time, ability.castingTime, ability)
+
+  /** The reason why this ability cannot be cast now, if it can't. */
+  private def illegalReason(ability: Ability, gameState: GameState, time: Long): Option[String] =
+    entityStartsCasting(ability, time).isLegalDelay(gameState, deltaTimeWithServer + 100)
+
+  private def errorEvents(errorMessage: String): js.Array[CustomIndigoEvents] = {
+    if (scala.scalajs.LinkingInfo.developmentMode) {
+      dom.console.warn(errorMessage)
+    }
+    js.Array(CustomIndigoEvents.GameEvent.ErrorMessage(errorMessage))
   }
 
 }

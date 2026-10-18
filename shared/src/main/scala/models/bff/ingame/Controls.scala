@@ -3,8 +3,9 @@ package models.bff.ingame
 import models.bff.ingame.Controls.InputCode
 import models.syntax.Pointed
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, Encoder, Json}
 import services.localstorage.LocalStorage
+import services.localstorage.LocalStorage.Key
 
 /** Gathers all possible inputs that the user assigned. The [[InputCode]]s in argument have the
   * knowledge of what device is the source of the input.
@@ -13,6 +14,9 @@ import services.localstorage.LocalStorage
   *   Map from the [[InputCode]] to the marker that will be put on current target
   * @param markerOnPositionKeys
   *   Map from the [[InputCode]] to the marker that will be put on the current mouse position.
+  * @param mouseOverEnabled
+  *   whether abilities should fall back to the unit under the mouse (in the UI) when the current
+  *   target is not valid for them.
   */
 final case class Controls(
     upKey: InputCode,
@@ -22,7 +26,8 @@ final case class Controls(
     nextTargetKey: InputCode,
     targetLockInToggleKey: InputCode,
     abilityKeys: List[InputCode],
-    gameMarkerControls: GameMarkerControls
+    gameMarkerControls: GameMarkerControls,
+    mouseOverEnabled: Boolean
 ) {
 
   lazy val controlMap: Map[InputCode, UserInput] = Map(
@@ -87,13 +92,13 @@ object Controls {
   }
   case class KeyCode(code: String) extends InputCode {
     val source: KeyboardSource.type = KeyboardSource
-    def label                       = code
+    def label: String               = code
 
     val keyCode: Int = keyCodeToKeyMap(code)
   }
   case class ModifiedKeyCode(code: String, modifier: KeyInputModifier) extends InputCode {
     val source: KeyboardSource.type = KeyboardSource
-    def label                       = s"${modifier.name} ${code}"
+    def label: String               = s"${modifier.name} ${code}"
 
     val keyCode: Int = keyCodeToKeyMap(code)
   }
@@ -111,11 +116,12 @@ object Controls {
       KeyCode("Tab"),
       KeyCode("CapsLock"),
       (1 to 10).map(_ % 10).map("Digit" + _).map(KeyCode(_)).toList,
-      Pointed[GameMarkerControls].unit
+      Pointed[GameMarkerControls].unit,
+      mouseOverEnabled = false
     )
   )
 
-  val storageKey = LocalStorage.key[Controls]("controls")
+  val storageKey: Key[Controls] = LocalStorage.key[Controls]("controls")
 
   private given Encoder[KeyInputModifier] = deriveEncoder
   private given Decoder[KeyInputModifier] = deriveDecoder
@@ -127,9 +133,17 @@ object Controls {
   private given Decoder[GameMarkerControls] = deriveDecoder
 
   given Encoder[Controls] = deriveEncoder
-  given Decoder[Controls] = deriveDecoder
+  // controls stored before `mouseOverEnabled` existed must still decode, with the default value
+  given Decoder[Controls] = deriveDecoder[Controls].prepare(
+    _.withFocus(
+      _.mapObject(obj =>
+        if obj.contains("mouseOverEnabled") then obj
+        else obj.add("mouseOverEnabled", Json.fromBoolean(false))
+      )
+    )
+  )
 
-  val keyCodeToKeyMap = Map(
+  private val keyCodeToKeyMap = Map(
     "KeyA"           -> 65,
     "KeyB"           -> 66,
     "KeyC"           -> 67,
@@ -252,6 +266,6 @@ object Controls {
     "F24"            -> 135
   )
 
-  val keyToKeyCodeMap = keyCodeToKeyMap.map(_.swap)
+  val keyToKeyCodeMap: Map[Int, String] = keyCodeToKeyMap.map(_.swap)
 
 }

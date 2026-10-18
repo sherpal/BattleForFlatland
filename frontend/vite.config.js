@@ -17,7 +17,7 @@ export default defineConfig(() => {
         }
       }
     },
-    base: "/static/",
+    base: "/static",
     build: {
       chunkSizeWarningLimit: 2000,
       rolldownOptions: {

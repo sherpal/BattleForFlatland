@@ -85,7 +85,11 @@ final case class BossFrame()(using viewModel: IndigoViewModel) extends Component
         .getOrElse(js.Array())
   }
 
-  override def present(bounds: Rectangle, alpha: Double): js.Array[SceneNode] = js.Array()
+  override def maybeEntityId: Option[gamelogic.entities.Entity.Id] = maybeBoss.map(_.id)
+
+  override def present(bounds: Rectangle, alpha: Double): js.Array[SceneNode] =
+    if HoverHighlight.isHovered(bounds) then HoverHighlight.nodes(bounds, alpha, Depth.near)
+    else js.Array()
 
   override def visible: Boolean = maybeBoss.isDefined
 

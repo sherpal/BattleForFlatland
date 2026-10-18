@@ -8,6 +8,7 @@ import scala.scalajs.js
 import game.ui.Component.EventRegistration
 import indigo.shared.events.MouseEvent.Click
 import game.ui.Component.EventResult
+import gamelogic.entities.Entity
 
 trait Component {
 
@@ -33,6 +34,11 @@ trait Component {
   def alpha: Double
 
   def visible: Boolean
+
+  /** The entity this component represents (typically a unit frame), if any. It is the entity that
+    * can be targeted by "mouse over" when the mouse is on top of this component.
+    */
+  def maybeEntityId: Option[Entity.Id] = None
 
   def registerEvents(bounds: Rectangle): js.Array[Component.EventRegistration[?]]
 

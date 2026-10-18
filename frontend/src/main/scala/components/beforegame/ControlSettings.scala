@@ -8,7 +8,7 @@ import be.doeraene.webcomponents.ui5.*
 import utils.laminarzio.*
 import zio.*
 import services.FrontendEnv
-import be.doeraene.webcomponents.ui5.configkeys.TableMode
+import be.doeraene.webcomponents.ui5.configkeys.{IconName, TableMode}
 import models.bff.ingame.Controls.InputCode
 import models.bff.ingame.Controls.KeyCode
 import models.bff.ingame.Controls.ModifiedKeyCode
@@ -52,6 +52,31 @@ object ControlSettings {
         )
       )
 
+    def mouseOverToggle(controls: Controls) =
+      div(
+        display.flex,
+        alignItems.center,
+        justifyContent.spaceBetween,
+        padding := "0.5em 1em",
+        div(
+          display.flex,
+          alignItems.center,
+          Label("Mouse over"),
+          Icon(
+            _.name := IconName.`question-mark`,
+            marginLeft := "0.5em",
+            title      := "If the target is not valid for an ability, use the unit frame under the mouse",
+            cursor.help
+          )
+        ),
+        Switch(
+          _.checked := controls.mouseOverEnabled,
+          _.events.onCheckedChange --> Observer[Boolean](enabled =>
+            currentSettings.set(controls.copy(mouseOverEnabled = enabled))
+          )
+        )
+      )
+
     div(
       currentSettings.signal.changes.flatMapSwitchZIO(controls =>
         storeControls(controls).orDie
@@ -79,7 +104,9 @@ object ControlSettings {
       child.maybe <-- currentSettings.signal.combineWith(currentModifyingSignal).map {
         (controls, isModifying) =>
           Option.unless(isModifying)(
-            TableCompat(
+            div(
+              mouseOverToggle(controls),
+              TableCompat(
               _.mode          := TableMode.None,
               _.slots.columns := TableCompat.column("Action"),
               _.slots.columns := TableCompat.column("Key"),
@@ -205,6 +232,7 @@ object ControlSettings {
                     controls.gameMarkerControls.copy(triangleFixedKey = code)
                   )
               )
+            )
             )
           )
       },

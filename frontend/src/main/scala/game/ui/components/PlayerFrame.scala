@@ -71,6 +71,8 @@ final case class PlayerFrame(
 
   override def visible: Boolean = true
 
+  override def maybeEntityId: Option[Entity.Id] = Some(playerId)
+
   override def present(bounds: Rectangle, alpha: Double): js.Array[SceneNode] =
     maybePlayer match {
       case None => js.Array()
@@ -94,7 +96,9 @@ final case class PlayerFrame(
                 js.Array(
                   Shape.Box(bounds, fill = Fill.Color(RGBA.Zero), stroke = Stroke(3, RGBA.Red))
                 )
-              else js.Array()) ++ bossDecorations(bounds, alpha)
+              else js.Array()) ++ (if HoverHighlight.isHovered(bounds) then
+                                     HoverHighlight.nodes(bounds, alpha, Depth.near)
+                                   else js.Array()) ++ bossDecorations(bounds, alpha)
     }
 
   private def bossDecorations(bounds: Rectangle, alpha: Double): js.Array[SceneNode] =

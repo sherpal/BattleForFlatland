@@ -4,6 +4,7 @@ import indigo.*
 
 import scala.scalajs.js
 import game.ui.Component.{EventRegistration, EventResult}
+import gamelogic.entities.Entity
 
 final case class UIParent[StartupData, ViewModel](
     children: (FrameContext[StartupData], ViewModel) => js.Array[Component],
@@ -38,6 +39,19 @@ final case class UIParent[StartupData, ViewModel](
       allComponents
     )
   }
+
+  /** The id of the entity whose component is under this position, if any. */
+  def maybeEntityIdAt(
+      context: FrameContext[StartupData],
+      viewModel: ViewModel,
+      position: Point
+  ): Option[Entity.Id] =
+    children(context, viewModel)
+      .flatMap(_.allDescendants(rectangle, 1.0))
+      .iterator
+      .filter(c => c.component.visible && c.bounds.isPointWithin(position))
+      .flatMap(_.component.maybeEntityId)
+      .nextOption()
 
   def changeViewModel(
       context: FrameContext[StartupData],
