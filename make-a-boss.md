@@ -817,6 +817,45 @@ standing outside.
 
 ---
 
+### Boss105: a second worked example
+
+`Boss105` (theme package `dawnoftime`, per-boss packages `boss105`) is designed for **two tanks**
+and shows patterns that Boss104 does not:
+
+- **An add that is part of the boss' state.** The `Shade` exists from the start
+  (`initialBossActions` emits `AddShade`), and a `TwinBond` buff on the boss reduces its damage taken
+  while the Shade lives. `ShadeBond.bearerDiedAction` removes the bond and starts `Mourning` on the
+  boss.
+- **Buffs as timers.** `Mourning` has a finite duration and its `endingAction` brings the Shade
+  back: no controller has to remember anything, and a client joining mid-fight sees the truth
+  (a `ReformationPoint` entity shows where). `Yearning` is a buff that changes nothing by itself: the
+  Shade's *controller* reads it to decide how to move.
+- **Geometry on the fly.** `Skewer` computes who is on a beam from the positions at completion time
+  (`Skewer.isOnBeam`, shared by the ability, the bots and the drawer, which draws the beam from the
+  cast info).
+- **Dispel-as-a-choice.** `VolatileCharge.endingAction` explodes only when `maybeDispelledBy` is
+  empty.
+- **Bots that reason about roles.** `SquareForBoss105` picks which twin to tank from what the other
+  Square does when it is not a bot (`Boss105Bot.playerClassIsBot`), `TriangleForBoss105` saves energy
+  for its stun when `Reunion` is coming. `Boss105Simulation` plays a whole fight:
+
+  ```bash
+  BFF_SIMULATION=330 sbt "game-server/testOnly simulation.Boss105Simulation"
+  ```
+
+| Concern | File |
+|---|---|
+| Boss entity, factory, docs | [Boss105.scala](shared/src/main/scala/gamelogic/entities/boss/dawnoftime/Boss105.scala) |
+| Add + marker entity | [Shade.scala](shared/src/main/scala/gamelogic/entities/boss/boss105/Shade.scala), [ReformationPoint.scala](shared/src/main/scala/gamelogic/entities/boss/boss105/ReformationPoint.scala) |
+| Abilities | [abilities/boss/boss105/](shared/src/main/scala/gamelogic/abilities/boss/boss105/) |
+| Buffs | [buffs/boss/boss105/](shared/src/main/scala/gamelogic/buffs/boss/boss105/) |
+| Actions | [gameactions/boss105/](shared/src/main/scala/gamelogic/gamestate/gameactions/boss105/) |
+| AIs | [Boss105Controller.scala](game-server/src/main/scala/application/ai/boss/Boss105Controller.scala), [ShadeController.scala](game-server/src/main/scala/application/ai/boss/boss105units/ShadeController.scala), [bots](game-server/src/main/scala/application/ai/goodais/bosses/boss105/) |
+| Tests | [Boss105Specs.scala](shared/src/test/scala/gamelogic/gamestate/abilitiesstories/bosses/dawnoftime/Boss105Specs.scala), [Boss105Simulation.scala](game-server/src/test/scala/simulation/Boss105Simulation.scala) |
+| Rendering | [Boss105Drawer.scala](frontend/src/main/scala/game/drawers/bossspecificdrawers/Boss105Drawer.scala), [Boss105GUIPlugin.scala](frontend/src/main/scala/game/ui/bossplugins/Boss105GUIPlugin.scala) |
+
+---
+
 ## 10. Attack animations (optional polish)
 
 For a one-shot visual flourish (a flash, a line between boss and target), hook

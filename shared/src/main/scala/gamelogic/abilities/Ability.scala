@@ -142,6 +142,11 @@ object Ability {
   val boss104BigGuyKick: AbilityId              = nextAbilityId()
   val boss104DeathMarkTriangleAttack: AbilityId = nextAbilityId()
   val sirOfViceHolyWrath: AbilityId             = nextAbilityId()
+  val boss105Resonance: AbilityId               = nextAbilityId()
+  val boss105Skewer: AbilityId                  = nextAbilityId()
+  val boss105VolatileMark: AbilityId            = nextAbilityId()
+  val boss105ShadeSiphon: AbilityId             = nextAbilityId()
+  val boss105Reunion: AbilityId                 = nextAbilityId()
 
   opaque type AbilityColour <: RGBColour = RGBColour
 

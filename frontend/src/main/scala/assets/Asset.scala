@@ -171,6 +171,15 @@ object Asset {
             val twinDebuff = Asset(boss104P / "twin-debuff.png", 32, 32)
           }
 
+          object boss105 {
+            private val boss105P = dawnOfTimeP / "boss105"
+
+            val volatileCharge = Asset(boss105P / "volatile-charge.png", 32, 32)
+            val twinBond       = Asset(boss105P / "twin-bond.png", 32, 32)
+            val mourning       = Asset(boss105P / "mourning.png", 32, 32)
+            val yearning       = Asset(boss105P / "yearning.png", 32, 32)
+          }
+
           object boss110 {
             private val boss110P = dawnOfTimeP / "boss110"
 
@@ -261,7 +270,11 @@ object Asset {
     Buff.sirOfVicePurified        -> ingame.gui.boss.firstRaid.sirOfVice.purified,
     Buff.sirOfViceInflamed        -> ingame.gui.boss.firstRaid.sirOfVice.inflamed,
     Buff.boss110BrokenArmor       -> ingame.gui.boss.dawnOfTime.boss110.brokenArmor,
-    Buff.boss104TwinDebuff        -> ingame.gui.boss.dawnOfTime.boss104.twinDebuff
+    Buff.boss104TwinDebuff        -> ingame.gui.boss.dawnOfTime.boss104.twinDebuff,
+    Buff.boss105VolatileCharge    -> ingame.gui.boss.dawnOfTime.boss105.volatileCharge,
+    Buff.boss105TwinBond          -> ingame.gui.boss.dawnOfTime.boss105.twinBond,
+    Buff.boss105Mourning          -> ingame.gui.boss.dawnOfTime.boss105.mourning,
+    Buff.boss105Yearning          -> ingame.gui.boss.dawnOfTime.boss105.yearning
   )
 
   val markerAssetMap: Map[GameMarker, Asset] = Map(

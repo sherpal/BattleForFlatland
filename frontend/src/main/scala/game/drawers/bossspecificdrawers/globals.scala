@@ -5,6 +5,7 @@ import game.drawers.DrawerWithCloneBlanks
 import gamelogic.entities.boss.dawnoftime.Boss102
 import gamelogic.entities.boss.Boss101
 import gamelogic.entities.boss.dawnoftime.Boss104
+import gamelogic.entities.boss.dawnoftime.Boss105
 import gamelogic.entities.boss.firstraid.SirOfVice
 
 /** Everything that needs to be drawn specifically for a given boss (its adds, its zones, its
@@ -16,4 +17,5 @@ def drawerMapping(boss: BossEntity): DrawerWithCloneBlanks = boss.name match
   case Boss101.name   => DrawerWithCloneBlanks.empty
   case Boss102.name   => Boss102Drawer
   case Boss104.name   => Boss104Drawer
+  case Boss105.name   => Boss105Drawer
   case SirOfVice.name => SirOfViceDrawer

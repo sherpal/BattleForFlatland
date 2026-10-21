@@ -8,6 +8,7 @@ import gamelogic.abilities.boss.boss104.{
   SpawnBigGuy,
   TwinDebuffs
 }
+import gamelogic.abilities.boss.boss105.{Resonance, Reunion, Siphon, Skewer, VolatileMark}
 import gamelogic.abilities.boss.sirofvice.{
   CleansingNova,
   HolyFlame,
@@ -19,6 +20,12 @@ import gamelogic.buffs.Buff
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction
 import gamelogic.gamestate.gameactions.boss104.*
+import gamelogic.gamestate.gameactions.boss105.{
+  AddShade,
+  PutVolatileCharge,
+  PutYearning,
+  ShadeFalls
+}
 import gamelogic.gamestate.gameactions.sirofvice.{
   PutHolyWrathChain,
   PutInflamedDebuff,
@@ -80,6 +87,23 @@ final class BFFPicklersSpecs extends munit.FunSuite {
     roundTripAction(PutHolyWrathChain(actionId, 1L, entityId, Vector[Complex](0, somewhere)))
     roundTripAction(PutPunishedDebuff(actionId, 1L, buffId, entityId, entityId, somewhere))
     roundTripAction(PutPurifiedDebuff(actionId, 1L, buffId, entityId, entityId))
+  }
+
+  test("Boss105 abilities survive a boopickle round trip") {
+    roundTripAbility(Resonance(useId, 1L, entityId))
+    roundTripAbility(Skewer(useId, 1L, entityId, entityId))
+    roundTripAbility(VolatileMark(useId, 1L, entityId))
+    roundTripAbility(Siphon(useId, 1L, entityId, entityId))
+    roundTripAbility(Reunion(useId, 1L, entityId))
+  }
+
+  test("Boss105 actions survive a boopickle round trip") {
+    roundTripAction(
+      AddShade(actionId, 1L, entityId, somewhere, entityId, buffId, buffId, buffId)
+    )
+    roundTripAction(ShadeFalls(actionId, 1L, entityId, buffId, entityId, somewhere))
+    roundTripAction(PutVolatileCharge(actionId, 1L, buffId, entityId, entityId))
+    roundTripAction(PutYearning(actionId, 1L, buffId, entityId, entityId))
   }
 
 }

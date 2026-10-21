@@ -21,6 +21,7 @@ import models.bff.outofgame.gameconfig.PlayerName
 import application.ai.goodais.bosses.boss101.*
 import application.ai.goodais.bosses.boss102.*
 import application.ai.goodais.bosses.boss104.Boss104Container
+import application.ai.goodais.bosses.boss105.Boss105Container
 import application.ai.goodais.bosses.sirofvice.SirOfViceContainer
 import gamelogic.entities.boss.firstraid.SirOfVice
 import application.ai.goodais.classes.{
@@ -138,6 +139,7 @@ object GoodAIManager {
     Boss101   -> Boss101Container(),
     Boss102   -> Boss102Container(),
     Boss104   -> Boss104Container(),
+    Boss105   -> Boss105Container(),
     SirOfVice -> SirOfViceContainer()
   )
 

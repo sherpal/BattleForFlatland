@@ -11,6 +11,7 @@ import gamelogic.utils.{IdGeneratorContainer, IdsProducer}
 import gamelogic.gamestate.GameState
 import gamelogic.entities.boss.dawnoftime.Boss110
 import gamelogic.entities.boss.dawnoftime.Boss104
+import gamelogic.entities.boss.dawnoftime.Boss105
 
 trait BossFactory[Boss <: BossEntity] extends IdsProducer {
 
@@ -93,6 +94,7 @@ object BossFactory {
     Boss101,
     Boss102,
     Boss104,
+    Boss105,
     Boss110,
     SirOfVice
   ).map(factory => factory.name -> factory).toMap

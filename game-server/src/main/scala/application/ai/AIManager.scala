@@ -11,6 +11,7 @@ import gamelogic.gamestate.gameactions.*
 import gamelogic.entities.classes.Constants
 import gamelogic.entities.boss.boss110.BigGuy as Boss110BigGuy
 import gamelogic.entities.boss.boss104.BigGuy as Boss104BigGuy
+import gamelogic.entities.boss.boss105.Shade
 import gamelogic.entities.boss.*
 import gamelogic.entities.boss.dawnoftime.*
 import gamelogic.entities.boss.firstraid.SirOfVice
@@ -20,6 +21,7 @@ import scala.concurrent.ExecutionContext
 import application.TimeManager
 import gamelogic.gamestate.gameactions.boss102.AddBossHound
 import gamelogic.gamestate.gameactions.boss104.AddBigGuy
+import gamelogic.gamestate.gameactions.boss105.AddShade
 
 class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTranslator)(using
     ExecutionContext
@@ -58,7 +60,8 @@ class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTran
       math.round(Constants.playerRadius).toInt,
       math.round(Constants.bossRadius).toInt,
       math.round(Boss110BigGuy.shape.radius).toInt,
-      math.round(Boss104BigGuy.shape.radius).toInt
+      math.round(Boss104BigGuy.shape.radius).toInt,
+      math.round(Shade.shape.radius).toInt
     )
   )
 
@@ -84,6 +87,8 @@ class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTran
         aiControllers.addOne(action.entityId -> boss.boss102units.BossHoundController())
       case action: AddBigGuy =>
         aiControllers.addOne(action.entityId -> boss.boss104units.BigGuyController())
+      case action: AddShade =>
+        aiControllers.addOne(action.entityId -> boss.boss105units.ShadeController())
       // todo
       case action: SpawnBoss if action.bossName == Boss101.name =>
         aiControllers.addOne(action.entityId -> boss.Boss101Controller)
@@ -93,6 +98,8 @@ class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTran
         aiControllers.addOne(action.entityId -> boss.SirOfViceController)
       case action: SpawnBoss if action.bossName == Boss104.name =>
         aiControllers.addOne(action.entityId -> boss.Boss104Controller)
+      case action: SpawnBoss if action.bossName == Boss105.name =>
+        aiControllers.addOne(action.entityId -> boss.Boss105Controller)
       case action: SpawnBoss if action.bossName == Boss110.name =>
         ??? // make boss 110 controller
       case _ =>

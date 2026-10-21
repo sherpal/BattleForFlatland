@@ -112,5 +112,10 @@ object Buff {
   val boss110BrokenArmor       = nextId()
   val boss104TwinDebuff        = nextId()
   val boss104BigGuyCurse       = nextId()
+  val boss105TwinBond          = nextId()
+  val boss105ShadeBond         = nextId()
+  val boss105Mourning          = nextId()
+  val boss105VolatileCharge    = nextId()
+  val boss105Yearning          = nextId()
 
 }
