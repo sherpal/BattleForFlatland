@@ -5,10 +5,11 @@ import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{EntityStopCastingTransformer, GameStateTransformer}
 import gamelogic.gamestate.{GameAction, GameState}
 
-/**
-  * @see [[EntityStopCastingTransformer]]
+/** @see
+  *   [[EntityStopCastingTransformer]]
   */
-final case class EntityCastingInterrupted(id: GameAction.Id, time: Long, entityId: Entity.Id) extends GameAction {
+final case class EntityCastingInterrupted(id: GameAction.Id, time: Long, entityId: Entity.Id)
+    extends GameAction {
 
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     new EntityStopCastingTransformer(entityId)

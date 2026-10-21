@@ -24,10 +24,10 @@ final case class TriangleStunDebuff(
   ): Vector[GameAction] = Vector.empty
 
   def isActionPrevented(action: GameAction): Boolean = action match {
-    case action: MovingBodyMoves if action.entityId == bearerId             => true
+    case action: MovingBodyMoves if action.entityId == bearerId => true
     case action: EntityStartsCasting if action.ability.casterId == bearerId => true
-    case action: UseAbility if action.casterId == bearerId                  => true
-    case _                                                                  => false
+    case action: UseAbility if action.casterId == bearerId => true
+    case _ => false
   }
 
   def actionTransformer(gameAction: GameAction): Vector[GameAction] = gameAction match {
@@ -35,7 +35,7 @@ final case class TriangleStunDebuff(
       // Debuff is removed when entity takes damage (it still takes the damages, though)
       Vector(action, RemoveBuff(action.id, action.time, bearerId, buffId))
     case action if isActionPrevented(action) => Vector.empty
-    case action                              => Vector(action)
+    case action => Vector(action)
   }
 
   def duration: Long = TriangleStunDebuff.duration

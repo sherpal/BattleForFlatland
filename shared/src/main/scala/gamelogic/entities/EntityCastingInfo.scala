@@ -20,6 +20,7 @@ final case class EntityCastingInfo(
     ability: Ability
 ) {
   inline def isCasting(time: Long, delay: Long): Boolean = remainingCastingTime(time, delay) >= 0
-  
-  def remainingCastingTime(time: Long, delay: Long): Long = castingTime - (time + delay - startedTime)
+
+  def remainingCastingTime(time: Long, delay: Long): Long =
+    castingTime - (time + delay - startedTime)
 }

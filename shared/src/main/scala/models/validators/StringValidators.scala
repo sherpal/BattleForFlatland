@@ -1,7 +1,13 @@
 package models.validators
 
 import errors.ErrorADT
-import errors.ErrorADT.{ContainsNonLowercaseAlphabet, ShouldContain, ShouldNotContain, StringIsEmpty, StringIsTooShort}
+import errors.ErrorADT.{
+  ContainsNonLowercaseAlphabet,
+  ShouldContain,
+  ShouldNotContain,
+  StringIsEmpty,
+  StringIsTooShort
+}
 import models.validators.Validator._
 
 object StringValidators {

@@ -35,12 +35,12 @@ class InGameScene(
   type SceneModel     = InGameScene.InGameModel
   type SceneViewModel = IndigoViewModel
 
-  val castAbilitiesHandler = CastAbilitiesHandler(myId, deltaWithServer.toMillis.toLong)
+  val castAbilitiesHandler = CastAbilitiesHandler(myId)
   val gameMarkersHandler   = MarkersHandler()
   val nextTargetHandler    = NextTargetHandler(myId)
   val soundsManager        = SoundsManager(myId)
 
-  inline def serverTime: Long = System.currentTimeMillis() + deltaWithServer.toMillis.toLong
+  def serverTime: Long = System.currentTimeMillis() + deltaWithServer.toMillis.toLong
 
   override def subSystems: Set[SubSystem[IndigoModel]] = Set.empty
 
@@ -313,7 +313,7 @@ class InGameScene(
       )
 
   extension (input: InputCode) {
-    inline def isActionDown(context: SceneContext[StartupData]): Boolean = input match
+    private def isActionDown(context: SceneContext[StartupData]): Boolean = input match
       case kc: KeyCode => context.keyboard.keysDown.exists(_.code == kc.keyCode)
       case mkc: ModifiedKeyCode =>
         val isModifierDown = mkc.modifier match
@@ -325,10 +325,10 @@ class InGameScene(
   }
 
   extension (context: SceneContext[StartupData]) {
-    inline def gameToLocal(z: Complex): Point =
+    def gameToLocal(z: Complex): Point =
       game.gameutils.gameToLocal(z)(context.startUpData.bounds)
 
-    inline def localToGame(p: Point): Complex =
+    def localToGame(p: Point): Complex =
       game.gameutils.localToGame(p)(context.startUpData.bounds)
   }
 
@@ -403,5 +403,5 @@ object InGameScene {
     lockInToTarget = false
   )
 
-  val name = SceneName("in game")
+  val name: SceneName = SceneName("in game")
 }

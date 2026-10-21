@@ -16,13 +16,12 @@ final case class DummyEntityMoves(
     colour: Int
 ) extends GameAction {
 
-  /**
-    * If that player exists, moves it to the new given position, direction, and moving state.
+  /** If that player exists, moves it to the new given position, direction, and moving state.
     */
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     gameState.players.get(playerId).fold(GameStateTransformer.identityTransformer) { player =>
       ???
-    //new WithPlayer(player.copy(time = time, pos = newPos, direction = direction, moving = moving))
+    // new WithPlayer(player.copy(time = time, pos = newPos, direction = direction, moving = moving))
     }
 
   def isLegal(gameState: GameState): None.type = None

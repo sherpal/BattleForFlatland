@@ -4,11 +4,15 @@ import gamelogic.physics.Complex
 
 final case class BoundingBox(left: Double, bottom: Double, right: Double, top: Double) {
 
-  @inline def intersect(that: BoundingBox, translation: Complex = 0, translationThat: Complex = 0): Boolean =
+  @inline def intersect(
+      that: BoundingBox,
+      translation: Complex = 0,
+      translationThat: Complex = 0
+  ): Boolean =
     math.max(this.left + translation.re, that.left + translationThat.re) <
       math.min(this.right + translation.re, that.right + translationThat.re) &&
       math.min(this.top + translation.im, that.top + translationThat.im) >
-        math.max(this.bottom + translation.im, that.bottom + translationThat.im)
+      math.max(this.bottom + translation.im, that.bottom + translationThat.im)
 
   def contains(z: Complex): Boolean =
     z.re >= left && z.re <= right && z.im >= bottom && z.im <= top

@@ -2,8 +2,7 @@ package gamelogic.docs
 
 import gamelogic.abilities.Ability
 
-/**
-  * Describe the properties of a boss ability.
+/** Describe the properties of a boss ability.
   */
 trait AbilityMetadata {
 
@@ -22,7 +21,9 @@ trait AbilityMetadata {
   /** Unique [[Ability.AbilityId]] of this [[Ability]]. */
   def abilityId: Ability.AbilityId
 
-  /** Computes the time for last use in order for the first ability to be used after the good time to first ability. */
+  /** Computes the time for last use in order for the first ability to be used after the good time
+    * to first ability.
+    */
   final def setBeginningOfGameAbilityUse(time: Long): Long = time - cooldown + timeToFirstAbility
 
 }

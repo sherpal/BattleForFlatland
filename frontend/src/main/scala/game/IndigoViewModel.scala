@@ -74,7 +74,7 @@ case class IndigoViewModel(
         .map(_.id)
 
       maybeNextTargetId match {
-        case None     => js.Array(CustomIndigoEvents.GameEvent.ClearTarget())
+        case None => js.Array(CustomIndigoEvents.GameEvent.ClearTarget())
         case Some(id) => js.Array(CustomIndigoEvents.GameEvent.ChooseTarget(id))
       }
     } else js.Array()
@@ -131,7 +131,7 @@ case class IndigoViewModel(
 
   def handleAction(action: GameAction): IndigoViewModel = action match {
     case action: EntityStartsCasting => entityStartsCasting(action)
-    case _                           => this
+    case _ => this
   }
 
   private val cameraSpeed: Double = 300.0

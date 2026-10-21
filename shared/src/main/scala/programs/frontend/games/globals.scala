@@ -40,7 +40,7 @@ val amIAmPlayingSomewhere: ZIO[Routing & HttpClient, Throwable, Unit] = for {
   maybeGameId <- get[Option[String]](amIPlaying)
   _ <- maybeGameId match {
     case Some(gameId) => moveTo(gameJoined ? gameIdParam)(gameId)
-    case None         => ZIO.unit
+    case None => ZIO.unit
   }
 } yield ()
 

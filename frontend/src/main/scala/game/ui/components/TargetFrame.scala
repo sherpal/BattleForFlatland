@@ -130,7 +130,7 @@ final case class TargetFrame(myId: Entity.Id)(using
     target =>
       val name = target match {
         case withName: WithName => withName.name
-        case target             => s"Entity ${target.id}"
+        case target => s"Entity ${target.id}"
       }
 
       js.Array(

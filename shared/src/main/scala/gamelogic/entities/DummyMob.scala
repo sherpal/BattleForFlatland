@@ -3,9 +3,8 @@ import gamelogic.entities.WithPosition.Angle
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.{ConvexPolygon, Shape}
 
-/**
-  * This is a small mob for testing the ai manager design.
-  * And perhaps make some tests in the future...
+/** This is a small mob for testing the ai manager design. And perhaps make some tests in the
+  * future...
   */
 final case class DummyMob(
     id: Entity.Id,
@@ -20,10 +19,18 @@ final case class DummyMob(
   val life: Double    = 100.0
   val maxLife: Double = 100.0
 
-  protected def patchLifeTotal(newLife: Double): DummyMob = this // this is dumb, but we kinda don't care.
-  val shape: ConvexPolygon                                = DummyMob.shape
+  protected def patchLifeTotal(newLife: Double): DummyMob =
+    this // this is dumb, but we kinda don't care.
+  val shape: ConvexPolygon = DummyMob.shape
 
-  def move(time: Long, position: Complex, direction: Angle, rotation: Angle, speed: Double, moving: Boolean): DummyMob =
+  def move(
+      time: Long,
+      position: Complex,
+      direction: Angle,
+      rotation: Angle,
+      speed: Double,
+      moving: Boolean
+  ): DummyMob =
     copy(time = time, pos = position, moving = moving, direction = direction, rotation = rotation)
 
   def teamId: Entity.TeamId = Entity.teams.mobTeam

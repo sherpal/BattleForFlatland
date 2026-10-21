@@ -38,8 +38,8 @@ private[events] class BEvents(
     .runDrain
 
   Unsafe.unsafe(implicit unsafe => runtime.unsafe.runOrFork(eventDispatcher)) match {
-    case Left(value)                => println(s"Fiber for event dispatcher: $value")
-    case Right(Exit.Success(_))     => throw IllegalStateException(s"Event Dispatcher finished.")
+    case Left(value) => println(s"Fiber for event dispatcher: $value")
+    case Right(Exit.Success(_)) => throw IllegalStateException(s"Event Dispatcher finished.")
     case Right(Exit.Failure(cause)) => throw cause.squash
   }
 

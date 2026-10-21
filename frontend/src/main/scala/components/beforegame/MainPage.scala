@@ -47,7 +47,7 @@ object MainPage {
               .map(
                 _.getOrElse(
                   IllustratedMessage(
-                    _.name      := IllustratedMessageType.Tent,
+                    _.name := IllustratedMessageType.Tent,
                     _.titleText := "There are no page here.",
                     _.slots.subtitle := Text(
                       "Go back ",

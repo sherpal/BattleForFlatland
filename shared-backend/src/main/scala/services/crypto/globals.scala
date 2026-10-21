@@ -2,7 +2,8 @@ package services.crypto
 
 import zio.{URIO, ZIO}
 
-def hashPassword(password: String): URIO[Crypto, HashedPassword] = ZIO.serviceWithZIO[Crypto](_.hashPassword(password))
+def hashPassword(password: String): URIO[Crypto, HashedPassword] =
+  ZIO.serviceWithZIO[Crypto](_.hashPassword(password))
 
 def checkPassword(password: String, hashedPassword: HashedPassword): URIO[Crypto, Boolean] =
   ZIO.serviceWithZIO[Crypto](_.checkPassword(password, hashedPassword))

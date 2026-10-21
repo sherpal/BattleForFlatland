@@ -7,10 +7,10 @@ import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
 import gamelogic.gamestate.{GameAction, GameState}
 
-/**
-  * Puts the [[SimpleBuffs]] with the specified [[ResourceIdentifier]].
+/** Puts the [[SimpleBuffs]] with the specified [[ResourceIdentifier]].
   *
-  * @see [[SimpleBuffs]].
+  * @see
+  *   [[SimpleBuffs]].
   */
 final case class PutSimpleBuff(
     id: GameAction.Id,
@@ -29,7 +29,7 @@ final case class PutSimpleBuff(
 
   def isLegal(gameState: GameState): Option[String] = gameState.entityById(bearerId) match {
     case None => Some(s"Entity $bearerId does not exist")
-    case _    => None
+    case _ => None
   }
 
   def changeId(newId: Id): GameAction = copy(id = newId)

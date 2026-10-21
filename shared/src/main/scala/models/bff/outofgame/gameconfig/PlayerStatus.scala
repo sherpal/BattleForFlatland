@@ -8,7 +8,7 @@ import scala.util.Try
 sealed trait PlayerStatus
 
 object PlayerStatus {
-  case object Ready    extends PlayerStatus
+  case object Ready extends PlayerStatus
   case object NotReady extends PlayerStatus
 
   implicit def pointed: Pointed[PlayerStatus] =

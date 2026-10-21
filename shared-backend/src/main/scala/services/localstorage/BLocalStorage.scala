@@ -26,9 +26,9 @@ class BLocalStorage(fileUpdateSemaphore: Semaphore, folder: os.Path) extends Loc
         val rawContent = os.read(filePath)
         io.circe.parser.decode[StoredItem[A]](rawContent)
       } match {
-        case None               => Right(None)
+        case None => Right(None)
         case Some(Right(value)) => Right(Some(value))
-        case Some(Left(err))    => Left(err)
+        case Some(Left(err)) => Left(err)
       }
     })
     .absolve

@@ -36,7 +36,7 @@ trait Boss102GoodAIController[EntityType <: MovingBody & WithPosition]
     getMe(gameState).flatMap { me =>
       val iHaveTheDebuff = gameState.allBuffsOfEntity(me.id).exists {
         case _: LivingDamageZone => true
-        case _                   => false
+        case _ => false
       }
 
       val currentPosition = me.currentPosition(currentTime)

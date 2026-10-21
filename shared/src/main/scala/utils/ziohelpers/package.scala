@@ -37,9 +37,9 @@ package object ziohelpers {
     */
   def validateOrFail[E <: ErrorADT, T](validator: Validator[T, E])(t: T): IO[ErrorADT, Unit] =
     validator(t) match {
-      case Nil         => ZIO.succeed(())
+      case Nil => ZIO.succeed(())
       case head :: Nil => ZIO.fail(head)
-      case errors      => ZIO.fail(MultipleErrors(errors))
+      case errors => ZIO.fail(MultipleErrors(errors))
     }
 
   /** Applies the given [[models.validators.FieldsValidator]] to the element `t`. If the element

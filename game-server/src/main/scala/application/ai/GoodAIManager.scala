@@ -124,8 +124,8 @@ object GoodAIManager {
     def hexagon(index: Int, id: Entity.Id): HexagonAIController
 
     final def controller(cls: PlayerClasses): (Int, Entity.Id) => GoodAIController[?] = cls match {
-      case PlayerClasses.Square   => square
-      case PlayerClasses.Hexagon  => hexagon
+      case PlayerClasses.Square => square
+      case PlayerClasses.Hexagon => hexagon
       case PlayerClasses.Triangle => triangle
       case PlayerClasses.Pentagon => pentagon
     }

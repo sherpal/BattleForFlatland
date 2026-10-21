@@ -6,7 +6,9 @@ import zio.ZIO
 
 final class PostFilled[R] private[http] () {
 
-  def apply[Q](path: Path[Unit], query: Query[Q])(q: Q)(implicit decoder: Decoder[R]): ZIO[HttpClient, Throwable, R] =
+  def apply[Q](path: Path[Unit], query: Query[Q])(q: Q)(implicit
+      decoder: Decoder[R]
+  ): ZIO[HttpClient, Throwable, R] =
     ZIO.serviceWithZIO[HttpClient](_.post[R](path, query)(q))
 
   def apply[B, Q](

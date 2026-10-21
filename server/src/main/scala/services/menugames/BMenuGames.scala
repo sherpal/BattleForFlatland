@@ -183,7 +183,7 @@ private[menugames] class BMenuGames(
           )
         _ <- bossMetadata.maybeAIComposition match {
           case Some(config) => ZIO.succeed(config.toVector)
-          case None         => ZIO.fail(ErrorADT.BossDoesNotHaveAIImplemented(bossMetadata.name))
+          case None => ZIO.fail(ErrorADT.BossDoesNotHaveAIImplemented(bossMetadata.name))
         }
 
         players        = game.game.gameConfiguration.playersInfo.values.toVector

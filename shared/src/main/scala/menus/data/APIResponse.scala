@@ -14,7 +14,7 @@ sealed trait APIResponse[+Data] {
 
 object APIResponse {
 
-  case class Failed(error: ErrorADT)   extends APIResponse[Nothing]
+  case class Failed(error: ErrorADT) extends APIResponse[Nothing]
   case class Success[Data](data: Data) extends APIResponse[Data]
 
   given [Data](using Encoder[Data], Decoder[Data]): Codec[APIResponse[Data]] =

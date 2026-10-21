@@ -32,12 +32,12 @@ final class StaticResourcesWithContentType(
         Result.Success(default)
       case Some(extension) =>
         val contentType = extension match {
-          case "js"   => "application/javascript"
-          case "css"  => "application/css"
+          case "js" => "application/javascript"
+          case "css" => "application/css"
           case "html" => "text/html; charset=utf-8"
-          case "ttf"  => "font/ttf"
-          case "png"  => "image/png"
-          case "wav"  => "audio/wav"
+          case "ttf" => "font/ttf"
+          case "png" => "image/png"
+          case "wav" => "audio/wav"
           case other =>
             throw new UnsupportedOperationException(
               s"Don't know extension $other"

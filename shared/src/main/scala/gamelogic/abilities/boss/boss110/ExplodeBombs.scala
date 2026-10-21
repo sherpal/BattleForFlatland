@@ -40,10 +40,10 @@ final case class ExplodeBombs(useId: Ability.UseId, time: Long, casterId: Entity
   def canBeCast(gameState: GameState, time: Long): Option[String] =
     gameState.entities.values.find {
       case BombPod(_, _, _, powderMonkeyId) if casterId == powderMonkeyId => true
-      case _                                                              => false
+      case _ => false
     } match {
       case Some(_) => None
-      case None    => Some("You don't own any bomb!")
+      case None => Some("You don't own any bomb!")
     }
 
 }

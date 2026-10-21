@@ -232,7 +232,7 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
     gameState.entities.values
       .collect {
         case bigGuy: BigGuy => bigGuy
-        case bomb: BombPod  => bomb
+        case bomb: BombPod => bomb
       }
       .map(entity => RemoveEntity(genActionId(), time, entity.id))
       .toVector
@@ -245,7 +245,6 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
       Ability.boss110PlaceBombPods,
       Ability.boss110SpawnSmallGuies
     )
-
 
   def description: String =
     s"A fight for ${intendedFor} players. The boss summons big guys on one side of the room, " ++
@@ -281,16 +280,20 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
       "Each bomb must be covered by exactly one player when they explode. Otherwise, everybody " ++
         "dies."
     ),
-    AbilityDoc.fromMetadata(
-      PutBrokenArmor,
-      s"Doubles the damage its target takes for ${formatSeconds(BrokenArmor.duration)}. " ++
-        "Stacks, so the tanks should take turns."
-    ).castBy("Big Guy"),
-    AbilityDoc.fromMetadata(
-      CreepingShadowTick,
-      "The shadow moves towards the small guys. While it touches the boss, all players take " ++
-        s"${formatNumber(CreepingShadowTick.damageOnTick)} damage every " ++
-        s"${formatPeriod(CreepingShadowTick.cooldown)}: keep the small guys away from the boss!"
-    ).castBy("Creeping Shadow")
+    AbilityDoc
+      .fromMetadata(
+        PutBrokenArmor,
+        s"Doubles the damage its target takes for ${formatSeconds(BrokenArmor.duration)}. " ++
+          "Stacks, so the tanks should take turns."
+      )
+      .castBy("Big Guy"),
+    AbilityDoc
+      .fromMetadata(
+        CreepingShadowTick,
+        "The shadow moves towards the small guys. While it touches the boss, all players take " ++
+          s"${formatNumber(CreepingShadowTick.damageOnTick)} damage every " ++
+          s"${formatPeriod(CreepingShadowTick.cooldown)}: keep the small guys away from the boss!"
+      )
+      .castBy("Creeping Shadow")
   )
 }

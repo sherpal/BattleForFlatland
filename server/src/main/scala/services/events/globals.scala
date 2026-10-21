@@ -13,7 +13,7 @@ def registerEvents[InterestedIn <: Event](whileAlive: ZIO[Any, Nothing, Boolean]
 ): ZIO[Events, Nothing, Unit] =
   val finalHandler: Event => ZIO[Any, Nothing, Unit] = {
     case event: InterestedIn => handler(event)
-    case _                   => ZIO.unit
+    case _ => ZIO.unit
   }
   registerEvents(Subscription(finalHandler, whileAlive))
 

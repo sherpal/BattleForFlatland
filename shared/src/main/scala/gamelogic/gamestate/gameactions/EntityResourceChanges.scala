@@ -14,14 +14,16 @@ final case class EntityResourceChanges(
     resource: Resource
 ) extends GameAction {
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
-    gameState.withAbilityEntitiesById(entityId).fold(GameStateTransformer.identityTransformer) { entity =>
-      new WithEntity(entity.resourceAmountChange(ResourceAmount(amount, resource)), time)
+    gameState.withAbilityEntitiesById(entityId).fold(GameStateTransformer.identityTransformer) {
+      entity =>
+        new WithEntity(entity.resourceAmountChange(ResourceAmount(amount, resource)), time)
     }
 
-  def isLegal(gameState: GameState): Option[String] = gameState.withAbilityEntitiesById(entityId) match {
-    case None => Some(s"Entity $entityId does not exist or does not have abilities")
-    case _    => None
-  }
+  def isLegal(gameState: GameState): Option[String] =
+    gameState.withAbilityEntitiesById(entityId) match {
+      case None => Some(s"Entity $entityId does not exist or does not have abilities")
+      case _ => None
+    }
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

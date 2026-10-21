@@ -11,9 +11,15 @@ trait MovingBody extends Moving with Body {
     else
       pos
 
-  /**
-    * Moves this MovingBody at the current time, with the all moving body related attributes.
+  /** Moves this MovingBody at the current time, with the all moving body related attributes.
     */
-  def move(time: Long, position: Complex, direction: Angle, rotation: Angle, speed: Double, moving: Boolean): MovingBody
+  def move(
+      time: Long,
+      position: Complex,
+      direction: Angle,
+      rotation: Angle,
+      speed: Double,
+      moving: Boolean
+  ): MovingBody
 
 }

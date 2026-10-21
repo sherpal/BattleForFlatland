@@ -30,12 +30,12 @@ object Shape {
   def segmentKind(z0: Complex, z1: Complex, z2: Complex): Int = {
     val det = (z1 - z0).crossProduct(z2 - z1)
 
-    if (det > 0) {                               // convex corner
-      if (z0.im < z1.im && z2.im < z1.im) 1      // no need of horizontal segment
+    if (det > 0) { // convex corner
+      if (z0.im < z1.im && z2.im < z1.im) 1 // no need of horizontal segment
       else if (z0.im > z1.im && z2.im > z1.im) 2 // full horizontal segment
       else if (z0.im < z1.im && z2.im > z1.im) 3 // horizontal segment to the left
-      else 4                                     // horizontal segment to the right
-    } else {                                     // concave corner
+      else 4 // horizontal segment to the right
+    } else { // concave corner
       if (z0.im > z1.im && z2.im > z1.im) 1
       else if (z0.im < z1.im && z2.im < z1.im) 2
       else if (z0.im > z1.im && z2.im < z1.im) 3

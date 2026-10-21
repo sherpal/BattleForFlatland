@@ -19,18 +19,18 @@ final case class GameMarkerControls(
     triangleFixedKey: InputCode
 ) {
   def controlMap: Map[InputCode, UserInput] = Map(
-    crossTargetKey -> UserInput.GameMarkerInput(GameMarker.Cross, onTarget       = true),
-    lozengeTargetKey -> UserInput.GameMarkerInput(GameMarker.Lozenge, onTarget   = true),
-    moonTargetKey -> UserInput.GameMarkerInput(GameMarker.Moon, onTarget         = true),
-    squareTargetKey -> UserInput.GameMarkerInput(GameMarker.Square, onTarget     = true),
-    starTargetKey -> UserInput.GameMarkerInput(GameMarker.Star, onTarget         = true),
+    crossTargetKey    -> UserInput.GameMarkerInput(GameMarker.Cross, onTarget = true),
+    lozengeTargetKey  -> UserInput.GameMarkerInput(GameMarker.Lozenge, onTarget = true),
+    moonTargetKey     -> UserInput.GameMarkerInput(GameMarker.Moon, onTarget = true),
+    squareTargetKey   -> UserInput.GameMarkerInput(GameMarker.Square, onTarget = true),
+    starTargetKey     -> UserInput.GameMarkerInput(GameMarker.Star, onTarget = true),
     triangleTargetKey -> UserInput.GameMarkerInput(GameMarker.Triangle, onTarget = true),
-    crossFixedKey -> UserInput.GameMarkerInput(GameMarker.Cross, onTarget        = false),
-    lozengeFixedKey -> UserInput.GameMarkerInput(GameMarker.Lozenge, onTarget    = false),
-    moonFixedKey -> UserInput.GameMarkerInput(GameMarker.Moon, onTarget          = false),
-    squareFixedKey -> UserInput.GameMarkerInput(GameMarker.Square, onTarget      = false),
-    starFixedKey -> UserInput.GameMarkerInput(GameMarker.Star, onTarget          = false),
-    triangleFixedKey -> UserInput.GameMarkerInput(GameMarker.Triangle, onTarget  = false)
+    crossFixedKey     -> UserInput.GameMarkerInput(GameMarker.Cross, onTarget = false),
+    lozengeFixedKey   -> UserInput.GameMarkerInput(GameMarker.Lozenge, onTarget = false),
+    moonFixedKey      -> UserInput.GameMarkerInput(GameMarker.Moon, onTarget = false),
+    squareFixedKey    -> UserInput.GameMarkerInput(GameMarker.Square, onTarget = false),
+    starFixedKey      -> UserInput.GameMarkerInput(GameMarker.Star, onTarget = false),
+    triangleFixedKey  -> UserInput.GameMarkerInput(GameMarker.Triangle, onTarget = false)
   )
 }
 
@@ -55,13 +55,7 @@ object GameMarkerControls {
 
 }
 
-/**
-  * private val gameMarkerMap = Map(
-    KeyCode("KeyR") -> GameMarker.Cross,
-    KeyCode("KeyF") -> GameMarker.Lozenge,
-    KeyCode("KeyV") -> GameMarker.Moon,
-    KeyCode("KeyT") -> GameMarker.Square,
-    KeyCode("KeyG") -> GameMarker.Star,
-    KeyCode("KeyB") -> GameMarker.Triangle
-  )
+/** private val gameMarkerMap = Map( KeyCode("KeyR") -> GameMarker.Cross, KeyCode("KeyF") ->
+  * GameMarker.Lozenge, KeyCode("KeyV") -> GameMarker.Moon, KeyCode("KeyT") -> GameMarker.Square,
+  * KeyCode("KeyG") -> GameMarker.Star, KeyCode("KeyB") -> GameMarker.Triangle )
   */

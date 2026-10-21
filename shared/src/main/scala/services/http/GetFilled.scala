@@ -13,7 +13,9 @@ final class GetFilled[R] private[http] () {
   def apply(path: Path[Unit])(implicit decoder: Decoder[R]): ZIO[HttpClient, Throwable, R] =
     ZIO.serviceWithZIO[HttpClient](_.get[R](path))
 
-  def apply[Q](path: Path[Unit], query: Query[Q])(q: Q)(implicit decoder: Decoder[R]): ZIO[HttpClient, Throwable, R] =
+  def apply[Q](path: Path[Unit], query: Query[Q])(q: Q)(implicit
+      decoder: Decoder[R]
+  ): ZIO[HttpClient, Throwable, R] =
     ZIO.serviceWithZIO[HttpClient](_.get[R](path, query)(q))
 
 }

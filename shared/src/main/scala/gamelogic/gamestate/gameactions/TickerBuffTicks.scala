@@ -6,11 +6,14 @@ import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
 import gamelogic.gamestate.{GameAction, GameState}
 
-/**
-  * Each time a ticker buff ticks, we need to change the last time it actually ticked.
+/** Each time a ticker buff ticks, we need to change the last time it actually ticked.
   */
-final case class TickerBuffTicks(id: GameAction.Id, time: Long, buffId: Buff.Id, bearerId: Entity.Id)
-    extends GameAction {
+final case class TickerBuffTicks(
+    id: GameAction.Id,
+    time: Long,
+    buffId: Buff.Id,
+    bearerId: Entity.Id
+) extends GameAction {
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     (for {
       bearerBuffs <- gameState.tickerBuffs.get(bearerId)
@@ -24,7 +27,7 @@ final case class TickerBuffTicks(id: GameAction.Id, time: Long, buffId: Buff.Id,
       _           <- bearerBuffs.get(buffId)
     } yield ()) match {
       case None => Some(s"The buff $buffId on entity $bearerId does not exist")
-      case _    => None
+      case _ => None
     }
 
   def changeId(newId: Id): GameAction = copy(id = newId)

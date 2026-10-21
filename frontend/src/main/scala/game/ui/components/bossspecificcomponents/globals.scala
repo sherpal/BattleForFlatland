@@ -18,9 +18,9 @@ import gamelogic.entities.boss.firstraid.SirOfVice
 def containerMapping(
     boss: BossEntity
 )(using IndigoViewModel, FrameContext[StartupData]): Component = boss.name match {
-  case Boss101.name   => Component.empty
-  case Boss102.name   => Boss102Component()
-  case Boss104.name   => Component.empty
-  case Boss105.name   => Component.empty
+  case Boss101.name => Component.empty
+  case Boss102.name => Boss102Component()
+  case Boss104.name => Component.empty
+  case Boss105.name => Component.empty
   case SirOfVice.name => Component.empty
 }

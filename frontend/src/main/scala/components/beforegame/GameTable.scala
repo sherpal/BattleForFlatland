@@ -45,15 +45,17 @@ object GameTable {
       )
       .startWith(false)
 
-    def youAreInGameMessage = div(child.maybe <-- gameYouAreInSignal.map(_.flatten).map(_.map { gameYouAreIn =>
-      MessageStrip(
-        _.hideCloseButton := true,
-        _.design          := MessageStripDesign.Critical,
-        s"You are currently involved in a game. Join it back by going ",
-        components.router.Link(joinGameUrl, gameYouAreIn.id)("here"),
-        "."
-      )
-    }))
+    def youAreInGameMessage = div(
+      child.maybe <-- gameYouAreInSignal.map(_.flatten).map(_.map { gameYouAreIn =>
+        MessageStrip(
+          _.hideCloseButton := true,
+          _.design := MessageStripDesign.Critical,
+          s"You are currently involved in a game. Join it back by going ",
+          components.router.Link(joinGameUrl, gameYouAreIn.id)("here"),
+          "."
+        )
+      })
+    )
 
     def createGameBar = {
       val openPopoverBus = new EventBus[Boolean]
@@ -78,24 +80,29 @@ object GameTable {
         case Right(game) => game
       }
 
-      Bar(
-        _.slots.startContent := Button(
-          idAttr := createGameButtonId, 
-          _.events.onClick.mapTo(true) --> openPopoverBus.writer,
-          _.design := ButtonDesign.Emphasized,
-          "Create game"
+      div(
+        Bar(
+          _.slots.startContent := Button(
+            idAttr := createGameButtonId,
+            _.events.onClick.mapTo(true) --> openPopoverBus.writer,
+            _.design := ButtonDesign.Emphasized,
+            "Create game"
+          ),
+          createdGameEvents.map(_.id) --> Observer.fromZIO[String](gameId =>
+            services.routing.moveTo(services.routing.base / models.bff.Routes.inGameSettings, models.bff.Routes.gameIdParam)(gameId)
+          )
         ),
         Popover(
           _.openerId := createGameButtonId,
-          _.open <-- openPopoverBus.events,
+          _.open <-- openPopoverBus.events.startWith(false),
           Label("Choose a name"),
           Input(
-            _.placeholder := "My Game", 
-            _.events.onInput.map(_.target.value) --> gameNameVar.writer, 
+            _.placeholder := "My Game",
+            _.events.onInput.map(_.target.value) --> gameNameVar.writer,
             onMountFocus,
             _.valueState <-- errorMessageSignal.map {
               case Some(_) => ValueState.Negative
-              case None    => ValueState.None
+              case None => ValueState.None
             },
             _.slots.valueStateMessage <-- errorMessageSignal.map {
               case None => Label()
@@ -110,9 +117,6 @@ object GameTable {
             _.icon := IconName.play,
             _.events.onClick.mapToUnit --> createGameClickBus.writer
           )
-        ),
-        createdGameEvents.map(_.id) --> Observer.fromZIO[String](gameId =>
-          services.routing.moveTo(services.routing.base / models.bff.Routes.inGameSettings, models.bff.Routes.gameIdParam)(gameId)
         )
       )
     }
@@ -121,9 +125,9 @@ object GameTable {
       youAreInGameMessage,
       child.maybe <-- gameYouAreInSignal.map(_.exists(_.isEmpty)).map(Option.when(_)(createGameBar)),
       TableCompat(
-        _.noDataText    := "There are currently no games. Go ahead and create one!",
-        _.hideNoData    := false,
-        _.busy         <-- dataSignal.map(_.isEmpty),
+        _.noDataText := "There are currently no games. Go ahead and create one!",
+        _.hideNoData := false,
+        _.busy <-- dataSignal.map(_.isEmpty),
         _.slots.columns := TableCompat.column("Id", _.minWidth := 200),
         _.slots.columns := TableCompat.column("Name"),
         _.slots.columns := TableCompat.column("Created By"),
@@ -141,21 +145,22 @@ object GameTable {
               _.cell(
                 child.maybe <-- gameYouAreInSignal.map(maybeGame =>
                   def button(alreadyIn: Boolean) = Some(
-                        Button(
-                          _.iconOnly := true,
-                          _.icon     := IconName.`journey-arrive`,
-                          _.events.onClick.mapTo((game, alreadyIn)) --> joinGameBus.writer,
-                          _.disabled <-- joinGameBusySignal,
-                          _.design := ButtonDesign.Emphasized
-                        )
-                      )
+                    Button(
+                      _.iconOnly := true,
+                      _.icon := IconName.`journey-arrive`,
+                      _.events.onClick.mapTo(game -> alreadyIn) --> joinGameBus.writer,
+                      _.disabled <-- joinGameBusySignal,
+                      _.design := ButtonDesign.Emphasized
+                    )
+                  )
+
                   maybeGame match {
                     case Some(None) => // we are not in a game, we may join any game
                       button(false)
                     case Some(Some(gameYouAreIn)) if game.id == gameYouAreIn.id =>
                       // we are in this particular game, we may join it
                       button(true)
-                    case Some(Some(_)) => 
+                    case Some(Some(_)) =>
                       // we are in a game but not this one, we may not join it
                       None
                     case None => // initial data not yet loaded

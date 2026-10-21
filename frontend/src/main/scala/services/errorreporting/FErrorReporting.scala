@@ -40,7 +40,7 @@ class FErrorReporting(container: String | dom.Element) extends ErrorReporting {
     root,
     Dialog(
       _.stretch := true,
-      _.open   <-- EventStream.merge(closeBus.events.mapTo(false), errorBus.events.mapTo(true)),
+      _.open <-- EventStream.merge(closeBus.events.mapTo(false), errorBus.events.mapTo(true)),
       _.slots.header := Bar(_.slots.startContent := Label("Fatal error encountered!")),
       child <-- errorDataStream.map { case ErrorData(message, stackTrace) =>
         div(

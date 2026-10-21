@@ -13,7 +13,7 @@ class SoundAsset private (val path: PathSegment[Unit, ?], val name: String)
 
   override final def equals(obj: Any): Boolean = obj match {
     case that: SoundAsset => this.name == that.name
-    case _                => false
+    case _ => false
   }
 
   val assetName = indigo.AssetName(name)

@@ -112,14 +112,14 @@ object GameSettings {
             playerUpdateFailures
               .filter {
                 case _: ErrorADT.GameDoesNotExist => false
-                case _                            => true
+                case _ => true
               }
               .mapTo(true),
             closeBus.events.mapTo(false)
           ),
           IllustratedMessage(
-            _.name          := IllustratedMessageType.ErrorScreen,
-            _.titleText     := "Error while changing your settings",
+            _.name := IllustratedMessageType.ErrorScreen,
+            _.titleText := "Error while changing your settings",
             _.subtitleText <-- playerUpdateFailures.startWithNone.map(_.fold("")(_.repr))
           ),
           _.slots.footer := Bar(
@@ -131,8 +131,8 @@ object GameSettings {
     def gameProblemsDialog = {
       val closeBus = new EventBus[Unit]
       sealed trait Problem
-      case object GameRemoved                   extends Problem
-      case object NotInGame                     extends Problem
+      case object GameRemoved extends Problem
+      case object NotInGame extends Problem
       case class GameLaunchIssue(err: ErrorADT) extends Problem
       val problemEvents = EventStream.merge[Problem](
         gameDoesNotExistAnymoreEvents.mapTo(GameRemoved),
@@ -144,8 +144,8 @@ object GameSettings {
         _.slots.header := Bar(
           _.slots.startContent := Title.h2(
             child.text <-- problemEvents.map {
-              case GameRemoved        => "Game does not exist (anymore)"
-              case NotInGame          => "You should not be here"
+              case GameRemoved => "Game does not exist (anymore)"
+              case NotInGame => "You should not be here"
               case _: GameLaunchIssue => "Game Launch issue 😱"
             }
           )
@@ -251,7 +251,7 @@ object GameSettings {
     }
 
     def displayPlayers: HtmlElement = TableCompat(
-      _.mode          := TableMode.None,
+      _.mode := TableMode.None,
       _.slots.columns := TableCompat.column("Name"),
       _.slots.columns := TableCompat.column("Class"),
       _.slots.columns := TableCompat.column("Colour"),
@@ -266,7 +266,7 @@ object GameSettings {
             .zipWithIndex
             .sortBy {
               case ((_, true, _), _) => -1
-              case (_, index)        => index
+              case (_, index) => index
             }
             .map(_._1)
         )
@@ -281,7 +281,7 @@ object GameSettings {
               Vector(
                 TableCompat.row.cell(name match
                   case HumanPlayerName(name) => name
-                  case ai: AIPlayerName      => s"🤖 ${ai.name}"
+                  case ai: AIPlayerName => s"🤖 ${ai.name}"
                 ),
                 TableCompat.row.cell(
                   if isMe then
@@ -310,8 +310,8 @@ object GameSettings {
                         _.events.onItemClick.mapTo(true) --> openPopoverBus.writer
                       ),
                       ColourPalettePopover(
-                        _.openerId        := openerId,
-                        _.open           <-- openPopoverBus.events,
+                        _.openerId := openerId,
+                        _.open <-- openPopoverBus.events,
                         _.showMoreColours := true,
                         Colour.someColours.map(c => ColourPalette.item(_.value := c)),
                         _.events.onItemClick
@@ -324,10 +324,10 @@ object GameSettings {
                     span(
                       padding := "11px",
                       span(
-                        height          := "2em",
-                        width           := "2em",
+                        height := "2em",
+                        width := "2em",
                         backgroundColor := ui5Colour.rgb,
-                        borderRadius    := "50%",
+                        borderRadius := "50%",
                         border := s"1px solid ${if ui5Colour.isBright then "black" else "gray"}",
                         display.inlineBlock
                       )
@@ -344,16 +344,16 @@ object GameSettings {
                   else
                     Icon(
                       _.name := (if playerInfo.isReady then IconName.accept else IconName.decline),
-                      color  := (if playerInfo.isReady then "green" else "red")
+                      color := (if playerInfo.isReady then "green" else "red")
                     )
                 )
               ) ++ Option
                 .when(amIGameCreator && !isMe)(
                   TableCompat.row.cell(
                     Button(
-                      _.tooltip  := s"Remove ${playerInfo.playerName.name} from this game",
+                      _.tooltip := s"Remove ${playerInfo.playerName.name} from this game",
                       _.iconOnly := true,
-                      _.icon     := IconName.delete,
+                      _.icon := IconName.delete,
                       _.events.onClick --> Observer.fromZIO[Any](_ =>
                         services.menugames.kickPlayer(gameId, playerInfo.playerName.name).unit
                       )
@@ -390,7 +390,7 @@ object GameSettings {
         Tree(children <-- gameConfigErrors.split(_._1) { case (name, _, errorsWithNameSignal) =>
           val errorsSignal = errorsWithNameSignal.map(_._2)
           Tree.item(
-            _.text    := name,
+            _.text := name,
             children <-- errorsSignal.map(errors => errors.map(error => Tree.item(_.text := error)))
           )
         })
@@ -462,7 +462,7 @@ object GameSettings {
       flexWrap.wrap,
       alignItems.start,
       styleProp("gap") := "1em",
-      marginTop        := "1em",
+      marginTop := "1em",
       div(
         flex := "1 1 400px",
         child <-- gameDataEvents
@@ -490,10 +490,10 @@ object GameSettings {
       controlSettingsDialog,
       width := "100%",
       BusyIndicator(
-        width     := "100%",
+        width := "100%",
         _.active <-- gameIsStartingSignal,
-        _.delay   := scala.concurrent.duration.FiniteDuration(10, TimeUnit.MILLISECONDS),
-        _.text    := "Game is starting, please wait for setup to finish...",
+        _.delay := scala.concurrent.duration.FiniteDuration(10, TimeUnit.MILLISECONDS),
+        _.text := "Game is starting, please wait for setup to finish...",
         div(
           width := "100%",
           Toast(_.showFromTextEvents(toastBus.events)),
@@ -526,7 +526,7 @@ object GameSettings {
               .catchAll(t => Console.printError(t).ignore.as(None))
             maybePlayerInfoToSet = storedPlayerInfo.map(_.withReadyState(NotReady))
             _ <- maybePlayerInfoToSet match {
-              case None             => ZIO.unit
+              case None => ZIO.unit
               case Some(playerInfo) => ZIO.succeed(playerUpdateBus.writer.onNext(playerInfo))
             }
           } yield ()),

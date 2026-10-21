@@ -220,7 +220,6 @@ object Boss102 extends BossFactory[Boss102] with BossMetadata {
         RemoveBuff(genActionId(), time, buff.bearerId, buff.buffId)
     }
 
-
   def description: String =
     "The boss of the hounds. While the tank keeps it busy, the boss fills the room with damage " ++
       "zones and summons hounds over and over. Damage dealers must take care of the hounds before " ++

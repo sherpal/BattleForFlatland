@@ -35,7 +35,7 @@ final case class PutPunishedDebuff(
 
   def isLegal(gameState: GameState): Option[String] =
     gameState.movingBodyEntityById(bearerId) match {
-      case None    => Some(s"Entity $bearerId does not exist, or is not a Moving Body")
+      case None => Some(s"Entity $bearerId does not exist, or is not a Moving Body")
       case Some(_) => None
     }
 

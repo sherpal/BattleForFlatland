@@ -16,9 +16,9 @@ final class ManageStopCastingMovements extends ServerAction {
     val entityStoppedCastingActions = gameState.castingEntityInfo.toVector
       .map((id, info) => (id, gameState.withAbilityEntitiesById(id), info.positionWhenStarted))
       .flatMap {
-        case (id, None, _)                                                    => Some(id)
+        case (id, None, _) => Some(id)
         case (id, Some(withAbility), position) if position != withAbility.pos => Some(id)
-        case _                                                                => None
+        case _ => None
       }
       .map(id => EntityCastingInterrupted(genActionId(), startTime, id))
 

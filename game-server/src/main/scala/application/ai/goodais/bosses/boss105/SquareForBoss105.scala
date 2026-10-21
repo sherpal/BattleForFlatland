@@ -65,9 +65,9 @@ final case class SquareForBoss105(index: Int, entityId: Entity.Id)
   override def instantActions(gameState: GameState, me: Square, time: Long): Vector[GameAction] =
     myTwin(gameState, me, time).fold(Vector.empty[GameAction]) { twin =>
       val shouldIHammer = twin match {
-        case shade: Shade  => isMyThreatTowardsTargetEnough(shade, me)
+        case shade: Shade => isMyThreatTowardsTargetEnough(shade, me)
         case boss: Boss105 => isMyThreatTowardsTargetEnough(boss, me)
-        case _             => true
+        case _ => true
       }
 
       val maybeTaunt =

@@ -10,20 +10,24 @@ final class FieldsValidator[-T, +E] private (val fields: Map[String, Validator[T
 
   def isValid(t: T): Boolean = validate(t).isEmpty
 
-  def contraMap[U](f: U => T): FieldsValidator[U, E] = FieldsValidator(fields.view.mapValues(_.contraMap(f)).toMap)
+  def contraMap[U](f: U => T): FieldsValidator[U, E] = FieldsValidator(
+    fields.view.mapValues(_.contraMap(f)).toMap
+  )
 
   def contraFlatMap[U](f: U => List[T]): FieldsValidator[U, E] =
     FieldsValidator(fields.view.mapValues(_.contraFlatMap(f)).toMap)
 
-  def maybeContraMap[U, F >: E](f: U => Option[T], error: (String, F)): FieldsValidator[U, F] = FieldsValidator(
-    fields.view.mapValues(_.maybeContraMap(f, error._2).bypassValidator(f(_: U).isEmpty)).toMap +
-      (error._1 -> Validator.allowAllValidator.maybeContraMap(f, error._2))
-  )
+  def maybeContraMap[U, F >: E](f: U => Option[T], error: (String, F)): FieldsValidator[U, F] =
+    FieldsValidator(
+      fields.view.mapValues(_.maybeContraMap(f, error._2).bypassValidator(f(_: U).isEmpty)).toMap +
+        (error._1 -> Validator.allowAllValidator.maybeContraMap(f, error._2))
+    )
 
   def validateZIO(t: T): ZIO[Any, Nothing, Option[Map[String, List[E]]]] =
     ZIO.succeed(validate(t)).map(errors => Option.unless(errors.isEmpty)(errors))
 
-  def toValidator: Validator[T, E] = fields.values.foldLeft[Validator[T, E]](Validator.allowAllValidator)(_ ++ _)
+  def toValidator: Validator[T, E] =
+    fields.values.foldLeft[Validator[T, E]](Validator.allowAllValidator)(_ ++ _)
 
 }
 

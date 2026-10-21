@@ -39,7 +39,7 @@ final case class TriangleForBoss105(index: Int, entityId: Entity.Id)
           )
         val distance = foe match {
           case shade: Shade => shade.shape.radius + 10
-          case _            => gamelogic.entities.classes.Constants.bossRadius + 15
+          case _ => gamelogic.entities.classes.Constants.bossRadius + 15
         }
         (foePosition + (foePosition - tankPosition).safeNormalized * distance) -> 8.0
     }

@@ -6,16 +6,16 @@ import utils.ziohelpers.FrontendGlobalEnv
 import scala.concurrent.duration.FiniteDuration
 import scala.language.implicitConversions
 
-/**
-  * A [[ToasterModifierBuilder]] creates instances of [[ToasterModifier]] based on certain values.
+/** A [[ToasterModifierBuilder]] creates instances of [[ToasterModifier]] based on certain values.
   *
   * @example
-  * {{{
+  *   {{{
   *   autoCloseDuration := 2.seconds
-  * }}}
-  * creates a modifier which makes the toast disappear after 2 seconds.
+  *   }}}
+  *   creates a modifier which makes the toast disappear after 2 seconds.
   *
-  * @tparam T type of value required for building the [[ToasterModifier]].
+  * @tparam T
+  *   type of value required for building the [[ToasterModifier]].
   */
 sealed trait ToasterModifierBuilder[T] {
 
@@ -28,9 +28,12 @@ sealed trait ToasterModifierBuilder[T] {
 
 object ToasterModifierBuilder {
 
-  implicit def asToasterModifier(builder: ToasterModifierBuilder[Unit]): ToasterModifier = builder := {}
+  implicit def asToasterModifier(builder: ToasterModifierBuilder[Unit]): ToasterModifier =
+    builder := {}
 
-  private def factory[T](modifier: Option[T] => ToastOptions => ToastOptions): ToasterModifierBuilder[T] =
+  private def factory[T](
+      modifier: Option[T] => ToastOptions => ToastOptions
+  ): ToasterModifierBuilder[T] =
     new ToasterModifierBuilder[T] {
       def :=(value: T): ToasterModifier = (options: ToastOptions) => modifier(Some(value))(options)
 
@@ -38,16 +41,19 @@ object ToasterModifierBuilder {
     }
 
   /** Make the toast disappear after the given duration. */
-  val autoCloseDuration = factory[FiniteDuration](maybeDuration => _.copy(autoClose = maybeDuration.map(Right(_))))
+  val autoCloseDuration =
+    factory[FiniteDuration](maybeDuration => _.copy(autoClose = maybeDuration.map(Right(_))))
 
   /** Make the toast to never disappear. */
   val noAutoClose = factory[Unit](_ => _.copy(autoClose = Some(Left(false))))
 
   /** ZIO effect to apply when the toast disappears. */
-  val onClose = factory[ZIO[FrontendGlobalEnv, Nothing, Unit]](maybeEffect => _.copy(onClose = maybeEffect))
+  val onClose =
+    factory[ZIO[FrontendGlobalEnv, Nothing, Unit]](maybeEffect => _.copy(onClose = maybeEffect))
 
   /** ZIO effect to apply when the toast appears. */
-  val onOpen = factory[ZIO[FrontendGlobalEnv, Nothing, Unit]](maybeEffect => _.copy(onOpen = maybeEffect))
+  val onOpen =
+    factory[ZIO[FrontendGlobalEnv, Nothing, Unit]](maybeEffect => _.copy(onOpen = maybeEffect))
 
   /** Tells whether to hide the progress bar in the toast. */
   val hideProgressBar = factory[Boolean](maybeBool => _.copy(hideProgressBar = maybeBool))

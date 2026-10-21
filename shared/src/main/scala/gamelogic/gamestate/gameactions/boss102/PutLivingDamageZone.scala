@@ -7,8 +7,7 @@ import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
 import gamelogic.gamestate.{GameAction, GameState}
 
-/**
-  * Puts the [[gamelogic.buffs.boss.boss102.LivingDamageZone]] debuff on the `bearerId` target.
+/** Puts the [[gamelogic.buffs.boss.boss102.LivingDamageZone]] debuff on the `bearerId` target.
   */
 final case class PutLivingDamageZone(
     id: GameAction.Id,

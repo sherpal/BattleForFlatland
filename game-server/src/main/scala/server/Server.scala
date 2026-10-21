@@ -152,7 +152,7 @@ object Server extends cask.MainRoutes {
                     println(s"$userName is ready!")
                     val newConnectedPlayers = connectedPlayers.updateAndGet(_.map {
                       case info if info.userName == userName => info.copy(isReady = true)
-                      case info                              => info
+                      case info => info
                     })
                     newConnectedPlayers.foreach(_.send(BuddyIsReady(userName)))
                     if newConnectedPlayers.forall(_.isReady) then {

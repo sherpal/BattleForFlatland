@@ -21,7 +21,7 @@ trait WithZIOEndpoints[Env] {
 
   class loggedIn extends cask.RawDecorator {
     def wrapFunction(ctx: cask.Request, delegate: Delegate) = maybeLoggedInUser(ctx) match {
-      case None       => cask.router.Result.Success(unauthenticatedResponse)
+      case None => cask.router.Result.Success(unauthenticatedResponse)
       case Some(user) => delegate(Map("user" -> user))
     }
   }

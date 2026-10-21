@@ -23,13 +23,23 @@ final case class PutConstantDot(
       .livingEntityById(targetId)
       .fold(GameStateTransformer.identityTransformer) { _ =>
         new WithBuff(
-          DoT.constantDot(time, targetId, buffId, duration, tickRate, damageOnTick, sourceId, time, resourceIdentifier)
+          DoT.constantDot(
+            time,
+            targetId,
+            buffId,
+            duration,
+            tickRate,
+            damageOnTick,
+            sourceId,
+            time,
+            resourceIdentifier
+          )
         )
       }
 
   def isLegal(gameState: GameState): Option[String] = gameState.livingEntityById(targetId) match {
     case None => Some(s"Entity $targetId does not exist or is not a living entity")
-    case _    => None
+    case _ => None
   }
 
   def changeId(newId: Id): GameAction = copy(id = newId)

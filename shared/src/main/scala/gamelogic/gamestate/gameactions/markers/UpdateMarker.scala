@@ -5,10 +5,10 @@ import gamelogic.gamestate.statetransformers.{GameStateTransformer, UpdateMarker
 import gamelogic.gamestate.GameState
 import gamelogic.gameextras.GameMarkerInfo
 
-/**
-  * Update or Create the marker specified in the [[GameMarkerInfo]].
+/** Update or Create the marker specified in the [[GameMarkerInfo]].
   */
-final case class UpdateMarker(id: GameAction.Id, time: Long, gameMarkerInfo: GameMarkerInfo) extends GameAction {
+final case class UpdateMarker(id: GameAction.Id, time: Long, gameMarkerInfo: GameMarkerInfo)
+    extends GameAction {
 
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     new UpdateMarkerTransformer(gameMarkerInfo)

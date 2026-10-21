@@ -22,7 +22,7 @@ val userConnectedWatcher = {
     _ <- events.registerEvents[UserSocketDisconnected](ZIO.succeed(true)) {
       case UserSocketDisconnected(user, gameId) =>
         connectedUserRef.update(_.updatedWith((user, gameId)) {
-          case None           => Some(UserData(user, gameId, 1))
+          case None => Some(UserData(user, gameId, 1))
           case Some(userData) => Some(userData.againSeenDisconnected)
         })
     }

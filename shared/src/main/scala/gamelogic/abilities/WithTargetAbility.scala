@@ -23,7 +23,7 @@ trait WithTargetAbility extends Ability {
   final def isInSight(gameState: GameState, time: Long): Option[String] =
     gameState.areTheyInSight(casterId, targetId, time) match {
       case Some(inSight) => Option.unless(inSight)(s"Not in sight")
-      case None          => Some(s"One of two entities $casterId and $targetId does not exist")
+      case None => Some(s"One of two entities $casterId and $targetId does not exist")
     }
 
   final def isInRangeAndInSight(gameState: GameState, time: Long): Option[String] =
@@ -32,13 +32,13 @@ trait WithTargetAbility extends Ability {
   final def canBeCastFriendlyOnly(gameState: GameState): Option[String] =
     gameState.areTheyFromSameTeam(casterId, targetId) match {
       case Some(sameTeam) => Option.unless(sameTeam)(s"Not an ally")
-      case None           => Some(s"One or both of entities $casterId, $targetId does not exist")
+      case None => Some(s"One or both of entities $casterId, $targetId does not exist")
     }
 
   final def canBeCastEnemyOnly(gameState: GameState): Option[String] =
     canBeCastFriendlyOnly(gameState) match {
       case None => Some(s"Not an ennemy")
-      case _    => None
+      case _ => None
     }
 
   /** Returns whether this target can be stunned.

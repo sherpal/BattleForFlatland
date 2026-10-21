@@ -190,7 +190,7 @@ final case class GameState(
   def hasBuffOfType[T <: Buff](entityId: Entity.Id)(using scala.reflect.Typeable[T]): Boolean =
     allBuffsOfEntity(entityId).exists {
       case _: T => true
-      case _    => false
+      case _ => false
     }
 
   def obstaclesLike: Iterator[PolygonBody] = obstacles.valuesIterator

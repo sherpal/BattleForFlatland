@@ -80,7 +80,7 @@ object HolyWrath extends AbilityMetadata {
         .map(player => player -> player.currentPosition(time).distanceTo(lastPosition))
         .filter(_._2 < jumpRange)
         .minByOption(_._2)(using Ordering.Double.TotalOrdering) match {
-        case None            => hit
+        case None => hit
         case Some((next, _)) => jump(hit :+ next, remaining.filterNot(_.id == next.id))
       }
     }

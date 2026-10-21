@@ -61,7 +61,7 @@ final case class AbilityIcon(
     maybeEntityStartsCastingInfo.fold(abilityJustUsedEffect(0L)) { lastEntityStartsCasting =>
       abilityJustUsedEffect(lastEntityStartsCasting.time)
     } ++ (player.relevantUsedAbilities.get(abilityId) match {
-      case None                                                    => js.Array()
+      case None => js.Array()
       case Some(usedAbilityInfo) if usedAbilityInfo.cooldown == 0L => js.Array()
       case Some(usedAbilityInfo) =>
         val cooldown      = usedAbilityInfo.cooldown

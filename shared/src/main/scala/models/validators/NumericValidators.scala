@@ -8,7 +8,8 @@ sealed trait NumericValidators[T] {
 
   val num: Numeric[T]
 
-  private def sv: (T => Boolean, T => ErrorADT) => Validator[T, ErrorADT] = simpleValidator[T, ErrorADT]
+  private def sv: (T => Boolean, T => ErrorADT) => Validator[T, ErrorADT] =
+    simpleValidator[T, ErrorADT]
 
   def nonZero: Validator[T, ErrorADT] = sv(_ != num.zero, t => NonZero(t.toString))
 

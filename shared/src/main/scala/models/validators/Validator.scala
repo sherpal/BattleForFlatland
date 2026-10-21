@@ -115,7 +115,7 @@ object Validator {
       noneError: Option[E]
   ): Validator[Option[T], E] =
     validator {
-      case None        => List(noneError).flatten
+      case None => List(noneError).flatten
       case Some(value) => tValidator(value)
     }
 

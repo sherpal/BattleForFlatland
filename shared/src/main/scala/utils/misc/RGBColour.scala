@@ -16,7 +16,7 @@ object RGBColour {
   def fromIntColour(colour: Int): RGBColour = RGBColour(
     colour >> 16,
     (colour % (256 << 8)) / 256,
-    colour  % 256
+    colour % 256
   )
   import io.circe._
   import io.circe.generic.semiauto._

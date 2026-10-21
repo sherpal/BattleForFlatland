@@ -44,7 +44,7 @@ trait BossMetadata {
       @tailrec
       def addNext(accumulatedClasses: Vector[PlayerClasses]): Vector[PlayerClasses] =
         nextAvailableAI(currentClasses ++ accumulatedClasses) match {
-          case None            => accumulatedClasses
+          case None => accumulatedClasses
           case Some(nextClass) => addNext(accumulatedClasses :+ nextClass)
         }
 

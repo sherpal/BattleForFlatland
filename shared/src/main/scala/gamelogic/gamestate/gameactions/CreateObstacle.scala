@@ -8,9 +8,8 @@ import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import gamelogic.physics.shape.Polygon
 
-/**
-  * Adds an [[gamelogic.entities.staticstuff.Obstacle]] to the game, with the given parameters
-  * (id, position and vertices).
+/** Adds an [[gamelogic.entities.staticstuff.Obstacle]] to the game, with the given parameters (id,
+  * position and vertices).
   */
 final case class CreateObstacle(
     id: GameAction.Id,

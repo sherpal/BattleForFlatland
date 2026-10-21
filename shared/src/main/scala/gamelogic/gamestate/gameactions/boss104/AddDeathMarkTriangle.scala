@@ -10,9 +10,9 @@ import gamelogic.physics.Complex
 /** Creates the [[DeathMarkTriangle]] once the third big guy has died.
   *
   * The three positions are carried by the action (and not looked up in the game state) so that the
-  * transformer stays pure: this action is emitted by
-  * [[gamelogic.buffs.boss.boss104.BigGuyCurse]] on the game master, together with the third
-  * [[gamelogic.entities.boss.boss104.BigGuyDeathMark]] itself.
+  * transformer stays pure: this action is emitted by [[gamelogic.buffs.boss.boss104.BigGuyCurse]]
+  * on the game master, together with the third [[gamelogic.entities.boss.boss104.BigGuyDeathMark]]
+  * itself.
   */
 final case class AddDeathMarkTriangle(
     id: GameAction.Id,

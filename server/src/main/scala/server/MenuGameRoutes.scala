@@ -26,7 +26,7 @@ class MenuGameRoutes()(using
     with WithZIOEndpoints[BackendEnv] {
 
   Unsafe.unsafe(implicit unsafe => runtime.unsafe.runOrFork(programs.userConnectedWatcher)) match {
-    case Left(_)                =>
+    case Left(_) =>
     case Right(Exit.Success(_)) => throw IllegalStateException(s"Connection check fiber exitted")
     case Right(Exit.Failure(cause)) =>
       throw IllegalStateException("Connection check exitted with failure", cause.squashTrace)
@@ -84,7 +84,7 @@ class MenuGameRoutes()(using
   def createGame()(body: CreateGameFormData)(user: User) = (for {
     maybeNewGame <- menugames.createGame(body.gameName, None, user) // no password for now
     _ <- maybeNewGame match {
-      case Left(_)     => ZIO.unit
+      case Left(_) => ZIO.unit
       case Right(game) => events.dispatchEvent(events.Event.GameDataRefreshed(Some(game.id)))
     }
   } yield maybeNewGame).map(APIResponse.fromEither)
@@ -178,7 +178,7 @@ class MenuGameRoutes()(using
                       )
                     )
                 }
-              case _: events.Event.GameCredentials   => ZIO.unit // not interested
+              case _: events.Event.GameCredentials => ZIO.unit // not interested
               case events.Event.GameDataRefreshed(_) => ZIO.unit // not interested
             }
           val dispatchUserConnected = gameId

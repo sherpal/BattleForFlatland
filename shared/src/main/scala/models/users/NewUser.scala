@@ -10,10 +10,11 @@ import io.circe.Codec
 final case class NewUser(name: String, password: String, confirmPassword: String, email: String) {
   def valid: Boolean = password == confirmPassword
 
-  /** Returns a number between 0 and 1 indicating the strentgh of the `password`. 0 means weak, while 1 means strong.
+  /** Returns a number between 0 and 1 indicating the strentgh of the `password`. 0 means weak,
+    * while 1 means strong.
     *
-    * We define a number of criteria that we want to impose on a string password, via validators. The strength is the
-    * relative number of criteria that pass.
+    * We define a number of criteria that we want to impose on a string password, via validators.
+    * The strength is the relative number of criteria that pass.
     */
   def passwordStrength: Double = {
     val criteria: List[Validator[String, Any]] = List(

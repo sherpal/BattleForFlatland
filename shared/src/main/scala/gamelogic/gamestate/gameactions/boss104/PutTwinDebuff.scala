@@ -16,10 +16,9 @@ import gamelogic.entities.boss.boss104.DebuffCircle
 /** Materialises one half of the [[gamelogic.abilities.boss.boss104.TwinDebuffs]] ability: the curse
   * on one player, plus the coloured circle on the ground that goes with it.
   *
-  * All the randomness of the ability has already been resolved by the time this action exists:
-  * the bearer, the colour, the circle's id and its position are all constructor arguments. This is
-  * what makes `createGameStateTransformer` below pure, and hence replayable identically on every
-  * client.
+  * All the randomness of the ability has already been resolved by the time this action exists: the
+  * bearer, the colour, the circle's id and its position are all constructor arguments. This is what
+  * makes `createGameStateTransformer` below pure, and hence replayable identically on every client.
   */
 final case class PutTwinDebuff(
     id: GameAction.Id,

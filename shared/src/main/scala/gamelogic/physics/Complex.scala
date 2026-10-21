@@ -85,17 +85,17 @@ final case class Complex(re: Double, im: Double) {
 
   override def equals(that: Any): Boolean = that match {
     case that: Complex => math.max(math.abs(that.re - re), math.abs(that.im - im)) < 1e-6
-    case _             => false
+    case _ => false
   }
 
   override def hashCode(): Int = re.## ^ im.##
 
   override def toString: String = this match {
-    case Complex.i               => "1 im"
-    case Complex(r, 0)           => r.toString
-    case Complex(0, i)           => i.toString + " im"
+    case Complex.i => "1 im"
+    case Complex(r, 0) => r.toString
+    case Complex(0, i) => i.toString + " im"
     case Complex(r, i) if i >= 0 => r.toString + " + " + i.toString + " im"
-    case Complex(r, i)           => r.toString + " - " + math.abs(i).toString + " im"
+    case Complex(r, i) => r.toString + " - " + math.abs(i).toString + " im"
   }
 }
 

@@ -15,7 +15,7 @@ class LoopingAnimatedSprite(
 
   private val m = (maybeAlpha, maybeTint) match {
     case (Some(alpha), None) => Material.ImageEffects(asset.assetName).withAlpha(alpha)
-    case (None, Some(tint))  => Material.ImageEffects(asset.assetName).withTint(tint)
+    case (None, Some(tint)) => Material.ImageEffects(asset.assetName).withTint(tint)
     case (Some(alpha), Some(tint)) =>
       Material.ImageEffects(asset.assetName).withAlpha(alpha).withTint(tint)
     case (None, None) => Material.Bitmap(asset.assetName)

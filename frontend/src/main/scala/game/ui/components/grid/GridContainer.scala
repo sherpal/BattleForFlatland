@@ -26,11 +26,11 @@ final case class GridContainer(
                                                              else 1)
 
   val width: Int = direction match
-    case Row    => numberOfElementsInGridDirection.min(cellChildren.length) * cellWidth
+    case Row => numberOfElementsInGridDirection.min(cellChildren.length) * cellWidth
     case Column => numberOfCrossDirectionLines * cellWidth
 
   val height: Int = direction match
-    case Row    => numberOfCrossDirectionLines * cellWidth
+    case Row => numberOfCrossDirectionLines * cellWidth
     case Column => numberOfElementsInGridDirection.min(cellChildren.length) * cellHeight
 
   lazy val children: js.Array[Component] = {
@@ -68,7 +68,7 @@ final case class GridContainer(
 object GridContainer {
 
   sealed trait GridDirection
-  case object Row    extends GridDirection // first filling the first column, then the second...
+  case object Row extends GridDirection // first filling the first column, then the second...
   case object Column extends GridDirection // first filling the first row, then the second row, etc.
 
 }

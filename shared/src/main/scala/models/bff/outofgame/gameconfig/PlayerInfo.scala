@@ -19,7 +19,7 @@ final case class PlayerInfo(
   def asValid: Either[List[String], ValidPlayerInfo] =
     for {
       _ <- PlayerInfo.playerInfoValidator.validate(this) match {
-        case Nil    => Right(())
+        case Nil => Right(())
         case errors => Left(errors)
       }
       playerClass  <- maybePlayerClass.toRight(List("Class is empty"))

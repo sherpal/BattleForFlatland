@@ -8,17 +8,17 @@ sealed trait WebSocketProtocol
 
 object WebSocketProtocol {
 
-  case object GameStatusUpdated               extends WebSocketProtocol
-  case object GameCancelled                   extends WebSocketProtocol
-  case object HeartBeat                       extends WebSocketProtocol
+  case object GameStatusUpdated extends WebSocketProtocol
+  case object GameCancelled extends WebSocketProtocol
+  case object HeartBeat extends WebSocketProtocol
   case class PlayerLeavesGame(userId: String) extends WebSocketProtocol
   case class GameUserCredentialsWrapper(gameUserCredentials: GameUserCredentials)
       extends WebSocketProtocol
   case class UpdateMyInfo(userId: String, playerInfo: PlayerInfo) extends WebSocketProtocol
-  case class UpdateBossName(newBossName: String)                  extends WebSocketProtocol
-  sealed trait ToggleAI                                           extends WebSocketProtocol
-  case object ChooseAIs                                           extends ToggleAI
-  case object ChooseHumans                                        extends ToggleAI
+  case class UpdateBossName(newBossName: String) extends WebSocketProtocol
+  sealed trait ToggleAI extends WebSocketProtocol
+  case object ChooseAIs extends ToggleAI
+  case object ChooseHumans extends ToggleAI
 
   /** Sent to everybody when the game creator has clicked on the "Launch Game" button. */
   case object GameLaunched extends WebSocketProtocol

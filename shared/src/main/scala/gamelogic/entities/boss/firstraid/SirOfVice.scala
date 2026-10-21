@@ -263,7 +263,6 @@ object SirOfVice extends BossFactory[SirOfVice] with BossMetadata {
     walls ++ pillars
   }
 
-
   def description: String =
     "First boss of the first raid. The fight takes place in a hexagonal hall with six pillars. " ++
       "Melee players fight within the boss' aura, while everybody else must stay out of it. " ++

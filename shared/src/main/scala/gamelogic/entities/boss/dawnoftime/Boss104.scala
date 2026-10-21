@@ -207,7 +207,6 @@ object Boss104 extends BossFactory[Boss104] with BossMetadata {
 
   val name: String = "Boss 104"
 
-
   def description: String =
     "Two players regularly get cursed, and the Pentagons must dispel them from the right spot. " ++
       "Meanwhile the boss summons big guys that the Triangle must keep in check and interrupt. " ++

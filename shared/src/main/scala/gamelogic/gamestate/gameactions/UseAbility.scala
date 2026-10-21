@@ -24,7 +24,7 @@ final case class UseAbility(
   def isLegal(gameState: GameState): Option[String] =
     gameState.withAbilityEntitiesById(casterId) match {
       case None => Some(s"Entity $casterId does not exist, or is not an entity with abilities")
-      case _    => None
+      case _ => None
     }
 
   def changeId(newId: Id): GameAction = copy(id = newId)

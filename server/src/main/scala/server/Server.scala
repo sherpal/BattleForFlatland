@@ -30,7 +30,7 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
 
   override def host: String = Option(java.lang.System.getProperty("isProd"))
     .map(_.toBoolean)
-    .fold("127.0.0.1")(isProd => if isProd then "0.0.0.0" else "127.0.0.1")
+    .fold("0.0.0.0")(isProd => if isProd then "0.0.0.0" else "127.0.0.1")
 
   def indexHtmlStaticResource = cask.StaticResource(
     "static/index.html",

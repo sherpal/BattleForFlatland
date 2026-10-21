@@ -1,7 +1,6 @@
 package gamelogic.entities
 
-/**
-  * Any [[Entity]] which has a name.
+/** Any [[Entity]] which has a name.
   */
 trait WithName extends Entity {
 

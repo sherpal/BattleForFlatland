@@ -60,7 +60,7 @@ object WithThreat {
     extension (amounts: Map[Entity.Id, ThreatAmount]) {
       def addAmount(id: Entity.Id, amount: ThreatAmount): Map[Entity.Id, ThreatAmount] =
         amounts.updatedWith(id) {
-          case None           => Some(amount)
+          case None => Some(amount)
           case Some(previous) => Some(previous + amount)
         }
     }

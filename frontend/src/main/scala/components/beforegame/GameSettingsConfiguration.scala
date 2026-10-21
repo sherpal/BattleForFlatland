@@ -17,9 +17,9 @@ object GameSettingsConfiguration {
     div(
       Label("Volume"),
       Slider(
-        _.min           := 0,
-        _.max           := 10,
-        _.step          := 1,
+        _.min := 0,
+        _.max := 10,
+        _.step := 1,
         _.showTickmarks := true,
         _.events.onChange
           .map(_.target.value.toInt)

@@ -23,8 +23,8 @@ import gamelogic.entities.Resource.ResourceAmount
   * @param cost
   *   resource cost of the ability
   * @param caster
-  *   name of the entity using the ability, when it's not the main entity being described (typically,
-  *   an add of a boss)
+  *   name of the entity using the ability, when it's not the main entity being described
+  *   (typically, an add of a boss)
   */
 final case class AbilityDoc(
     abilityId: Ability.AbilityId,

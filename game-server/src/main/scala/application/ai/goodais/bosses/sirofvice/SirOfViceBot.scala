@@ -132,7 +132,7 @@ trait SirOfViceBot[EntityType <: PlayerClass] extends GoodAIController[EntityTyp
     gameState.castingEntityInfo.get(boss.id).exists { info =>
       info.isCasting(time, 0) && (info.ability match {
         case _: T => true
-        case _    => false
+        case _ => false
       })
     }
 

@@ -23,7 +23,7 @@ object GameMarkersDrawer extends Drawer {
       gameToLocal: Complex => Point
   ): js.Array[SceneNode] = {
     val (onEntity, onGround) = gameState.markersInfo.values.toJSArray.partitionMap {
-      case f: FixedGameMarker    => Right(f)
+      case f: FixedGameMarker => Right(f)
       case e: GameMarkerOnEntity => Left(e)
     }
 

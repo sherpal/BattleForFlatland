@@ -71,5 +71,5 @@ object TwinDebuff {
 
   /** Damage taken by a player who dispels the debuff outside of the circle of its colour. */
   inline def wrongDispelDamage: Double = 90.0
-  inline def duration: Long       = 60000L
+  inline def duration: Long            = 60000L
 }
