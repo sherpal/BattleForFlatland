@@ -24,7 +24,7 @@ import utils.misc.RGBColour
 
 import scala.scalajs.js
 
-class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
+class CastAbilitiesHandler(myId: Entity.Id) {
 
   def handleClickEvent(
       click: Click,
@@ -71,7 +71,7 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
 
           if events.exists {
               case _: CustomIndigoEvents.GameEvent.SendAction => true
-              case _                                          => false
+              case _ => false
             }
           then Outcome(viewModel.stopChoosingAbilityPosition).addGlobalEvents(Batch(events))
           else Outcome(viewModel).addGlobalEvents(Batch(events))
@@ -105,7 +105,11 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
       // only looked at when the current target is not valid for the ability
       def maybeMouseOverId: Option[Entity.Id] =
         if context.startUpData.controls.mouseOverEnabled then
-          viewModel.uiParent.maybeEntityIdAt(context.frameContext, viewModel, context.mouse.position)
+          viewModel.uiParent.maybeEntityIdAt(
+            context.frameContext,
+            viewModel,
+            context.mouse.position
+          )
         else None
       abilityId match {
         case Ability.hexagonFlashHealId =>
@@ -276,7 +280,7 @@ class CastAbilitiesHandler(myId: Entity.Id, deltaTimeWithServer: Long) {
 
   /** The reason why this ability cannot be cast now, if it can't. */
   private def illegalReason(ability: Ability, gameState: GameState, time: Long): Option[String] =
-    entityStartsCasting(ability, time).isLegalDelay(gameState, deltaTimeWithServer + 100)
+    entityStartsCasting(ability, time).isLegalDelay(gameState, 100)
 
   private def errorEvents(errorMessage: String): js.Array[CustomIndigoEvents] = {
     if (scala.scalajs.LinkingInfo.developmentMode) {
