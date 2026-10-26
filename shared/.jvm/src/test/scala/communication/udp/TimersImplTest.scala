@@ -51,13 +51,14 @@ final class TimersImplTest extends munit.FunSuite {
   }
 
   test("timers with short delays do not need a thread each") {
-    val latch = new CountDownLatch(500)
+    val latch   = new CountDownLatch(500)
     val threads = java.util.concurrent.ConcurrentHashMap.newKeySet[Thread]()
 
-    for _ <- 1 to 500 do timers.setTimeout(1) {
-      threads.add(Thread.currentThread())
-      latch.countDown()
-    }
+    for _ <- 1 to 500 do
+      timers.setTimeout(1) {
+        threads.add(Thread.currentThread())
+        latch.countDown()
+      }
 
     assert(latch.await(5, TimeUnit.SECONDS))
     assert(threads.size() <= 2, s"callbacks ran on ${threads.size()} threads")
@@ -70,7 +71,8 @@ final class TimersImplTest extends munit.FunSuite {
     timers.setTimeout(10)(throw new IllegalStateException("expected by the test"))
     val handle = timers.setInterval(20) {
       latch.countDown()
-      if failures.incrementAndGet() == 1 then throw new IllegalStateException("expected by the test")
+      if failures.incrementAndGet() == 1 then
+        throw new IllegalStateException("expected by the test")
     }
 
     assert(latch.await(5, TimeUnit.SECONDS))
@@ -79,7 +81,7 @@ final class TimersImplTest extends munit.FunSuite {
 
   test("timers do not keep the JVM alive") {
     // the scheduler thread must be a daemon, or the server could not stop
-    val latch = new CountDownLatch(1)
+    val latch  = new CountDownLatch(1)
     var daemon = false
     timers.setTimeout(1) {
       daemon = Thread.currentThread().isDaemon

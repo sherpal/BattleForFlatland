@@ -10,9 +10,17 @@ import scala.collection.immutable.Queue
 import scala.util.Try
 import scala.util.chaining.*
 
-class Connection[Message](peer: Peer, socket: UDPSocket, timers: Timers, callback: Message => Unit)(
-    using CompositePickler[Message]
-) {
+/** @param onLost
+  *   called (once per [[connect]]) when the peer has been silent for too long, see [[connected]].
+  *   It is called from a timer, so possibly from another thread than the one calling [[onMessage]].
+  */
+class Connection[Message](
+    peer: Peer,
+    socket: UDPSocket,
+    timers: Timers,
+    callback: Message => Unit,
+    onLost: () => Unit = () => ()
+)(using Pickler[Message]) {
   import Connection.*
 
   private sealed trait InternalMessage
@@ -72,11 +80,11 @@ class Connection[Message](peer: Peer, socket: UDPSocket, timers: Timers, callbac
   private val queuedMessages               = AtomicReference(List.empty[(Int, Message)])
   private val lastDeliveredOrderedReliable = AtomicReference(-1)
 
-  /** Starts monitoring the connection: the peer is pinged every `pingDelay` ms, and deemed lost (see
-    * [[connected]]) if nothing is received from it for a while, which also stops the pings and the
-    * retransmission of reliable messages. Until this is called the connection can already send and receive
-    * messages, but nothing watches over it. Calling it again, e.g. after the connection was lost, starts
-    * over with a fresh status.
+  /** Starts monitoring the connection: the peer is pinged every `pingDelay` ms, and deemed lost
+    * (see [[connected]]) if nothing is received from it for a while, which also stops the pings and
+    * the retransmission of reliable messages. Until this is called the connection can already send
+    * and receive messages, but nothing watches over it. Calling it again, e.g. after the connection
+    * was lost, starts over with a fresh status.
     */
   def connect(pingDelay: Int = 1000): Unit = {
     connectionStatus.set(ConnectionStatus(started = true, connectedCheck = true, lost = false))
@@ -96,7 +104,20 @@ class Connection[Message](peer: Peer, socket: UDPSocket, timers: Timers, callbac
       status.copy(connectedCheck = false, lost = status.lost || !status.connectedCheck)
     )
     if previous.connectedCheck then scheduleConnectionCheck()
-    else deactivatePing()
+    else if !previous.lost then {
+      deactivatePing()
+      onLost()
+    }
+  }
+
+  /** Stops monitoring the connection and sending pings, and stops retransmitting reliable messages.
+    * The connection can still be used to send and receive, and [[connect]] can be called again.
+    * [[onLost]] is not called.
+    */
+  def disconnect(): Unit = {
+    connectionStatus.updateAndGet(_.copy(lost = true))
+    connectionCheckHandle.getAndSet(None).foreach(_.cancel())
+    deactivatePing()
   }
 
   def activatePing(delay: Int = 1000): Unit = {
@@ -106,9 +127,9 @@ class Connection[Message](peer: Peer, socket: UDPSocket, timers: Timers, callbac
 
   private def deactivatePing(): Unit = pingIntervalHandle.getAndSet(None).foreach(_.cancel())
 
-  /** To be called with every datagram received from the peer. Datagrams that cannot be decoded (garbage
-    * sent to an open port, truncated packets...) are silently dropped, and do not count as a sign of life
-    * of the peer.
+  /** To be called with every datagram received from the peer. Datagrams that cannot be decoded
+    * (garbage sent to an open port, truncated packets...) are silently dropped, and do not count as
+    * a sign of life of the peer.
     */
   def onMessage(array: Array[Byte]): Unit =
     Try(Unpickle[InternalMessage].fromBytes(ByteBuffer.wrap(array))).foreach { msg =>
@@ -142,7 +163,8 @@ class Connection[Message](peer: Peer, socket: UDPSocket, timers: Timers, callbac
       val withNext = history.enqueue(sample)
       if withNext.lengthCompare(10) > 0 then withNext.dequeue(1) else withNext
     }
-    if linkTimeState.get().computing then receivedPongWhileComputingLinkTime(sendingTime, midwayTime)
+    if linkTimeState.get().computing then
+      receivedPongWhileComputingLinkTime(sendingTime, midwayTime)
   }
 
   private val _deltaTime = AtomicReference(0L)
@@ -227,6 +249,13 @@ class Connection[Message](peer: Peer, socket: UDPSocket, timers: Timers, callbac
     socket.send(array, specialPeer.port, specialPeer.address)
   }
 
+  def send(msg: Message, delivery: Delivery): Unit = delivery match {
+    case Delivery.Normal => sendNormal(msg)
+    case Delivery.Ordered => sendOrdered(msg)
+    case Delivery.Reliable => sendReliable(msg)
+    case Delivery.OrderedReliable => sendOrderedReliable(msg)
+  }
+
   def sendNormal(msg: Message): Unit =
     sendInternal(Normal(msg))
 
@@ -237,7 +266,9 @@ class Connection[Message](peer: Peer, socket: UDPSocket, timers: Timers, callbac
 
     sentReliableIds.updateAndGet(_ + id)
 
-    retransmitUntil(sentReliableIds.get().contains(id))(sendInternal(Reliable(msg, id), specialPeer))
+    retransmitUntil(sentReliableIds.get().contains(id))(
+      sendInternal(Reliable(msg, id), specialPeer)
+    )
   }
 
   def sendOrderedReliable(msg: Message): Unit = {
@@ -245,10 +276,14 @@ class Connection[Message](peer: Peer, socket: UDPSocket, timers: Timers, callbac
 
     sentOrderedReliableIds.updateAndGet(_ + id)
 
-    retransmitUntil(sentOrderedReliableIds.get().contains(id))(sendInternal(OrderedReliable(msg, id)))
+    retransmitUntil(sentOrderedReliableIds.get().contains(id))(
+      sendInternal(OrderedReliable(msg, id))
+    )
   }
 
-  /** Sends once, then again every few latencies for as long as `pending` holds and the peer is not deemed lost. */
+  /** Sends once, then again every few latencies for as long as `pending` holds and the peer is not
+    * deemed lost.
+    */
   private def retransmitUntil(pending: => Boolean)(send: => Unit): Unit = {
     send
     timers.setTimeout((4 * latency).max(MinRetransmitDelay)) {
@@ -326,10 +361,22 @@ class Connection[Message](peer: Peer, socket: UDPSocket, timers: Timers, callbac
 }
 
 object Connection {
+
+  /** How a message is delivered:
+    *   - `Normal`: sent once, may be lost, duplicated or reordered;
+    *   - `Ordered`: sent once, may be lost, but never delivered after a more recent message;
+    *   - `Reliable`: sent until acknowledged, delivered exactly once, in any order;
+    *   - `OrderedReliable`: sent until acknowledged, delivered exactly once, in the order of
+    *     sending.
+    */
+  enum Delivery {
+    case Normal, Ordered, Reliable, OrderedReliable
+  }
+
   private val ConnectionCheckDelay = 10000
 
-  /** Lower bound (ms) for the delay between two sends of a reliable message, to avoid flooding when the
-    * measured latency is (close to) zero.
+  /** Lower bound (ms) for the delay between two sends of a reliable message, to avoid flooding when
+    * the measured latency is (close to) zero.
     */
   private val MinRetransmitDelay = 20
 
