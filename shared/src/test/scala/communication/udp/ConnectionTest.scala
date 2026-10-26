@@ -27,7 +27,10 @@ final class ConnectionTest extends munit.FunSuite {
     h.conn.sendNormal(Text("a"))
     h.conn.sendReliableTo(Text("b"), Peer("10.0.0.2", 99))
 
-    assertEquals(h.socket.sent.map(s => (s.address, s.port)).toList, List(("10.0.0.1", 4242), ("10.0.0.2", 99)))
+    assertEquals(
+      h.socket.sent.map(s => (s.address, s.port)).toList,
+      List(("10.0.0.1", 4242), ("10.0.0.2", 99))
+    )
   }
 
   test("ordered messages discard stale and duplicate ids") {
@@ -228,6 +231,70 @@ final class ConnectionTest extends munit.FunSuite {
     assertEquals(h.socket.sent.size, 3)
     h.sim.advance(30000)
     assert(!h.conn.connected)
+  }
+
+  test("a loss of the peer is reported once") {
+    var lost = 0
+    val h    = new Harness(onLost = () => lost += 1)
+
+    h.conn.connect()
+    h.sim.advance(15000)
+    assertEquals(lost, 0)
+    h.sim.advance(60000)
+    assertEquals(lost, 1)
+
+    h.conn.connect()
+    h.sim.advance(60000)
+    assertEquals(lost, 2, "once more after connecting again")
+  }
+
+  test("the loss is not reported if the peer talks") {
+    var lost     = 0
+    val sender   = new Harness
+    val receiver = new Harness(onLost = () => lost += 1)
+    sender.conn.sendNormal(Text("hey"))
+    val packet = sender.socket.takeSent()
+
+    receiver.conn.connect(pingDelay = 100000)
+    for _ <- 1 to 20 do {
+      receiver.sim.advance(5000)
+      receiver.conn.onMessage(packet)
+    }
+
+    assertEquals(lost, 0)
+  }
+
+  test("disconnecting stops pings, retransmissions and the monitoring, without reporting a loss") {
+    var lost = 0
+    val h    = new Harness(onLost = () => lost += 1)
+
+    h.conn.connect()
+    h.conn.sendReliable(Text("nobody listens"))
+    h.conn.disconnect()
+    assert(!h.conn.connected)
+    h.socket.sent.clear()
+    h.sim.advance(60000)
+
+    assertEquals(h.socket.sent.size, 0)
+    assertEquals(lost, 0)
+  }
+
+  test("send picks the delivery") {
+    val sender   = new Harness
+    val receiver = new Harness
+
+    sender.conn.send(Text("normal"), Connection.Delivery.Normal)
+    sender.conn.send(Text("ordered"), Connection.Delivery.Ordered)
+    sender.conn.send(Text("reliable"), Connection.Delivery.Reliable)
+    sender.conn.send(Text("ordered reliable"), Connection.Delivery.OrderedReliable)
+    while sender.socket.sent.nonEmpty do receiver.conn.onMessage(sender.socket.takeSent())
+
+    assertEquals(
+      receiver.received.toList,
+      texts("normal", "ordered", "reliable", "ordered reliable")
+    )
+    // only the last two ask for acknowledgement
+    assertEquals(receiver.socket.sent.size, 2)
   }
 
   test("pinging sends a ping at the requested interval, until activated again") {

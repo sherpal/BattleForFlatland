@@ -2,6 +2,7 @@ package communication.udp
 
 trait UDPSocket {
 
+  /** The local address of this socket (once bound). */
   def peer: Peer
 
   def bind(port: Int, address: Option[String] = None): Unit

@@ -11,5 +11,5 @@ trait Timers {
 }
 
 object Timers {
-  class TimerHandler private[udp] (val cancel: () => Unit)
+  class TimerHandler(val cancel: () => Unit)
 }
