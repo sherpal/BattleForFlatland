@@ -5,7 +5,8 @@ import scala.collection.mutable
 /** Two connections talking through a simulated network. */
 final class ConnectionSimulationTest extends munit.FunSuite {
 
-  private def texts(prefix: String, n: Int): List[TestMessage] = (0 until n).map(i => Text(s"$prefix$i")).toList
+  private def texts(prefix: String, n: Int): List[TestMessage] =
+    (0 until n).map(i => Text(s"$prefix$i")).toList
 
   test("reliable messages all arrive exactly once on a network losing half of the packets") {
     val net = new Pair(oneWay = 20, lossPercent = 50, jitter = 30)
@@ -21,7 +22,9 @@ final class ConnectionSimulationTest extends munit.FunSuite {
     assertEquals(net.receivedByA.size, 20)
   }
 
-  test("ordered reliable messages arrive in order, exactly once, on a lossy and reordering network") {
+  test(
+    "ordered reliable messages arrive in order, exactly once, on a lossy and reordering network"
+  ) {
     val net = new Pair(oneWay = 20, lossPercent = 40, jitter = 100)
 
     texts("m", 30).foreach(net.a.sendOrderedReliable)

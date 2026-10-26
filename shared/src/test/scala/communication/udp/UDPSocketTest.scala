@@ -6,10 +6,10 @@ final class UDPSocketTest extends munit.FunSuite {
 
   // a platform only has to say how to bind, send and close
   private final class MinimalSocket extends UDPSocket {
-    val peer: Peer                                                       = Peer("localhost", 1)
-    def bind(port: Int, address: Option[String]): Unit                   = ()
-    def send(message: Array[Byte], port: Int, address: String): Unit     = ()
-    def close(): Unit                                                    = ()
+    val peer: Peer                                                   = Peer("localhost", 1)
+    def bind(port: Int, address: Option[String]): Unit               = ()
+    def send(message: Array[Byte], port: Int, address: String): Unit = ()
+    def close(): Unit                                                = ()
   }
 
   test("callbacks do nothing until set") {
@@ -24,7 +24,9 @@ final class UDPSocketTest extends munit.FunSuite {
     val socket = new MinimalSocket
     val events = mutable.Buffer.empty[String]
 
-    socket.setMessageCallback((bytes, peer) => events += s"message ${bytes.length} ${peer.address}:${peer.port}")
+    socket.setMessageCallback((bytes, peer) =>
+      events += s"message ${bytes.length} ${peer.address}:${peer.port}"
+    )
     socket.setCloseCallback(() => events += "close")
     socket.setListeningCallback(() => events += "listening")
     socket.setCloseCallback(() => events += "closed again")

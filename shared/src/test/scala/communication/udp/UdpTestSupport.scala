@@ -15,14 +15,17 @@ private[udp] object TestMessage {
   given CompositePickler[TestMessage] = compositePickler[TestMessage].addConcreteType[Text]
 }
 
-/** A virtual clock together with the timers scheduled on it. Nothing happens until [[advance]] is called. */
+/** A virtual clock together with the timers scheduled on it. Nothing happens until [[advance]] is
+  * called.
+  */
 private[udp] final class Simulation {
   private final class Task(val due: Long, val seq: Long, val run: () => Unit) {
     var cancelled = false
   }
 
-  private val queue = mutable.PriorityQueue.empty[Task](using Ordering.by((t: Task) => (-t.due, -t.seq)))
-  private var seq   = 0L
+  private val queue =
+    mutable.PriorityQueue.empty[Task](using Ordering.by((t: Task) => (-t.due, -t.seq)))
+  private var seq = 0L
 
   var time: Long = 0L
 
@@ -88,7 +91,10 @@ private[udp] final class FakeSocket(val peer: Peer, onSend: Array[Byte] => Unit 
 }
 
 /** A single connection whose packets are inspected and delivered by hand. */
-private[udp] final class Harness(peer: Peer = Peer("localhost", 1)) {
+private[udp] final class Harness(
+    peer: Peer = Peer("localhost", 1),
+    onLost: () => Unit = () => ()
+) {
   import TestMessage.given
 
   val sim      = new Simulation
@@ -96,12 +102,19 @@ private[udp] final class Harness(peer: Peer = Peer("localhost", 1)) {
   val socket   = new FakeSocket(peer)
   val received = mutable.Buffer.empty[TestMessage]
   val conn =
-    new Connection[TestMessage](peer, socket, timers, message => { received += message; () })
+    new Connection[TestMessage](
+      peer,
+      socket,
+      timers,
+      message => { received += message; () },
+      onLost
+    )
 }
 
-/** Two connections linked by a simulated network, with a one way latency of `oneWay` ms and, for every
-  * packet, `lossPercent`% chances of being lost and a random extra delay in `[0, jitter]` ms (which
-  * reorders packets). The "random" numbers are deterministic. B's clock is `offsetB` ms ahead of A's.
+/** Two connections linked by a simulated network, with a one way latency of `oneWay` ms and, for
+  * every packet, `lossPercent`% chances of being lost and a random extra delay in `[0, jitter]` ms
+  * (which reorders packets). The "random" numbers are deterministic. B's clock is `offsetB` ms
+  * ahead of A's.
   */
 private[udp] final class Pair(
     oneWay: Int = 20,
@@ -116,7 +129,9 @@ private[udp] final class Pair(
   val receivedByA = mutable.Buffer.empty[TestMessage]
   val receivedByB = mutable.Buffer.empty[TestMessage]
 
-  /** Extra delay (ms) of the n-th packet (counting from 0) sent towards A, to simulate a latency spike. */
+  /** Extra delay (ms) of the n-th packet (counting from 0) sent towards A, to simulate a latency
+    * spike.
+    */
   var extraDelayToA: Int => Int = _ => 0
 
   private var packetsToA = 0
