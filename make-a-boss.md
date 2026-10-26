@@ -47,8 +47,8 @@ You cannot write a boss correctly without these six facts.
    | Nothing else | — | — |
    Both live in `game-server` **only**. Never put AI code in `shared`.
 
-6. **The frontend is a pure function of `GameState`.** Drawers read the game state and emit indigo
-   scene nodes. They never decide anything.
+6. **The client is a pure function of `GameState`.** A boss' visuals read the game state and draw
+   it with `love.graphics`. They never decide anything.
 
 ---
 
@@ -56,10 +56,10 @@ You cannot write a boss correctly without these six facts.
 
 | Sub-project | Platform | Contains |
 |---|---|---|
-| `shared` | JS + JVM | **All game logic**: entities, abilities, buffs, actions, game state. Both the browser and the server run this identical code. |
+| `shared` | JS + JVM | **All game logic**: entities, abilities, buffs, actions, game state. Both the client and the server run this identical code. |
 | `game-server` | JVM | The game master loop and **all AI** (boss AI + friendly bots). |
-| `frontend` | Scala.js (indigo + laminar) | Rendering, assets, UI components. |
-| `server` / `shared-backend` / `game-server-launcher` | JVM | Lobby, launching. **You will not touch these.** |
+| `love-client` | Scala.js, linked to Lua by `lua-linker`, run by LÖVE | Rendering, HUD, menus, assets (see [its README](love-client/README.md)). |
+| `server` / `shared-backend` / `game-server-launcher` / `lua-linker` | JVM | Lobby, launching, linking the client. **You will not touch these.** |
 
 Canonical package layout for a boss (using `Boss104` / theme package `dawnoftime` as the model):
 
@@ -76,18 +76,17 @@ game-server/src/main/scala/application/ai/
   boss/boss104units/BigGuyController.scala        ← each add's brain
   goodais/bosses/boss104/                         ← friendly bots tuned for this encounter
 
-frontend/src/main/scala/
-  game/drawers/bossspecificdrawers/Boss104Drawer.scala
-  game/ui/bossplugins/Boss104GUIPlugin.scala      ← boss-specific tweaks of the generic HUD
-  assets/Asset.scala                              ← buff icons etc.
-frontend/public/assets/in-game/gui/boss/dawn-of-time/boss104/   ← 32×32 PNGs
+love-client/src/main/scala/bffclient/
+  render/bosses/Boss104Visuals.scala              ← what is drawn for the boss, its HUD tweaks
+  render/Sprites.scala                            ← buff icons etc.
+love-client/src/main/lua/assets/boss/dawn-of-time/boss104/   ← 32×32 PNGs
 ```
 
 > **Naming**: the *theme* package (`dawnoftime`) groups bosses by flavour and holds the boss class.
 > The *per-boss* packages (`boss104`) hold everything that boss owns. Pick a new theme package only
 > if you are starting a new group of bosses. The `firstraid` theme (bosses of the first raid) names
 > its bosses instead of numbering them: `firstraid/SirOfVice.scala`, with per-boss packages
-> `sirofvice`, ability ids `Ability.sirOfViceXxx` and assets under `gui/boss/first-raid/sir-of-vice/`.
+> `sirofvice`, ability ids `Ability.sirOfViceXxx` and assets under `assets/boss/first-raid/sir-of-vice/`.
 
 ---
 
@@ -106,12 +105,11 @@ silently inert boss, not a compile error.
 | " | add an `AbilityDoc` for it to the boss' `abilitiesDoc` (with `.castBy("Add name")` if an add casts it) | your boss' companion | players don't see it in the lobby; `GameDocsSpecs` fails for the boss' own abilities |
 | a new **`GameAction`** | `.addConcreteType[bossXxx.YourAction]` on `gameActionPickler` | [`BFFPicklers.scala`](shared/src/main/scala/communication/BFFPicklers.scala) | **game crashes** on broadcast |
 | a new **`Buff`** | `val bossXxxYyy = nextId()` in `Buff`'s companion | [`gamelogic/buffs/Buff.scala`](shared/src/main/scala/gamelogic/buffs/Buff.scala) | no `resourceIdentifier` |
-| " | a 32×32 PNG + an `Asset` + an entry in `buffAssetMap` | [`assets/Asset.scala`](frontend/src/main/scala/assets/Asset.scala) | buff has no icon in player frames |
+| " | a 32×32 PNG in `love-client/src/main/lua/assets/` + an entry in `buffIcons` | [`render/Sprites.scala`](love-client/src/main/scala/bffclient/render/Sprites.scala) | buff has no icon in player frames |
 | a new **boss** | add the factory to `factoriesByBossName` | [`entities/boss/BossFactory.scala`](shared/src/main/scala/gamelogic/entities/boss/BossFactory.scala) | boss not selectable in the lobby |
 | " | `case action: SpawnBoss if action.bossName == BossXxx.name =>` | [`AIManager.scala`](game-server/src/main/scala/application/ai/AIManager.scala) | boss spawns and stands still forever |
-| " | `case BossXxx.name => …` | [`game/drawers/bossspecificdrawers/globals.scala`](frontend/src/main/scala/game/drawers/bossspecificdrawers/globals.scala) | **`MatchError` at render time** |
-| " | `case BossXxx.name => …` | [`game/ui/components/bossspecificcomponents/globals.scala`](frontend/src/main/scala/game/ui/components/bossspecificcomponents/globals.scala) | **`MatchError` at render time** |
-| a **GUI plugin** (optional) | `case BossXxx.name => BossXxxGUIPlugin` | [`game/ui/bossplugins/globals.scala`](frontend/src/main/scala/game/ui/bossplugins/globals.scala) | plugin silently ignored (the default case falls back to `BossGUIPlugin.empty`) |
+| **visuals** (optional, in practice needed) | an `object BossXxxVisuals extends BossVisuals` + add it to `byBossName` | [`render/bosses/BossVisuals.scala`](love-client/src/main/scala/bffclient/render/bosses/BossVisuals.scala) | the boss' zones, markers and adds are drawn as plain grey outlines; no frame tint or HUD line |
+| " | list every entity it draws in its `draws` | your `BossXxxVisuals` | the entity is drawn twice (yours, and a grey outline) |
 | an **add** (mob with its own AI) | `case action: AddYourAdd => aiControllers.addOne(action.entityId -> …)` | [`AIManager.scala`](game-server/src/main/scala/application/ai/AIManager.scala) | add spawns and stands still |
 | " | its `shape.radius` in the `GraphManager(Vector(...))` radii list | [`AIManager.scala`](game-server/src/main/scala/application/ai/AIManager.scala) | console warn `There is no graph for me`, add never moves |
 | **friendly bots** | a `BossAIContainer` + an entry in `bossAIContainers` | [`GoodAIManager.scala`](game-server/src/main/scala/application/ai/GoodAIManager.scala) | `I don't handle boss …` printed; bots inert |
@@ -171,10 +169,8 @@ for how walls are built from segments, and `Boss102` for a more elaborate room.
 
 ### Phase 3 — Make it appear
 
-1. Register the factory in `BossFactory.factoriesByBossName`.
-2. Add placeholder frontend cases:
-   - `drawerMapping`: `case BossXxx.name => DrawerWithCloneBlanks.empty`
-   - `containerMapping`: `case BossXxx.name => Component.empty`
+1. Register the factory in `BossFactory.factoriesByBossName`. (The client needs nothing yet: a
+   boss without visuals is drawn with the generic ones.)
 
 **Check**: launch the game (see [§8](#8-building-and-running)). The boss is selectable, the arena
 walls are drawn, the boss spawns on "start game" — and stands perfectly still while you kill it.
@@ -288,18 +284,16 @@ its effects (damage taken, life bars) or a temporary `println` in the controller
 ### Phase 7 — Make it visible
 
 1. **Buff icons**: drop a 32×32 PNG in
-   `frontend/public/assets/in-game/gui/boss/dawn-of-time/bossXxx/`, declare an `Asset` in
-   [`Asset.scala`](frontend/src/main/scala/assets/Asset.scala), and map
-   `Buff.bossXxxYyy -> ingame.gui.boss.dawnOfTime.bossXxx.yyy` in `buffAssetMap`.
-2. **World rendering**: write `frontend/src/main/scala/game/drawers/bossspecificdrawers/BossXxxDrawer.scala`
-   extending `DrawerWithCloneBlanks`, and swap the placeholder in `drawerMapping` for it (Recipe E).
-3. **Boss-specific HUD** (optional): a `Component` in `bossspecificcomponents`, wired into
-   `containerMapping`. `Boss102Component` is the example; `Boss104` leaves it `Component.empty`.
-4. **Boss GUI plugin** (optional): when a mechanic needs the *generic* HUD to look different
-   rather than a new HUD element — typically, a debuff whose nature must be readable from the
-   player frames — write an `object BossXxxGUIPlugin extends BossGUIPlugin` in
-   [`game/ui/bossplugins/`](frontend/src/main/scala/game/ui/bossplugins/) and add it to
-   `pluginMapping` (Recipe F).
+   `love-client/src/main/lua/assets/boss/dawn-of-time/bossXxx/`, and map
+   `Buff.bossXxxYyy -> "boss/dawn-of-time/bossXxx/yyy"` in `buffIcons`, in
+   [`Sprites.scala`](love-client/src/main/scala/bffclient/render/Sprites.scala).
+2. **World rendering**: write
+   `love-client/src/main/scala/bffclient/render/bosses/BossXxxVisuals.scala`, an
+   `object BossXxxVisuals extends BossVisuals`, and add it to `byBossName` in the `BossVisuals`
+   companion (Recipe E).
+3. **Boss-specific HUD** (optional): `hudText` in your visuals adds a line to the HUD (Boss102
+   counts its hounds); `playerFrameTint` tints the frames of the players, typically for a debuff
+   whose nature must be readable from them (Recipe F).
 
 **Check**: you can *see* the mechanic and play around it.
 
@@ -484,7 +478,7 @@ need more. `UseId.dummy` / `GameAction.Id.dummy` are placeholders; the game mast
 Every buff needs:
 - `resourceIdentifier` — a `Buff.nextId()` value from
   [`Buff.scala`](shared/src/main/scala/gamelogic/buffs/Buff.scala)'s companion. **This is what picks
-  the icon in the frontend.**
+  the icon in the client** (`Sprites.buffIcons`).
 - `duration` — ms, or `-1` for "never expires on its own".
 - `endingAction(gameState, time, maybeDispelledBy)` — what happens when it falls off.
   `maybeDispelledBy` is `Some(playerId)` when a player dispelled it, `None` on natural expiry. This
@@ -509,7 +503,7 @@ override def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Op
   [`ManageDeadAIs`](shared/src/main/scala/gamelogic/gamestate/serveractions/ManageDeadAIs.scala) on a
   game state where the bearer is *still present* — so you can read its position.
 
-Then: `Buff.nextId()` entry + icon + `buffAssetMap` (§3).
+Then: `Buff.nextId()` entry + icon + `Sprites.buffIcons` (§3).
 
 ### Recipe C — A passive entity (ground marker, zone, circle)
 
@@ -529,15 +523,16 @@ object DebuffCircle {
 }
 ```
 
-Needs **no** pickler registration (entities travel as part of actions, never on their own). It needs
-a drawer (Recipe E) to be visible. Add it to the world with `WithEntity(...)` in an action; remove it
+Needs **no** pickler registration (entities travel as part of actions, never on their own). Without
+visuals, the client draws it as a plain grey outline: give it its look in your `BossVisuals`
+(Recipe E). Add it to the world with `WithEntity(...)` in an action; remove it
 with a `RemoveEntity` action.
 
 ### Recipe C bis — An entity as the state of a multi-stage mechanic
 
 When a mechanic happens in several beats (a zone that becomes safe, a debuff that flips, an attack
 that resolves twice), do **not** try to remember the beat in the AI controller. Put it in an entity
-and let everyone read it. The controller stays stateless, the frontend can draw the current beat,
+and let everyone read it. The controller stays stateless, the client can draw the current beat,
 the friendly bots can react to it, and a client that joins mid-fight sees the truth.
 
 `DeathMarkTriangle` is the worked example: it *is* the zone (a `Body`, so `containsPoint` does the
@@ -620,28 +615,40 @@ case action: AddBigGuy =>
 **Do not forget** to add `math.round(BigGuy.shape.radius).toInt` to `AIManager`'s `GraphManager`
 radii list.
 
-### Recipe E — The drawer
+### Recipe E — The visuals
+
+A boss' visuals implement [`BossVisuals`](love-client/src/main/scala/bffclient/render/bosses/BossVisuals.scala):
+`ground` draws under the bodies (zones, auras, markers), `adds` draws the adds, and `draws` lists the
+entities it draws (the renderer draws the other ones as grey outlines). They draw in world
+coordinates through the [`Painter`](love-client/src/main/scala/bffclient/render/Painter.scala)
+(`circle`, `polygon`, `line`, `shape`, and `position(entity)`, the position as shown on screen).
+From [`Boss104Visuals`](love-client/src/main/scala/bffclient/render/bosses/Boss104Visuals.scala):
 
 ```scala
-object BossXxxDrawer extends game.drawers.DrawerWithCloneBlanks {
+object BossXxxVisuals extends BossVisuals {
+  val bossName: String = BossXxx.name
 
-  override def cloneLayer(gameState: GameState, now: Long, gameToLocal: Complex => Point): Content =
-    Content.empty   // only needed for sprite-clone batching
+  def draws(entity: Entity): Boolean = entity match {
+    case _: BigGuy | _: DebuffCircle => true
+    case _                           => false
+  }
 
-  override def drawAll(gameState: GameState, now: Long, gameToLocal: Complex => Point)
-      : js.Array[SceneNode] =
-    drawDebuffCircles(gameState, gameToLocal) ++ drawBigGuys(gameState, gameToLocal)
+  def ground(p: Painter): Unit = {
+    import p.*
+    for debuffCircle <- gameState.allTEntities[DebuffCircle].values do
+      circle(debuffCircle.pos, debuffCircle.shape.radius, Some(paint(debuffCircle.colour, 0.5)))
+  }
 
-  private def drawDebuffCircles(gameState: GameState, gameToLocal: Complex => Point) =
-    gameState.allTEntities[DebuffCircle].values.toJSArray.map { circle =>
-      Shape.Circle(
-        gameToLocal(circle.pos),
-        circle.shape.radius.toInt,
-        Fill.Color(circle.colour.toIndigo.withAlpha(0.5))
-      ).withDepth(Depth.far)
+  def adds(p: Painter): Unit =
+    for bigGuy <- p.gameState.allTEntities[BigGuy].values do {
+      p.shape(bigGuy, Some(addColour.withAlpha(0.3)), Some((2, addColour)))
+      withBars(p, bigGuy) // life bar, cast bar and buff icons
     }
 }
 ```
+
+Then add it to `byBossName` in the `BossVisuals` companion. The visuals are chosen by boss name
+(and kept once the boss died, for its adds).
 
 The querying vocabulary you will use constantly, from
 [`GameState`](shared/src/main/scala/gamelogic/gamestate/GameState.scala):
@@ -657,40 +664,27 @@ The querying vocabulary you will use constantly, from
 | `gameState.castingEntityInfo.get(id)` | cast bar info (`isCasting`, `remainingCastingTime`) |
 | `entity.currentPosition(time)` | **dead-reckoned** position — always prefer this to `entity.pos` |
 
-`minilifebar` / `minicastingbar` in
-[`game/drawers/globals.scala`](frontend/src/main/scala/game/drawers/globals.scala) give adds a life
-bar and cast bar for free — use them, players need to see a cast bar to know when to interrupt.
+`withBars(p, add)` gives adds a life bar, a cast bar and their buff icons for free — use it, players
+need to see a cast bar to know when to interrupt. `casting(p, id)` and `progress(info, now)` help
+drawing what an entity casts (e.g. Boss105's Skewer beam).
 
-### Recipe F — A boss GUI plugin
+### Recipe F — Tinting the player frames, and a HUD line
 
-[`BossGUIPlugin`](frontend/src/main/scala/game/ui/bossplugins/BossGUIPlugin.scala) is a trait of
-hooks, one per generic component that supports being altered, each defaulting to "do nothing". The
-component asks `BossGUIPlugin.current` (the plugin of the boss being fought) for extra scene nodes.
-Override only what you need:
+Two optional hooks of `BossVisuals`, both pure functions of the game state:
 
 ```scala
-object BossXxxGUIPlugin extends BossGUIPlugin {
-  override def playerFrameDecorations(playerId: Entity.Id, bounds: Rectangle, alpha: Double)(
-      using viewModel: IndigoViewModel
-  ): js.Array[SceneNode] =
-    viewModel.gameState.allBuffsOfEntity(playerId)
-      .collectFirst { case debuff: TwinDebuff => debuff.colour.toIndigo }
-      .fold(js.Array[SceneNode]()) { colour =>
-        js.Array(
-          Shape.Box(bounds, Fill.Color(colour.withAlpha(0.45 * alpha)))
-            .withDepth(PlayerFrame.overBackgroundDepth),            // tint behind the frame content
-          Shape.Box(bounds.contract(4), Fill.Color(RGBA.Zero), Stroke(4, colour))  // contour on top
-        )
-      }
-}
+  /** The twin debuffs must be dispelled from inside the circle of their colour. */
+  override def playerFrameTint(gameState: GameState, playerId: Entity.Id): Option[(Paint, Double)] =
+    gameState.allBuffsOfEntity(playerId).collectFirst { case debuff: TwinDebuff =>
+      (paint(debuff.colour), 0.45) // the colour of the contour, and the opacity of the background
+    }
+
+  override def hudText(gameState: GameState): Option[String] =
+    Some(s"Hounds: ${gameState.allTEntities[BossHound].size}")
 ```
 
-Then `case BossXxx.name => BossXxxGUIPlugin` in `pluginMapping`. Unlike `drawerMapping` and
-`containerMapping`, this mapping has a default case: a boss without a plugin needs no clause.
-
-Like a drawer, a plugin is a pure function of the game state. If a mechanic needs to alter a
-component that has no hook yet, add a no-op hook to the trait and call it from that component —
-see how [`PlayerFrame`](frontend/src/main/scala/game/ui/components/PlayerFrame.scala) does it.
+If a mechanic needs to alter a part of the HUD that has no hook yet, add one to `BossVisuals`
+(doing nothing by default) and call it from [`Hud`](love-client/src/main/scala/bffclient/hud/Hud.scala).
 
 ---
 
@@ -698,7 +692,7 @@ see how [`PlayerFrame`](frontend/src/main/scala/game/ui/components/PlayerFrame.s
 
 1. **Never** put randomness, `System.currentTimeMillis()`, or map-iteration-order dependence in
    `createGameStateTransformer` or `isLegal`. Freeze decisions into action fields.
-2. **Never** put AI code in `shared`. It must not reach the browser.
+2. **Never** put AI code in `shared`. It must not reach the client.
 3. Positions are `gamelogic.physics.Complex`. Real = horizontal, imaginary = vertical. `Complex.polar(r, θ)`
    and `Complex.i` are your friends; `z.distanceTo(w)`, `z.arg`, `Complex.rotation(θ)` cover most needs.
 4. Times are `Long` **milliseconds**. `-1` duration means "infinite".
@@ -715,14 +709,14 @@ see how [`PlayerFrame`](frontend/src/main/scala/game/ui/components/PlayerFrame.s
 | Symptom | Cause |
 |---|---|
 | Game crashes the instant the ability/action first happens | missing `.addConcreteType[…]` in `BFFPicklers` |
-| `MatchError` on the boss name during rendering | missing case in `drawerMapping` or `containerMapping` |
+| The boss' zones or adds are grey outlines | no `BossVisuals` for the boss (or not in `byBossName`), or the entity is not in its `draws` |
 | Boss spawns and never moves | not registered in `AIManager` |
 | Add spawns and never moves | not registered in `AIManager`, **or** its radius missing from the `GraphManager` list (look for `[warn] There is no graph for me` in the game-server output) |
 | Ability never fires | not in the entity's `abilities` set, or the controller never emits `EntityStartsCasting`, or an earlier entry in the `useAbility` vector always wins |
 | Ability fires immediately at pull | no `relevantUsedAbilities` seed in `initialBoss` |
 | Boss dies instantly | `life`/`maxLife` left at the `Pointed` default of 0 |
 | Add never attacks anybody sensible | missing `DamageThreatAware` buff at spawn |
-| Buff has no icon | missing `buffAssetMap` entry (or the PNG isn't in `frontend/public/...`) |
+| Buff has no icon | missing `Sprites.buffIcons` entry (or the PNG isn't in `love-client/src/main/lua/assets/...`) |
 | `I don't handle boss …` printed, bots inert | missing `GoodAIManager.bossAIContainers` entry |
 | Bots exist but "Add AI" is greyed out | `maybeAIComposition` still returns `None` |
 | Clients desync / rubber-band | impure `createGameStateTransformer` |
@@ -733,7 +727,7 @@ see how [`PlayerFrame`](frontend/src/main/scala/game/ui/components/PlayerFrame.s
 ## 8. Building and running
 
 ```bash
-sbt sharedJVM/compile game-server/compile frontend/compile
+sbt sharedJVM/compile game-server/compile love-client/compile
 ```
 
 Tests (game logic is deterministic and immutable, so it tests well):
@@ -779,8 +773,16 @@ sbt game-server/assembly game-server-launcher/assembly
 java -jar ./game-server-launcher/target/game-server-launcher.jar
 ```
 
-then `server/reStart` plus `~frontend/fastLinkJS` in sbt and `npm run dev` in `frontend/`.
-The game is at `http://localhost:3000`.
+then `server/reStart` in sbt, and the client with `sbt love-client/luaRun` (log in with the address
+`127.0.0.1`).
+
+Without a window, `tools/love-client-test.sh` runs the servers and plays a scripted game (log in,
+create a game, get ready, start) against the boss of your choice, logging what the client sees every
+second, then stops everything (after `sbt game-server/assembly love-client/luaLink`):
+
+```bash
+BFF_BOSS="Boss Xxx" BFF_CLASS=Square tools/love-client-test.sh
+```
 
 > ⚠️ The game-server runs from a **fat jar**. After changing anything in `shared` or `game-server`
 > you must re-run `sbt game-server/assembly` before the change takes effect in a launched game.
@@ -812,8 +814,7 @@ standing outside.
 | Add AI | [BigGuyController.scala](game-server/src/main/scala/application/ai/boss/boss104units/BigGuyController.scala) |
 | Friendly bots | [boss104/](game-server/src/main/scala/application/ai/goodais/bosses/boss104/) — see `PentagonForBoss104` (circle assignment via `index`), `TriangleForBoss104` (add tanking + interrupting) and `DeathMarkTriangleAware` (behaviour shared by all four classes) |
 | Tests | [Boss104Specs.scala](shared/src/test/scala/gamelogic/gamestate/abilitiesstories/bosses/dawnoftime/Boss104Specs.scala), [BFFPicklersSpecs.scala](shared/src/test/scala/communication/BFFPicklersSpecs.scala) |
-| Rendering | [Boss104Drawer.scala](frontend/src/main/scala/game/drawers/bossspecificdrawers/Boss104Drawer.scala) |
-| GUI plugin — twin debuff colour on player frames | [Boss104GUIPlugin.scala](frontend/src/main/scala/game/ui/bossplugins/Boss104GUIPlugin.scala) |
+| Rendering, and the twin debuff colour on player frames | [Boss104Visuals.scala](love-client/src/main/scala/bffclient/render/bosses/Boss104Visuals.scala) |
 
 ---
 
@@ -831,8 +832,8 @@ and shows patterns that Boss104 does not:
   (a `ReformationPoint` entity shows where). `Yearning` is a buff that changes nothing by itself: the
   Shade's *controller* reads it to decide how to move.
 - **Geometry on the fly.** `Skewer` computes who is on a beam from the positions at completion time
-  (`Skewer.isOnBeam`, shared by the ability, the bots and the drawer, which draws the beam from the
-  cast info).
+  (`Skewer.isOnBeam`, shared by the ability and the bots; the client's visuals draw the beam from
+  the cast info).
 - **Dispel-as-a-choice.** `VolatileCharge.endingAction` explodes only when `maybeDispelledBy` is
   empty.
 - **Bots that reason about roles.** `SquareForBoss105` picks which twin to tank from what the other
@@ -852,19 +853,22 @@ and shows patterns that Boss104 does not:
 | Actions | [gameactions/boss105/](shared/src/main/scala/gamelogic/gamestate/gameactions/boss105/) |
 | AIs | [Boss105Controller.scala](game-server/src/main/scala/application/ai/boss/Boss105Controller.scala), [ShadeController.scala](game-server/src/main/scala/application/ai/boss/boss105units/ShadeController.scala), [bots](game-server/src/main/scala/application/ai/goodais/bosses/boss105/) |
 | Tests | [Boss105Specs.scala](shared/src/test/scala/gamelogic/gamestate/abilitiesstories/bosses/dawnoftime/Boss105Specs.scala), [Boss105Simulation.scala](game-server/src/test/scala/simulation/Boss105Simulation.scala) |
-| Rendering | [Boss105Drawer.scala](frontend/src/main/scala/game/drawers/bossspecificdrawers/Boss105Drawer.scala), [Boss105GUIPlugin.scala](frontend/src/main/scala/game/ui/bossplugins/Boss105GUIPlugin.scala) |
+| Rendering | [Boss105Visuals.scala](love-client/src/main/scala/bffclient/render/bosses/Boss105Visuals.scala) |
 
 ---
 
 ## 10. Attack animations (optional polish)
 
-For a one-shot visual flourish (a flash, a line between boss and target), hook
-`game.ui.effects.EffectsManager`:
+For a one-shot visual flourish (a flash, a line between boss and target), add an effect in the
+client's [`render/Effects.scala`](love-client/src/main/scala/bffclient/render/Effects.scala). Each
+action received from the server goes through its `received` method once (even when the server sends
+it again):
 
 ```scala
-case UseAbility(_, time, casterId, _, _: CleansingNova) => ??? // an instance of game.ui.effects.GameEffect
+case UseAbility(_, time, casterId, _, _: CleansingNova) => ??? // an instance of a new `Effect`
 ```
 
-A `GameEffect` is a low-level mutable object close to pixi.js/indigo: you say how to add it to the
-scene, how to update it, and when to destroy it (usually after a fixed duration). Effects do not yet
-handle timeline rollback, which is currently acceptable. This is cosmetic — do it last, if at all.
+An `Effect` is a small case class saying when it started, how long it lasts, and what it needs to be
+drawn; its `draw` clause draws it with `love.graphics` at the screen position of the entities.
+Effects are removed after their duration, and do not handle timeline rollback, which is currently
+acceptable. This is cosmetic — do it last, if at all.

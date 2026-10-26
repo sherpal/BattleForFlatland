@@ -1,6 +1,5 @@
 import sbt.Keys._
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
-import scala.sys.process.Process
 
 name := "Battle for Flatland"
 
@@ -73,10 +72,6 @@ lazy val server = project
   )
   .dependsOn(`shared-backend`)
 
-def esModule = Def.settings(scalaJSLinkerConfig ~= {
-  _.withModuleKind(ModuleKind.ESModule)
-})
-
 /** Puts the fat jar directly in the target directory (e.g. `game-server/target/game-server.jar`)
   * instead of the default `target/scala-<version>/`, so that the paths used to launch it don't change
   * with the Scala version.
@@ -110,66 +105,33 @@ lazy val `game-server` = project
   )
   .dependsOn(`shared-backend`)
 
-val indigoVersion = "0.17.0"
+/** The Scala.js IR -> Lua linker, which links `love-client` (a plain JVM project, run by sbt). */
+lazy val `lua-linker` = project
+  .in(file("./lua-linker"))
+  .settings(
+    libraryDependencies += "org.scala-js" %% "scalajs-linker" % scalaJSVersion
+  )
 
-lazy val frontend = project
-  .in(file("./frontend"))
+/** The game's client, with LÖVE: Scala.js code linked to Lua by `lua-linker` (`love-client/luaLink`
+  * writes the program in love-client/target/lua, `love-client/luaRun` runs it, and
+  * `love-client/luaPackage` packages it with LÖVE for Windows, macOS and Linux, in
+  * love-client/target/dist).
+  */
+lazy val `love-client` = project
+  .in(file("./love-client"))
   .enablePlugins(ScalaJSPlugin)
   .settings(
-    libraryDependencies ++= List(
-      "com.raquo"       %%% "laminar"            % "17.0.0",
-      "be.doeraene"     %%% "web-components-ui5" % "2.27.0",
-      "io.indigoengine" %%% "indigo"             % indigoVersion,
-      "io.indigoengine" %%% "indigo-extras"      % indigoVersion,
-      "io.indigoengine" %%% "indigo-json-circe"  % indigoVersion
-    ),
-    esModule,
-    scalaJSUseMainModuleInitializer := true,
-    // these are used by the magic %MODE% thing from vite (see frontend/index.html)
-    Compile / fastLinkJS / scalaJSLinkerOutputDirectory :=
-      baseDirectory.value / "target" / "development",
-    Compile / fullLinkJS / scalaJSLinkerOutputDirectory :=
-      baseDirectory.value / "target" / "production"
+    LuaSettings(`lua-linker`),
+    LuaSettings.luaPackageTitle     := "Battle for Flatland",
+    scalaJSUseMainModuleInitializer := true
   )
   .dependsOn(`shared`.js)
 
-val buildFrontend = taskKey[Unit]("Build frontend")
-
-buildFrontend := {
-  /*
-  To build the frontend, we do the following things:
-  - fullLinkJS the frontend sub-module
-  - run npm ci in the frontend directory (might not be required)
-  - package the application with vite-js (output will be in the resources of the server sub-module)
-   */
-  (frontend / Compile / fullLinkJS).value
-  val npmCiExit =
-    Process(Utils.npm :: "ci" :: Nil, cwd = baseDirectory.value / "frontend").run().exitValue()
-  if (npmCiExit > 0) {
-    throw new IllegalStateException(s"npm ci failed. See above for reason")
-  }
-
-  val buildExit = Process(
-    Utils.npm :: "run" :: "build" :: Nil,
-    cwd = baseDirectory.value / "frontend"
-  ).run().exitValue()
-  if (buildExit > 0) {
-    throw new IllegalStateException(s"Building frontend failed. See above for reason")
-  }
-
-  IO.copyDirectory(
-    baseDirectory.value / "frontend" / "dist",
-    baseDirectory.value / "server" / "src" / "main" / "resources" / "static"
-  )
-}
-
-(server / assembly) := (server / assembly).dependsOn(buildFrontend).value
-
-val packageApplication = taskKey[File]("Package the whole application into a fat jar")
+val packageApplication = taskKey[File]("Package the menu server into a fat jar (dist/app.jar)")
 
 packageApplication := {
   /*
-  To package the whole application into a fat jar, we do the following things:
+  To package the menu server (only its API: the client is the LÖVE one) into a fat jar:
   - call sbt assembly to make the fat jar for us (config in the server sub-module settings)
   - we move it to the ./dist folder so that the Dockerfile can be independent of Scala versions and other details
    */
