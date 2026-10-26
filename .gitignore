@@ -8,11 +8,8 @@ null/
 .DS_Store
 .idea
 
-frontend/node_modules
 game-server-launcher/node_modules
 game-server-launcher/build
-
-server/src/main/resources/
 
 .bloop
 .metals
@@ -22,8 +19,6 @@ project/project
 project/target
 project/project/target
 project/.bloop
-
-frontend/build
 
 backend/conf/dev.conf
 shared-backend/src/main/resources/dev.conf
@@ -38,12 +33,3 @@ logs
 *.svg
 *.map
 
-frontend/src/main/resources/.sass-cache
-#frontend/src/main/resources/index.css
-frontend/src/main/resources/index.css.map
-frontend/src/main/resources/assets/in-game/bars/LiteStep.png
-frontend/src/main/resources/assets/in-game/bars/Minimalist.png
-frontend/src/main/resources/assets/in-game/bars/Xeon.png
-frontend/src/main/resources/assets.zip
-
-frontend/src/main/resources/assets/in-game/sounds

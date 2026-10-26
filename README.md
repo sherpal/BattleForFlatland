@@ -8,7 +8,7 @@ The following default controls are coded (you need an AZERTY keyboard).
 - keys 1, 2, 3,... for using ability, from left to right as their symbols appear at the bottom left of the game.
 - keys rfvtgb to put markers on target, and shift these to put fixed markers at the mouse position.
 
-You can easily change them when you join a game, at which point they are saved in your browser's local storage (meaning: if you keep the same browser and don't clear data, they will be remembered forever).
+You can easily change them with the "Controls" button (in the list of games, and when you join a game), at which point they are saved in the client's `controls.json` (in LÖVE's save directory, e.g. `~/.local/share/love/battle-for-flatland/` on Linux), and remembered from then on.
 
 ## History was made on June, 3rd, 2020
 
@@ -40,12 +40,9 @@ Or perhaps contribute?
 That's great!
 We'll walk you through the steps to make it happen.
 
-In order to proceed, make sure you have sbt and npm installed on your machine.
+In order to proceed, make sure you have sbt and [LÖVE](https://love2d.org) (11.5, for the `love` command) installed on your machine.
 
-### Install npm dependencies
-
-The frontend part of the game relies on a certain amount of npm dependencies.
-These must be installed via `npm ci` in the `frontend` directory.
+The game's client is a LÖVE game written in Scala, in the `love-client` sub-project (see [its README](love-client/README.md)), compiled to Lua by the `lua-linker` sub-project (see [its README](lua-linker/README.md)).
 
 ### Set up the game server launcher
 
@@ -83,15 +80,21 @@ Since games run from that jar, **you need to run this command again after any ch
 There are three programs that must be ran in dev mode:
 
 - `server/reStart` in `sbt`: runs the backend (port 9000) (If you want to play with other people, you should use `sbt "server/reStart -DisProd=true"` instead).
-- `sbt ~frontend/fastLinkJS` and, in the `frontend` directory, `npm run dev`: runs the frontend with hot reload (port 3000) (If you want to play with other people, you should instead use the `build` alias command to build the frontend inside the backend's public directory.)
 - `java -jar .\game-server-launcher\target\game-server-launcher.jar`: runs the game-server-launcher (after you compiled it once with `sbt game-server-launcher/assembly`)
+- `sbt love-client/luaRun`: runs the client, in which you log in by typing the address of the backend (`127.0.0.1` locally).
 
-You should be redirected to `http://localhost:3000`.
+### Playing with friends
+
+`sbt love-client/luaPackage` packages the client for Windows, macOS and Linux (in `love-client/target/dist`), with LÖVE inside, so that your friends do not need to install anything.
+They then type the address of your backend on the login screen.
+See [the client's README](love-client/README.md#playing-with-friends) for the details (and how to host the game at home).
+
+To package the backend itself (only its API: the client is the LÖVE one), `sbt packageApplication` writes the fat jar `dist/app.jar`.
 
 ## Contribute (in construction)
 
 Below, we try to describe how you can contribute in parts of the developments.
-Certain things will not be acceptable (such as "I rewrote the frontend in React") so be sure to always first raise an issue.
+Certain things will not be acceptable (such as "I rewrote the client in another engine") so be sure to always first raise an issue.
 
 Before going further, be sure to be able to run the server and the game locally.
 
@@ -154,10 +157,8 @@ To that end:
 - fill the `abilities` and `abilityNames` section with empty collections
 - fill the `initialBossActions` to be `healAndDamageAwareActions(entityId, time)`
 - fill the `initialBoss` with the `unit` of the `Pointed` type class of your boss, changing at least the `id`, the `life` and `maxLife` (so that the boss doesn't die instantly)
-- in the `game.drawers.bossspecificdrawers` package (in the frontend sub-project), in the `globals.scala` file, add a match case for the name of your new boss, using the `DrawerWithCloneBlanks.empty` as placeholder
-- in the `game.ui.components.bossspecificcomponents` package (in the frontend sub-project), in the `globals.scala` file, add a match case for the name of your new boss, using the `Component.empty`
-
-Then add your `BossFactory` instance to the `factoriesByBossName` of the `BossFactory` companion object, so that the boss will be available to the `GameMaster` and to the web frontend for users to select it.
+Then add your `BossFactory` instance to the `factoriesByBossName` of the `BossFactory` companion object, so that the boss will be available to the `GameMaster` and to the client for users to select it.
+(The client draws a boss without any specific visuals until you give it some, see below.)
 
 You can launch the game and you should see all your obstacles. Clicking on "start game" will make the boss appear. However, since we didn't code any AI for it yet, il will stay put (and you can freely kill it).
 
@@ -195,7 +196,7 @@ Of course, for your own bosses, you can opt out of an auto-attack, or to have a 
 Adding the auto-attack to the boss is straightforward since it is already implemented.
 You simply need to add the `Ability.autoAttackId` to `abilities` member and `Ability.autoAttackId -> "Auto attack"` to the `abilityNames` member.
 Alternatively, you could implement the `abilities` method as the set of keys of the `abilityNames` Map.
-The `abilityNames` map is used by the frontend to display the names of the attacks in the UI.
+The `abilityNames` map is used by the client to display the names of the attacks in the UI (e.g. the boss's cooldowns).
 
 What happens now?
 Well, the `abilities` member is the list of all abilities that the entity is allowed to use.
@@ -420,32 +421,28 @@ In order for us to see that the boss uses the ability, we need to do three thing
 2. display *something* where the boss puts the Debuff Circles
 3. Have some indication of the colour of the debuffs on the player.
 
-The first thing is one by adding a (32x32) image in the `frontend/public/assets/in-game/gui/boss/dawn-of-time/boss104`.
+The first thing is one by adding a (32x32) image in the `love-client/src/main/lua/assets/boss/dawn-of-time/boss104`.
 Let's call this image `twin-debuff.png`.
-Then, in the `assets/Asset` object, we define a corresponding `Asset` instance, and we add it to the `buffAssetMap` map, so that it can be used by the UI to display it.
+Then, in the client's `render/Sprites.scala`, we add it to the `buffIcons` map (`Buff.boss104TwinDebuff -> "boss/dawn-of-time/boss104/twin-debuff"`), so that it can be used by the UI to display it.
 Creating the image is (to me) the hardest thing, but fortunately these days we can ask ChatGPT to do it for us.
 
-For the second and third points, we create a `Boss104Drawer` object that will collect everything that needs to be displayed when we play with that boss.
-Then, we add it to the boss drawer mapping:
+For the second and third points, we create, in the client's `render.bosses` package, a `Boss104Visuals` object (extending `BossVisuals`) that will collect everything that needs to be displayed when we play with that boss.
+Then, we add it to the visuals chosen by boss name, in the `BossVisuals` companion object:
 
 ```diff
--def drawerMapping(boss: BossEntity): DrawerWithCloneBlanks = boss.name match {
-+def drawerMapping(boss: BossEntity): DrawerWithCloneBlanks = boss.name match
-   case Boss101.name => DrawerWithCloneBlanks.empty
-   case Boss102.name => Boss102Drawer
--  case Boss104.name => DrawerWithCloneBlanks.empty
--}
-+  case Boss104.name => Boss104Drawer
+ private val byBossName: Map[String, BossVisuals] =
+-  Seq(Boss102Visuals, Boss105Visuals, SirOfViceVisuals).map(v => v.bossName -> v).toMap
++  Seq(Boss102Visuals, Boss104Visuals, Boss105Visuals, SirOfViceVisuals).map(v => v.bossName -> v).toMap
 ```
 
-And in there, we add methods to create a basic coloured circle at the places where a Circle Debuff is placed, and we add one as well beneath affected players.
+And in there, we draw a basic coloured circle (in `ground`) at the places where a Circle Debuff is placed, and one as well beneath affected players, and we tint the frames of the affected players (in `playerFrameTint`).
 
 #### Testing by making AIs
 
 At this point, we already have a very functional boss that you could try to beat with friends.
 But before gathering your party, it would be nice to thoroughly test the boss, to see that the twin debuff works from start to end, and that the boss is actually killable.
 
-Of course it's not possible to launch five different browsers/browser tabs and play yourself the five players.
+Of course it's not possible to launch five different clients and play yourself the five players.
 That's why the game engine allow you to define friendly AIs that can play the game with you (or for you).
 
 Small word of caution: these AIs will be **much** better than actual players.
@@ -549,7 +546,7 @@ We need to
 - implement what the ability has to do
 - add the id to Boss104's abilities set and set its time to first use
 - make the Boss104 bot use it. (in `game-server/src/main/scala/application/ai/boss/Boss104Controller.scala`)
-- adapt the `Boss104Drawer` to also draw the big guys (in `frontend/src/main/scala/game/drawers/bossspecificdrawers/Boss104Drawer.scala`)
+- adapt the `Boss104Visuals` to also draw the big guys (in `adds`, in `love-client/src/main/scala/bffclient/render/bosses/Boss104Visuals.scala`)
 
 Implementing the ability is just a matter of returning a new instance of a new action, `AddBigGuy`, that creates an `GameStateTransformer` which adds the Big Guy entity.
 
@@ -595,21 +592,20 @@ We will implement that in what follows. Note that it will most likely have chang
 
 Currently, the implementation "does the job", but that's about it. Also, it does not yet take into account that actions could be cancelled due to a change in the timeline. Currently this is not really an issue.
 
-The first thing to do is to add a new "match" clause in the `game.ui.effect.EffectsManager`. For the `CleansingNova` ability, the match clause will be
+The effects of the abilities live in the client's `render/Effects.scala`. Each action received from the server goes through its `received` method once (even when the server sends it again), and the first thing to do is to add a new "match" clause there. For the `CleansingNova` ability, the match clause will be
 
 ```scala
 case UseAbility(_, time, casterId, _, _: CleansingNova) => ???
 ```
 
-The `???` will need to be filled with (some) an instance of `game.ui.effects.GameEffect`.
+The `???` will need to be filled with (some) instance of a new case class extending `Effect` (like the existing `FloatingText`, `CleaveFlash` and `DirectHitSwing`), which tells
 
-To that end, we add a package `game.ui.effects.boss.sirofvice` and we create a class `CleansingNovaEffect` extending `GameEffect`. A `GameEffect` is a purely mutable object that is quite low level and very close to pixi.js, the drawing library used by BFF. Basically, it is asked from you to
+- when the effect started, and how long it lasts (it is removed afterwards)
+- what it needs to be drawn (e.g. the caster's id, the targets' ids)
 
-- inform the ui when and how to destroy the effect (usually after some amount of time)
-- how to update it
-- how to add it to the game scene.
+Then, in the `draw` method, add a clause drawing it with `love.graphics` (through the `Graphics` facade), at the screen position of the entities given by the `toScreen` and `position` functions it receives.
 
-When you implemented all of this, your effect will be triggered and destroyed accordingly.
+When you implemented all of this, your effect will be triggered and removed accordingly.
 
 ## Tests
 
@@ -629,7 +625,7 @@ sbt sharedJVM/test
 
 ### Simulating a whole fight
 
-The `simulation.SirOfViceSimulation` (in the `game-server` tests) plays a whole fight against Sir of Vice with the friendly bots, with the actual game master logic and AIs but without any browser, and prints what happens (abilities used, deaths, life of everyone...).
+The `simulation.SirOfViceSimulation` (in the `game-server` tests) plays a whole fight against Sir of Vice with the friendly bots, with the actual game master logic and AIs but without any client, and prints what happens (abilities used, deaths, life of everyone...).
 It runs in real time, so it only runs when asked to, with the number of seconds to simulate:
 
 ```
@@ -650,35 +646,14 @@ Steps to add a new service called `MyService`:
 - add a `type MyService = Has[MyService.Service]` into the package object
 - describes the methods and members the inner `Service` trait must have
 - for each method, create an accessor method inside the package object
-- by convention, live version in the frontend start with an F, and backend (JVM) version start with a B.
+- by convention, backend (JVM) versions start with a B (and versions for the former browser frontend started with an F).
 
 ### Adding an asset
 
-- Add the image in the `frontend/src/main/resources/assets` folder
-- Add the `Asset` object in `frontend/src/main/scala/assets/Asset.scala`
-- Add the asset reference in the `game/GameAssetLoader` loading list
+- Add the image in the `love-client/src/main/lua/assets` folder (it is copied next to the client's `main.lua` when linking)
+- Load it in the client's `render/Sprites.scala` (e.g. as a `lazy val`, or in the `buffIcons` or `abilityIcons` maps)
 
-### Sound assets
-
-The game is filled with small sounds. These sounds are loaded from the backend before the game starts. The [SoundAssetLoader](frontend/src/main/scala/game/loaders/SoundAssetLoader.scala) allows one to load all sounds, and to track the progress along the way.
-
-If a sound asset fails to load from some reason, a warning will be emitted in the console, but the game will work normally, with the missing sound simply not playing.
-
-The supported extensions are all in the [SoundFileExtension](frontend/src/main/scala/assets/sounds/SoundFileExtension.scala) enum, and adding new one should be easy. You can, if you want, specify several extensions for a sound asset. In which case they are tried to be load sequentially.
-
-In order to add a new asset, do the following:
-
-- add the sound file into `frontend/src/main/resources/asserts/in-game/sounds` directory, at the right place
-- add a new instance in the [SoundAsset](frontend/src/main/scala/assets/sounds/SoundAsset.scala), mirroring the directory structure in the resources foldre via object
-- add this new instance in the corresponding maps or raw list at the bottom
-- use the `SoundAsset` in the code, probably in the [SoundEffectsManager](frontend/src/main/scala/game/ui/effects/soundeffects/SoundEffectsManager.scala) class.
-
-Note that the current implementation does _not_ allow to run several sounds at the same time. Therefore, if a sound needs to be run often, try to keep it as short as possible, possibly by trimming an unecessary long tail (Audacity is a good software to do that easily).
-
-### Adding a new npm dependencies.
-
-- Go to either `frontend` or `game-server-launcher`, depending on which you want to install things.
-- run `npm install --save the-deps` for dependency and `npm install --save-dev the-deps` for a development dependency, such as the typings of a library.
+The client has no sounds yet (the former browser frontend had some, see the credits below).
 
 ## Credits
 

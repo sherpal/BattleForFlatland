@@ -32,15 +32,6 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
     .map(_.toBoolean)
     .fold("0.0.0.0")(isProd => if isProd then "0.0.0.0" else "127.0.0.1")
 
-  def indexHtmlStaticResource = cask.StaticResource(
-    "static/index.html",
-    getClass.getClassLoader,
-    List("Content-Type" -> "text/html; charset=utf-8")
-  )
-
-  @cask.get("/")
-  def index() = cask.Redirect("/static")
-
   @caskz.getJ[Option[User]]("/api/users/me")
   def me(request: cask.Request) =
     ZIO.succeed(request.cookies.get("session").map(session => User(session.value)))
@@ -68,9 +59,6 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
       body        <- ZIO.succeed(request.text())
       encodedBody <- services.crypto.hashPassword(body)
     } yield cask.Response(encodedBody.pw)
-
-  @StaticResourcesWithContentType("/static", indexHtmlStaticResource)
-  def staticResourceRoutes() = "static"
 
   initialize()
 
