@@ -4,10 +4,10 @@ import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
 import bffclient.controls.{ClientSettings, ControlsFile}
-import bffclient.game.{GameAccess, GameClient, GameExit}
+import bffclient.game.{GameAccess, GameClient, GameExit, GameLink}
 import bffclient.hud.{EndOfGame, GameMenu}
 import bffclient.love.{Event, Fullscreen, Love}
-import bffclient.lua.{Os, WebSocketModule}
+import bffclient.lua.Os
 import bffclient.menu.{MenuApi, MenuApp, MenuSession}
 import bffclient.render.Renderer
 import gamelogic.physics.Complex
@@ -63,96 +63,102 @@ object Main {
           headless
         )
       case _ =>
-        new MenuApp(
+        MenuApp(
           menuUrl,
           (access, backToMenus) => startGame(access, headless, Some(backToMenus))
         ).install()
     }
   }
 
-  /** Connects to the game server and runs the game. When the game was joined through the menus,
-    * `backToMenus` goes back to them.
+  /** Connects to the game server (through UDP) and runs the game. When the game was joined through the
+    * menus, `backToMenus` goes back to them.
     */
   def startGame(
       access: GameAccess,
       headless: Boolean,
       backToMenus: Option[GameExit => Unit] = None
   ): Unit = {
-    val url = s"ws://${access.host}:${access.port}/ws/connect" +
-      s"?userName=${access.userName}&secret=${access.secret}&gameId=${access.gameId}"
-    println(s"Connecting to $url")
-    val connection = WebSocketModule.connect(url)
-    if connection.socket == null then {
-      println(s"Connection failed: ${connection.error}")
-      backToMenus match {
-        case Some(back) => back(GameExit.CannotConnect(connection.error))
-        case None => Event.quit(1)
-      }
-    } else {
-      println("Connected")
-      val (controls, controlsInfo) = ControlsFile.load()
-      println(controlsInfo)
-      val lag = env("BFF_LAG_MS", "0").toDouble / 1000
-      if lag > 0 then println(s"Simulated latency: ${lag * 1000} ms round trip")
-      if headless then {
-        val client = new GameClient(
-          connection.socket,
-          access.userName,
-          headless,
-          controls,
-          controlsInfo,
-          () => Complex.zero,
-          () => None,
-          lag
-        )
-        Love.update = dt => client.update(dt)
-      } else {
-        var renderer: Renderer = null
-        val client             = new GameClient(
-          connection.socket,
-          access.userName,
-          headless,
-          controls,
-          controlsInfo,
-          () => renderer.mouseWorld,
-          () => renderer.hud.hovered,
-          lag
-        )
-        renderer = Renderer(client, ClientSettings.load().hudScale)
-        // While an overlay is shown (game menu, end of game), the inputs go to it
-        val ui    = new Ui
-        val leave =
-          backToMenus.map { back => () =>
-            val exit = client.exit; client.leave(); back(exit)
-          }
-        val gameMenu     = GameMenu(client, leave)
-        val endOfGame    = EndOfGame(client, leave)
-        def overlayShown = client.finished || client.menuOpen
-        Love.update = dt => client.update(dt)
-        Love.draw = () => {
-          renderer.draw()
-          if client.finished then ui.frame(endOfGame.draw(ui))
-          else if client.menuOpen then ui.frame(gameMenu.draw(ui))
+    println(s"Connecting to the game server at ${access.host}:${access.port} (UDP)")
+    val lag = env("BFF_LAG_MS", "0").toDouble / 1000
+    if lag > 0 then println(s"Simulated latency: ${lag * 1000} ms round trip")
+    val loss = env("BFF_LOSS_PERCENT", "0").toInt
+    if loss > 0 then println(s"Simulated loss: $loss% of the datagrams")
+    GameLink.open(access, lag, loss).onComplete {
+      case Failure(error) =>
+        println(s"Connection failed: ${error.getMessage}")
+        backToMenus match {
+          case Some(back) => back(GameExit.CannotConnect(error.getMessage))
+          case None => Event.quit(1)
         }
-        Love.keypressed = (_, scancode, isRepeat) =>
-          if scancode == Fullscreen.key then { if !isRepeat then Fullscreen.toggle() }
-          else if overlayShown then ui.keyPressed(scancode)
-          else if !isRepeat then client.keyPressed(scancode)
-        Love.keyreleased = (_, scancode) => if !overlayShown then client.keyReleased(scancode)
-        Love.mousepressed = (x, y, button, _, _) =>
-          if overlayShown then ui.mousePressed(x, y, button)
-          else if button == 1 then
-            if renderer.hud.startButtonAt(x, y) then client.startCountdown()
-            else
-              renderer.hud.targetAt(x, y) match {
-                case Some(id) => client.selectTarget(id) // a frame of the HUD
-                case None => client.clicked(renderer.toWorld(x, y))
-              }
-        Love.mousereleased = (x, y, button, _, _) =>
-          if overlayShown then ui.mouseReleased(x, y, button)
-          else if button != 1 then
-            client.mouseButtonReleased(button) // the left one targets and places zones
+      case Success(link) => play(link, access, headless, backToMenus)
+    }
+  }
+
+  private def play(
+      link: GameLink,
+      access: GameAccess,
+      headless: Boolean,
+      backToMenus: Option[GameExit => Unit]
+  ): Unit = {
+    println("Connected")
+    val (controls, controlsInfo) = ControlsFile.load()
+    println(controlsInfo)
+    if headless then {
+      val client = new GameClient(
+        link,
+        access.userName,
+        headless,
+        controls,
+        controlsInfo,
+        () => Complex.zero,
+        () => None
+      )
+      Love.update = dt => client.update(dt)
+    } else {
+      var renderer: Renderer = null
+      val client             = new GameClient(
+        link,
+        access.userName,
+        headless,
+        controls,
+        controlsInfo,
+        () => renderer.mouseWorld,
+        () => renderer.hud.hovered
+      )
+      renderer = Renderer(client, ClientSettings.load().hudScale)
+      // While an overlay is shown (game menu, end of game), the inputs go to it
+      val ui    = new Ui
+      val leave =
+        backToMenus.map { back => () =>
+          val exit = client.exit; client.leave(); back(exit)
+        }
+      val gameMenu     = GameMenu(client, leave)
+      val endOfGame    = EndOfGame(client, leave)
+      def overlayShown = client.finished || client.menuOpen
+      Love.update = dt => client.update(dt)
+      Love.draw = () => {
+        renderer.draw()
+        if client.finished then ui.frame(endOfGame.draw(ui))
+        else if client.menuOpen then ui.frame(gameMenu.draw(ui))
       }
+      Love.keypressed = (_, scancode, isRepeat) =>
+        if scancode == Fullscreen.key then { if !isRepeat then Fullscreen.toggle() }
+        else if overlayShown then ui.keyPressed(scancode)
+        else if !isRepeat then client.keyPressed(scancode)
+      Love.keyreleased = (_, scancode) => if !overlayShown then client.keyReleased(scancode)
+      Love.mousepressed = (x, y, button, _, _) =>
+        if overlayShown then ui.mousePressed(x, y, button)
+        else if button == 1 then
+          if renderer.hud.startButtonAt(x, y) then client.startCountdown()
+          else
+            renderer.hud.targetAt(x, y) match {
+              case Some(id) => client.selectTarget(id) // a frame of the HUD
+              case None => client.clicked(renderer.toWorld(x, y))
+            }
+      Love.mousereleased = (x, y, button, _, _) =>
+        if overlayShown then ui.mouseReleased(x, y, button)
+        else if button != 1 then
+          client.mouseButtonReleased(button) // the left one targets and places zones
     }
   }
 }

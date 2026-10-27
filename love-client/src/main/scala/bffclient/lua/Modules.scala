@@ -48,6 +48,42 @@ trait WebSocket extends js.Object {
   def close(): Unit     = js.native
 }
 
+/** Non-blocking UDP sockets (src/main/lua/udp.lua). Use [[LuaUDPSocket]] rather than this. */
+@js.native @JSImport("udp", JSImport.Namespace)
+object UdpModule extends js.Object {
+  @JSName("new")
+  def create(): UdpHandle = js.native
+}
+
+@js.native
+trait UdpHandle extends js.Object {
+
+  /** `ok` is false when the address cannot be bound, then `error` says why. A port 0 lets the
+    * system choose, an address null means all of them.
+    */
+  def bind(port: Int, address: String): (ok: Boolean, error: String) = js.native
+
+  def getsockname(): (ip: String, port: Int) = js.native
+
+  /** Sends a datagram (a Lua string) to an IP address or a host name; `ok` is false if it could not
+    * be sent, then `error` says why.
+    */
+  def send(data: String, host: String, port: Int): (ok: Boolean, error: String) = js.native
+
+  /** The next datagram received, if there is one. Never blocks. */
+  def poll(): js.UndefOr[UdpDatagram] = js.native
+
+  def close(): Unit = js.native
+}
+
+/** A datagram received, with the address of its sender. */
+@js.native
+trait UdpDatagram extends js.Object {
+  val data: String = js.native
+  val ip: String   = js.native
+  val port: Int    = js.native
+}
+
 /** Helpers of the ScalaLove runtime. */
 @js.native @JSGlobal("scalalove")
 object ScalaLove extends js.Object {
