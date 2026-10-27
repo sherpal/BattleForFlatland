@@ -123,6 +123,8 @@ lazy val `love-client` = project
   .settings(
     LuaSettings(`lua-linker`),
     LuaSettings.luaPackageTitle     := "Battle for Flatland",
+    // there is also `bffclient.lua.UdpSelfTest`, linked by tools/love-udp-test.sh
+    Compile / mainClass             := Some("bffclient.Main"),
     scalaJSUseMainModuleInitializer := true
   )
   .dependsOn(`shared`.js)

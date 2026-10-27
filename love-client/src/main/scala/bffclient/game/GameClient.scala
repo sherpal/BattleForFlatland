@@ -1,12 +1,8 @@
 package bffclient.game
 
-import java.nio.ByteBuffer
-
 import bffclient.love.{Event, LoveInput}
-import bffclient.lua.{ScalaLove, WebSocket}
 import bffclient.render.{Effects, Smoothing}
-import boopickle.Default.*
-import communication.BFFPicklers.*
+import communication.udp.Connection.Delivery
 import gamelogic.abilities.Ability
 import gamelogic.entities.{Body, Entity, LivingEntity}
 import gamelogic.gameextras.{GameMarker, GameMarkerInfo}
@@ -17,37 +13,26 @@ import gamelogic.physics.Complex
 import models.bff.ingame.{Controls, InGameWSProtocol, UserInput}
 import models.bff.ingame.InGameWSProtocol.*
 
-/** Connects to a real Battle for Flatland game server, plays the start-of-game handshake like the
-  * frontend, keeps a client-side copy of the game state from the server's updates (with our own
+/** Plays on a real Battle for Flatland game server (see [[GameLink]]): plays the start-of-game
+  * handshake like the frontend, keeps a client-side copy of the game state from the server's updates (with our own
   * movements predicted), and sends the player's inputs.
   */
 final class GameClient(
-    ws: WebSocket,
+    link: GameLink,
     user: String,
     headless: Boolean,
     val controls: Controls,
     val controlsInfo: String,
     mouseWorld: () => Complex,
     /** The entity whose frame (in the HUD) is under the mouse. */
-    hovered: () => Option[Entity.Id],
-    /** Simulated round trip latency in seconds (BFF_LAG_MS), half on each way, to try the
-      * prediction.
-      */
-    lag: Double = 0
+    hovered: () => Option[Entity.Id]
 ) {
-  private val incoming = scala.collection.mutable.Queue.empty[(Double, String)]
-  private val outgoing = scala.collection.mutable.Queue.empty[(Double, String)]
-
   private var gatherer: ActionGatherer    = GreedyActionGatherer(GameState.empty)
   var myId: Option[Entity.Id]             = None
   var messagesReceived                    = 0
-  var roundTrip                           = -1L
   private var elapsed                     = 0.0
   private var lastStatus                  = 0.0
-  private var pingCount                   = 0
   private var actionsReceived             = 0
-  private var bytesReceived               = 0L
-  private var clockOffset                 = 0L
   /** When the boss spawned (our `elapsed`). */
   private var gameBeganAt: Option[Double] = None
 
@@ -302,25 +287,23 @@ final class GameClient(
       previousBoss = Some(current)
     }
 
-  /** Estimate of the server's clock (from the ping/pong exchanges), used to interpolate positions.
+  /** Estimate of the server's clock (synchronized when connecting), used to interpolate positions.
     */
-  def serverNow: Long = System.currentTimeMillis() + clockOffset
+  def serverNow: Long = link.serverNow
 
-  private def send(message: InGameWSProtocol): Unit = {
-    val buffer = Pickle.intoBytes[InGameWSProtocol](message)
-    val bytes  = new Array[Byte](buffer.remaining())
-    buffer.get(bytes)
-    if lag > 0 then outgoing.enqueue((elapsed + lag / 2, ScalaLove.bytesToString(bytes)))
-    else ws.send(ScalaLove.bytesToString(bytes))
-  }
+  /** Round trip latency with the server, in milliseconds. */
+  def roundTrip: Long = link.roundTrip
+
+  private def send(message: InGameWSProtocol, delivery: Delivery = Delivery.OrderedReliable): Unit =
+    link.send(message, delivery)
 
   def quit(): Unit = {
-    ws.close()
+    link.close()
     Event.quit(0)
   }
 
-  /** The game ended, or the game server closed the connection. */
-  def finished: Boolean = gameState.ended || !ws.isOpen()
+  /** The game ended, or the connection to the game server was lost. */
+  def finished: Boolean = gameState.ended || !link.isOpen
 
   /** The game menu (opened with Escape). The game goes on, but the player stops moving. */
   var menuOpen = false
@@ -331,14 +314,14 @@ final class GameClient(
   /** How leaving the game now would end it. */
   def exit: GameExit =
     if gameState.ended then GameExit.Ended
-    else if !ws.isOpen() then GameExit.ConnectionLost
+    else if !link.isOpen then GameExit.ConnectionLost
     else GameExit.LeftEarly(onlyHuman = humanPlayers.forall(_ == user))
 
   /** Closes the connection to the game server (e.g. to go back to the menus). */
-  def leave(): Unit = ws.close()
+  def leave(): Unit = link.close()
 
   /** During the fight. */
-  def canSurrender: Boolean = gameState.started && !gameState.ended && ws.isOpen()
+  def canSurrender: Boolean = gameState.started && !gameState.ended && link.isOpen
 
   /** Ends the fight, for everyone: BFF has no surrender, but the game server takes the players'
     * actions as they are, and the game's own `EndGame` ends it (in a defeat, since the boss is alive).
@@ -352,25 +335,15 @@ final class GameClient(
   def update(dt: Double): Unit = {
     elapsed += dt
 
-    var data = ws.poll()
-    while data != null do {
-      incoming.enqueue((elapsed + lag / 2, data))
-      data = ws.poll()
-    }
-    while incoming.nonEmpty && incoming.head._1 <= elapsed do {
-      val (_, message) = incoming.dequeue()
-      bytesReceived += message.length
+    var message = link.poll()
+    while message.isDefined do {
       messagesReceived += 1
-      handle(
-        Unpickle[InGameWSProtocol].fromBytes(ByteBuffer.wrap(ScalaLove.stringToBytes(message)))
-      )
+      handle(message.get)
+      message = link.poll()
     }
-    while outgoing.nonEmpty && outgoing.head._1 <= elapsed do ws.send(outgoing.dequeue()._2)
 
     if elapsed - lastStatus >= 1.0 then {
       lastStatus = elapsed
-      pingCount += 1
-      send(Ping(System.currentTimeMillis(), s"ping-$pingCount"))
       if headless then println(status)
     }
 
@@ -384,11 +357,11 @@ final class GameClient(
     smoothing.update(gameState, serverNow, dt, myId)
     if headless then measureBossJumps()
 
-    if headless && (gameState.ended || elapsed > 60 || !ws.isOpen()) then {
+    if headless && (gameState.ended || elapsed > 60 || !link.isOpen) then {
       println(status)
       println(
         s"Finished: game ended=${gameState.ended}, players won=${gameState.playersWon}, " +
-          s"socket open=${ws.isOpen()}, $messagesReceived messages ($bytesReceived bytes), $actionsReceived actions, " +
+          s"connection open=${link.isOpen}, $messagesReceived messages, $actionsReceived actions, " +
           s"$castsSent casts sent, largest boss jump between frames: " +
           f"${largestBossJumps._1}%.1f (smoothed: ${largestBossJumps._2}%.1f), " +
           f"largest boss turn between frames: ${largestBossTurns._1}%.2f rad (smoothed: ${largestBossTurns._2}%.2f)"
@@ -462,13 +435,19 @@ final class GameClient(
       // while moving (the rotation is rounded, so that tiny mouse moves do not flood the server)
       val rotation         = math.round(facing.arg.value * 50) / 50.0
       val directionChanged = moving && me.direction != action.direction
+      // Starting and stopping must arrive: nothing follows a stop to make up for a lost one. The
+      // others are snapshots of our movement, of which only the latest matters, and can be lost.
+      val startsOrStops = moving != me.moving
       if
-        moving != me.moving || directionChanged || !lastRotationSent.contains(rotation) ||
+        startsOrStops || directionChanged || !lastRotationSent.contains(rotation) ||
         (moving && now - lastMovementSentAt >= 16)
       then {
         lastRotationSent = Some(rotation)
         lastMovementSentAt = now
-        send(GameActionWrapper(Vector(action)))
+        send(
+          GameActionWrapper(Vector(action)),
+          if startsOrStops then Delivery.Reliable else Delivery.Ordered
+        )
       }
       predictedMovement = Some(action)
     }
@@ -562,10 +541,6 @@ final class GameClient(
       effects.received(toAdd, gatherer.currentGameState, myId)
     case RemoveActions(oldestTime, ids) =>
       gatherer = gatherer.slaveAddAndRemoveActions(Vector.empty, oldestTime, ids)
-    case Pong(originalSendingTime, midwayDistantTime, _) =>
-      val now = System.currentTimeMillis()
-      roundTrip = now - originalSendingTime
-      clockOffset = midwayDistantTime - (originalSendingTime + now) / 2
     case HeartBeat =>
       ()
     case other =>

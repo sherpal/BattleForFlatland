@@ -108,12 +108,13 @@ final class PlayerSessions(
       session.connection.disconnect()
       listener.lost(session.userName)
     }
+    // also answered when the session already existed, since the previous answer may have been lost, and
+    // before the listener sends anything to the player, so that Accepted comes first (most of the time)
+    reply(from, Envelope.accepted)
     newSession.foreach { session =>
       session.connection.connect(pingDelay)
       listener.connected(userName)
     }
-    // also answered when the session already existed, since the previous answer may have been lost
-    reply(from, Envelope.accepted)
   }
 
   private def lost(userName: String, peer: Peer): Unit = {

@@ -28,7 +28,7 @@ The code (`src/main/scala/bffclient`) is organised by package:
 * `menu` holds the menus' screens and the menu server's API;
 * `ui` is a small immediate mode UI toolkit;
 * `love` holds the facades of LÖVE's API (with `LoveInput`), and `lua` those of our own Lua modules
-  (`src/main/lua`: `websocket.lua`, `http.lua`, `images.lua`, and `conf.lua`, LÖVE's configuration).
+  (`src/main/lua`: `websocket.lua`, `http.lua`, `udp.lua`, `images.lua`, and `conf.lua`, LÖVE's configuration).
 
 The images (`src/main/lua/assets`) come from the former browser frontend; `luaLink` copies them
 next to `main.lua` with the Lua modules. Without an image, the client draws shapes instead.
@@ -68,6 +68,25 @@ The UI toolkit (`ui/Ui.scala`) is immediate mode: every frame, the screens call 
 themselves and return what happened, e.g. `if ui.button("Join", rect) then join()`. It has labels,
 wrapped text, panels, buttons, text fields (UTF-8 aware, with keyboard focus), check boxes,
 `< value >` selectors, segmented buttons and colour swatches; screens position widgets with `Rect`s.
+
+## UDP
+
+`udp.lua` gives non-blocking UDP sockets on top of LuaSocket, and `LuaUDPSocket` (package `lua`) is the
+game's `UDPSocket` (`shared`) on top of it, so that `communication.udp.Connection` and `Envelope` can be
+used as they are, like the game server does. There are no threads: the datagrams received are
+collected at the start of every frame (with the timers, see `lua-linker`) and given to the message
+callback, so a message is seen up to a frame late. A socket that never `bind`s gets a port from the
+system when it first sends. Sending to a host name resolves it first, which blocks, once per name.
+`tools/love-udp-test.sh` checks all of that in LÖVE, on the loopback interface, `Connection` included.
+
+The game is played over UDP (`game/GameLink.scala`): the client says hello to the game server (port
+22222, in UDP) with its credentials, until the server answers (`Envelope`), then synchronizes its
+clock with the server's (`Connection.computeLinkTime`), and only then starts the game, whose messages
+all go through a `Connection`: the ones that have to arrive do (`OrderedReliable`: the handshake, the
+actions the server sends, our casts), our position is sent as often as before but is allowed to get
+lost (`Ordered`: only the latest matters), except when starting or stopping (`Reliable`). The
+connection is deemed lost when the server does not talk for 20 to 30 seconds. The websocket of the game
+server is not used by the client anymore.
 
 ## The game
 
@@ -154,8 +173,13 @@ tools/love-client-test.sh --screenshot 50,100 "text@10:alice,return@20,click@70:
 Headless (`BFF_HEADLESS`), the menus are scripted (`MenuSession.scala`): log in, create a game, pick
 `BFF_CLASS` and get ready, choose `BFF_BOSS`, start, play; the client walks and casts a bit, logs
 its status every second, and quits at the end of the game. `BFF_LAG_MS` simulates a round trip of
-latency (half on each way), e.g. `BFF_LAG_MS=300 tools/love-client-test.sh --window`.
+latency (half on each way), e.g. `BFF_LAG_MS=300 tools/love-client-test.sh --window`, and
+`BFF_LOSS_PERCENT` the loss of that percentage of the datagrams, in both directions (they are applied
+to the game's UDP socket, `DelayedUDPSocket`).
 `BFF_CLIENT=<launcher>` plays with another client, e.g. the Linux package.
+
+`tools/love-udp-test.sh` links `bffclient.lua.UdpSelfTest` instead of the client, and runs it headless:
+it checks the UDP sockets (see above), with no server involved.
 
 `tools/screenshot` runs a LÖVE game with scripted inputs (keys, clicks, mouse moves, text, wheel)
 and takes screenshots at given frames (see its `main.lua`).
@@ -189,10 +213,10 @@ codesign --force --deep --sign - "Battle for Flatland.app"
 
 To host the game, run the menu server and the game server launcher as usual (`server/reStart`
 listens on all interfaces; not with `-DisProd=false`, which only listens on 127.0.0.1), and forward
-TCP ports **9000** (menu server) and **22222** (game servers) of the router to that machine (and
-open them in its firewall, if any). The launcher's port (22223) stays private. Players then type
+the TCP port **9000** (menu server) and the **UDP** port **22222** (game servers) of the router to
+that machine (and open them in its firewall, if any). The launcher's port (22223) stays private. Players then type
 the router's public address on the login screen, e.g. `81.12.34.56`; the game server is reached at
 the same address. When the address changes, they type the new one (or use a dynamic DNS name: host
 names work too). There are no passwords: anyone with the address can log in, with any pseudo.
 
-The connection is plain HTTP and websockets (LuaSocket has no TLS).
+The connections are plain HTTP, websockets and UDP (LuaSocket has no TLS).
