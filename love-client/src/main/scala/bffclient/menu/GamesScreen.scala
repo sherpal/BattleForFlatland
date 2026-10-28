@@ -78,7 +78,7 @@ final class GamesScreen(app: MenuApp, user: User)(using ExecutionContext) extend
       case None => ()
     }
 
-    if ui.button("Controls", Rect(width - 170, 105, 130, 40)) then app.showControls()
+    if ui.button("Settings", Rect(width - 170, 105, 130, 40)) then app.showSettings()
 
     val table   = Rect(40, 180, width - 80, height - 220)
     val columns = Seq("Name" -> 0.0, "Created by" -> 0.4, "Players" -> 0.65)

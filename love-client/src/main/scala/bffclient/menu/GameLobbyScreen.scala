@@ -123,9 +123,12 @@ final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using Exec
     app.attempt(added)(_ => busy = false, _ => busy = false)
   }
 
-  def draw(ui: Ui): Unit = game match {
-    case None => ui.loading("Loading the game", 40, 40)
-    case Some(g) => drawGame(ui, g)
+  def draw(ui: Ui): Unit = {
+    hosting.prefetch() // hosting may have been turned on in the settings
+    game match {
+      case None => ui.loading("Loading the game", 40, 40)
+      case Some(g) => drawGame(ui, g)
+    }
   }
 
   private def drawGame(ui: Ui, g: MenuGameWithPlayers): Unit = {
@@ -263,7 +266,7 @@ final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using Exec
     // Actions
     val bar = height - 70
     if ui.button("Leave game", Rect(left, bar, 150, 44), enabled) then leaveGame()
-    if ui.button("Controls", Rect(left + 160, bar, 130, 44)) then app.showControls()
+    if ui.button("Settings", Rect(left + 160, bar, 130, 44)) then app.showSettings()
     drawDownload(ui, Rect(left + 310, bar + 6, 260, 32))
     if amICreator then {
       // Like the menu server, which picks the classes of the AIs: all the players' classes count

@@ -3,7 +3,7 @@ package bffclient.menu
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-import bffclient.controls.ControlsEditor
+import bffclient.controls.SettingsEditor
 import bffclient.game.{GameAccess, GameExit}
 import bffclient.love.{Fullscreen, Graphics, Keyboard, Love, Timer}
 import bffclient.ui.*
@@ -37,17 +37,17 @@ final class MenuApp(val server: Option[String], startGame: (GameAccess, GameExit
   private var screen: Screen        = new LoginScreen(this)
   private var notification: Option[(String, Boolean, Double)] = None
 
-  /** The controls, over the current screen (which stays open, e.g. the lobby and its websocket). */
-  private var controlsEditor = Option.empty[ControlsEditor]
+  /** The settings, over the current screen (which stays open, e.g. the lobby and its websocket). */
+  private var settingsEditor = Option.empty[SettingsEditor]
 
-  def showControls(): Unit = controlsEditor = Some(new ControlsEditor(() => controlsEditor = None))
+  def showSettings(): Unit = settingsEditor = Some(SettingsEditor(() => settingsEditor = None))
 
   def install(): Unit = {
     Keyboard.setKeyRepeat(true)
     Love.draw = () => {
       Graphics.setBackgroundColor(Theme.background.r, Theme.background.g, Theme.background.b)
       ui.frame {
-        controlsEditor match {
+        settingsEditor match {
           case Some(editor) =>
             ui.inert(screen.draw(ui))
             val (width, height) = size
@@ -100,7 +100,7 @@ final class MenuApp(val server: Option[String], startGame: (GameAccess, GameExit
     * it.
     */
   def gameStarts(access: GameAccess, user: User, lobby: Option[Lobby]): Unit = {
-    controlsEditor = None
+    settingsEditor = None
     screen = new Screen {
       def draw(ui: Ui): Unit = ui.loading("Connecting to the game server", 40, 40)
     }
