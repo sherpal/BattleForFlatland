@@ -165,8 +165,32 @@ object Event extends js.Object {
 object Filesystem extends js.Object {
 
   /** Null if the file does not exist. */
-  def getInfo(path: String): js.Any                                          = js.native
+  def getInfo(path: String): FileInfo                                        = js.native
   def read(path: String): (contents: String, size: Any)                      = js.native
   def write(path: String, data: String): (success: Boolean, message: String) = js.native
   def getSaveDirectory(): String                                             = js.native
+
+  /** In the save directory. */
+  def createDirectory(path: String): Boolean = js.native
+
+  def getDirectoryItems(path: String): LuaSequence[String] = js.native
+
+  def remove(path: String): Boolean = js.native
+}
+
+@js.native
+trait FileInfo extends js.Object {
+
+  /** "file", "directory", "symlink" or "other". */
+  @JSName("type")
+  val kind: String = js.native
+}
+
+@js.native @JSGlobal("love.system")
+object LoveSystem extends js.Object {
+
+  /** "OS X", "Windows", "Linux", "Android" or "iOS". */
+  def getOS(): String = js.native
+
+  def getProcessorCount(): Int = js.native
 }

@@ -10,9 +10,8 @@ sbt love-client/luaLink   # writes the program in love-client/target/lua
 sbt love-client/luaRun    # links it and runs it with LÖVE (`love` must be installed)
 ```
 
-To play, the menu server and the game server launcher must run (see the main README). On the login
-screen, type the menu server's address (`127.0.0.1` locally; `host` or `host:port`, port 9000 by
-default).
+To play, the menu server must run (see the main README). On the login screen, type the menu
+server's address (`127.0.0.1` locally; `host` or `host:port`, port 9000 by default).
 
 ## Code organisation
 
@@ -26,9 +25,10 @@ The code (`src/main/scala/bffclient`) is organised by package:
   end of game);
 * `controls` loads, saves and edits the controls and the client's settings;
 * `menu` holds the menus' screens and the menu server's API;
+* `hosting` runs the game server on this computer, when the menu server chooses us to;
 * `ui` is a small immediate mode UI toolkit;
 * `love` holds the facades of LÖVE's API (with `LoveInput`), and `lua` those of our own Lua modules
-  (`src/main/lua`: `websocket.lua`, `http.lua`, `udp.lua`, `images.lua`, and `conf.lua`, LÖVE's configuration).
+  (`src/main/lua`: `websocket.lua`, `http.lua`, `udp.lua`, `process.lua`, `images.lua`, and `conf.lua`, LÖVE's configuration).
 
 The images (`src/main/lua/assets`) come from the former browser frontend; `luaLink` copies them
 next to `main.lua` with the Lua modules. Without an image, the client draws shapes instead.
@@ -49,7 +49,8 @@ The screens (package `menu`, one file per screen) are:
   join one (or join back the one you are in);
 * **game lobby**: the players with their class, colour and readiness; choose your class and colour,
   get ready; the creator chooses the boss, kicks players, adds AIs and launches the game once
-  `GameConfiguration.validate` has nothing to say. The game server credentials then arrive on the
+  `GameConfiguration.validate` has nothing to say. One of the players' clients then runs the game
+  server (see "Hosting the game server" below), its addresses and our credentials arrive on the
   lobby websocket, and the game starts. The panel on the right (`DocsPanel`) documents the boss and
   the classes (life, resource, description, and each ability with its icon, cast time, cooldown and
   cost); it scrolls with the mouse wheel.
@@ -79,8 +80,10 @@ callback, so a message is seen up to a frame late. A socket that never `bind`s g
 system when it first sends. Sending to a host name resolves it first, which blocks, once per name.
 `tools/love-udp-test.sh` checks all of that in LÖVE, on the loopback interface, `Connection` included.
 
-The game is played over UDP (`game/GameLink.scala`): the client says hello to the game server (port
-22222, in UDP) with its credentials, until the server answers (`Envelope`), then synchronizes its
+The game is played over UDP (`game/GameLink.scala`): the client punches every address of the game
+server it was given, and registers at the menu server's rendezvous meanwhile, so that the game server
+punches back through its NAT (`Rendezvous`, see [game-hosting.md](../game-hosting.md)). It says hello
+to the first address that answers, with its credentials, until the server answers (`Envelope`), then synchronizes its
 clock with the server's (`Connection.computeLinkTime`), and only then starts the game, whose messages
 all go through a `Connection`: the ones that have to arrive do (`OrderedReliable`: the handshake, the
 actions the server sends, our casts), our position is sent as often as before but is allowed to get
@@ -148,20 +151,42 @@ with fonts of the scaled size, so that they stay sharp.
 **Game menu and end of the game.** Escape opens a menu with "Resume", "Surrender", "Fullscreen",
 "Leave game" and "Quit"; the game goes on meanwhile. Surrendering (confirmed with a second click)
 ends the fight in a defeat for everyone: the client sends the game's own `EndGame` action, and the
-end of the game arrives like any other. Leaving goes back to the menus; the game's server is stopped
-only if we are its only human player. When the game ends (or the connection is lost), an overlay
-shows the outcome, with "Back to menus" and "Quit". Going back stops the game's server through the
-menu server (game servers do not stop by themselves after their game, and all use port 22222) and
-leaves the game (the menu server never ends games by itself, so the players would otherwise stay
-"already playing").
+end of the game arrives like any other. Leaving goes back to the menus. When the game ends (or the
+connection is lost), an overlay shows the outcome, with "Back to menus" and "Quit". Going back leaves
+the game (the menu server never ends games by itself, so the players would otherwise stay "already
+playing"). The game server stops by itself a minute after everyone left it.
+
+## Hosting the game server
+
+When the game is launched, the menu server asks every client for its candidacy to run the game
+server (`hosting/HostingAgent.scala`): whether the menu server has a Java runtime for its platform
+(`linux-x64`, `macos-arm64`, ... from `love.system.getOS()` and LuaJIT's `jit.arch`), the version of
+the `java` of the computer, if any (BFF_JAVA, otherwise the one of the PATH), whether it has everything
+already, the number of processors, and how long a request to the menu server takes. It chooses one of
+them, whose client runs the game server's jar in the background, its output going to
+`game-servers/game-server.log` in LÖVE's save directory (`hosting/GameServerHost.scala`).
+
+The clients download the jar and the Java runtime (a tar.gz, unpacked with `tar`) from the menu
+server as soon as they enter the game's lobby (once per version, into `game-servers/` there, on an
+HTTP worker of its own so that the menus' requests are not delayed), so that they are most likely
+there when the game is launched. The lobby shows the progress of the download (the menu server gives
+their size with their version). Their version is their SHA-256 (for the runtime, the one of its
+manifest, `bff-runtime.sha256`, which has the SHA-256 of each of its files): the client checks them
+against it, after the download and on its next runs (with LÖVE's `love.data.hash`, on a thread of its
+own, `digest.lua`), and downloads them again when they do not match. Without a runtime for its
+platform, the client runs the game server with the `java` of the computer, if it is 17 or later.
+BFF_GAME_SERVER_JAR runs that jar instead, and BFF_JAVA that `java` (without the runtime). Shell
+commands run on a LÖVE thread (`process.lua`), so the menus never block. The game server outlives the
+client that started it (the others may still be playing).
 
 ## Testing
 
 `tools/love-client-test.sh` (at the root of the repository) runs the menu server (from a temporary
-directory, where it keeps its JSON files) and the game server launcher from their sbt classpaths,
-plays a game with the client, then stops everything. It needs `sbt game-server/assembly
-love-client/luaLink` first, and refuses to run if the servers' ports are taken (e.g. by servers
-started by hand).
+directory, where it keeps its JSON files) from its sbt classpath, plays a game with the client (which
+hosts it: it downloads the game server from the menu server and runs it), then stops everything. It
+needs `sbt game-server/assembly love-client/luaLink` first (and `game-server/gameServerRuntimes` for the
+client to run the game server with the Java runtime, rather than with `java`), and refuses to run if
+the menu server's port is taken (e.g. by a server started by hand).
 
 ```bash
 tools/love-client-test.sh            # headless, scripted menus
@@ -211,12 +236,15 @@ xattr -cr "Battle for Flatland.app"
 codesign --force --deep --sign - "Battle for Flatland.app"
 ```
 
-To host the game, run the menu server and the game server launcher as usual (`server/reStart`
-listens on all interfaces; not with `-DisProd=false`, which only listens on 127.0.0.1), and forward
-the TCP port **9000** (menu server) and the **UDP** port **22222** (game servers) of the router to
-that machine (and open them in its firewall, if any). The launcher's port (22223) stays private. Players then type
-the router's public address on the login screen, e.g. `81.12.34.56`; the game server is reached at
-the same address. When the address changes, they type the new one (or use a dynamic DNS name: host
-names work too). There are no passwords: anyone with the address can log in, with any pseudo.
+To host the menu server, run it as usual (`server/reStart` listens on all interfaces; not with
+`-DisProd=false`, which only listens on 127.0.0.1), and forward the port **9000**, in **TCP** (menu
+server) and in **UDP** (rendezvous), of the router to that machine (and open them in its firewall, if
+any). Players then type the router's public address on the login screen, e.g. `81.12.34.56`. When the
+address changes, they type the new one (or use a dynamic DNS name: host names work too). There are no
+passwords: anyone with the address can log in, with any pseudo.
+
+The game servers run on the players' computers, and need no port forwarding: the players reach them
+through UDP hole punching (see [game-hosting.md](../game-hosting.md)). The host's firewall may ask
+whether to let `java` receive connections (it must).
 
 The connections are plain HTTP, websockets and UDP (LuaSocket has no TLS).

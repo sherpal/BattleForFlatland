@@ -61,8 +61,14 @@ def changeGameMetadata(
 def launchGame(
     requester: User,
     gameId: String
-): ZIO[MenuGames, Nothing, Either[ErrorADT, Unit]] =
+): ZIO[MenuGames, Nothing, Either[ErrorADT, GameCredentialsWithGameInfo]] =
   ZIO.serviceWithZIO[MenuGames](_.launchGame(requester, gameId))
+
+def cancelLaunch(gameId: String): ZIO[MenuGames, Nothing, Unit] =
+  ZIO.serviceWithZIO[MenuGames](_.cancelLaunch(gameId))
+
+def gameCredentials(gameId: String): ZIO[MenuGames, Nothing, Option[GameCredentialsWithGameInfo]] =
+  ZIO.serviceWithZIO[MenuGames](_.gameCredentials(gameId))
 
 def retrieveAllGameCredentials(
     gameId: String,

@@ -13,6 +13,7 @@ import bffclient.render.Renderer
 import gamelogic.physics.Complex
 import models.bff.outofgame.PlayerClasses
 import bffclient.ui.Ui
+import communication.udp.Peer
 
 /** The LÖVE client of Battle for Flatland: the menus, then the game ([[GameClient]]), drawn by the
   * [[Renderer]] with its HUD and overlays.
@@ -54,8 +55,8 @@ object Main {
       case None if headless || Os.getenv("BFF_HOST") != null =>
         startGame(
           GameAccess(
-            env("BFF_HOST", "localhost"),
-            env("BFF_PORT", "22223").toInt,
+            Vector(Peer(env("BFF_HOST", "localhost"), env("BFF_PORT", "22222").toInt)),
+            None,
             user,
             env("BFF_GAME_ID", "game"),
             env("BFF_SECRET", "secret")
@@ -78,7 +79,7 @@ object Main {
       headless: Boolean,
       backToMenus: Option[GameExit => Unit] = None
   ): Unit = {
-    println(s"Connecting to the game server at ${access.host}:${access.port} (UDP)")
+    println(s"Connecting to the game server at ${access.addresses.mkString(", ")} (UDP)")
     val lag = env("BFF_LAG_MS", "0").toDouble / 1000
     if lag > 0 then println(s"Simulated latency: ${lag * 1000} ms round trip")
     val loss = env("BFF_LOSS_PERCENT", "0").toInt

@@ -7,16 +7,19 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 
 import bffclient.lua.LuaUDPSocket
 import communication.BFFPicklers.*
-import communication.udp.{Connection, Envelope, Peer, TimersImpl, UDPSocket}
+import communication.udp.{Connection, Envelope, Peer, Rendezvous, TimersImpl, UDPSocket}
 import communication.udp.Connection.Delivery
 import models.bff.ingame.{GameUserCredentials, InGameWSProtocol}
 
 /** The connection to a game server, through UDP (see `communication.udp`).
   *
-  * It is opened by [[GameLink.open]]: we say hello to the game server (until it answers) with our
-  * credentials, then synchronize our clock with its clock. Then messages can be sent, and the ones
-  * received are collected until they are [[poll]]ed, so none is lost while the game is being set
-  * up. The connection is deemed lost (see [[isOpen]]) when the server does not talk for a while.
+  * It is opened by [[GameLink.open]]: we punch all the addresses of the game server, and register
+  * at the rendezvous meanwhile, so that it can open its NAT to us (see [[Rendezvous]]). The first
+  * of its addresses that answers is the one we say hello to (until it answers) with our
+  * credentials. Then we synchronize our clock with its clock. Then messages can be sent, and the
+  * ones received are collected until they are [[poll]]ed, so none is lost while the game is being
+  * set up. The connection is deemed lost (see [[isOpen]]) when the server does not talk for a
+  * while.
   */
 final class GameLink private (access: GameAccess, lag: Double, lossPercent: Int) {
   import GameLink.*
@@ -33,38 +36,84 @@ final class GameLink private (access: GameAccess, lag: Double, lossPercent: Int)
   private var closed    = false
   private var forgotten = false // the server answered that it does not know us (anymore)
 
-  private val connection = Connection[InGameWSProtocol](
-    Peer(access.host, access.port),
-    Envelope.DataSocket(socket),
-    timers,
-    inbox.enqueue(_),
-    () => println("The game server stopped talking.")
-  )
+  private var registered = false // at the rendezvous
+
+  /** The first address of the game server that answered our punches. */
+  private var server = Option.empty[Peer]
+
+  /** Once the game server accepted us. */
+  private var connection = Option.empty[Connection[InGameWSProtocol]]
 
   socket.setMessageCallback(receive)
 
-  /** Only datagrams from the game server count. We can only tell for sure when it was given as an
-    * IP address (the port is checked in any case).
+  private val credentials = GameUserCredentials(access.userName, access.gameId, access.secret)
+
+  /** Whether a datagram from `from` comes from `address`. We can only tell for sure when it was
+    * given as an IP address (the port is checked in any case).
     */
-  private def fromServer(from: Peer): Boolean =
-    from.port == access.port && (!isIpAddress(access.host) || from.address == access.host)
+  private def isFrom(address: Peer, from: Peer): Boolean =
+    from.port == address.port && (!isIpAddress(address.address) || from.address == address.address)
+
+  /** The connection with the game server, if `from` is its address (created when it first answers
+    * our hello, with Accepted, or Data, the datagrams being what they are).
+    */
+  private def connectionWith(from: Peer): Option[Connection[InGameWSProtocol]] =
+    server.filter(isFrom(_, from)).map { server =>
+      connection.getOrElse {
+        val created = Connection[InGameWSProtocol](
+          server,
+          Envelope.DataSocket(socket),
+          timers,
+          inbox.enqueue(_),
+          () => println("The game server stopped talking.")
+        )
+        connection = Some(created)
+        created
+      }
+    }
 
   private def receive(datagram: Array[Byte], from: Peer): Unit =
-    if fromServer(from) then
+    if Rendezvous.isRendezvous(datagram) then
+      Rendezvous.parse(datagram).foreach {
+        case Rendezvous.Packet.Registered(seenAs)
+            if access.rendezvous.exists(isFrom(_, from)) && !registered =>
+          registered = true
+          println(s"Registered at the rendezvous, which sees us as $seenAs")
+        case Rendezvous.Packet.Punch
+            if server.isEmpty && access.addresses.exists(isFrom(_, from)) =>
+          println(s"The game server answers at $from")
+          server = Some(from)
+          sendHello()
+        case _ => ()
+      }
+    else
       Envelope.parse(datagram).foreach {
-        // Data can come before Accepted, the datagrams being what they are
-        case Envelope.Packet.Data(payload) => connection.onMessage(payload)
-        case Envelope.Packet.Accepted => accepted.trySuccess(())
+        case Envelope.Packet.Data(payload) => connectionWith(from).foreach(_.onMessage(payload))
+        case Envelope.Packet.Accepted =>
+          if connectionWith(from).isDefined then accepted.trySuccess(())
         case Envelope.Packet.Rejected(reason) =>
-          if accepted.isCompleted then forgotten = true
-          else accepted.tryFailure(new IOException(rejection(reason)))
+          if server.exists(isFrom(_, from)) then
+            if accepted.isCompleted then forgotten = true
+            else accepted.tryFailure(new IOException(rejection(reason)))
         case Envelope.Packet.Hello(_) => ()
       }
 
+  private val hello    = Envelope.hello(credentials)
+  private val punch    = Rendezvous.encode(Rendezvous.Packet.Punch)
+  private val register = Rendezvous.encode(Rendezvous.Packet.PlayerRegister(credentials))
+
+  /** Punches every address of the game server until one answers, then says hello to that one. */
+  private def sendHello(): Unit = server match {
+    case Some(server) => socket.send(hello, server.port, server.address)
+    case None =>
+      access.addresses.foreach(address => socket.send(punch, address.port, address.address))
+      if !registered then
+        access.rendezvous.foreach(rendezvous =>
+          socket.send(register, rendezvous.port, rendezvous.address)
+        )
+  }
+
   private def start()(using ExecutionContext): Future[GameLink] = {
-    val hello =
-      Envelope.hello(GameUserCredentials(access.userName, access.gameId, access.secret))
-    def sendHello(): Unit = socket.send(hello, access.port, access.host)
     sendHello()
     // Datagrams get lost, so we say it again until the server answers
     val helloTimer = timers.setInterval(HelloInterval)(sendHello())
@@ -72,8 +121,9 @@ final class GameLink private (access: GameAccess, lag: Double, lossPercent: Int)
     val clockSynchronized = Promise[Long]()
     val result = for
       _ <- timers.within("the game server does not answer", HandshakeTimeout)(accepted.future)
-      _ = helloTimer.cancel()
-      _ = connection.connect()
+      _          = helloTimer.cancel()
+      connection = this.connection.get
+      _          = connection.connect()
       _ = connection.computeLinkTime(
         ClockSyncInterval,
         ClockSyncSamples,
@@ -98,31 +148,32 @@ final class GameLink private (access: GameAccess, lag: Double, lossPercent: Int)
 
   /** Sends a message to the game server. The default is for what has to arrive, in order. */
   def send(message: InGameWSProtocol, delivery: Delivery = Delivery.OrderedReliable): Unit =
-    if isOpen then connection.send(message, delivery)
+    if isOpen then connection.foreach(_.send(message, delivery))
 
   /** The next message received, if any. */
   def poll(): Option[InGameWSProtocol] = Option.when(inbox.nonEmpty)(inbox.dequeue())
 
-  def isOpen: Boolean = !closed && !forgotten && connection.connected
+  def isOpen: Boolean = !closed && !forgotten && connection.exists(_.connected)
 
   /** The game server's clock (in milliseconds since the epoch, as `System.currentTimeMillis` on the
     * server), estimated.
     */
-  def serverNow: Long = connection.linkTime
+  def serverNow: Long = connection.fold(System.currentTimeMillis())(_.linkTime)
 
   /** Latency of the connection, there and back, in milliseconds. */
-  def roundTrip: Long = 2L * connection.meanLatency
+  def roundTrip: Long = connection.fold(0L)(2L * _.meanLatency)
 
   def close(): Unit = if !closed then {
     closed = true
-    connection.disconnect()
+    connection.foreach(_.disconnect())
     socket.close()
   }
 }
 
 object GameLink {
   private val HelloInterval     = 500
-  private val HandshakeTimeout  = 10000
+  // the game server may need a moment to open its NAT to us (see Rendezvous)
+  private val HandshakeTimeout  = 15000
   private val ClockSyncInterval = 50
   private val ClockSyncSamples  = 10
   private val ClockSyncTimeout  = 15000

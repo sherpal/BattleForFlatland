@@ -14,11 +14,12 @@ import menus.data.ChangePlayerInfoFormData
 import io.circe.Encoder
 import menus.data.MenuGameComm
 import services.events
+import services.hostelections
 import java.util.concurrent.atomic.AtomicBoolean
 import menus.data.*
 
 //noinspection TypeAnnotation
-class MenuGameRoutes()(using
+class MenuGameRoutes(rendezvousPort: Int)(using
     val runtime: zio.Runtime[BackendEnv],
     ac: castor.Context,
     log: cask.util.Logger
@@ -38,11 +39,26 @@ class MenuGameRoutes()(using
   @loggedIn()
   @readBody[GameIdFormData]
   @caskz.postJ[APIResponse[Boolean]]("api/bff/start-game")
-  def launchGame()(body: GameIdFormData)(user: User) = (for {
-    _      <- events.dispatchEvent(events.Event.GameStarted(body.gameId))
-    result <- menugames.launchGame(user, body.gameId)
-    _      <- ZIO.fromEither(result)
-  } yield true).either.map(APIResponse.fromEither)
+  def launchGame()(body: GameIdFormData)(user: User) =
+    programs
+      .launchGame(user, body.gameId, rendezvousPort)
+      .as(true)
+      .either
+      .map(APIResponse.fromEither)
+
+  @loggedIn()
+  @readBody[HostCandidacy]
+  @caskz.postJ[APIResponse[Boolean]]("api/bff/host-candidacy")
+  def hostCandidacy()(body: HostCandidacy)(user: User) =
+    hostelections.candidacy(user, body).map(result => APIResponse.fromEither(result.map(_ => true)))
+
+  @loggedIn()
+  @readBody[HostFailedFormData]
+  @caskz.postJ[APIResponse[Boolean]]("api/bff/host-failed")
+  def hostFailed()(body: HostFailedFormData)(user: User) =
+    programs
+      .hostFailed(body.gameId, user.name, s"${user.name}: ${body.reason}", rendezvousPort)
+      .as(APIResponse.fromEither(Right(true)))
 
   @loggedIn()
   @readBody[JoinGameFormData]
@@ -146,10 +162,14 @@ class MenuGameRoutes()(using
             )
           )
 
+          // whether the event is about our game
+          def ours(eventGameId: String) = gameId.contains[String](eventGameId)
+
           val registerEvents = events
             .registerEvents[
               events.Event.GameDataRefreshed | events.Event.GameStarted |
-                events.Event.GameCredentials
+                events.Event.HostCandidacyRequested | events.Event.HostElected |
+                events.Event.GameLaunchFailed | events.Event.GameCredentials
             ](isOpenZIO) {
               case events.Event.GameDataRefreshed(maybeGameId)
                   // we are interested in this event if
@@ -158,17 +178,32 @@ class MenuGameRoutes()(using
                   // - maybeGameId is the exact gameId I care about
                   if gameId.forall(id => maybeGameId.forall(_ == id)) =>
                 ZIO.whenZIO(isOpenZIO)(sendMsg(MenuGameComm.DataUpdated())).unit
-              case events.Event.GameStarted(gameId) =>
+              case events.Event.GameStarted(startedGameId) if ours(startedGameId) =>
                 sendMsg(MenuGameComm.GameStarted())
-              case events.Event.GameCredentials(creds, port)
-                  if gameId.contains[String](creds.gameCredentials.gameId) =>
+              case events.Event.HostCandidacyRequested(electionGameId) if ours(electionGameId) =>
+                sendMsg(MenuGameComm.HostCandidacyRequested())
+              case events.Event.HostElected(electedGameId, host, gameSecret, rendezvousPort)
+                  if ours(electedGameId) =>
+                sendMsg(MenuGameComm.HostElected(host)) *> ZIO
+                  .when(host == user.name)(
+                    sendMsg(MenuGameComm.SpawnGameServer(electedGameId, gameSecret, rendezvousPort))
+                  )
+                  .unit
+              case events.Event.GameLaunchFailed(failedGameId, reason) if ours(failedGameId) =>
+                sendMsg(MenuGameComm.GameLaunchFailed(reason))
+              case events.Event.GameCredentials(creds, addresses, host, port, rendezvousPort)
+                  if ours(creds.gameCredentials.gameId) =>
                 creds.allGameUserCredentials.find(_.userName == user.name) match {
                   case Some(userCreds) =>
+                    // the host runs the game server: no need to go through the network
+                    val loopback = Option
+                      .when(host.contains[String](user.name))(GameServerAddress("127.0.0.1", port))
                     sendMsg(
                       MenuGameComm.HereAreYourCredentials(
                         userCreds.gameId,
                         userCreds.userSecret,
-                        port
+                        (loopback.toVector ++ addresses).distinct,
+                        rendezvousPort
                       )
                     )
                   case None =>
@@ -178,8 +213,7 @@ class MenuGameRoutes()(using
                       )
                     )
                 }
-              case _: events.Event.GameCredentials => ZIO.unit // not interested
-              case events.Event.GameDataRefreshed(_) => ZIO.unit // not interested
+              case _ => ZIO.unit // not interested
             }
           val dispatchUserConnected = gameId
             .map(id => events.dispatchEvent(events.Event.UserConnectedSocket(user, id)))

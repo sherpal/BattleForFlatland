@@ -109,7 +109,7 @@ final class MenuApp(val server: Option[String], startGame: (GameAccess, GameExit
 
   /** The menu server never ends games by itself (players stay "already playing" until it sees them
     * disconnected from the lobby for a while), so we leave the game, which deletes it for its
-    * creator.
+    * creator. The game server stops by itself once everyone left it.
     */
   private def backToMenus(
       user: User,
@@ -121,13 +121,8 @@ final class MenuApp(val server: Option[String], startGame: (GameAccess, GameExit
     Love.keyreleased = null
     install()
     exit match {
-      case GameExit.Ended | GameExit.LeftEarly(true) =>
-        // Fails when another player stopped it already
-        api
-          .stopGameServer(gameId)
-          .failed
-          .foreach(failure => println(s"[menu] Game server not stopped: ${failure.getMessage}"))
-      case GameExit.LeftEarly(false) => () // the others go on playing
+      // the game server stops by itself once everyone left
+      case GameExit.Ended | GameExit.LeftEarly(_) => ()
       case GameExit.ConnectionLost =>
         notify("The connection to the game server was lost", isError = true)
       case GameExit.CannotConnect(error) =>

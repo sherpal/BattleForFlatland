@@ -3,6 +3,7 @@ package bffclient.menu
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
 import bffclient.game.GameAccess
+import bffclient.hosting.HostingAgent
 import menus.data.*
 import models.bff.outofgame.PlayerClasses
 import models.bff.outofgame.gameconfig.*
@@ -10,7 +11,8 @@ import utils.misc.RGBColour
 
 /** Plays the menus against the menu server like the frontend does, without a UI (for headless
   * runs): logs in, creates a game, chooses a class and gets ready, picks the boss, starts the game
-  * and waits for the game server credentials (pushed on the lobby websocket).
+  * (running the game server if chosen to) and waits for the game server credentials (pushed on the
+  * lobby websocket).
   */
 final class MenuSession(
     api: MenuApi,
@@ -30,12 +32,17 @@ final class MenuSession(
     games <- api.games
     _ = info(s"${games.size} game(s) on the server")
     game <- api.createGame(s"ScalaLove ${System.currentTimeMillis()}")
-    _ = info(s"Created game '${game.game.gameName}' (${game.id})")
+    _       = info(s"Created game '${game.game.gameName}' (${game.id})")
+    hosting = HostingAgent(api, game.id, userName, info)
     _ <- api.lobby(Some(game.id)) {
-      case MenuGameComm.HereAreYourCredentials(id, secret, port) =>
-        credentials.trySuccess(GameAccess(api.host, port, userName, id, secret))
-      case MenuGameComm.GameStarted() => info("<- GameStarted")
+      case received: MenuGameComm.HereAreYourCredentials =>
+        credentials.trySuccess(api.gameAccess(userName, received))
+      case MenuGameComm.GameLaunchFailed(reason) =>
+        credentials.tryFailure(new Exception(s"The game could not start: $reason"))
       case MenuGameComm.DataUpdated() => ()
+      case other =>
+        info(s"<- $other")
+        hosting.handle(other)
     }
     _ = info("Lobby websocket connected")
     _ <- api.changePlayerInfo(game.id, readyPlayerInfo)
@@ -47,7 +54,7 @@ final class MenuSession(
     started <- api.startGame(game.id)
     _ = info(s"Start game: $started, waiting for the game server...")
     access <- credentials.future
-    _ = info(s"Game server ready on port ${access.port}")
+    _ = info(s"Game server ready at ${access.addresses.mkString(", ")}")
   yield access
 
   private def readyPlayerInfo = PlayerInfo(

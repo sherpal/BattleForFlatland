@@ -44,43 +44,40 @@ In order to proceed, make sure you have sbt and [LÖVE](https://love2d.org) (11.
 
 The game's client is a LÖVE game written in Scala, in the `love-client` sub-project (see [its README](love-client/README.md)), compiled to Lua by the `lua-linker` sub-project (see [its README](lua-linker/README.md)).
 
-### Set up the game server launcher
+### How games are run
 
-While in development, we have a "game-server-launcher" to launch the game servers when a game is launched. 
-This is a kind of a "mock up" for a more robust setup, involving, e.g., an Azure gaming service.
+When a game is launched, its game server runs on the computer of one of its players, chosen by the menu server (the "host"): their client downloads the game server's jar from the menu server and runs it with the Java runtime that it also downloads from the menu server.
+See [game-hosting.md](game-hosting.md) for the details (the election of the host, and how the players reach the game server through their NATs).
 
-The `game-server-launcher` sub-project is a cask server dedicated to launch games servers on demand.
-This project should basically not change (or very few) and hence, even in dev, we package it as a fat jar and launch that.
-
-Run
-
-```
-sbt game-server-launcher/assembly
-```
-
-Then run, from the root of the project (the launcher looks for the game server jar relatively to it)
-
-```
-java -jar .\game-server-launcher\target\game-server-launcher.jar
-```
+The players download both as soon as they enter a game's lobby (once per version), and check them against their SHA-256, given by the menu server.
+Without a Java runtime for their platform, the players need Java 17 or later to host (the `java` command, or the one given by `BFF_JAVA`); if nobody can host, the game cannot start.
 
 ### Compile the game server
 
-The game-server-launcher will launch the fat game-server jar. You can obtained the latter with
+The menu server gives the players the fat game-server jar, which you obtain with
 
 ```
 sbt game-server/assembly
 ```
 
-The jar is written to `game-server/target/game-server.jar` (whatever the Scala version), which is where the launcher picks it up.
-Since games run from that jar, **you need to run this command again after any change in the `shared` or `game-server` sub-projects**, otherwise the games you launch will not see your changes.
+The jar is written to `game-server/target/game-server.jar` (whatever the Scala version), which is where the menu server picks it up (relatively to where it runs, or at the path given by `-DgameServerJar=...`).
+Since games run from that jar, **you need to run this command again after any change in the `shared` or `game-server` sub-projects**, otherwise the games you launch will not see your changes (the clients download it again when it changed).
+
+The Java runtimes that the players run it with (one per platform: Windows x64, macOS x64 and arm64, Linux x64) are made by
+
+```
+sbt game-server/gameServerRuntimes
+```
+
+which links, with jlink, only the modules the jar needs (jdeps), from Temurin's JDKs (downloaded once, in `target/jdks`): about 35 MB per platform.
+They are written to `game-server/target/runtimes` (or the path given by `-DgameServerRuntimes=...`).
+Run it again when the jar's dependencies change (they may need other modules of the JDK); without them, the players need Java to host.
 
 ### Launching all the required programs
 
-There are three programs that must be ran in dev mode:
+There are two programs that must be ran in dev mode:
 
-- `server/reStart` in `sbt`: runs the backend (port 9000) (If you want to play with other people, you should use `sbt "server/reStart -DisProd=true"` instead).
-- `java -jar .\game-server-launcher\target\game-server-launcher.jar`: runs the game-server-launcher (after you compiled it once with `sbt game-server-launcher/assembly`)
+- `server/reStart` in `sbt`: runs the backend (port 9000, TCP for HTTP and UDP for the rendezvous) (If you want to play with other people, you should use `sbt "server/reStart -DisProd=true"` instead).
 - `sbt love-client/luaRun`: runs the client, in which you log in by typing the address of the backend (`127.0.0.1` locally).
 
 ### Playing with friends

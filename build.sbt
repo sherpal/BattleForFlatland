@@ -80,17 +80,9 @@ def stableAssemblyOutputPath = Def.settings(
   assembly / assemblyOutputPath := target.value / (assembly / assemblyJarName).value
 )
 
-lazy val `game-server-launcher` = project
-  .in(file("./game-server-launcher"))
-  .settings(
-    libraryDependencies ++= List(
-      "com.lihaoyi" %% "cask" % "0.9.1"
-    ),
-    assembly / mainClass       := Some("server.Server"),
-    assembly / assemblyJarName := "game-server-launcher.jar",
-    stableAssemblyOutputPath
-  )
-  .dependsOn(`shared-backend`)
+val gameServerRuntimes = taskKey[Seq[File]](
+  "Make the Java runtimes that the players run the game server with (in game-server/target/runtimes)"
+)
 
 lazy val `game-server` = project
   .in(file("./game-server"))
@@ -101,6 +93,13 @@ lazy val `game-server` = project
     assembly / mainClass       := Some("server.Server"),
     assembly / assemblyJarName := "game-server.jar",
     stableAssemblyOutputPath,
+    // the JDKs (one per platform) are downloaded once, in the root's target directory
+    gameServerRuntimes := JavaRuntimes(
+      assembly.value,
+      (LocalRootProject / target).value / "jdks",
+      target.value / "runtimes",
+      streams.value.log
+    ),
     SharedSettings()
   )
   .dependsOn(`shared-backend`)

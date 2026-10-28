@@ -34,65 +34,55 @@ private[menugames] class BMenuGames(
   override def launchGame(
       requester: User,
       gameId: String
-  ): ZIO[Any, Nothing, Either[ErrorADT, Unit]] = updateGamesZIO(currentGames =>
-    for {
-      // todo: create all game credentials for all players
-      storageKey      <- ZIO.succeed(gameCredentialsStoringKey(gameId))
-      game            <- gameWithId(gameId, currentGames)
-      alreadyLaunched <- ZIO.succeed(game.started)
-      _               <- ZIO.when(alreadyLaunched)(ZIO.fail(ErrorADT.GameAlreadyLaunched(gameId)))
-      _ <- ZIO
-        .unless(game.isGameCreator(requester))(ZIO.fail(ErrorADT.YouAreNotCreator(requester.name)))
-      secret          <- ZIO.succeed(java.util.UUID.randomUUID().toString)
-      credsUrl        <- ZIO.succeed("http://localhost:9000/api/bff/internal/get-all-credentials")
-      serverReadyUrl  <- ZIO.succeed("http://localhost:9000/api/bff/internal/game-server-ready")
-      gameCredentials <- ZIO.succeed(GameCredentials(gameId, secret))
-      userCredentials = game.players.map { user =>
-        GameUserCredentials(user.name, gameId, java.util.UUID.randomUUID().toString)
-      }
-      allGameCredentials = AllGameCredentials(gameCredentials, userCredentials)
-      _ <- storage
-        .storeAtFor(
-          storageKey,
-          GameCredentialsWithGameInfo(allGameCredentials, game.start),
-          Duration.Inf
-        )
-        .flatMapError(throwable =>
-          ZIO.succeed(throwable.printStackTrace()) *> ZIO.succeed(
-            ErrorADT
-              .RawInternalError(throwable.getMessage)
+  ): ZIO[Any, Nothing, Either[ErrorADT, GameCredentialsWithGameInfo]] =
+    updateGamesZIO(currentGames =>
+      for {
+        storageKey      <- ZIO.succeed(gameCredentialsStoringKey(gameId))
+        game            <- gameWithId(gameId, currentGames)
+        alreadyLaunched <- ZIO.succeed(game.started)
+        _               <- ZIO.when(alreadyLaunched)(ZIO.fail(ErrorADT.GameAlreadyLaunched(gameId)))
+        _ <- ZIO
+          .unless(game.isGameCreator(requester))(
+            ZIO.fail(ErrorADT.YouAreNotCreator(requester.name))
           )
-        )
-      _ <- ZIO
-        .attemptBlocking {
-          requests.post(
-            "http://localhost:22223/run-game-server",
-            params = Map(
-              "gameId"             -> game.id,
-              "gameSecret"         -> secret,
-              "credentialsUrl"     -> credsUrl,
-              "gameServerReadyUrl" -> serverReadyUrl
+        secret          <- ZIO.succeed(java.util.UUID.randomUUID().toString)
+        gameCredentials <- ZIO.succeed(GameCredentials(gameId, secret))
+        userCredentials = game.players.map { user =>
+          GameUserCredentials(user.name, gameId, java.util.UUID.randomUUID().toString)
+        }
+        allGameCredentials  = AllGameCredentials(gameCredentials, userCredentials)
+        credentialsWithInfo = GameCredentialsWithGameInfo(allGameCredentials, game.start)
+        _ <- storage
+          .storeAtFor(storageKey, credentialsWithInfo, Duration.Inf)
+          .flatMapError(throwable =>
+            ZIO.succeed(throwable.printStackTrace()) *> ZIO.succeed(
+              ErrorADT
+                .RawInternalError(throwable.getMessage)
             )
           )
-        }
-        .flatMapError(throwable =>
-          ZIO.succeed(throwable.printStackTrace()) *> ZIO.succeed(
-            ErrorADT.RawInternalError(throwable.getMessage)
-          )
-        )
-      _ <- setAndStoreGames(patchGame(game.start, currentGames))
-    } yield ()
-  ).either
+        _ <- setAndStoreGames(patchGame(game.start, currentGames))
+      } yield credentialsWithInfo
+    ).either
+
+  override def cancelLaunch(gameId: String): ZIO[Any, Nothing, Unit] =
+    updateGamesZIO(_ =>
+      updateAndStoreGames(_.map {
+        case game if game.id == gameId => game.copy(started = false)
+        case game => game
+      }).unit
+    )
+
+  override def gameCredentials(
+      gameId: String
+  ): ZIO[Any, Nothing, Option[GameCredentialsWithGameInfo]] =
+    storage.retrieveFrom(gameCredentialsStoringKey(gameId)).catchAll(_ => ZIO.none)
 
   override def retrieveAllGameCredentials(
       gameId: String,
       secret: String
   ): ZIO[Any, Nothing, Either[ErrorADT, GameCredentialsWithGameInfo]] = (for {
-    gameInfo <- storage
-      .retrieveFrom(gameCredentialsStoringKey(gameId))
-      .catchAll(_ => ZIO.none)
-      .someOrFail(ErrorADT.CouldNotFetchTokenFromGameServer)
-    _ <- ZIO.unless(secret == gameInfo.secret)(ZIO.fail(ErrorADT.WrongGameCredentials))
+    gameInfo <- gameCredentials(gameId).someOrFail(ErrorADT.CouldNotFetchTokenFromGameServer)
+    _        <- ZIO.unless(secret == gameInfo.secret)(ZIO.fail(ErrorADT.WrongGameCredentials))
   } yield gameInfo).either
 
   override def gameEnded(gameId: String, secret: String): ZIO[Any, Nothing, Unit] = for {

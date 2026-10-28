@@ -3,7 +3,9 @@ package bffclient.menu
 import scala.concurrent.{ExecutionContext, Future}
 import scala.scalajs.js
 
+import bffclient.game.GameAccess
 import bffclient.lua.{WebSocket, WebSocketModule}
+import communication.udp.Peer
 import io.circe.parser.decode
 import menus.data.*
 import models.bff.outofgame.MenuGameWithPlayers
@@ -74,16 +76,60 @@ final class MenuApi(val host: String, val port: Int)(using ExecutionContext) {
   def startGame(gameId: String): Future[Boolean] =
     http.postApi[GameIdFormData, Boolean]("/api/bff/start-game", GameIdFormData(gameId))
 
-  /** Asks the game server launcher (through the menu server) to stop the game's server, like the
-    * frontend's "stop" button. BFF's game servers do not stop by themselves after their game, and
-    * all use the same port.
-    */
-  def stopGameServer(gameId: String): Future[Unit] =
-    http.post(s"/api/bff/game-playing/in-game/cancel-game?gameId=$gameId", "")
+  /** How to reach the game server, from what the lobby websocket says. */
+  def gameAccess(
+      userName: String,
+      credentials: MenuGameComm.HereAreYourCredentials
+  ): GameAccess =
+    GameAccess(
+      credentials.gameServerAddresses.map(address => Peer(address.host, address.port)),
+      Some(Peer(host, credentials.rendezvousPort)),
+      userName,
+      credentials.gameId,
+      credentials.secret
+    )
 
-  /** The lobby websocket: tells when data changed, and pushes the game server credentials. With a
-    * game id, it must stay open (also during the game): the menu server kicks the players who are
-    * not connected.
+  /** Our candidacy to run the game server, when asked for it (see [[MenuGameComm]]). */
+  def hostCandidacy(candidacy: HostCandidacy): Future[Boolean] =
+    http.postApi[HostCandidacy, Boolean]("/api/bff/host-candidacy", candidacy)
+
+  /** We were chosen to run the game server, but we cannot: someone else will. */
+  def hostFailed(gameId: String, reason: String): Future[Boolean] =
+    http.postApi[HostFailedFormData, Boolean](
+      "/api/bff/host-failed",
+      HostFailedFormData(gameId, reason)
+    )
+
+  /** The version of the game server's jar: its SHA-256 and size. */
+  def gameServerVersion: Future[GameServerFile] =
+    http.get[GameServerFile]("/api/bff/game-server/version")
+
+  /** Downloads the game server's jar to `file` (a path of the operating system), telling
+    * `onProgress` the bytes received so far.
+    */
+  def downloadGameServer(file: String, onProgress: Double => Unit): Future[Unit] =
+    http.download("/api/bff/game-server/jar", file, onProgress)
+
+  /** The version of the Java runtime to run the game server with on this platform (e.g.
+    * `linux-x64`), if the menu server has one: the SHA-256 of its manifest (`bff-runtime.sha256`),
+    * and the size of its archive.
+    */
+  def gameServerRuntimeVersion(platform: String): Future[Option[GameServerFile]] =
+    http.get[Option[GameServerFile]](s"/api/bff/game-server/runtime/version?platform=$platform")
+
+  /** Downloads the Java runtime of this platform (a tar.gz) to `file` (a path of the operating
+    * system), telling `onProgress` the bytes received so far.
+    */
+  def downloadGameServerRuntime(
+      platform: String,
+      file: String,
+      onProgress: Double => Unit
+  ): Future[Unit] =
+    http.download(s"/api/bff/game-server/runtime?platform=$platform", file, onProgress)
+
+  /** The lobby websocket: tells when data changed, chooses who runs the game server, and pushes the
+    * game server credentials. With a game id, it must stay open (also during the game): the menu
+    * server kicks the players who are not connected.
     */
   def lobby(gameId: Option[String])(onMessage: MenuGameComm => Unit): Future[Lobby] = {
     val query      = gameId.fold("")(id => s"?gameId=$id")
