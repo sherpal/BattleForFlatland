@@ -41,6 +41,15 @@ object GameServerHost {
   /** Name of the manifest, in the Java runtimes (see `project/JavaRuntimes.scala`). */
   private val runtimeManifest = "bff-runtime.sha256"
 
+  /** On Windows, `javaw` instead of `java`: the same, without a console window, which would show
+    * up over the game (and take the focus) for as long as the game server runs.
+    */
+  private def windowless(java: String): String =
+    if !windows then java
+    else if java.toLowerCase.endsWith("java.exe") then java.dropRight(4) + "w.exe"
+    else if java.toLowerCase.endsWith("java") then java + "w"
+    else java
+
   /** Quoted for the system's shell. */
   private def quote(argument: String): String =
     if windows then "\"" + argument.replace("\"", "") + "\""
@@ -163,13 +172,15 @@ object GameServerHost {
     server <- gameServer
     log       = s"$directory/game-server.log"
     arguments = Vector(api.host, api.port.toString, rendezvousPort.toString, gameId, gameSecret)
-    javaCommand = (Vector(server.java, "-jar", server.jar) ++ arguments)
+    javaCommand = (Vector(windowless(server.java), "-jar", server.jar) ++ arguments)
       .map(quote)
       .mkString(" ") + s" > ${quote(log)} 2>&1"
     command =
       if windows then s"start \"\" /B $javaCommand"
       else s"nohup $javaCommand < /dev/null &"
-    _ = println(s"[host] Running the game server (${server.java} -jar ${server.jar}), into $log")
+    _ = println(
+      s"[host] Running the game server (${windowless(server.java)} -jar ${server.jar}), into $log"
+    )
     output <- Processes.run(command)
   yield if output.trim.nonEmpty then println(s"[host] $output")
 

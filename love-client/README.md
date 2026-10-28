@@ -252,6 +252,15 @@ any). Players then type the router's public address on the login screen, e.g. `8
 address changes, they type the new one (or use a dynamic DNS name: host names work too). There are no
 passwords: anyone with the address can log in, with any pseudo.
 
+The menu server also serves the packages that `sbt love-client/luaPackage` made:
+`api/bff/client/windows`, `macos`, `linux` (the archives) and `love` (the game alone), from
+`love-client/target/dist` (or the `clientPackages` property). On Windows, in PowerShell (with the
+menu server's address, and the game closed, since its files are replaced):
+
+```powershell
+$ProgressPreference = 'SilentlyContinue'; $zip = "$env:USERPROFILE\Downloads\BattleForFlatland-windows.zip"; Invoke-WebRequest http://81.12.34.56:9000/api/bff/client/windows -OutFile $zip; Expand-Archive -Force $zip "$env:USERPROFILE\Downloads"; & "$env:USERPROFILE\Downloads\BattleForFlatland\BattleForFlatland.exe"
+```
+
 The game servers run on the players' computers, and need no port forwarding: the players reach them
 through UDP hole punching (see [game-hosting.md](../game-hosting.md)). The host's firewall may ask
 whether to let `java` receive connections (it must). The menu server can run on the computer of one

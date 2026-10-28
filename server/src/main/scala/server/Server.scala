@@ -44,6 +44,13 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
   val gameServerRuntimes: os.Path = Option(java.lang.System.getProperty("gameServerRuntimes"))
     .fold(os.pwd / os.RelPath("..") / "game-server" / "target" / "runtimes")(os.Path(_, os.pwd))
 
+  /** The packages of the LÖVE client (`sbt love-client/luaPackage`), that the players can download
+    * (see [[ClientPackageRoutes]]), relative to where the server runs (or the `clientPackages`
+    * property).
+    */
+  val clientPackages: os.Path = Option(java.lang.System.getProperty("clientPackages"))
+    .fold(os.pwd / os.RelPath("..") / "love-client" / "target" / "dist")(os.Path(_, os.pwd))
+
   val rendezvous: RendezvousServer = RendezvousServer(
     JvmUDPSocket(),
     gameId =>
@@ -60,7 +67,8 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
     Vector(
       this,
       MenuGameRoutes(rendezvousPort),
-      GameLaunchingRoutes(rendezvous, rendezvousPort, gameServerJar, gameServerRuntimes)
+      GameLaunchingRoutes(rendezvous, rendezvousPort, gameServerJar, gameServerRuntimes),
+      ClientPackageRoutes(clientPackages)
     )
   }
 
