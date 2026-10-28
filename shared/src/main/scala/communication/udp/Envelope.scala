@@ -45,10 +45,7 @@ object Envelope {
   /** Hello is much smaller than this: bigger datagrams are not even looked at. */
   val MaxHelloSize = 512
 
-  private val HelloKind: Byte    = 1
-  private val AcceptedKind: Byte = 2
-  private val RejectedKind: Byte = 3
-  private val DataKind: Byte     = 4
+  import MessageKind.*
 
   def hello(credentials: GameUserCredentials): Array[Byte] = {
     val bb      = Pickle.intoBytes(credentials)

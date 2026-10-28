@@ -23,6 +23,8 @@ final class ApiError(val error: ErrorADT) extends Exception(error.repr)
 final class HttpClient(baseUrl: String)(using ExecutionContext) {
   private var cookie  = ""
   private val pending = mutable.Map.empty[Int, Promise[HttpResponse]]
+  // of the downloads
+  private val progress = mutable.Map.empty[Int, Double => Unit]
   private var poller: Option[js.timers.SetIntervalHandle] = None
 
   def sessionCookie: String = cookie
@@ -30,9 +32,14 @@ final class HttpClient(baseUrl: String)(using ExecutionContext) {
   private def poll(): Unit = {
     var response = HttpModule.poll()
     while response != null do {
-      if response.setCookie != null && response.setCookie.nonEmpty then
-        cookie = response.setCookie.takeWhile(_ != ';')
-      pending.remove(response.id).foreach(_.success(response))
+      response.received.toOption match {
+        case Some(received) => progress.get(response.id).foreach(_(received))
+        case None =>
+          if response.setCookie != null && response.setCookie.nonEmpty then
+            cookie = response.setCookie.takeWhile(_ != ';')
+          progress.remove(response.id)
+          pending.remove(response.id).foreach(_.success(response))
+      }
       response = HttpModule.poll()
     }
     if pending.isEmpty then {
@@ -41,9 +48,17 @@ final class HttpClient(baseUrl: String)(using ExecutionContext) {
     }
   }
 
-  private def request(method: String, path: String, body: String): Future[String] = {
+  private def request(
+      method: String,
+      path: String,
+      body: String,
+      file: String = "",
+      onProgress: Double => Unit = _ => ()
+  ): Future[String] = {
     val promise = Promise[HttpResponse]()
-    pending(HttpModule.request(method, baseUrl + path, body, cookie)) = promise
+    val id      = HttpModule.requestFile(method, baseUrl + path, body, cookie, file)
+    pending(id) = promise
+    if file.nonEmpty then progress(id) = onProgress
     if poller.isEmpty then poller = Some(js.timers.setInterval(1)(poll()))
     promise.future.flatMap { response =>
       if response.status == 200 then Future.successful(response.body)
@@ -60,6 +75,15 @@ final class HttpClient(baseUrl: String)(using ExecutionContext) {
 
   def get[B: Decoder](path: String): Future[B] =
     request("GET", path, "").flatMap(decoded[B])
+
+  /** GET of a text that is not JSON. */
+  def getText(path: String): Future[String] = request("GET", path, "")
+
+  /** Writes what is at this path to `file` (a path of the operating system), telling `onProgress`
+    * the bytes received so far, every now and then.
+    */
+  def download(path: String, file: String, onProgress: Double => Unit = _ => ()): Future[Unit] =
+    request("GET", path, "", file, onProgress).map(_ => ())
 
   /** POST without response body. */
   def post[A: Encoder](path: String, data: A): Future[Unit] =

@@ -6,6 +6,7 @@ import cask.router.Result
 import zio.*
 import menus.data.User
 import cask.main.Routes
+import communication.udp.JvmUDPSocket
 
 object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] {
 
@@ -13,7 +14,8 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
     services.crypto.Crypto.live,
     services.menugames.MenuGames.live,
     services.localstorage.BLocalStorage.live,
-    services.events.Events.live
+    services.events.Events.live,
+    services.hostelections.HostElections.live
   )
 
   val runtime: Runtime[BackendEnv] =
@@ -21,9 +23,43 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
       Runtime.unsafe.fromLayer(layer)
     }
 
+  /** The UDP port of the rendezvous (see [[RendezvousServer]]), the same as the HTTP one by
+    * default.
+    */
+  val rendezvousPort: Int =
+    Option(java.lang.System.getProperty("rendezvousPort")).fold(port)(_.toInt)
+
+  /** The game server's jar, that the players download to run it, relative to where the server runs
+    * (or the `gameServerJar` property).
+    */
+  val gameServerJar: os.Path = Option(java.lang.System.getProperty("gameServerJar"))
+    .fold(os.pwd / "game-server" / "target" / "game-server.jar")(os.Path(_, os.pwd))
+
+  /** The Java runtimes that the players run the game server with
+    * (`sbt game-server/gameServerRuntimes`), relative to where the server runs (or the
+    * `gameServerRuntimes` property). Without them, the players need Java.
+    */
+  val gameServerRuntimes: os.Path = Option(java.lang.System.getProperty("gameServerRuntimes"))
+    .fold(os.pwd / "game-server" / "target" / "runtimes")(os.Path(_, os.pwd))
+
+  val rendezvous: RendezvousServer = RendezvousServer(
+    JvmUDPSocket(),
+    gameId =>
+      Unsafe.unsafe { implicit unsafe =>
+        runtime.unsafe
+          .run(services.menugames.gameCredentials(gameId))
+          .getOrThrow()
+          .map(_.allGameCredentials)
+      }
+  )
+
   override def allRoutes: Seq[Routes] = {
     given Runtime[BackendEnv] = runtime
-    Vector(this, MenuGameRoutes(), GameLaunchingRoutes())
+    Vector(
+      this,
+      MenuGameRoutes(rendezvousPort),
+      GameLaunchingRoutes(rendezvous, rendezvousPort, gameServerJar, gameServerRuntimes)
+    )
   }
 
   override def port: Int = Option(java.lang.System.getProperty("port")).fold(9000)(_.toInt)
@@ -62,5 +98,7 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
 
   initialize()
 
-  println(s"Server listening at $host:$port")
+  rendezvous.start(rendezvousPort, Some(host))
+
+  println(s"Server listening at $host:$port (rendezvous on UDP $rendezvousPort)")
 }

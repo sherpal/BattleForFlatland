@@ -60,10 +60,18 @@ trait MenuGames {
       gameMetadata: GameConfiguration.GameConfigMetadata
   ): ZIO[Any, Nothing, Either[ErrorADT, MenuGameWithPlayers]]
 
+  /** Marks the game as started, and creates the credentials of its game server and its players. The
+    * game server is then run by one of the players, see [[programs.launchGame]].
+    */
   def launchGame(
       requester: User,
       gameId: String
-  ): ZIO[Any, Nothing, Either[ErrorADT, Unit]]
+  ): ZIO[Any, Nothing, Either[ErrorADT, GameCredentialsWithGameInfo]]
+
+  /** The game could not start after all: it can be launched again. */
+  def cancelLaunch(gameId: String): ZIO[Any, Nothing, Unit]
+
+  def gameCredentials(gameId: String): ZIO[Any, Nothing, Option[GameCredentialsWithGameInfo]]
 
   def retrieveAllGameCredentials(
       gameId: String,

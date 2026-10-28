@@ -18,13 +18,18 @@ import concurrent.*
 import io.circe.Encoder
 import models.bff.ingame.ServerPerformanceSummary
 import models.bff.outofgame.gameconfig.PlayerInfo
-import communication.udp.{Envelope, JvmUDPSocket, TimersImpl}
+import communication.udp.{Envelope, JvmUDPSocket, Peer, Rendezvous, TimersImpl}
 import communication.udp.Connection.Delivery
-import server.udp.PlayerSessions
+import server.udp.{GameServerRendezvous, PlayerSessions}
+import io.circe.parser.decode
+import menus.data.APIResponse
+import errors.ErrorADT
+import java.net.{Inet4Address, NetworkInterface}
+import scala.concurrent.Await
+import scala.concurrent.duration.*
+import scala.jdk.CollectionConverters.*
 
 object Server extends cask.MainRoutes {
-
-  private var _runOnPort: Int = scala.compiletime.uninitialized
 
   private var _allGameInfo: GameCredentialsWithGameInfo = scala.compiletime.uninitialized
   inline def allGameInfo                                = _allGameInfo
@@ -50,12 +55,22 @@ object Server extends cask.MainRoutes {
     )
   }
 
-  override def port: Int = _runOnPort
+  /** The HTTP server only listens on the loopback: the players play through UDP. */
+  override def port: Int = 0
 
-  override def host: String = "0.0.0.0"
+  override def host: String = "127.0.0.1"
 
   override def verbose: Boolean = true
 
+  /** Run by one of the players of the game (see `programs.launchGame` in the menu server), with the
+    * arguments `<menu server host> <menu server port> <rendezvous port> <game id> <game secret>
+    * [<UDP port>]` (UDP port 0, the default, lets the system choose).
+    *
+    * The game server gets the game's information from the menu server, starts listening to UDP,
+    * registers at the rendezvous (see `communication.udp.Rendezvous`), and tells the menu server
+    * that it is ready, and where it can be reached on its local network. It stops by itself when
+    * nobody plays anymore (see [[Watchdog]]).
+    */
   override def main(args: Array[String]): Unit = {
     println("""
  _____                        _____                           __________________ 
@@ -65,9 +80,31 @@ object Server extends cask.MainRoutes {
 | |_\ \ (_| | | | | | |  __/ /\__/ /  __/ |   \ V /  __/ |    | |_/ / |   | |    
  \____/\__,_|_| |_| |_|\___| \____/ \___|_|    \_/ \___|_|    \____/\_|   \_|    
 """)
-    val gameServerReadyUrl = args(0)
-    _runOnPort = args(1).toInt
-    _allGameInfo = Try(args(2)).flatMap(data => GameCredentialsWithGameInfo.decode(data).toTry).get
+    if args.length < 5 then {
+      System.err.println(
+        "Usage: <menu server host> <menu server port> <rendezvous port> <game id> <game secret> [<UDP port>]"
+      )
+      sys.exit(2)
+    }
+    val menuServerHost = args(0)
+    val menuServerUrl  = s"http://$menuServerHost:${args(1)}"
+    val rendezvousPort = args(2).toInt
+    val gameId         = args(3)
+    val gameSecret     = args(4)
+    val udpPort        = args.lift(5).fold(0)(_.toInt)
+
+    println(s"Requesting the game's information from $menuServerUrl...")
+    val credentialsBody = requests
+      .get(
+        s"$menuServerUrl/api/bff/internal/get-all-credentials",
+        params = Map("gameId" -> gameId, "secret" -> gameSecret)
+      )
+      .text()
+    _allGameInfo = (for {
+      response <- decode[APIResponse[GameCredentialsWithGameInfo]](credentialsBody).left
+        .map(ErrorADT.fromCirceDecodingError)
+      gameInfo <- response.toEither
+    } yield gameInfo).fold(error => throw IllegalStateException(error.repr), identity)
 
     if (!verbose) cask.main.Main.silenceJboss()
     val server = Undertow.builder
@@ -75,14 +112,18 @@ object Server extends cask.MainRoutes {
       .setHandler(defaultHandler)
       .build
     server.start()
-    println(s"Listening to $host:$port")
-    startUdp()
+    startUdp(udpPort, Peer(menuServerHost, rendezvousPort), gameSecret)
+    Watchdog.start(() => humansConnected.get().nonEmpty)
+
+    val localAddresses = Server.localAddresses
+    println(s"Addresses on the local network: ${localAddresses.mkString(", ")}")
     requests.get(
-      gameServerReadyUrl,
+      s"$menuServerUrl/api/bff/internal/game-server-ready",
       params = Map(
-        "gameId" -> allGameInfo.gameInfo.id,
-        "secret" -> allGameInfo.secret,
-        "port"   -> port.toString
+        "gameId"    -> allGameInfo.gameInfo.id,
+        "secret"    -> allGameInfo.secret,
+        "port"      -> playerSessions.localPort.toString,
+        "addresses" -> localAddresses.mkString(",")
       )
     )
     println("Server is warned that I'm ready")
@@ -214,11 +255,24 @@ object Server extends cask.MainRoutes {
     case _ => Delivery.OrderedReliable
   }
 
-  private def startUdp(): Unit = {
+  /** The players connected (through UDP), for the [[Watchdog]]. */
+  private val humansConnected = AtomicReference(Set.empty[String])
+
+  private def startUdp(udpPort: Int, rendezvousAddress: Peer, gameSecret: String): Unit = {
     import BFFPicklers.*
+    val socket = JvmUDPSocket()
+    val timers = TimersImpl()
+    val rendezvous = GameServerRendezvous(
+      socket,
+      timers,
+      rendezvousAddress,
+      allGameInfo.gameInfo.id,
+      gameSecret,
+      userName => playerSessions.isConnected(userName)
+    )
     playerSessions = PlayerSessions(
-      JvmUDPSocket(),
-      TimersImpl(),
+      Rendezvous.SharedSocket(socket, rendezvous.received),
+      timers,
       authenticate = credentials =>
         authorize(credentials.userName, credentials.userSecret, credentials.gameId).fold(
           { case (statusCode, _) =>
@@ -231,6 +285,7 @@ object Server extends cask.MainRoutes {
         ),
       listener = new PlayerSessions.Listener {
         def connected(userName: String): Unit = {
+          humansConnected.updateAndGet(_ + userName)
           def send(message: InGameWSProtocol): Unit =
             playerSessions.send(userName, message, udpDelivery(message))
           playerConnected(allGameInfo.gameInfo.game.gameConfiguration.playersInfo(userName), send)
@@ -245,6 +300,7 @@ object Server extends cask.MainRoutes {
 
         def lost(userName: String): Unit = {
           println(s"Lost UDP connection with $userName")
+          humansConnected.updateAndGet(_ - userName)
           // once the game is set up, the players are known to the game; they may come back
           if gameMaster == null then
             connectedPlayers.updateAndGet(_.filterNot(_.userName == userName))
@@ -252,9 +308,24 @@ object Server extends cask.MainRoutes {
         }
       }
     )
-    playerSessions.start(port)
-    println(s"Listening to UDP on $port")
+    playerSessions.start(udpPort)
+    println(s"Listening to UDP on ${playerSessions.localPort}")
+
+    rendezvous.start()
+    // Without the rendezvous, only the players on our local network can join
+    Try(Await.result(rendezvous.isRegistered, 5.seconds)).failed.foreach(_ =>
+      println(
+        s"The rendezvous ($rendezvousAddress) did not answer: only the players on the local network may join."
+      )
+    )
   }
+
+  /** Our IPv4 addresses on the local networks (the players' clients only speak IPv4). */
+  def localAddresses: Vector[String] =
+    NetworkInterface.getNetworkInterfaces.asScala.toVector
+      .filter(interface => interface.isUp && !interface.isLoopback)
+      .flatMap(_.getInetAddresses.asScala)
+      .collect { case address: Inet4Address => address.getHostAddress }
 
   initialize()
 

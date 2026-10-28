@@ -20,13 +20,26 @@ object HttpModule extends js.Object {
   /** Returns the id of the request. */
   def request(method: String, url: String, body: String, cookie: String): Int = js.native
 
+  /** Writes the body of the response to `file` (a path of the operating system), only if the status
+    * is 200 (the response's `body` is then empty). Its progress is polled too.
+    */
+  @JSName("request")
+  def requestFile(method: String, url: String, body: String, cookie: String, file: String): Int =
+    js.native
+
   /** The next response, or null. */
   def poll(): HttpResponse = js.native
 }
 
+/** A response, or the progress of a download (when `received` is defined, the other fields then
+  * being undefined).
+  */
 @js.native
 trait HttpResponse extends js.Object {
   val id: Int = js.native
+
+  /** The bytes received so far, by a download. */
+  val received: js.UndefOr[Double] = js.native
 
   /** 0 if the request failed (see `error`). */
   val status: Int       = js.native
@@ -47,6 +60,47 @@ trait WebSocket extends js.Object {
   def isOpen(): Boolean = js.native
   def close(): Unit     = js.native
 }
+
+/** A module whose inputs are handled one after the other by a LÖVE thread, see
+  * `workers.module` (src/main/lua/workers.lua). Use `hosting.WorkerResults` rather than this.
+  *
+  * @tparam I
+  *   what the thread is given
+  * @tparam R
+  *   what it gives back
+  */
+@js.native
+trait WorkerModule[I, R] extends js.Object {
+
+  /** Gives the input to the thread; returns the id of its result. */
+  def run(input: I): Int = js.native
+
+  /** The next result, if there is one. */
+  def poll(): js.UndefOr[WorkerResult[R]] = js.native
+}
+
+@js.native
+trait WorkerResult[R] extends js.Object {
+  val id: Int = js.native
+
+  /** Meaningless if there is an `error`. */
+  val result: R = js.native
+
+  /** Empty when it worked. */
+  val error: String = js.native
+}
+
+/** Shell commands (src/main/lua/process.lua): the result of a command is its output (stdout and
+  * stderr, together).
+  */
+@js.native @JSImport("process", JSImport.Namespace)
+object ProcessModule extends WorkerModule[String, String]
+
+/** SHA-256 of files (src/main/lua/digest.lua): of a path of the operating system, in hexadecimal
+  * (lower case).
+  */
+@js.native @JSImport("digest", JSImport.Namespace)
+object DigestModule extends WorkerModule[String, String]
 
 /** Non-blocking UDP sockets (src/main/lua/udp.lua). Use [[LuaUDPSocket]] rather than this. */
 @js.native @JSImport("udp", JSImport.Namespace)
@@ -98,6 +152,14 @@ object ScalaLove extends js.Object {
 /** A Lua table with elements at indices 1 to n (convert it with `ScalaLove.fromLuaSequence`). */
 @js.native
 trait LuaSequence[A] extends js.Object
+
+/** LuaJIT's `jit` module. */
+@js.native @JSGlobal("jit")
+object Jit extends js.Object {
+
+  /** The processor's architecture: "x86", "x64", "arm", "arm64", ... */
+  val arch: String = js.native
+}
 
 @js.native @JSGlobal("os")
 object Os extends js.Object {

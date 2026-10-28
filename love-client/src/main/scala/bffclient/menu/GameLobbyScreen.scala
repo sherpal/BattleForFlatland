@@ -2,7 +2,7 @@ package bffclient.menu
 
 import scala.concurrent.{ExecutionContext, Future}
 
-import bffclient.game.GameAccess
+import bffclient.hosting.HostingAgent
 import bffclient.love.Timer
 import bffclient.ui.*
 import gamelogic.docs.BossMetadata
@@ -29,13 +29,23 @@ final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using Exec
   private var preferencesApplied = false
   private val refresh            = Refresh(app, () => app.api.game(gameId))(received)
 
+  private val hosting =
+    HostingAgent(app.api, gameId, user.name, message => println(s"[menu] $message"))
+
   refresh()
   app.attempt(app.api.lobby(Some(gameId)) {
     case MenuGameComm.DataUpdated() => refresh()
     case MenuGameComm.GameStarted() => startingSince = Some(Timer.getTime())
-    case MenuGameComm.HereAreYourCredentials(id, secret, port) =>
+    case MenuGameComm.GameLaunchFailed(reason) =>
+      startingSince = None
+      launching = false
+      hosting.status = None
+      app.notify(reason, isError = true)
+      refresh()
+    case credentials: MenuGameComm.HereAreYourCredentials =>
       gameStarted = true
-      app.gameStarts(GameAccess(app.api.host, port, user.name, id, secret), user, lobby)
+      app.gameStarts(app.api.gameAccess(user.name, credentials), user, lobby)
+    case other => hosting.handle(other)
   })(opened => lobby = Some(opened))
 
   // Once the game started, the lobby websocket is closed by MenuApp when coming back to the menus
@@ -254,6 +264,7 @@ final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using Exec
     val bar = height - 70
     if ui.button("Leave game", Rect(left, bar, 150, 44), enabled) then leaveGame()
     if ui.button("Controls", Rect(left + 160, bar, 130, 44)) then app.showControls()
+    drawDownload(ui, Rect(left + 310, bar + 6, 260, 32))
     if amICreator then {
       // Like the menu server, which picks the classes of the AIs: all the players' classes count
       val classes = configuration.playersInfo.values.flatMap(_.maybePlayerClass).toVector
@@ -283,17 +294,49 @@ final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using Exec
     for since <- startingSince do {
       ui.fill(Rect(0, 0, width, height), Theme.background.withAlpha(0.8))
       ui.loading("Game is starting, please wait for setup to finish", width / 2 - 240, height / 2)
-      if Timer.getTime() - since > 30 then {
+      for status <- hosting.status do
+        ui.textIn(status, Rect(0, height / 2 + 40, width, 30), colour = Theme.muted)
+      drawDownload(ui, Rect(width / 2 - 130, height / 2 + 80, 260, 32))
+      // the host may have to download the game server first (and someone else may take over)
+      if Timer.getTime() - since > 60 then {
         ui.textIn(
-          "The game server did not answer.",
-          Rect(0, height / 2 + 40, width, 30),
+          "The game server is not ready yet.",
+          Rect(0, height / 2 + 120, width, 30),
           colour = Theme.muted
         )
-        if ui.button("Leave game", Rect(width / 2 - 75, height / 2 + 80, 150, 44), !busy) then
+        if ui.button("Leave game", Rect(width / 2 - 75, height / 2 + 160, 150, 44), !busy) then
           leaveGame()
       }
     }
   }
+
+  /** What is being downloaded to run the game server, discreetly: what it is and how much of it is
+    * there, above a thin bar.
+    */
+  private def drawDownload(ui: Ui, area: Rect): Unit =
+    for download <- hosting.downloading do {
+      def megabytes(bytes: Double) = (bytes / 1000000).toInt
+      val received                 = megabytes(download.received)
+      val size                     = megabytes(download.size.toDouble)
+      val amountWidth              = 80.0
+      ui.textIn(
+        s"Downloading ${download.what}",
+        Rect(area.x, area.y, area.width, 18),
+        Theme.small,
+        Theme.muted,
+        "left"
+      )
+      ui.textIn(
+        s"$received / $size MB",
+        Rect(area.right - amountWidth, area.bottom - 12, amountWidth, 18),
+        Theme.small,
+        Theme.muted,
+        "right"
+      )
+      val track = Rect(area.x, area.bottom - 5, area.width - amountWidth - 8, 5)
+      ui.fill(track, Theme.field)
+      ui.fill(track.copy(width = track.width * download.fraction), Theme.primary)
+    }
 
   private def leaveGame(): Unit = {
     busy = true

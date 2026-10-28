@@ -59,7 +59,7 @@ You cannot write a boss correctly without these six facts.
 | `shared` | JS + JVM | **All game logic**: entities, abilities, buffs, actions, game state. Both the client and the server run this identical code. |
 | `game-server` | JVM | The game master loop and **all AI** (boss AI + friendly bots). |
 | `love-client` | Scala.js, linked to Lua by `lua-linker`, run by LÖVE | Rendering, HUD, menus, assets (see [its README](love-client/README.md)). |
-| `server` / `shared-backend` / `game-server-launcher` / `lua-linker` | JVM | Lobby, launching, linking the client. **You will not touch these.** |
+| `server` / `shared-backend` / `lua-linker` | JVM | Lobby, launching, linking the client. **You will not touch these.** |
 
 Canonical package layout for a boss (using `Boss104` / theme package `dawnoftime` as the model):
 
@@ -763,14 +763,12 @@ that otherwise only show up in a live game:
 
    Copy it for a new boss: it is the fastest way to check that the bots survive the mechanics.
 
-To actually play, three processes (full details in [README.md](README.md#launching-all-the-required-programs)):
+To actually play (full details in [README.md](README.md#launching-all-the-required-programs)), build
+the game server (the client of the player who hosts the game downloads it from the menu server and
+runs it)
 
 ```bash
-sbt game-server/assembly game-server-launcher/assembly
-```
-
-```bash
-java -jar ./game-server-launcher/target/game-server-launcher.jar
+sbt game-server/assembly
 ```
 
 then `server/reStart` in sbt, and the client with `sbt love-client/luaRun` (log in with the address
