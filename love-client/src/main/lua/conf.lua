@@ -1,3 +1,6 @@
+-- What the client prints also goes to client.log, in the save directory (see there)
+require("console_log")
+
 function love.conf(t)
   t.identity = "battle-for-flatland"
   if os.getenv("BFF_HEADLESS") then

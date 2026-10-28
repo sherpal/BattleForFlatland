@@ -230,6 +230,12 @@ LÖVE's builds (11.5) are downloaded once into `target/love-11.5`, and their arc
 entry by entry (`project/LovePackage.scala`, with commons-compress), keeping the Unix modes and the
 symbolic links of the macOS app.
 
+What the client prints (and its uncaught errors) also goes to `client.log` in LÖVE's save directory
+(`src/main/lua/console_log.lua`), started anew at each launch: on Windows, a LÖVE game has no console.
+The save directory is `%APPDATA%\battle-for-flatland` with the Windows package,
+`~/Library/Application Support/battle-for-flatland` with the macOS one, and
+`~/.local/share/love/battle-for-flatland` with the Linux one (which runs the game with `love`).
+
 The packages are not signed: on Windows, SmartScreen asks to confirm ("More info", then "Run
 anyway"); on macOS, the app must be unquarantined and signed again (the game added to LÖVE's app
 breaks its signature), in a terminal, once:
@@ -248,6 +254,7 @@ passwords: anyone with the address can log in, with any pseudo.
 
 The game servers run on the players' computers, and need no port forwarding: the players reach them
 through UDP hole punching (see [game-hosting.md](../game-hosting.md)). The host's firewall may ask
-whether to let `java` receive connections (it must).
+whether to let `java` receive connections (it must). The menu server can run on the computer of one
+of the players: their client and game server then find out their public address with a STUN server.
 
 The connections are plain HTTP, websockets and UDP (LuaSocket has no TLS).

@@ -49,6 +49,18 @@ final class ConnectionTest extends munit.FunSuite {
     assertEquals(receiver.received.toList, texts("second"))
   }
 
+  test("a message whose handling fails does not hold up the next ones") {
+    val sender   = new Harness
+    val receiver = new Harness(failOn = _ == Text("fails"))
+
+    for text <- List("fails", "next", "and the next") do {
+      sender.conn.sendOrderedReliable(Text(text))
+      receiver.conn.onMessage(sender.socket.takeSent())
+    }
+
+    assertEquals(receiver.received.toList, texts("next", "and the next"))
+  }
+
   test("reliable messages are acknowledged and delivered only once") {
     val sender   = new Harness
     val receiver = new Harness

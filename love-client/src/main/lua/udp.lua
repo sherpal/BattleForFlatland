@@ -19,10 +19,13 @@ UdpSocket.__index = UdpSocket
 
 -- LuaSocket's `sendto` only takes IP addresses. Host names are resolved (which blocks, but only once per
 -- name: the result is kept, and a failure too, for a while, so that a bad name does not freeze every send).
+-- IP addresses are taken as they are: LuaSocket's `toip` would look up their name (a reverse lookup), for
+-- nothing.
 local resolved = {}
 local FAILURE_TTL = 5 -- seconds
 
 local function resolve(host)
+  if host:match("^%d+%.%d+%.%d+%.%d+$") then return host end
   local cached = resolved[host]
   if cached then
     if cached.ip then return cached.ip end
@@ -33,8 +36,10 @@ local function resolve(host)
   return ip, err
 end
 
+-- IPv4 sockets: with `socket.udp()`, the family is the one of the first address bound, and "*" can be IPv6 on
+-- Windows, whose sockets then cannot send to IPv4 addresses ("No such host is known"), which all ours are.
 function M.new()
-  local udp = assert(socket.udp())
+  local udp = assert(socket.udp4())
   udp:settimeout(0)
   return setmetatable({ udp = udp, open = true }, UdpSocket)
 end
@@ -67,12 +72,20 @@ function UdpSocket:send(data, host, port)
   return true
 end
 
+-- On Windows, a datagram sent to a port where nothing listens (e.g. a punch to an address of the game
+-- server that is not the right one) makes a later receive fail ("connection refused") instead of giving the
+-- next datagram: those failures are skipped, a few at most per poll.
+local SKIPPED_FAILURES = 16
+
 function UdpSocket:poll()
   if not self.open then return nil end
-  local data, ip, port = self.udp:receivefrom()
-  -- On timeout, the second result is the error ("timeout"), and the third is nil
-  if data == nil then return nil end
-  return { data = data, ip = ip, port = tonumber(port) }
+  for _ = 1, SKIPPED_FAILURES do
+    local data, ip, port = self.udp:receivefrom()
+    if data ~= nil then return { data = data, ip = ip, port = tonumber(port) } end
+    -- On failure, the second result is the error ("timeout" when there is nothing to receive)
+    if ip == "timeout" then return nil end
+  end
+  return nil
 end
 
 function UdpSocket:close()

@@ -26,6 +26,11 @@ import scala.util.Try
   *     address the player receives one from is the one they say hello to (see [[Envelope]]), and
   *     play with. (Saying hello to several addresses would make the game server believe that the
   *     player keeps reconnecting from another one.)
+  *   - The menu server tells both where it sees them from. When it is on a private network (the
+  *     menu server runs on their computer, or on their local network), it is not their public
+  *     address: they ask a STUN server for it (see [[Stun]]), and say it in their next registers.
+  *     The menu server keeps both addresses (the private one works for the players of that
+  *     network), and says which public address it took, so that they know when it is done.
   *
   * This works for the NATs that give the same public address to a socket whatever the destination
   * (most home routers), not for the "symmetric" ones (some corporate and mobile networks).
@@ -34,15 +39,27 @@ object Rendezvous {
 
   sealed trait Packet
   object Packet {
-    case class ServerRegister(gameId: String, gameSecret: String) extends Packet
+    /** @param publicAddress
+      *   our public address, when the menu server sees us on a private network (see [[Stun]])
+      */
+    case class ServerRegister(gameId: String, gameSecret: String, publicAddress: Option[Peer])
+        extends Packet
 
-    /** The players of the game, with the address the menu server saw them from. */
-    case class Players(players: Vector[(String, Peer)]) extends Packet
+    /** The players of the game, with the addresses the menu server knows them at (a player may
+      * have two, see [[Stun]]), and where it sees the game server from (see [[Registered]]).
+      */
+    case class Players(you: Registered, players: Vector[(String, Peer)]) extends Packet
 
-    case class PlayerRegister(credentials: GameUserCredentials) extends Packet
+    /** @param publicAddress
+      *   our public address, when the menu server sees us on a private network (see [[Stun]])
+      */
+    case class PlayerRegister(credentials: GameUserCredentials, publicAddress: Option[Peer])
+        extends Packet
 
-    /** The address the menu server saw the player from. */
-    case class Registered(seenAs: Peer) extends Packet
+    /** The address the menu server saw the register from, and the public address it took from it
+      * (only when the former is on a private network).
+      */
+    case class Registered(seenAs: Peer, publicAddress: Option[Peer]) extends Packet
 
     /** Opens the NAT of its sender to its destination: it carries nothing. The game server answers
       * the ones of the players.
@@ -66,12 +83,14 @@ object Rendezvous {
   }
 
   def encode(packet: Packet): Array[Byte] = packet match {
-    case Packet.ServerRegister(gameId, gameSecret) =>
-      withKind(ServerRegisterKind, Pickle.intoBytes((gameId, gameSecret)))
-    case Packet.Players(players) => withKind(PlayersKind, Pickle.intoBytes(players))
-    case Packet.PlayerRegister(credentials) =>
-      withKind(PlayerRegisterKind, Pickle.intoBytes(credentials))
-    case Packet.Registered(seenAs) => withKind(RegisteredKind, Pickle.intoBytes(seenAs))
+    case Packet.ServerRegister(gameId, gameSecret, publicAddress) =>
+      withKind(ServerRegisterKind, Pickle.intoBytes((gameId, gameSecret, publicAddress)))
+    case Packet.Players(Packet.Registered(seenAs, publicAddress), players) =>
+      withKind(PlayersKind, Pickle.intoBytes((seenAs, publicAddress, players)))
+    case Packet.PlayerRegister(credentials, publicAddress) =>
+      withKind(PlayerRegisterKind, Pickle.intoBytes((credentials, publicAddress)))
+    case Packet.Registered(seenAs, publicAddress) =>
+      withKind(RegisteredKind, Pickle.intoBytes((seenAs, publicAddress)))
     case Packet.Punch => Array(PunchKind)
   }
 
@@ -82,24 +101,37 @@ object Rendezvous {
       def payload = ByteBuffer.wrap(datagram, 1, datagram.length - 1)
       Try(datagram(0) match {
         case ServerRegisterKind =>
-          val (gameId, gameSecret) = Unpickle[(String, String)].fromBytes(payload)
-          Packet.ServerRegister(gameId, gameSecret)
-        case PlayersKind => Packet.Players(Unpickle[Vector[(String, Peer)]].fromBytes(payload))
+          val (gameId, gameSecret, publicAddress) =
+            Unpickle[(String, String, Option[Peer])].fromBytes(payload)
+          Packet.ServerRegister(gameId, gameSecret, publicAddress)
+        case PlayersKind =>
+          val (seenAs, publicAddress, players) =
+            Unpickle[(Peer, Option[Peer], Vector[(String, Peer)])].fromBytes(payload)
+          Packet.Players(Packet.Registered(seenAs, publicAddress), players)
         case PlayerRegisterKind =>
-          Packet.PlayerRegister(Unpickle[GameUserCredentials].fromBytes(payload))
-        case RegisteredKind => Packet.Registered(Unpickle[Peer].fromBytes(payload))
+          val (credentials, publicAddress) =
+            Unpickle[(GameUserCredentials, Option[Peer])].fromBytes(payload)
+          Packet.PlayerRegister(credentials, publicAddress)
+        case RegisteredKind =>
+          val (seenAs, publicAddress) = Unpickle[(Peer, Option[Peer])].fromBytes(payload)
+          Packet.Registered(seenAs, publicAddress)
         case _ => Packet.Punch
       }).toOption
     }
 
   /** Makes a [[UDPSocket]] out of another one, whose datagrams of the rendezvous go to
-    * `onRendezvous` instead of the message callback of this socket. Sending and binding are done by
-    * the underlying socket (which can be used to send the datagrams of the rendezvous).
+    * `onRendezvous`, and the ones of STUN to `onStun`, instead of the message callback of this
+    * socket. Sending and binding are done by the underlying socket (which can be used to send the
+    * datagrams of the rendezvous).
     */
-  final class SharedSocket(underlying: UDPSocket, onRendezvous: (Packet, Peer) => Unit)
-      extends UDPSocket {
+  final class SharedSocket(
+      underlying: UDPSocket,
+      onRendezvous: (Packet, Peer) => Unit,
+      onStun: Array[Byte] => Unit
+  ) extends UDPSocket {
     underlying.setMessageCallback((datagram, from) =>
       if isRendezvous(datagram) then parse(datagram).foreach(onRendezvous(_, from))
+      else if Stun.isStun(datagram) then onStun(datagram)
       else _onMessage(datagram, from)
     )
 

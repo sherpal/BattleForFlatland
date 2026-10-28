@@ -2,6 +2,7 @@ package bffclient
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
+import scala.util.control.NonFatal
 
 import bffclient.controls.{ClientSettings, ControlsFile}
 import bffclient.game.{GameAccess, GameClient, GameExit, GameLink}
@@ -91,7 +92,19 @@ object Main {
           case Some(back) => back(GameExit.CannotConnect(error.getMessage))
           case None => Event.quit(1)
         }
-      case Success(link) => play(link, access, headless, backToMenus)
+      case Success(link) =>
+        // otherwise, the error is only printed, and the screen stays as it is
+        try play(link, access, headless, backToMenus)
+        catch {
+          case NonFatal(error) =>
+            println(s"The game could not start: $error")
+            error.printStackTrace()
+            link.close()
+            backToMenus match {
+              case Some(back) => back(GameExit.CannotConnect(s"the game could not start ($error)"))
+              case None => Event.quit(1)
+            }
+        }
     }
   }
 

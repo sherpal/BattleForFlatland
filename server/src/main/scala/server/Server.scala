@@ -33,14 +33,16 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
     * (or the `gameServerJar` property).
     */
   val gameServerJar: os.Path = Option(java.lang.System.getProperty("gameServerJar"))
-    .fold(os.pwd / "game-server" / "target" / "game-server.jar")(os.Path(_, os.pwd))
+    .fold(os.pwd / os.RelPath("..") / "game-server" / "target" / "game-server.jar")(
+      os.Path(_, os.pwd)
+    )
 
-  /** The Java runtimes that the players run the game server with
-    * (`sbt game-server/gameServerRuntimes`), relative to where the server runs (or the
+  /** The Java runtimes that the players run the game server with (`sbt
+    * game-server/gameServerRuntimes`), relative to where the server runs (or the
     * `gameServerRuntimes` property). Without them, the players need Java.
     */
   val gameServerRuntimes: os.Path = Option(java.lang.System.getProperty("gameServerRuntimes"))
-    .fold(os.pwd / "game-server" / "target" / "runtimes")(os.Path(_, os.pwd))
+    .fold(os.pwd / os.RelPath("..") / "game-server" / "target" / "runtimes")(os.Path(_, os.pwd))
 
   val rendezvous: RendezvousServer = RendezvousServer(
     JvmUDPSocket(),

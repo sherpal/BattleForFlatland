@@ -9,8 +9,12 @@ import scala.annotation.tailrec
 import scala.collection.immutable.Queue
 import scala.util.Try
 import scala.util.chaining.*
+import scala.util.control.NonFatal
 
-/** @param onLost
+/** @param callback
+  *   called with every message received (see [[Connection.Delivery]]). If it throws, the error is
+  *   printed, and the message counts as delivered: the next ones are not held up by it.
+  * @param onLost
   *   called (once per [[connect]]) when the peer has been silent for too long, see [[connected]].
   *   It is called from a timer, so possibly from another thread than the one calling [[onMessage]].
   */
@@ -302,11 +306,19 @@ class Connection[Message](
     sendInternal(Ordered(msg, id))
   }
 
-  private def receivedNormalMessage(msg: Message): Unit = callback(msg)
+  private def deliver(msg: Message): Unit =
+    try callback(msg)
+    catch {
+      case NonFatal(error) =>
+        println(s"Handling a message from $peer failed: $error")
+        error.printStackTrace()
+    }
+
+  private def receivedNormalMessage(msg: Message): Unit = deliver(msg)
 
   private def receivedOrderedMessage(msg: Message, id: Int): Unit =
     if lastReceivedOrderedId.getAndUpdate(last => last.max(id)) < id then {
-      callback(msg)
+      deliver(msg)
     }
 
   private def receivedReliableMessage(msg: Message, id: Int): Unit = {
@@ -314,7 +326,7 @@ class Connection[Message](
 
     // discarding already received messages
     if receivedReliableIds.addIfAbsent(id) then {
-      callback(msg)
+      deliver(msg)
     }
   }
 
@@ -324,8 +336,8 @@ class Connection[Message](
     if receivedOrderedReliableIds.addIfAbsent(id) then {
       val lastDelivered = lastDeliveredOrderedReliable.get()
       if id == lastDelivered + 1 then {
-        callback(msg)
         lastDeliveredOrderedReliable.set(id)
+        deliver(msg)
         service()
       } else {
         def insertMessage(
@@ -352,7 +364,7 @@ class Connection[Message](
       case (id, msg) :: tail if id == last + 1 =>
         if queuedMessages.compareAndSet(messages, tail) then {
           lastDeliveredOrderedReliable.set(id)
-          callback(msg)
+          deliver(msg)
           service()
         } else service()
       case _ => ()

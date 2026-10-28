@@ -34,7 +34,7 @@ class GameLaunchingRoutes(
 
   /** The game server is ready, on UDP `port`, and on `addresses` (comma separated IP addresses) of
     * its local network. Its public address is the one the rendezvous sees it from, if it registered
-    * there.
+    * there (or the one it told the rendezvous, when that one sees it on a private network).
     */
   @caskz.getJ[APIResponse[Boolean]]("api/bff/internal/game-server-ready")
   def gameServerReady(
@@ -46,15 +46,15 @@ class GameLaunchingRoutes(
   ) = (for {
     gameInfo <- menugames.retrieveAllGameCredentials(gameId, secret).flatMap(ZIO.fromEither)
     public = rendezvous
-      .gameServerAddress(gameId)
+      .gameServerAddresses(gameId)
       .map(peer => GameServerAddress(peer.address, peer.port))
     local = addresses.split(",").toVector.filter(_.nonEmpty).map(GameServerAddress(_, port))
-    _    <- Console.printLine(s"game server ready for $gameId, public address: $public").orDie
+    _ <- Console.printLine(s"game server ready for $gameId, seen at ${public.mkString(", ")}").orDie
     host <- hostelections.over(gameId)
     _ <- events.dispatchEvent(
       events.Event.GameCredentials(
         gameInfo.allGameCredentials,
-        (public.toVector ++ local).distinct,
+        (public ++ local).distinct,
         host,
         port,
         rendezvousPort

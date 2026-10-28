@@ -6,7 +6,8 @@ import menus.data.AllGameCredentials
 
 /** The rendezvous of the UDP hole punching (see `communication.udp.Rendezvous`): remembers where
   * the game servers and the players of the started games are seen from, and tells the game servers
-  * where their players are.
+  * where their players are. For the ones seen on a private network, it also remembers the public
+  * address they say they have (see `communication.udp.Stun`).
   *
   * Only the game servers and players with the credentials of their game are considered.
   *
@@ -19,7 +20,8 @@ final class RendezvousServer(
 ) {
   import RendezvousServer.*
 
-  private case class Seen(peer: Peer, at: Long)
+  /** `peers`: where it was seen from, and its public address if it gave one. */
+  private case class Seen(peers: Vector[Peer], at: Long)
   private case class Game(server: Option[Seen], players: Map[String, Seen])
 
   private val lock                                              = new Object
@@ -32,9 +34,11 @@ final class RendezvousServer(
     socket.bind(port, address)
   }
 
-  /** Where the game server of this game was seen from (lately), if it was. */
-  def gameServerAddress(gameId: String): Option[Peer] =
-    lock.synchronized(games.get(gameId).flatMap(_.server).map(_.peer))
+  /** Where the game server of this game was seen from (lately), and its public address if it gave
+    * one, if it was seen.
+    */
+  def gameServerAddresses(gameId: String): Vector[Peer] =
+    lock.synchronized(games.get(gameId).flatMap(_.server).fold(Vector.empty)(_.peers))
 
   private def credentialsOf(gameId: String): Option[AllGameCredentials] =
     lock.synchronized(knownCredentials.get(gameId)).orElse {
@@ -48,21 +52,27 @@ final class RendezvousServer(
 
   private def receive(datagram: Array[Byte], from: Peer): Unit =
     Rendezvous.parse(datagram).foreach {
-      case Packet.ServerRegister(gameId, gameSecret)
+      case Packet.ServerRegister(gameId, gameSecret, publicAddress)
           if credentialsOf(gameId).exists(_.secret == gameSecret) =>
-        val players = seen(gameId, game => game.copy(server = Some(Seen(from, now))))
-          .fold(Vector.empty)(_.players.toVector.map((name, seen) => name -> seen.peer))
-        reply(from, Packet.Players(players))
-      case Packet.PlayerRegister(userCredentials)
+        val registered = Packet.Registered(from, publicAddress.filter(_ => from.onPrivateNetwork))
+        val players = seen(gameId, game => game.copy(server = Some(seenAs(registered))))
+          .fold(Vector.empty)(_.players.toVector.flatMap((name, seen) => seen.peers.map(name -> _)))
+        reply(from, Packet.Players(registered, players))
+      case Packet.PlayerRegister(userCredentials, publicAddress)
           if credentialsOf(userCredentials.gameId)
             .exists(_.allGameUserCredentials.contains(userCredentials)) =>
+        val registered = Packet.Registered(from, publicAddress.filter(_ => from.onPrivateNetwork))
         seen(
           userCredentials.gameId,
-          game => game.copy(players = game.players + (userCredentials.userName -> Seen(from, now)))
+          game =>
+            game.copy(players = game.players + (userCredentials.userName -> seenAs(registered)))
         )
-        reply(from, Packet.Registered(from))
+        reply(from, registered)
       case _ => () // not for us, or not authorized
     }
+
+  private def seenAs(registered: Packet.Registered): Seen =
+    Seen((registered.seenAs +: registered.publicAddress.toVector).distinct, now)
 
   private def now: Long = System.currentTimeMillis()
 

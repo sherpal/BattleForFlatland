@@ -91,9 +91,13 @@ private[udp] final class FakeSocket(val peer: Peer, onSend: Array[Byte] => Unit 
 }
 
 /** A single connection whose packets are inspected and delivered by hand. */
+/** @param failOn
+  *   the messages whose handling throws (they are not recorded in `received`)
+  */
 private[udp] final class Harness(
     peer: Peer = Peer("localhost", 1),
-    onLost: () => Unit = () => ()
+    onLost: () => Unit = () => (),
+    failOn: TestMessage => Boolean = _ => false
 ) {
   import TestMessage.given
 
@@ -106,7 +110,11 @@ private[udp] final class Harness(
       peer,
       socket,
       timers,
-      message => { received += message; () },
+      message => {
+        if failOn(message) then throw IllegalStateException(s"expected by the test: $message")
+        received += message
+        ()
+      },
       onLost
     )
 }
