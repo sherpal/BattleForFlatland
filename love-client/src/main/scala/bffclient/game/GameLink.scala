@@ -7,19 +7,19 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 
 import bffclient.lua.LuaUDPSocket
 import communication.BFFPicklers.*
-import communication.udp.{Connection, Envelope, Peer, Rendezvous, TimersImpl, UDPSocket}
+import communication.udp.{Connection, Envelope, Peer, Rendezvous, Stun, TimersImpl, UDPSocket}
 import communication.udp.Connection.Delivery
 import models.bff.ingame.{GameUserCredentials, InGameWSProtocol}
 
 /** The connection to a game server, through UDP (see `communication.udp`).
   *
   * It is opened by [[GameLink.open]]: we punch all the addresses of the game server, and register
-  * at the rendezvous meanwhile, so that it can open its NAT to us (see [[Rendezvous]]). The first
-  * of its addresses that answers is the one we say hello to (until it answers) with our
-  * credentials. Then we synchronize our clock with its clock. Then messages can be sent, and the
-  * ones received are collected until they are [[poll]]ed, so none is lost while the game is being
-  * set up. The connection is deemed lost (see [[isOpen]]) when the server does not talk for a
-  * while.
+  * at the rendezvous meanwhile, so that it can open its NAT to us (see [[Rendezvous]]), with our
+  * public address if it sees us on a private network (see [[Stun]]). The first of its addresses
+  * that answers is the one we say hello to (until it answers) with our credentials. Then we
+  * synchronize our clock with its clock. Then messages can be sent, and the ones received are
+  * collected until they are [[poll]]ed, so none is lost while the game is being set up. The
+  * connection is deemed lost (see [[isOpen]]) when the server does not talk for a while.
   */
 final class GameLink private (access: GameAccess, lag: Double, lossPercent: Int) {
   import GameLink.*
@@ -36,7 +36,8 @@ final class GameLink private (access: GameAccess, lag: Double, lossPercent: Int)
   private var closed    = false
   private var forgotten = false // the server answered that it does not know us (anymore)
 
-  private var registered = false // at the rendezvous
+  private var registered = false // at the rendezvous, with all it needs
+  private val stun       = Stun.Lookup(socket, timers)
 
   /** The first address of the game server that answered our punches. */
   private var server = Option.empty[Peer]
@@ -75,10 +76,14 @@ final class GameLink private (access: GameAccess, lag: Double, lossPercent: Int)
   private def receive(datagram: Array[Byte], from: Peer): Unit =
     if Rendezvous.isRendezvous(datagram) then
       Rendezvous.parse(datagram).foreach {
-        case Rendezvous.Packet.Registered(seenAs)
+        case Rendezvous.Packet.Registered(seenAs, publicAddress)
             if access.rendezvous.exists(isFrom(_, from)) && !registered =>
-          registered = true
-          println(s"Registered at the rendezvous, which sees us as $seenAs")
+          registered = stun.answered(seenAs, publicAddress)
+          if registered then
+            println(
+              s"Registered at the rendezvous, which sees us as $seenAs" +
+                publicAddress.fold("")(address => s", and knows our public address $address")
+            )
         case Rendezvous.Packet.Punch
             if server.isEmpty && access.addresses.exists(isFrom(_, from)) =>
           println(s"The game server answers at $from")
@@ -86,6 +91,7 @@ final class GameLink private (access: GameAccess, lag: Double, lossPercent: Int)
           sendHello()
         case _ => ()
       }
+    else if Stun.isStun(datagram) then stun.received(datagram)
     else
       Envelope.parse(datagram).foreach {
         case Envelope.Packet.Data(payload) => connectionWith(from).foreach(_.onMessage(payload))
@@ -100,7 +106,6 @@ final class GameLink private (access: GameAccess, lag: Double, lossPercent: Int)
 
   private val hello    = Envelope.hello(credentials)
   private val punch    = Rendezvous.encode(Rendezvous.Packet.Punch)
-  private val register = Rendezvous.encode(Rendezvous.Packet.PlayerRegister(credentials))
 
   /** Punches every address of the game server until one answers, then says hello to that one. */
   private def sendHello(): Unit = server match {
@@ -109,7 +114,11 @@ final class GameLink private (access: GameAccess, lag: Double, lossPercent: Int)
       access.addresses.foreach(address => socket.send(punch, address.port, address.address))
       if !registered then
         access.rendezvous.foreach(rendezvous =>
-          socket.send(register, rendezvous.port, rendezvous.address)
+          socket.send(
+            Rendezvous.encode(Rendezvous.Packet.PlayerRegister(credentials, stun.address)),
+            rendezvous.port,
+            rendezvous.address
+          )
         )
   }
 

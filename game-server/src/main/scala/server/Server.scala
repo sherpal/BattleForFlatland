@@ -197,7 +197,10 @@ object Server extends cask.MainRoutes {
           case info => info
         })
         newConnectedPlayers.foreach(_.send(BuddyIsReady(userName)))
-        if newConnectedPlayers.forall(_.isReady) then {
+        // every human player of the game, not only the ones connected so far (once)
+        val everyoneHere = allGameInfo.gameInfo.players
+          .forall(user => newConnectedPlayers.exists(_.userName == user.name))
+        if gameMaster == null && everyoneHere && newConnectedPlayers.forall(_.isReady) then {
           initGameManagers(newConnectedPlayers)
         }
       case ReadyToStart(userName) =>
@@ -271,7 +274,7 @@ object Server extends cask.MainRoutes {
       userName => playerSessions.isConnected(userName)
     )
     playerSessions = PlayerSessions(
-      Rendezvous.SharedSocket(socket, rendezvous.received),
+      Rendezvous.SharedSocket(socket, rendezvous.received, rendezvous.receivedStun),
       timers,
       authenticate = credentials =>
         authorize(credentials.userName, credentials.userSecret, credentials.gameId).fold(

@@ -72,8 +72,8 @@ about the players' ones. The protocol is `communication.udp.Rendezvous` (in `sha
 travel on the game's sockets, next to the `Envelope` ones (their first byte tells them apart).
 
 ```
-game server ── ServerRegister ─────▶ rendezvous ── Players([(name, address)]) ──▶ game server  (every second)
-player ─────── PlayerRegister ─────▶ rendezvous ── Registered(address) ────────▶ player       (until answered)
+game server ── ServerRegister ─────▶ rendezvous ── Players(you, [(name, address)]) ──▶ game server  (every second)
+player ─────── PlayerRegister ─────▶ rendezvous ── Registered(seen as, public) ──────▶ player       (until done)
 game server ── Punch ──▶ every player without a session      (opens the game server's NAT to them)
 player ─────── Punch ──▶ every address of the game server    (opens the player's NAT to it)
 game server ── Punch ──▶ player, in answer to theirs
@@ -88,11 +88,27 @@ reconnecting from another one.
   the host itself at the loopback.
 * **Other players** reach it at its public address, once both NATs are open.
 
+### Peers on the menu server's network
+
+The datagrams of a peer on the menu server's computer, or on its local network, do not go through
+their NAT to reach the rendezvous: it sees them at `127.0.0.1` or a private address, which is useless
+to the others. That is the usual setup to play with friends, the menu server running on the computer
+of one of them. So the rendezvous tells every peer where it sees them from (`Registered`, also in
+`Players` for the game server), and the ones it sees on a private network ask a STUN server their
+public address (`communication.udp.Stun`, Google's `stun.l.google.com:19302`, from the game's socket,
+so it is the address their NAT gives to that socket). They say it in their next registers. The
+rendezvous keeps both addresses (the private one still works for the peers of that network), and
+answers which public address it took: the game server only says it is ready once the rendezvous has
+it (or after 3 seconds without an answer from the STUN server), and the players register until then.
+The peers the rendezvous sees on a public address never contact the STUN server.
+
 ## Limitations, and what could come next
 
 * **Symmetric NATs** (some corporate and mobile networks) give a different public address for every
   destination: punching does not work through them. A relay through the menu server (TURN-like)
   would be the fallback.
+* **The STUN server** is a third party (Google's): the peers on the menu server's network depend on
+  it, and tell it their address. It is not configurable yet.
 * **Spoofing**: like the rest of the UDP protocol, the addresses of the datagrams are not
   authenticated (only the credentials in them are checked).
 * **The host leaving** the game does not stop it (the game server outlives its client), but if their

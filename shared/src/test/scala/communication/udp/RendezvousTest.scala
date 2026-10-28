@@ -9,11 +9,17 @@ final class RendezvousTest extends munit.FunSuite {
 
   test("every packet goes through") {
     for packet <- List(
-        Packet.ServerRegister("game-id", "game secret"),
-        Packet.Players(Vector("alice" -> Peer("81.12.34.56", 40000), "bob" -> Peer("::1", 1))),
-        Packet.Players(Vector.empty),
-        Packet.PlayerRegister(credentials),
-        Packet.Registered(Peer("81.12.34.56", 40000)),
+        Packet.ServerRegister("game-id", "game secret", None),
+        Packet.ServerRegister("game-id", "game secret", Some(Peer("81.12.34.56", 40000))),
+        Packet.Players(
+          Packet.Registered(Peer("127.0.0.1", 22222), Some(Peer("81.12.34.56", 40000))),
+          Vector("alice" -> Peer("81.12.34.56", 40000), "bob" -> Peer("::1", 1))
+        ),
+        Packet.Players(Packet.Registered(Peer("81.12.34.56", 40000), None), Vector.empty),
+        Packet.PlayerRegister(credentials, None),
+        Packet.PlayerRegister(credentials, Some(Peer("81.12.34.56", 40000))),
+        Packet.Registered(Peer("81.12.34.56", 40000), None),
+        Packet.Registered(Peer("192.168.1.12", 40000), Some(Peer("81.12.34.56", 40001))),
         Packet.Punch
       )
     do {
