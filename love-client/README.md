@@ -58,12 +58,13 @@ The screens (package `menu`, one file per screen) are:
 The server, pseudo, class, colour and boss are remembered in `menu.json` in LÖVE's save directory
 (`~/.local/share/love/battle-for-flatland/` on Linux).
 
-The "Controls" button (in the games' list and in the lobby) opens the controls: click a binding,
-then press the key (possibly with Shift) or the mouse button to bind to it; keys bound twice are
-pointed out, the mouse over can be toggled, and everything can be reset. They are saved in
-`controls.json` (which also accepts what the browser frontend stored in its local storage under the
-key `controls`). The client's own settings, which the game's `Controls` cannot hold, are there too
-and saved in `settings.json`: the size of the HUD, from 0.5 to 2.
+The "Settings" button (in the games' list and in the lobby) opens the settings, in two tabs. In
+"Controls": click a binding, then press the key (possibly with Shift) or the mouse button to bind to
+it; keys bound twice are pointed out, the mouse over can be toggled, and everything can be reset.
+They are saved in `controls.json` (which also accepts what the browser frontend stored in its local
+storage under the key `controls`). In "General", the client's own settings, which the game's
+`Controls` cannot hold, saved in `settings.json`: the size of the HUD, from 0.5 to 2, and whether to
+host game servers (on by default; see below).
 
 The UI toolkit (`ui/Ui.scala`) is immediate mode: every frame, the screens call widgets that draw
 themselves and return what happened, e.g. `if ui.button("Join", rect) then join()`. It has labels,
@@ -175,6 +176,8 @@ manifest, `bff-runtime.sha256`, which has the SHA-256 of each of its files): the
 against it, after the download and on its next runs (with LÖVE's `love.data.hash`, on a thread of its
 own, `digest.lua`), and downloads them again when they do not match. Without a runtime for its
 platform, the client runs the game server with the `java` of the computer, if it is 17 or later.
+With "Host game servers" turned off in the settings, the client downloads nothing, and its candidacy
+says that it does not host (turning it back on in the lobby starts the downloads).
 BFF_GAME_SERVER_JAR runs that jar instead, and BFF_JAVA that `java` (without the runtime). Shell
 commands run on a LÖVE thread (`process.lua`), so the menus never block. The game server outlives the
 client that started it (the others may still be playing).

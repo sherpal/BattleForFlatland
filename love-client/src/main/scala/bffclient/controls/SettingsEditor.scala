@@ -6,16 +6,24 @@ import models.bff.ingame.{Controls, GameMarkerControls}
 import models.bff.ingame.Controls.InputCode
 import models.syntax.Pointed
 
-/** Changes the controls, like the frontend's `ControlSettings`: click a binding, then press the key
-  * (possibly with Shift) or the mouse button to bind to it. Every change is saved to
-  * `controls.json` (see [[ControlsFile]]), which the next game loads.
+/** Changes the settings, in two tabs:
+  *   - the controls, like the frontend's `ControlSettings`: click a binding, then press the key
+  *     (possibly with Shift) or the mouse button to bind to it. Every change is saved to
+  *     `controls.json` (see [[ControlsFile]]), which the next game loads;
+  *   - the client's own settings ([[ClientSettings]]), saved to `settings.json`.
   *
   * Drawn over the menus (which stay open behind, e.g. the lobby and its websocket).
   */
-final class ControlsEditor(close: () => Unit) {
+final class SettingsEditor(close: () => Unit) {
   private var controls = ControlsFile.load()._1
-  private var settings = ClientSettings.load()
+  private var settings = ClientSettings.current
   private var error    = Option.empty[String]
+
+  private enum Tab(val label: String) {
+    case Bindings extends Tab("Controls")
+    case General  extends Tab("General")
+  }
+  private var tab = Tab.Bindings
 
   /** The action whose binding is being changed, and how to change it. */
   private var waiting = Option.empty[(String, InputCode => Controls)]
@@ -81,22 +89,28 @@ final class ControlsEditor(close: () => Unit) {
     error = ControlsFile.save(newControls)
   }
 
+  private def change(newSettings: ClientSettings): Unit = {
+    settings = newSettings
+    error = settings.save()
+  }
+
   def draw(ui: Ui, width: Double, height: Double): Unit = {
     ui.fill(Rect(0, 0, width, height), Theme.background.withAlpha(0.75))
     val box = Rect(width / 2 - 450, height / 2 - 300, 900, 600)
     ui.panel(box)
-    ui.text("Controls", box.x + 24, box.y + 18, Theme.large)
-    ui.text(
-      "Click a binding, then press a key (possibly with Shift) or a mouse button. Changes apply to the next game.",
-      box.x + 24,
-      box.y + 52,
-      Theme.small,
-      Theme.muted
-    )
+    ui.text("Settings", box.x + 24, box.y + 18, Theme.large)
+    ui.segmented(
+      Tab.values.toSeq,
+      Some(tab),
+      Rect(box.right - 284, box.y + 16, 260, 32),
+      (_: Tab).label,
+      waiting.isEmpty
+    ).foreach(tab = _)
 
-    waiting match {
-      case Some((action, change)) => capture(ui, box, action, change)
-      case None => bindings(ui, box)
+    (tab, waiting) match {
+      case (Tab.Bindings, Some((action, change))) => capture(ui, box, action, change)
+      case (Tab.Bindings, None) => bindings(ui, box); footer(ui, box)
+      case (Tab.General, _) => general(ui, box); footer(ui, box)
     }
   }
 
@@ -122,6 +136,13 @@ final class ControlsEditor(close: () => Unit) {
   }
 
   private def bindings(ui: Ui, box: Rect): Unit = {
+    ui.text(
+      "Click a binding, then press a key (possibly with Shift) or a mouse button. Changes apply to the next game.",
+      box.x + 24,
+      box.y + 52,
+      Theme.small,
+      Theme.muted
+    )
     def column(bindings: Seq[Binding], left: Double): Unit =
       for (binding, i) <- bindings.zipWithIndex do {
         val y = box.y + 84 + 25 * i
@@ -145,27 +166,6 @@ final class ControlsEditor(close: () => Unit) {
       Theme.muted
     )
 
-    // The client's settings (BFF's controls cannot hold them)
-    val scaleY = toggleY + 72
-    ui.text("HUD scale", box.x + 470, scaleY + 4)
-    ui.selector(
-      ClientSettings.hudScales,
-      settings.hudScale,
-      Rect(box.x + 660, scaleY, 200, 26),
-      (scale: Double) => f"$scale%.1f"
-    ).foreach { scale =>
-      settings = settings.copy(hudScale = scale)
-      error = settings.save()
-    }
-    ui.paragraph(
-      "The size of the frames and of the action bar, whatever the window's size.",
-      box.x + 470,
-      scaleY + 32,
-      390,
-      Theme.small,
-      Theme.muted
-    )
-
     val bottom = box.bottom - 60
     for key <- controls.maybeMultipleKey do
       ui.text(
@@ -174,10 +174,52 @@ final class ControlsEditor(close: () => Unit) {
         bottom + 12,
         colour = Theme.negative.lighter(0.3)
       )
-    for message <- error do
-      ui.text(message, box.x + 24, bottom - 14, Theme.small, Theme.negative.lighter(0.3))
     if ui.button("Reset to defaults", Rect(box.right - 380, bottom, 190, 40)) then
       set(Pointed[Controls].unit)
+  }
+
+  /** The client's own settings (BFF's controls cannot hold them). */
+  private def general(ui: Ui, box: Rect): Unit = {
+    val left  = box.x + 24
+    val width = 560.0
+
+    val scaleY = box.y + 84
+    ui.text("HUD scale", left, scaleY + 4)
+    ui.selector(
+      ClientSettings.hudScales,
+      settings.hudScale,
+      Rect(left + 190, scaleY, 200, 26),
+      (scale: Double) => f"$scale%.1f"
+    ).foreach(scale => change(settings.copy(hudScale = scale)))
+    ui.paragraph(
+      "The size of the frames and of the action bar, whatever the window's size. It applies to the next game.",
+      left,
+      scaleY + 34,
+      width,
+      Theme.small,
+      Theme.muted
+    )
+
+    val hostY = scaleY + 100
+    if ui.checkbox(settings.hostGameServers, "Host game servers", left, hostY) then
+      change(settings.copy(hostGameServers = !settings.hostGameServers))
+    ui.paragraph(
+      "The game server of a game runs on the computer of one of its players. To be ready to run it, " +
+        "the client downloads it, with what runs it (several tens of MB, once), as soon as you join " +
+        "a game. Turn this off to download nothing, e.g. on a mobile network: the other players " +
+        "will run it.",
+      left,
+      hostY + 32,
+      width,
+      Theme.small,
+      Theme.muted
+    )
+  }
+
+  private def footer(ui: Ui, box: Rect): Unit = {
+    val bottom = box.bottom - 60
+    for message <- error do
+      ui.text(message, box.x + 24, bottom - 14, Theme.small, Theme.negative.lighter(0.3))
     if
       ui.button("Done", Rect(box.right - 174, bottom, 150, 40), style = ButtonStyle.Primary) || ui
         .wasPressed("escape")

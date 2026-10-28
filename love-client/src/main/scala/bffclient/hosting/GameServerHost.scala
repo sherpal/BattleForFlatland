@@ -113,20 +113,25 @@ object GameServerHost {
       .flatten
   }
 
-  /** @param ready
+  /** @param willing
+    *   whether the player lets us run game servers (if not, we do not even look at what we have)
+    * @param ready
     *   whether we have what runs the game server already (see [[prepare]])
     */
-  def candidacy(api: MenuApi, gameId: String, ready: Boolean)(using
+  def candidacy(api: MenuApi, gameId: String, willing: Boolean, ready: Boolean)(using
       ExecutionContext
   ): Future[HostCandidacy] = {
     val start = Timer.getTime()
     for
       _ <- api.me
       roundTrip = ((Timer.getTime() - start) * 1000).toInt
-      java    <- javaVersion
-      runtime <- runtimeVersion(api).recover { case _ => None }
+      java    <- if willing then javaVersion else Future.successful(None)
+      runtime <-
+        if willing then runtimeVersion(api).recover { case _ => None }
+        else Future.successful(None)
     yield HostCandidacy(
       gameId,
+      willing,
       java,
       runtime.isDefined,
       ready,

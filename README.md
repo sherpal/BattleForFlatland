@@ -8,7 +8,7 @@ The following default controls are coded (you need an AZERTY keyboard).
 - keys 1, 2, 3,... for using ability, from left to right as their symbols appear at the bottom left of the game.
 - keys rfvtgb to put markers on target, and shift these to put fixed markers at the mouse position.
 
-You can easily change them with the "Controls" button (in the list of games, and when you join a game), at which point they are saved in the client's `controls.json` (in LÖVE's save directory, e.g. `~/.local/share/love/battle-for-flatland/` on Linux), and remembered from then on.
+You can easily change them in the "Settings" (a button in the list of games, and when you join a game), at which point they are saved in the client's `controls.json` (in LÖVE's save directory, e.g. `~/.local/share/love/battle-for-flatland/` on Linux), and remembered from then on.
 
 ## History was made on June, 3rd, 2020
 

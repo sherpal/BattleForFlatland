@@ -65,8 +65,9 @@ private def nextHost(
       launchFailed(
         gameId,
         lastFailure.fold(
-          "No player can run the game server: the menu server has no Java runtime for their " +
-            "platform, and their computer has no Java 17 or later."
+          "No player can run the game server: they turned it off in their settings, or the menu " +
+            "server has no Java runtime for their platform and their computer has no Java 17 or " +
+            "later."
         )(failure => s"No player could run the game server ($failure).")
       )
     case Some((host, gameSecret)) =>

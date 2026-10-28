@@ -7,9 +7,10 @@ final class HostCandidacyTest extends munit.FunSuite {
       processors: Int,
       roundTrip: Int,
       bundledJava: Boolean = false,
-      ready: Boolean = true
+      ready: Boolean = true,
+      willing: Boolean = true
   ) =
-    HostCandidacy("game", java, bundledJava, ready, processors, "Linux", roundTrip)
+    HostCandidacy("game", willing, java, bundledJava, ready, processors, "Linux", roundTrip)
 
   test("only the players with a recent enough java, or the menu server's one, can host") {
     val ranking = HostCandidacy.ranking(
@@ -22,6 +23,18 @@ final class HostCandidacyTest extends munit.FunSuite {
       "no java"
     )
     assertEquals(ranking, Vector("java 17", "bundled java"))
+  }
+
+  test("the players who do not host game servers are not chosen") {
+    val ranking = HostCandidacy.ranking(
+      Map(
+        "willing"     -> candidacy(Some(17), 2, 400),
+        "mobile"      -> candidacy(Some(21), 16, 5, bundledJava = true, willing = false),
+        "mobile, too" -> candidacy(None, 8, 5, willing = false)
+      ),
+      "mobile"
+    )
+    assertEquals(ranking, Vector("willing"))
   }
 
   test("decent computer, then ready, then network, then the creator") {

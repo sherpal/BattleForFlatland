@@ -9,10 +9,11 @@ players reach it in UDP, through their NATs, thanks to the menu server, which ac
 
 ```
 everyone, on entering the lobby: downloads the Java runtime of their platform and the jar, if needed
-                    (GET api/bff/game-server/runtime/version, .../runtime, .../version, .../jar)
+                    (GET api/bff/game-server/runtime/version, .../runtime, .../version, .../jar),
+                    unless they turned off "Host game servers" in their settings
 creator ── POST start-game ──────────────▶ menu server        game marked as started, credentials created
 everyone ◀── HostCandidacyRequested ─────  (lobby websocket)
-everyone ── POST host-candidacy ─────────▶                    java, ready, processors, round trip
+everyone ── POST host-candidacy ─────────▶                    willing, java, ready, processors, round trip
            (everyone answered, or 5 s)                        HostCandidacy.ranking
 everyone ◀── HostElected(host) ──────────
 host     ◀── SpawnGameServer(id, secret, rendezvous port) ─
@@ -24,7 +25,9 @@ everyone ◀── HereAreYourCredentials(addresses, rendezvous port)
 ```
 
 * **The election** (`programs/launchGame.scala`, `services/hostelections`): the candidates are the
-  players for whose platform the menu server has a Java runtime, or whose `java` is 17 or later; the
+  players who did not turn off "Host game servers" in the settings of their client (e.g. on a mobile
+  network: their client then downloads nothing), and for whose platform the menu server has a Java
+  runtime, or whose `java` is 17 or later; the
   best one has at least 4 processors, then has everything already (nothing to download), then the
   fastest round trip to the menu server (in steps of 50 ms), then is the game creator
   (`HostCandidacy.ranking`, in `shared`).
