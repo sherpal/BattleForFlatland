@@ -54,7 +54,19 @@ object Graphics extends js.Object {
   def line(x1: Double, y1: Double, x2: Double, y2: Double): Unit       = js.native
 
   /** `coords` are x1, y1, x2, y2, ... (filled polygons must be convex). */
-  def polygon(mode: String, coords: Double*): Unit                                   = js.native
+  def polygon(mode: String, coords: Double*): Unit = js.native
+
+  /** `polygon` with three corners as plain arguments, without going through varargs. */
+  @JSName("polygon")
+  def triangle(
+      mode: String,
+      x1: Double,
+      y1: Double,
+      x2: Double,
+      y2: Double,
+      x3: Double,
+      y3: Double
+  ): Unit = js.native
   def print(text: String, x: Double, y: Double): Unit                                = js.native
   def printf(text: String, x: Double, y: Double, limit: Double, align: String): Unit = js.native
   def getDimensions(): (width: Int, height: Int)                                     = js.native
