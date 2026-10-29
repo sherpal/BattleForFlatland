@@ -53,11 +53,17 @@ final class Painter(
         val (x, y) = toScreen(pos)
         Graphics.circle(mode, x, y, circle.radius)
       case polygon: Polygon if mode == "fill" =>
-        // Fill triangle by triangle, as obstacles can be concave
+        // Fill triangle by triangle, as obstacles can be concave. The corners are plain arguments:
+        // spread as varargs (once per triangle, every frame), LÖVE sometimes received an odd
+        // number of coordinates.
+        val angle = rotation(body)
+        def corner(x: Double, y: Double): (Double, Double) =
+          toScreen(Complex(x, y).rotate(angle) + pos)
         for t <- polygon.triangulation do {
-          val corners = Seq(Complex(t.x0, t.y0), Complex(t.x1, t.y1), Complex(t.x2, t.y2))
-            .map(_.rotate(rotation(body)) + pos)
-          Graphics.polygon("fill", polygonCoords(corners)*)
+          val (x0, y0) = corner(t.x0, t.y0)
+          val (x1, y1) = corner(t.x1, t.y1)
+          val (x2, y2) = corner(t.x2, t.y2)
+          Graphics.triangle("fill", x0, y0, x1, y1, x2, y2)
         }
       case polygon: Polygon =>
         Graphics.polygon(
@@ -182,8 +188,8 @@ final class Painter(
   /** Below the entity, in the colour of the ability, in the [[HudStyle]]. */
   def castingBar(entity: Entity & Body): Unit =
     gameState.castingEntityInfo.get(entity.id).filter(_.isCasting(now, 0L)).foreach { info =>
-      val radius   = entity.shape.radius
-      val (x, y)   = toScreen(position(entity) - Complex.i * (radius + 10))
+      val radius = entity.shape.radius
+      val (x, y) = toScreen(position(entity) - Complex.i * (radius + 10))
       val progress =
         (info.castingTime - info.remainingCastingTime(now, 0L)).toDouble / info.castingTime
       HudStyle.bar(
