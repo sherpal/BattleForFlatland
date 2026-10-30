@@ -113,10 +113,11 @@ The peers the rendezvous sees on a public address never contact the STUN server.
   authenticated (only the credentials in them are checked).
 * **The host leaving** the game does not stop it (the game server outlives its client), but if their
   computer or network goes away, the game is over: there is no migration of the game server.
-* **macOS** is not tested. On Windows, the client runs the game server with `start "" /B javaw`
-  (`javaw` has no console window), and the firewall asks whether to let it in. The runtimes are
-  unpacked with `tar` (in Windows since Windows 10). The client's commands (`java -version`, `tar`,
-  `start`) go through `io.popen`, whose console window may show up for a moment on Windows.
+* **macOS** is not tested. On Windows, the client's commands (`java -version`, `tar`, the game
+  server) are not run by `io.popen`, which goes through `cmd.exe`, whose console window would show
+  up: `process_worker.lua` calls `CreateProcessW` itself (with LuaJIT's FFI), with
+  `CREATE_NO_WINDOW`. The firewall asks whether to let the game server in. The runtimes are unpacked
+  with `tar` (in Windows since Windows 10).
 * **The first game** of a player downloads about 80 MB (the runtime and the jar), while in the lobby.
 * The election's criteria are rough (the round trip to the menu server says little about the upload
   bandwidth, which is what a host needs most).

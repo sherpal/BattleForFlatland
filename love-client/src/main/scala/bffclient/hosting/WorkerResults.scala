@@ -16,9 +16,12 @@ class WorkerResults[I, R](module: WorkerModule[I, R]) {
   private val pending = mutable.Map.empty[Int, Promise[R]]
   private var poller  = Option.empty[js.timers.SetIntervalHandle]
 
-  def run(input: I): Future[R] = {
+  def run(input: I): Future[R] = result(module.run(input))
+
+  /** The result with this id (given by the module). */
+  protected def result(id: Int): Future[R] = {
     val promise = Promise[R]()
-    pending(module.run(input)) = promise
+    pending(id) = promise
     if poller.isEmpty then poller = Some(js.timers.setInterval(1)(poll()))
     promise.future
   }

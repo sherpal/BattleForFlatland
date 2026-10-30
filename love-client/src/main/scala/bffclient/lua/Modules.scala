@@ -90,11 +90,18 @@ trait WorkerResult[R] extends js.Object {
   val error: String = js.native
 }
 
-/** Shell commands (src/main/lua/process.lua): the result of a command is its output (stdout and
+/** Commands (src/main/lua/process.lua): of the shell on Linux and macOS, command lines run without a
+  * shell (nor a console window) on Windows. The result of a command is its output (stdout and
   * stderr, together).
   */
 @js.native @JSImport("process", JSImport.Namespace)
-object ProcessModule extends WorkerModule[String, String]
+object ProcessModule extends WorkerModule[String, String] {
+
+  /** Starts the command in the background (it outlives us), its output going to `log` (a path of
+    * the operating system); its result is "" once it started. Returns the id of its result.
+    */
+  def spawn(command: String, log: String): Int = js.native
+}
 
 /** SHA-256 of files (src/main/lua/digest.lua): of a path of the operating system, in hexadecimal
   * (lower case).

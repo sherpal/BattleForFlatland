@@ -16,10 +16,11 @@ function M.code(name)
 end
 
 -- A module whose inputs are handled by `<name>_worker.lua`, started with the names of the channels
--- of the inputs, { id, input }, and of the results, { id, result, error } (error is "" when it
--- worked). Its functions are methods (they are called on a JS object from Scala):
+-- of the inputs, { id, input, option } (the option, a string, may be nil), and of the results,
+-- { id, result, error } (error is "" when it worked). Its functions are methods (they are called on
+-- a JS object from Scala):
 --
---   local id = module:run(input)
+--   local id = module:run(input, option)
 --   local result = module:poll()  -- nil, or { id, result, error }
 function M.module(name)
   local inputsName = "scalalove_" .. name .. "_inputs"
@@ -30,13 +31,13 @@ function M.module(name)
   local lastId = 0
   local module = {}
 
-  function module:run(input)
+  function module:run(input, option)
     if not worker then
       worker = love.thread.newThread(M.code(name .. "_worker"))
       worker:start(inputsName, resultsName)
     end
     lastId = lastId + 1
-    inputs:push({ id = lastId, input = input })
+    inputs:push({ id = lastId, input = input, option = option })
     return lastId
   end
 
