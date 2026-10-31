@@ -29,6 +29,13 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
   val rendezvousPort: Int =
     Option(java.lang.System.getProperty("rendezvousPort")).fold(port)(_.toInt)
 
+  /** The address that the rendezvous' UDP socket binds to, `host` by default (or the
+    * `rendezvousAddress` property). On fly.io, it must be `fly-global-services`: bound to 0.0.0.0,
+    * Linux replies from the wrong source address, and the NATs of the players drop the replies.
+    */
+  val rendezvousAddress: String =
+    Option(java.lang.System.getProperty("rendezvousAddress")).filter(_.nonEmpty).getOrElse(host)
+
   /** The game server's jar, that the players download to run it, relative to where the server runs
     * (or the `gameServerJar` property).
     */
@@ -108,7 +115,9 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
 
   initialize()
 
-  rendezvous.start(rendezvousPort, Some(host))
+  rendezvous.start(rendezvousPort, Some(rendezvousAddress))
 
-  println(s"Server listening at $host:$port (rendezvous on UDP $rendezvousPort)")
+  println(
+    s"Server listening at $host:$port (rendezvous on UDP $rendezvousAddress:$rendezvousPort)"
+  )
 }

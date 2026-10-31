@@ -1,0 +1,6 @@
+# The image only needs what the Dockerfile copies (all built by sbt, see the Dockerfile)
+*
+!dist/app.jar
+!game-server/target/game-server.jar
+!game-server/target/runtimes
+!love-client/target/dist

@@ -67,7 +67,7 @@ players need `java` 17 or later on their computer to host.
 
 A NAT only lets in the datagrams from an address that a socket behind it sent a datagram to. The
 rendezvous (`server/RendezvousServer.scala`, UDP, on the menu server's port by default:
-`-DrendezvousPort`) sees the addresses the NATs give to the game's sockets, and tells the game server
+`-DrendezvousPort`, bound to the interfaces of the menu server) sees the addresses the NATs give to the game's sockets, and tells the game server
 about the players' ones. The protocol is `communication.udp.Rendezvous` (in `shared`). Its datagrams
 travel on the game's sockets, next to the `Envelope` ones (their first byte tells them apart).
 

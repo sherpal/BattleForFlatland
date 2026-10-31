@@ -67,14 +67,14 @@ lazy val server = project
     libraryDependencies ++= List(
       "com.lihaoyi" %% "cask" % "0.9.1"
     ),
-    assembly / mainClass       := Some("server.Server"),
+    assembly / mainClass := Some("server.Server"),
     assembly / assemblyJarName := "app.jar"
   )
   .dependsOn(`shared-backend`)
 
 /** Puts the fat jar directly in the target directory (e.g. `game-server/target/game-server.jar`)
-  * instead of the default `target/scala-<version>/`, so that the paths used to launch it don't change
-  * with the Scala version.
+  * instead of the default `target/scala-<version>/`, so that the paths used to launch it don't
+  * change with the Scala version.
   */
 def stableAssemblyOutputPath = Def.settings(
   assembly / assemblyOutputPath := target.value / (assembly / assemblyJarName).value
@@ -90,7 +90,7 @@ lazy val `game-server` = project
     libraryDependencies ++= List(
       "com.lihaoyi" %% "cask" % "0.9.1"
     ),
-    assembly / mainClass       := Some("server.Server"),
+    assembly / mainClass := Some("server.Server"),
     assembly / assemblyJarName := "game-server.jar",
     stableAssemblyOutputPath,
     // the JDKs (one per platform) are downloaded once, in the root's target directory
@@ -121,9 +121,9 @@ lazy val `love-client` = project
   .enablePlugins(ScalaJSPlugin)
   .settings(
     LuaSettings(`lua-linker`),
-    LuaSettings.luaPackageTitle     := "Battle for Flatland",
+    LuaSettings.luaPackageTitle := "Battle for Flatland",
     // there is also `bffclient.lua.UdpSelfTest`, linked by tools/love-udp-test.sh
-    Compile / mainClass             := Some("bffclient.Main"),
+    Compile / mainClass := Some("bffclient.Main"),
     scalaJSUseMainModuleInitializer := true
   )
   .dependsOn(`shared`.js)
@@ -140,4 +140,18 @@ packageApplication := {
   val target = baseDirectory.value / "dist" / "app.jar"
   IO.copyFile(fatJar, target)
   target
+}
+
+val deploy = inputKey[Unit](
+  "Build everything and deploy the menu server on a VM (see deploy.md): deploy <user@host> [<platform>] [--key <file>]"
+)
+
+deploy := {
+  val args = Def.spaceDelimited(Deploy.Args.usage).parsed
+  // everything that the Docker image copies
+  val menuServerJar   = packageApplication.value
+  val gameServerJar   = (`game-server` / assembly).value
+  val runtimes        = (`game-server` / gameServerRuntimes).value
+  val clientPackages  = (`love-client` / LuaSettings.luaPackage).value
+  Deploy(baseDirectory.value, target.value / "deploy", Deploy.Args.parse(args), streams.value.log)
 }

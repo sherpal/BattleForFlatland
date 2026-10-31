@@ -1,0 +1,2 @@
+# the scripts run on Linux (the VMs): keep their line endings on Windows
+*.sh text eol=lf
