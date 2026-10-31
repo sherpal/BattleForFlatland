@@ -65,7 +65,8 @@ lazy val server = project
   .in(file("./server"))
   .settings(
     libraryDependencies ++= List(
-      "com.lihaoyi" %% "cask" % "0.9.1"
+      "com.lihaoyi" %% "cask"      % "0.9.1",
+      "com.lihaoyi" %% "scalatags" % "0.13.1"
     ),
     assembly / mainClass := Some("server.Server"),
     assembly / assemblyJarName := "app.jar"
