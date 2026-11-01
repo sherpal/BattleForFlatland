@@ -6,10 +6,11 @@ import gamelogic.entities.boss.BossFactory
 import models.bff.outofgame.gameconfig.PlayerName
 import gamelogic.physics.Complex
 import gamelogic.gamestate.GameAction
-import models.bff.ingame.InGameWSProtocol
+import models.bff.ingame.{InGameWSProtocol, ServerPerformanceSummary}
 import models.bff.outofgame.gameconfig.PlayerName.HumanPlayerName
 import gamelogic.gamestate.gameactions.AddPlayerByClass
 import application.masterbehaviours.GameMasterBehaviour
+
 import java.util.concurrent.atomic.AtomicBoolean
 import application.masterbehaviours.*
 import gamelogic.gamestate.ActionGatherer
@@ -18,6 +19,8 @@ import gamelogic.gamestate.GreedyActionGatherer
 import gamelogic.gamestate.gameactions.{GameStart, SpawnBoss}
 import gamelogic.gamestate.AddAndRemoveActions
 import application.ai.{AIManager, GoodAIManager}
+import concurrent.ActionBuffer
+
 import scala.concurrent.ExecutionContext
 import gamelogic.entities.Entity
 import gamelogic.utils.IdsProducer
@@ -33,12 +36,12 @@ class GameMaster(
     extends IdsProducer
     with TimeManager {
 
-  def bossName = gameInfo.game.gameConfiguration.bossName
+  def bossName: String = gameInfo.game.gameConfiguration.bossName
 
   @volatile() private var actionGatherer: ActionGatherer = GreedyActionGatherer(GameState.empty)
 
-  val aiManager = AIManager(() => actionGatherer.currentGameState, actionTranslator)
-  val goodAiManager =
+  private val aiManager = AIManager(() => actionGatherer.currentGameState, actionTranslator)
+  private val goodAiManager =
     BossMetadata.maybeMetadataByName(gameInfo.game.gameConfiguration.bossName) match {
       case Some(bossMetadata) =>
         Some(GoodAIManager(bossMetadata, () => actionGatherer.currentGameState, actionTranslator))
@@ -58,9 +61,9 @@ class GameMaster(
     */
   private var readyPlayers = Set.empty[String]
 
-  def now = System.currentTimeMillis
+  def now: Long = System.currentTimeMillis
 
-  inline def actionBuffer = actionTranslator.actionBuffer
+  inline def actionBuffer: ActionBuffer[GameAction] = actionTranslator.actionBuffer
 
   val log = Logger()
 
@@ -176,78 +179,75 @@ class GameMaster(
 
   private val performanceMonitor = PerformanceMonitor()
 
-  def performanceSummary = performanceMonitor.retrieveSummary
+  def performanceSummary: Option[ServerPerformanceSummary] = performanceMonitor.retrieveSummary
 
   private def run(): Unit = {
-    val thread = new Thread(new Runnable {
-      def run(): Unit = {
-        var lastLoopTime = 0L
+    val thread = new Thread(() => {
+      var lastLoopTime = 0L
 
-        println("LFG!!!")
-        val preGameBehaviour = PreGameBehaviour()
+      val preGameBehaviour = PreGameBehaviour()
 
-        // looping the pre game behaviour until players start the game
-        lastLoopTime = now
-        while (!shouldBegin.get)
-          preGameBehaviour.completeLoop(lastLoopTime)
-          val newLoopTime = now
-          performanceMonitor.addInfo(newLoopTime - lastLoopTime)
-          lastLoopTime = newLoopTime
+      // looping the pre game behaviour until players start the game
+      lastLoopTime = now
+      while (!shouldBegin.get)
+        preGameBehaviour.completeLoop(lastLoopTime)
+        val newLoopTime = now
+        performanceMonitor.addInfo(newLoopTime - lastLoopTime)
+        lastLoopTime = newLoopTime
 
-        println("Woot, game begins!!!")
+      println("Woot, game begins!!!")
 
-        // compute initial actions (spawning boss with its initial actions and other related stuff)
-        val timeNow = now
-        val bossCreationActions = {
-          val bossId = genEntityId()
-          SpawnBoss(
-            idGeneratorContainer.actionId(),
-            timeNow - 2,
-            bossId,
-            bossName
-          ) +: BossFactory.factoriesByBossName
-            .get(bossName)
-            .fold(Vector.empty[GameAction])(
-              _.initialBossActions(bossId, timeNow - 1)
-            )
-        }
-        BossFactory.factoriesByBossName.get(bossName).toVector
-
-        val newPendingActions =
-          bossCreationActions :+ GameStart(idGeneratorContainer.actionId(), now)
-        actionBuffer.addActions(newPendingActions)
-
-        val inGameBehaviour = InGameBehaviour()
-
-        // looping the in game behaviour until the game stops
-        lastLoopTime = now
-        while (!actionGatherer.currentGameState.ended)
-          inGameBehaviour.completeLoop(lastLoopTime)
-          val newLoopTime = now
-          performanceMonitor.addInfo(newLoopTime - lastLoopTime)
-          lastLoopTime = newLoopTime
-
-        // applying and of game actions
-        val endOfGameActions =
-          BossFactory
-            .factoriesByBossName(gameInfo.game.gameConfiguration.bossName)
-            .whenBossDiesActions(actionGatherer.currentGameState, now)
-
-        val (endOfGameCollector, oldestTimeToRemove, idsToRemove) =
-          actionGatherer.masterAddAndRemoveActions(endOfGameActions)
-        actionGatherer = endOfGameCollector
-        actionTranslator.dispatchGameActions(
-          AddAndRemoveActions(
-            endOfGameActions,
-            oldestTimeToRemove,
-            idsToRemove
+      // compute initial actions (spawning boss with its initial actions and other related stuff)
+      val timeNow = now
+      val bossCreationActions = {
+        val bossId = genEntityId()
+        SpawnBoss(
+          idGeneratorContainer.actionId(),
+          timeNow - 2,
+          bossId,
+          bossName
+        ) +: BossFactory.factoriesByBossName
+          .get(bossName)
+          .fold(Vector.empty[GameAction])(
+            _.initialBossActions(bossId, timeNow - 1)
           )
-        )
-
-        // maybe here we should loop again
-
-        println("Game has ended.")
       }
+      BossFactory.factoriesByBossName.get(bossName).toVector
+
+      val newPendingActions =
+        bossCreationActions :+ GameStart(idGeneratorContainer.actionId(), now)
+      actionBuffer.addActions(newPendingActions)
+
+      val inGameBehaviour = InGameBehaviour()
+
+      // looping the in game behaviour until the game stops
+      lastLoopTime = now
+      while (!actionGatherer.currentGameState.ended)
+        inGameBehaviour.completeLoop(lastLoopTime)
+        val newLoopTime = now
+        performanceMonitor.addInfo(newLoopTime - lastLoopTime)
+        lastLoopTime = newLoopTime
+
+      // applying and of game actions
+      val endOfGameActions =
+        BossFactory
+          .factoriesByBossName(gameInfo.game.gameConfiguration.bossName)
+          .whenBossDiesActions(actionGatherer.currentGameState, now)
+
+      val (endOfGameCollector, oldestTimeToRemove, idsToRemove) =
+        actionGatherer.masterAddAndRemoveActions(endOfGameActions)
+      actionGatherer = endOfGameCollector
+      actionTranslator.dispatchGameActions(
+        AddAndRemoveActions(
+          endOfGameActions,
+          oldestTimeToRemove,
+          idsToRemove
+        )
+      )
+
+      // maybe here we should loop again
+
+      println("Game has ended.")
     })
     thread.start()
   }

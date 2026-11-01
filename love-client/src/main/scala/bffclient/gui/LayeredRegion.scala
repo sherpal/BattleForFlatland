@@ -167,6 +167,9 @@ final class FontString private[gui] (owner: Frame, layer: Layer)
   /** The width of the text on one line (the widest line, with line breaks). */
   def stringWidth: Double = font.getWidth(_text) / scale
 
+  /** The width of `text` in its font (e.g. of the start of its text). */
+  def textWidth(text: String): Double = font.getWidth(text) / scale
+
   private def lineHeight: Double = font.getHeight() / scale
 
   /** The height of its lines, at its width (which does not depend on where it is). */

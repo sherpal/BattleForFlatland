@@ -331,7 +331,7 @@ final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using Exec
       problemsTitle.setPoint(Point.TopLeft, above, Point.BottomLeft, 0, 20)
       val gameProblems = configuration.validate.toVector.sortBy(_._1)
       problemsTitle.setText(
-        if gameProblems.isEmpty then "Everyone is ready and well set, LFG"
+        if gameProblems.isEmpty then "Everyone is ready and well set, let's go!"
         else "The following things prevent the game to start:"
       )
       problemsTitle.setColour(

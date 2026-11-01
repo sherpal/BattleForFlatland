@@ -74,8 +74,10 @@ Warcraft's (and the author's former [scalajs-ui](https://github.com/sherpal/scal
   window), and removes them when it is left. A `Frame` has children frames and draws **regions**:
   `Texture`s (a colour or an image, possibly with rounded corners and an outline) and
   `FontString`s (a text, possibly with a shadow), created with `createTexture` and
-  `createFontString`; a frame can be faded (`setAlpha`, which its descendants inherit). The widgets are frames: `Button`, `EditBox` (a text field with keyboard focus),
-  `CheckButton`, `Swatch` (a colour square), `Selector` (`< value >`), `Segmented` (side by side
+  `createFontString`; a frame can be faded (`setAlpha`, which its descendants inherit). The
+  widgets are frames: `Button`, `EditBox` (a text field with keyboard focus, a caret and a
+  selection: arrows, Home and End, with Ctrl or Alt by word and with Shift to select; Ctrl or Cmd +
+  A, C, X and V for the clipboard; clicks, drags, double and triple clicks), `CheckButton`, `Swatch` (a colour square), `Selector` (`< value >`), `Segmented` (side by side
   buttons), `StatusBar` (a progress bar) and `ScrollFrame` (with a scroll child, scrolled with the
   mouse wheel, which may fit its contents); `Templates` makes frames in the theme's style (a panel,
   a "Loading..." text).
@@ -258,8 +260,9 @@ to the game's UDP socket, `DelayedUDPSocket`).
 `tools/love-udp-test.sh` links `bffclient.lua.UdpSelfTest` instead of the client, and runs it headless:
 it checks the UDP sockets (see above), with no server involved.
 
-`tools/screenshot` runs a LÖVE game with scripted inputs (keys, clicks, mouse moves, text, wheel)
-and takes screenshots at given frames (see its `main.lua`).
+`tools/screenshot` runs a LÖVE game with scripted inputs (keys, held keys such as `lctrl:30-30`,
+clicks, presses and releases to drag, mouse moves, text, wheel) and takes screenshots at given
+frames (see its `main.lua`).
 
 ## Playing with friends
 

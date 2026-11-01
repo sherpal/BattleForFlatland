@@ -45,8 +45,8 @@ final class LoginScreen(app: MenuApp)(using ExecutionContext) extends Screen {
   loading.setPoint(Point.TopLeft, 30, 230)
   loading.hide()
 
-  private val loginButton = Button(box, "LFG!", ButtonStyle.Primary)
-  loginButton.setSize(120, 40)
+  private val loginButton = Button(box, "Enter Battle for Flatland", ButtonStyle.Primary)
+  loginButton.setSize(220, 40)
   loginButton.setPoint(Point.TopRight, -30, 220)
 
   server.setScript(Script.OnEnterPressed)(() =>

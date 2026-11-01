@@ -5,6 +5,8 @@
 --   key:from-to       the key is held between the given frames (love.keyboard.isDown and isScancodeDown)
 --   key@frame         a key press and release (love.keypressed then love.keyreleased)
 --   click@frame:x:y   a left click (love.mousepressed then love.mousereleased) at (x, y)
+--   press@frame:x:y   presses the left button at (x, y) (love.mousepressed), e.g. to drag
+--   release@frame:x:y releases the left button at (x, y) (love.mousereleased)
 --   mouse@frame:x:y   moves the mouse to (x, y) (love.mouse.getPosition; clicks move it too)
 --   button@frame:n    presses and releases the mouse button n (2 right, 3 middle, ...) where the mouse is
 --   wheel@frame:dy    turns the mouse wheel (love.wheelmoved; positive upwards)
@@ -18,11 +20,14 @@ local frames = {}
 for f in (arg[3] or "90"):gmatch("%d+") do frames[#frames + 1] = tonumber(f) end
 local lastFrame = frames[#frames]
 local heldKeys, pressedKeys, clicks, texts, moves, buttons, wheels = {}, {}, {}, {}, {}, {}, {}
+local presses, releases = {}, {}
 for event in (arg[4] or ""):gmatch("[^,]+") do
   local moveAt, moveX, moveY = event:match("^mouse@(%d+):(%d+):(%d+)$")
   local buttonAt, button = event:match("^button@(%d+):(%d+)$")
   local wheelAt, wheel = event:match("^wheel@(%d+):(-?%d+)$")
   local at, x, y = event:match("^click@(%d+):(%d+):(%d+)$")
+  local pressAt, pressX, pressY = event:match("^press@(%d+):(%d+):(%d+)$")
+  local releaseAt, releaseX, releaseY = event:match("^release@(%d+):(%d+):(%d+)$")
   local textAt, text = event:match("^text@(%d+):(.*)$")
   local key, from, to = event:match("^(%w+):(%d+)-(%d+)$")
   local pressed, pressedAt = event:match("^(%w+)@(%d+)$")
@@ -30,6 +35,9 @@ for event in (arg[4] or ""):gmatch("[^,]+") do
   elseif buttonAt then buttons[#buttons + 1] = { at = tonumber(buttonAt), button = tonumber(button) }
   elseif wheelAt then wheels[#wheels + 1] = { at = tonumber(wheelAt), dy = tonumber(wheel) }
   elseif at then clicks[#clicks + 1] = { at = tonumber(at), x = tonumber(x), y = tonumber(y) }
+  elseif pressAt then presses[#presses + 1] = { at = tonumber(pressAt), x = tonumber(pressX), y = tonumber(pressY) }
+  elseif releaseAt then
+    releases[#releases + 1] = { at = tonumber(releaseAt), x = tonumber(releaseX), y = tonumber(releaseY) }
   elseif textAt then texts[#texts + 1] = { at = tonumber(textAt), text = text }
   elseif key then heldKeys[#heldKeys + 1] = { key = key, from = tonumber(from), to = tonumber(to) }
   elseif pressed then pressedKeys[#pressedKeys + 1] = { key = pressed, at = tonumber(pressedAt) }
@@ -88,6 +96,18 @@ love.timer.step = function(...)
       mouseX, mouseY = c.x, c.y
       if love.mousepressed then love.mousepressed(c.x, c.y, 1, false, 1) end
       if love.mousereleased then love.mousereleased(c.x, c.y, 1, false, 1) end
+    end
+  end
+  for _, p in ipairs(presses) do
+    if p.at == frame then
+      mouseX, mouseY = p.x, p.y
+      if love.mousepressed then love.mousepressed(p.x, p.y, 1, false, 1) end
+    end
+  end
+  for _, r in ipairs(releases) do
+    if r.at == frame then
+      mouseX, mouseY = r.x, r.y
+      if love.mousereleased then love.mousereleased(r.x, r.y, 1, false, 1) end
     end
   end
   for _, b in ipairs(buttons) do

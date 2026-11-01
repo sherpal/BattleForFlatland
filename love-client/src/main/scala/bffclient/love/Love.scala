@@ -151,6 +151,9 @@ object Keyboard extends js.Object {
   def isDown(key: String): Boolean              = js.native
   def isScancodeDown(scancode: String): Boolean = js.native
   def setKeyRepeat(enable: Boolean): Unit       = js.native
+
+  /** The key (in the keyboard's layout, e.g. "a") of a scancode (its place, e.g. "q" in AZERTY). */
+  def getKeyFromScancode(scancode: String): String = js.native
 }
 
 @js.native @JSGlobal("love.window")
@@ -205,4 +208,7 @@ object LoveSystem extends js.Object {
   def getOS(): String = js.native
 
   def getProcessorCount(): Int = js.native
+
+  def getClipboardText(): String           = js.native
+  def setClipboardText(text: String): Unit = js.native
 }
