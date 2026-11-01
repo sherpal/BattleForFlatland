@@ -2,7 +2,7 @@ package gamelogic.gamestate
 
 import gamelogic.buffs.{Buff, PassiveBuff, TickerBuff}
 import gamelogic.entities.Entity.Id
-import gamelogic.entities._
+import gamelogic.entities.*
 import gamelogic.entities.boss.BossEntity
 import gamelogic.entities.classes.PlayerClass
 import gamelogic.entities.movingstuff.PentagonBullet
@@ -11,6 +11,7 @@ import models.syntax.Pointed
 
 import scala.reflect.ClassTag
 import gamelogic.gameextras.{GameMarker, GameMarkerInfo}
+import gamelogic.physics.Complex
 
 /** A [[gamelogic.gamestate.GameState]] has the complete knowledge of everything that exists in the
   * game. Having an instance of a GameState is enough to have all information about the game at that
@@ -92,17 +93,31 @@ final case class GameState(
       currentTime: Long
   ): Option[Boolean] =
     for {
-      body1 <- bodyEntityById(entityId1)
       body2 <- bodyEntityById(entityId2)
-      segment = (body1.currentPosition(currentTime), body2.currentPosition(currentTime))
-    } yield !obstaclesLike.exists { body =>
-      body.shape.intersectSegment(
-        body.currentPosition(currentTime),
-        body.rotation,
-        segment._1,
-        segment._2
+      body2Position = body2.currentPosition(currentTime)
+      inSight <- isPositionInSight(entityId1, body2Position, currentTime)
+    } yield inSight
+
+  def isPositionInSight(
+      entityId: Entity.Id,
+      position: Complex,
+      currentTime: Long
+  ): Option[Boolean] =
+    for {
+      body <- bodyEntityById(entityId)
+    } yield isPositionInSight(body, position, currentTime)
+
+  def isPositionInSight(withPosition: WithPosition, position: Complex, currentTime: Long): Boolean = {
+    val from = withPosition.currentPosition(currentTime)
+    !obstaclesLike.exists { obstacle =>
+      obstacle.shape.intersectSegment(
+        obstacle.currentPosition(currentTime),
+        obstacle.rotation,
+        from,
+        position
       )
     }
+  }
 
   /** Returns whether the two entities given ids are in the same team. If either of the entities
     * does not exist, returns None instead.
