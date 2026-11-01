@@ -2,9 +2,9 @@ package communication.udp
 
 final case class Peer(address: String, port: Int) {
 
-  /** Whether this is an address of a private network (or the loopback), which only the computers
-    * of that network can reach: the rendezvous then does not see the public address of the peer,
-    * which has to find it out by itself (see [[Stun]]).
+  /** Whether this is an address of a private network (or the loopback), which only the computers of
+    * that network can reach: the rendezvous then does not see the public address of the peer, which
+    * has to find it out by itself (see [[Stun]]).
     */
   def onPrivateNetwork: Boolean = Peer.onPrivateNetwork(address)
 }

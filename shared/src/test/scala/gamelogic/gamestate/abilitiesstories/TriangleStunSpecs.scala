@@ -78,7 +78,7 @@ final class TriangleStunSpecs extends StoryTeller {
           houndStunDebuff <- houndBuffs.values.collectFirst { case s: TriangleStunDebuff => s }
         } yield houndStunDebuff) match {
           case Some(_) => // ok!
-          case None    => fail("The hound should have the stun debuff!")
+          case None => fail("The hound should have the stun debuff!")
         }
       } >>
       houndTakesDamage >>>> { (gameState: GameState) =>

@@ -21,7 +21,7 @@ final class SettingsEditor(close: () => Unit) {
 
   private enum Tab(val label: String) {
     case Bindings extends Tab("Controls")
-    case General  extends Tab("General")
+    case General extends Tab("General")
   }
   private var tab = Tab.Bindings
 
@@ -220,10 +220,8 @@ final class SettingsEditor(close: () => Unit) {
     val bottom = box.bottom - 60
     for message <- error do
       ui.text(message, box.x + 24, bottom - 14, Theme.small, Theme.negative.lighter(0.3))
-    if
-      ui.button("Done", Rect(box.right - 174, bottom, 150, 40), style = ButtonStyle.Primary) || ui
+    if ui.button("Done", Rect(box.right - 174, bottom, 150, 40), style = ButtonStyle.Primary) || ui
         .wasPressed("escape")
-    then
-      close()
+    then close()
   }
 }

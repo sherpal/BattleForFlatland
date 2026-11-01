@@ -20,7 +20,7 @@ object Probe {
   def main(args: Array[String]): Unit = {
     val Array(mainClass, cp) = args
     val classpath            = cp.split(java.io.File.pathSeparator).toSeq.map(Paths.get(_))
-    val config               = StandardConfig()
+    val config = StandardConfig()
       .withSemantics(LuaBackend.semantics)
       .withESFeatures(LuaBackend.esFeatures)
       .withModuleKind(ModuleKind.CommonJSModule)
@@ -28,10 +28,10 @@ object Probe {
       .withCheckIR(true)
     val frontend = StandardLinkerFrontend(config)
     val logger   = new ScalaConsoleLogger(Level.Warn)
-    val f        = for {
+    val f = for {
       (containers, _) <- PathIRContainer.fromClasspath(classpath)
       irFiles         <- StandardImpl.irFileCache().newCache.cached(containers)
-      ms              <- frontend.link(
+      ms <- frontend.link(
         irFiles,
         Seq(ModuleInitializer.mainMethodWithArgs(mainClass, "main")),
         LuaBackend.symbolRequirements,
@@ -41,7 +41,7 @@ object Probe {
     val ms      = Await.result(f, Duration.Inf)
     val counts  = scala.collection.mutable.Map.empty[String, Int].withDefaultValue(0)
     val classes = ms.modules.flatMap(_.classDefs)
-    val t       = new Traverser {
+    val t = new Traverser {
       override def traverse(tree: Tree): Unit = {
         counts(tree.getClass.getSimpleName) += 1
         super.traverse(tree)

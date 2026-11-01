@@ -18,7 +18,7 @@ object Boss104Visuals extends BossVisuals {
 
   def draws(entity: Entity): Boolean = entity match {
     case _: BigGuy | _: DebuffCircle | _: BigGuyDeathMark | _: DeathMarkTriangle => true
-    case _                                                                       => false
+    case _ => false
   }
 
   def ground(p: Painter): Unit = {
@@ -28,8 +28,7 @@ object Boss104Visuals extends BossVisuals {
     for
       buff   <- gameState.allTBuffs[TwinDebuff]
       player <- gameState.players.get(buff.bearerId)
-    do
-      circle(position(player), player.shape.radius * 1.5, Some(paint(buff.colour, 0.5)))
+    do circle(position(player), player.shape.radius * 1.5, Some(paint(buff.colour, 0.5)))
     for mark <- gameState.allTEntities[BigGuyDeathMark].values do
       circle(mark.pos, mark.shape.radius, Some(Paint(0, 0, 0, 0.5)))
     for triangle <- gameState.allTEntities[DeathMarkTriangle].values do {

@@ -132,10 +132,11 @@ final class MenuApi(val host: String, val port: Int)(using ExecutionContext) {
     * server kicks the players who are not connected.
     */
   def lobby(gameId: Option[String])(onMessage: MenuGameComm => Unit): Future[Lobby] = {
-    val query      = gameId.fold("")(id => s"?gameId=$id")
+    val query = gameId.fold("")(id => s"?gameId=$id")
     val connection =
       WebSocketModule.connect(s"ws://$host:$port/ws/bff/game-anti-chamber$query", 5, sessionCookie)
-    if connection.socket == null then Future.failed(HttpError(s"Lobby websocket: ${connection.error}"))
+    if connection.socket == null then
+      Future.failed(HttpError(s"Lobby websocket: ${connection.error}"))
     else Future.successful(new Lobby(connection.socket, onMessage))
   }
 }

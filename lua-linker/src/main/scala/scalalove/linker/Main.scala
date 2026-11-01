@@ -16,8 +16,8 @@ import org.scalajs.linker.standard.*
 import org.scalajs.logging.*
 
 object LuaBackend {
-  val JavaScriptExceptionClass: ClassName  = ClassName("scala.scalajs.js.JavaScriptException")
-  val AnyArgConstructorName: MethodName    = MethodName.constructor(List(ClassRef(ObjectClass)))
+  val JavaScriptExceptionClass: ClassName = ClassName("scala.scalajs.js.JavaScriptException")
+  val AnyArgConstructorName: MethodName   = MethodName.constructor(List(ClassRef(ObjectClass)))
   val StringArgConstructorName: MethodName =
     MethodName.constructor(List(ClassRef(BoxedStringClass)))
   val toStringMethodName: MethodName = MethodName("toString", Nil, ClassRef(BoxedStringClass))
@@ -77,7 +77,7 @@ object Main {
     val logger   = new ScalaConsoleLogger(Level.Warn)
 
     val initializers = Seq(ModuleInitializer.mainMethodWithArgs(mainClass, "main"))
-    val irFiles      = Await.result(
+    val irFiles = Await.result(
       PathIRContainer
         .fromClasspath(classpath)
         .flatMap((containers, _) => StandardImpl.irFileCache().newCache.cached(containers)),
@@ -94,7 +94,7 @@ object Main {
     // We only know whether there are such calls after linking, so link again if necessary.
     val firstModuleSet = link(SymbolRequirement.factory("lua-backend").none())
     val arities        = MultipleReturns.aritiesUsed(firstModuleSet)
-    val tuplesReady    = arities.forall { n =>
+    val tuplesReady = arities.forall { n =>
       firstModuleSet.modules.flatMap(_.classDefs).exists { c =>
         c.className == MultipleReturns.tupleClass(n) && c.hasDirectInstances &&
         c.methods.exists(_.methodName == MultipleReturns.tupleConstructor(n))

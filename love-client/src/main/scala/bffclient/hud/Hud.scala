@@ -36,7 +36,8 @@ final class Hud(client: GameClient, bossVisuals: () => Option[BossVisuals], scal
   /** Where the "Start game" button was drawn in the last frame. */
   private var startButton = Option.empty[Rect]
 
-  def startButtonAt(x: Double, y: Double): Boolean = startButton.exists(_.contains(x / scale, y / scale))
+  def startButtonAt(x: Double, y: Double): Boolean =
+    startButton.exists(_.contains(x / scale, y / scale))
 
   /** The entity whose frame is at this position on screen, if any. */
   def targetAt(x: Double, y: Double): Option[Entity.Id] =
@@ -105,11 +106,20 @@ final class Hud(client: GameClient, bossVisuals: () => Option[BossVisuals], scal
           }
           val hint = Rect(width / 2 - 300, 40, 600, 28)
           panel(hint)
-          text("Place yourselves, then click \"Start game\": the boss arrives 5 seconds later", hint, "center")
+          text(
+            "Place yourselves, then click \"Start game\": the boss arrives 5 seconds later",
+            hint,
+            "center"
+          )
         case Some(remaining) =>
           val seconds = math.ceil(remaining / 1000.0).toInt
           panel(Rect(width / 2 - 130, height * 0.22 - 6, 260, 130), radius = 10)
-          text("The boss arrives in", Rect(0, height * 0.22, width, 30), "center", textSize = Some(largeSize))
+          text(
+            "The boss arrives in",
+            Rect(0, height * 0.22, width, 30),
+            "center",
+            textSize = Some(largeSize)
+          )
           text(
             seconds.toString,
             Rect(0, height * 0.22 + 30, width, 90),
@@ -133,8 +143,7 @@ final class Hud(client: GameClient, bossVisuals: () => Option[BossVisuals], scal
     for
       id     <- client.myId
       player <- p.gameState.players.get(id).orElse(p.gameState.deadPlayers.get(id))
-    do
-      playerFrame(p, id, player, Rect(width / 2 - 210, bottomFramesTop(height), 200, frameHeight))
+    do playerFrame(p, id, player, Rect(width / 2 - 210, bottomFramesTop(height), 200, frameHeight))
 
   /** The class of the player in a round badge, in their colour. */
   private def classBadge(player: PlayerClass, x: Double, y: Double, alpha: Double): Unit = {
@@ -288,10 +297,11 @@ final class Hud(client: GameClient, bossVisuals: () => Option[BossVisuals], scal
         text(abilityName(target, info.ability.abilityId), castBar, "center")
       }
 
-      if client.lockInToTarget then Sprites.smallLock.foreach { lock =>
-        Graphics.setColor(1, 1, 1)
-        lock.draw(frame.right - 9, frame.y + 12, 0, lock.frameWidth)
-      }
+      if client.lockInToTarget then
+        Sprites.smallLock.foreach { lock =>
+          Graphics.setColor(1, 1, 1)
+          lock.draw(frame.right - 9, frame.y + 12, 0, lock.frameWidth)
+        }
       hoverHighlight(frame)
       clickable :+= (frame, target.id)
     }
@@ -320,7 +330,7 @@ final class Hud(client: GameClient, bossVisuals: () => Option[BossVisuals], scal
       val casting  = p.gameState.castingEntityInfo.get(boss.id).filter(_.isCasting(p.now, 0L))
       val buffs    = p.iconBuffs(boss.id)
       val buffsTop = 4 + (if casting.isDefined then 42 else 26)
-      val rect     = Rect(width / 2 - 150, 4, 300, buffsTop - 4 + (if buffs.nonEmpty then 19 else 2))
+      val rect = Rect(width / 2 - 150, 4, 300, buffsTop - 4 + (if buffs.nonEmpty then 19 else 2))
       panel(rect)
       val lifeBar = Rect(rect.x + 5, rect.y + 5, rect.width - 10, 18)
       val life    = ratio(boss.life, boss.maxLife)

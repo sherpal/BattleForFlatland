@@ -54,27 +54,23 @@ final class GamesScreen(app: MenuApp, user: User)(using ExecutionContext) extend
           Rect(strip.x + 16, strip.y, strip.width, strip.height),
           align = "left"
         )
-        if
-          ui.button(
+        if ui.button(
             "Join it back",
             Rect(strip.right - 150, strip.y + 7, 140, 36),
             !busy,
             ButtonStyle.Primary
           )
-        then
-          enter(game.id)
+        then enter(game.id)
       case None if games.isDefined =>
         val entered =
           ui.textField(newGameName, Rect(40, 105, 320, 40), "Game name", enabled = !busy)
-        if
-          (ui.button(
+        if (ui.button(
             "Create game",
             Rect(370, 105, 150, 40),
             !busy,
             ButtonStyle.Primary
           ) || entered) && !busy
-        then
-          create()
+        then create()
       case None => ()
     }
 
@@ -108,14 +104,12 @@ final class GamesScreen(app: MenuApp, user: User)(using ExecutionContext) extend
             )
           // Like the frontend: one may join any game, unless already in one (which may then be joined back)
           val canJoin = gameYouAreIn.forall(_.id == game.id)
-          if
-            canJoin && ui.button(
+          if canJoin && ui.button(
               if gameYouAreIn.isDefined then "Join back" else "Join",
               Rect(row.right - 130, row.y + 5, 115, 34),
               !busy
             )
-          then
-            if gameYouAreIn.isDefined then enter(game.id) else join(game.id)
+          then if gameYouAreIn.isDefined then enter(game.id) else join(game.id)
         }
         if all.size > rowsThatFit then
           ui.text(

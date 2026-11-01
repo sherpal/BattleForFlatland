@@ -40,7 +40,7 @@ object MultipleReturns {
 
   /** Arities of the multiple-return calls in the linked program. */
   def aritiesUsed(moduleSet: ModuleSet): Set[Int] = {
-    var arities   = Set.empty[Int]
+    var arities = Set.empty[Int]
     val traverser = new Traverser {
       override def traverse(tree: Tree): Unit = {
         tree match {

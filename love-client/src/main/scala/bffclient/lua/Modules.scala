@@ -61,8 +61,8 @@ trait WebSocket extends js.Object {
   def close(): Unit     = js.native
 }
 
-/** A module whose inputs are handled one after the other by a LÖVE thread, see
-  * `workers.module` (src/main/lua/workers.lua). Use `hosting.WorkerResults` rather than this.
+/** A module whose inputs are handled one after the other by a LÖVE thread, see `workers.module`
+  * (src/main/lua/workers.lua). Use `hosting.WorkerResults` rather than this.
   *
   * @tparam I
   *   what the thread is given
@@ -90,8 +90,8 @@ trait WorkerResult[R] extends js.Object {
   val error: String = js.native
 }
 
-/** Commands (src/main/lua/process.lua): of the shell on Linux and macOS, command lines run without a
-  * shell (nor a console window) on Windows. The result of a command is its output (stdout and
+/** Commands (src/main/lua/process.lua): of the shell on Linux and macOS, command lines run without
+  * a shell (nor a console window) on Windows. The result of a command is its output (stdout and
   * stderr, together).
   */
 @js.native @JSImport("process", JSImport.Namespace)

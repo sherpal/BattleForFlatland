@@ -15,7 +15,7 @@ object Boss102Visuals extends BossVisuals {
 
   def draws(entity: Entity): Boolean = entity match {
     case _: BossHound | _: DamageZone => true
-    case _                            => false
+    case _ => false
   }
 
   def ground(p: Painter): Unit = {
@@ -31,25 +31,26 @@ object Boss102Visuals extends BossVisuals {
     for
       (id, player) <- gameState.players
       if gameState.allBuffsOfEntity(id).exists(_.isInstanceOf[LivingDamageZone])
-    do Sprites.livingDamageZone match {
-      case Some(sprite) =>
-        val (x, y) = toScreen(position(player))
-        Graphics.setColor(1, 1, 1, 0.3)
-        sprite.draw(
-          x,
-          y,
-          0,
-          2 * LivingDamageZone.range * 192 / 120,
-          frame = ((now / 50) % sprite.frameCount).toInt
-        )
-      case None =>
-        circle(
-          position(player),
-          LivingDamageZone.range,
-          Some(Paint(0.8, 0, 0, 0.2)),
-          Some((2, Paint(0.8, 0, 0, 0.6)))
-        )
-    }
+    do
+      Sprites.livingDamageZone match {
+        case Some(sprite) =>
+          val (x, y) = toScreen(position(player))
+          Graphics.setColor(1, 1, 1, 0.3)
+          sprite.draw(
+            x,
+            y,
+            0,
+            2 * LivingDamageZone.range * 192 / 120,
+            frame = ((now / 50) % sprite.frameCount).toInt
+          )
+        case None =>
+          circle(
+            position(player),
+            LivingDamageZone.range,
+            Some(Paint(0.8, 0, 0, 0.2)),
+            Some((2, Paint(0.8, 0, 0, 0.6)))
+          )
+      }
   }
 
   def adds(p: Painter): Unit =

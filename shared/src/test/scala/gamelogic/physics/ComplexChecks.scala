@@ -19,8 +19,9 @@ object ComplexChecks extends Properties("Complex properties") {
   }
   property("1 is neutral for product") = functionEquality(complexGen)(_ * 1, identity)
 
-  property("Non zero Complex have inverse for product") = forAll(complexGen.filter(_.modulus > 0)) { z =>
-    z * (1 / z) == (1: Complex)
+  property("Non zero Complex have inverse for product") = forAll(complexGen.filter(_.modulus > 0)) {
+    z =>
+      z * (1 / z) == (1: Complex)
   }
   property("Distributivity") = forAll(complexGen, complexGen, complexGen) { (z, w, u) =>
     z * (w + u) == z * w + z * u
@@ -31,22 +32,24 @@ object ComplexChecks extends Properties("Complex properties") {
       z / w == 1 / (w / z)
     }
 
-  property("Rotating Complex doesn't change its norm") = forAll(complexGen, angleGen) { (z, alpha) =>
-    z.modulus.almostEqual(z.rotate(alpha).modulus)
+  property("Rotating Complex doesn't change its norm") = forAll(complexGen, angleGen) {
+    (z, alpha) =>
+      z.modulus.almostEqual(z.rotate(alpha).modulus)
   }
 
   property("Complex times conjugate is modulus square") =
     functionEquality(complexGen)(z => z * z.conjugate, _.modulus2: Complex)
 
-  property("Complex conjugate is an involution") = functionEquality(complexGen)(_.conjugate.conjugate, identity)
+  property("Complex conjugate is an involution") =
+    functionEquality(complexGen)(_.conjugate.conjugate, identity)
 
   property("Applying four times the orthogonal is identity") = functionEquality(complexGen)(
     (1 to 4).foldLeft(_)((w, _) => w.orthogonal),
     identity
   )
 
-  property("Orthogonal Complex has same norm, is orthogonal and gives positive cross product") = forAll(complexGen) {
-    z =>
+  property("Orthogonal Complex has same norm, is orthogonal and gives positive cross product") =
+    forAll(complexGen) { z =>
       val orthogonal = z.orthogonal
       all(
         z.modulus == orthogonal.modulus,
@@ -54,6 +57,6 @@ object ComplexChecks extends Properties("Complex properties") {
         (z.crossProduct(orthogonal)) > 0
       )
 
-  }
+    }
 
 }

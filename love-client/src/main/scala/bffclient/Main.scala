@@ -42,7 +42,7 @@ object Main {
       case Some(url) if headless =>
         val (host, port) =
           MenuApi.parseAddress(url).fold(message => sys.error(s"BFF_MENU_URL: $message"), identity)
-        val api         = new MenuApi(host, port)
+        val api = new MenuApi(host, port)
         val playerClass = PlayerClasses
           .playerClassByName(env("BFF_CLASS", "Triangle"))
           .getOrElse(PlayerClasses.Triangle)
@@ -72,8 +72,8 @@ object Main {
     }
   }
 
-  /** Connects to the game server (through UDP) and runs the game. When the game was joined through the
-    * menus, `backToMenus` goes back to them.
+  /** Connects to the game server (through UDP) and runs the game. When the game was joined through
+    * the menus, `backToMenus` goes back to them.
     */
   def startGame(
       access: GameAccess,
@@ -130,7 +130,7 @@ object Main {
       Love.update = dt => client.update(dt)
     } else {
       var renderer: Renderer = null
-      val client             = new GameClient(
+      val client = new GameClient(
         link,
         access.userName,
         headless,
@@ -141,7 +141,7 @@ object Main {
       )
       renderer = Renderer(client, ClientSettings.load().hudScale)
       // While an overlay is shown (game menu, end of game), the inputs go to it
-      val ui    = new Ui
+      val ui = new Ui
       val leave =
         backToMenus.map { back => () =>
           val exit = client.exit; client.leave(); back(exit)

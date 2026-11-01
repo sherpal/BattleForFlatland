@@ -38,7 +38,8 @@ final class AbilityCaster(myId: Entity.Id) {
       case None => Error("You are dead")
       case Some(player) =>
         val abilities = player.abilities.toArray
-        if index < abilities.length then cast(abilities(index), player, gameState, now, target, mouse)
+        if index < abilities.length then
+          cast(abilities(index), player, gameState, now, target, mouse)
         else Error(s"No ability on key ${index + 1}")
     }
 

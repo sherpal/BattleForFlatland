@@ -107,7 +107,11 @@ final case class GameState(
       body <- bodyEntityById(entityId)
     } yield isPositionInSight(body, position, currentTime)
 
-  def isPositionInSight(withPosition: WithPosition, position: Complex, currentTime: Long): Boolean = {
+  def isPositionInSight(
+      withPosition: WithPosition,
+      position: Complex,
+      currentTime: Long
+  ): Boolean = {
     val from = withPosition.currentPosition(currentTime)
     !obstaclesLike.exists { obstacle =>
       obstacle.shape.intersectSegment(

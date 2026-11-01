@@ -40,21 +40,17 @@ final class EndOfGame(client: GameClient, backToMenus: Option[() => Unit]) {
           style = ButtonStyle.Primary
         )
         if clicked || ui.wasPressed("return") || ui.wasPressed("kpenter") then back()
-        if
-          ui.button("Quit", Rect(buttons.right - 140, buttons.y, 140, buttons.height)) || ui
+        if ui.button("Quit", Rect(buttons.right - 140, buttons.y, 140, buttons.height)) || ui
             .wasPressed("escape")
-        then
-          client.quit()
+        then client.quit()
       case None =>
-        if
-          ui.button(
+        if ui.button(
             "Quit",
             Rect(buttons.x, buttons.y, buttons.width, buttons.height),
             style = ButtonStyle.Primary
           ) ||
           ui.wasPressed("escape") || ui.wasPressed("return")
-        then
-          client.quit()
+        then client.quit()
     }
   }
 }

@@ -12,12 +12,12 @@ import menus.data.{GameServerFile, HostCandidacy}
   * `menus.data.MenuGameComm`).
   *
   * The game server is the jar of the menu server (`api/bff/game-server/jar`), run with the Java
-  * runtime that the menu server has for our platform (`api/bff/game-server/runtime`, a tar.gz unpacked
-  * with `tar`), or, if it has none, with the `java` of the computer (17 or later). Both are
-  * downloaded once per version into the save directory (`game-servers/`), and checked, against the
-  * SHA-256 that the menu server gives as their version (for the runtime, the one of its manifest,
-  * which has the SHA-256 of each of its files): when the files were changed, or corrupted, they are
-  * downloaded again. What is being downloaded is told by [[downloading]].
+  * runtime that the menu server has for our platform (`api/bff/game-server/runtime`, a tar.gz
+  * unpacked with `tar`), or, if it has none, with the `java` of the computer (17 or later). Both
+  * are downloaded once per version into the save directory (`game-servers/`), and checked, against
+  * the SHA-256 that the menu server gives as their version (for the runtime, the one of its
+  * manifest, which has the SHA-256 of each of its files): when the files were changed, or
+  * corrupted, they are downloaded again. What is being downloaded is told by [[downloading]].
   *
   * BFF_JAVA runs the game server with that `java` (instead of the runtime, or of the one of the
   * PATH), and BFF_GAME_SERVER_JAR runs that jar (e.g. when developing).
@@ -134,7 +134,7 @@ object GameServerHost {
     for
       _ <- api.me
       roundTrip = ((Timer.getTime() - start) * 1000).toInt
-      java    <- if willing then javaVersion else Future.successful(None)
+      java <- if willing then javaVersion else Future.successful(None)
       runtime <-
         if willing then runtimeVersion(api).recover { case _ => None }
         else Future.successful(None)
@@ -216,8 +216,8 @@ object GameServerHost {
   private def runtime(api: MenuApi)(using ExecutionContext): Future[Option[String]] =
     runtimeVersion(api).map(version => (platform, version)).flatMap {
       case (Some(platform), Some(GameServerFile(version, size))) =>
-        val name     = s"java-$platform-${version.take(16)}"
-        val java     = s"$directory/$name/bin/${if windows then "java.exe" else "java"}"
+        val name = s"java-$platform-${version.take(16)}"
+        val java = s"$directory/$name/bin/${if windows then "java.exe" else "java"}"
         def install(): Future[String] = {
           val archive = s"$directory/$name.tar.gz"
           removeAll("java-")
@@ -238,7 +238,8 @@ object GameServerHost {
               java
             } else {
               removeAll(name)
-              val tar = Option(output.trim).filter(_.nonEmpty).fold("")(output => s" (tar: $output)")
+              val tar =
+                Option(output.trim).filter(_.nonEmpty).fold("")(output => s" (tar: $output)")
               throw Exception(s"the Java runtime is corrupted once unpacked$tar")
             }
         }
@@ -283,8 +284,8 @@ object GameServerHost {
       case Some(jar) => Future.successful(jar)
       case None =>
         api.gameServerVersion.flatMap { case GameServerFile(version, size) =>
-          val name = s"game-server-${version.take(16)}.jar"
-          val path = s"$directory/$name"
+          val name                     = s"game-server-${version.take(16)}.jar"
+          val path                     = s"$directory/$name"
           def isValid: Future[Boolean] = Digests.run(path).map(_ == version)
           def install(): Future[String] = {
             removeAll("game-server-")
@@ -309,8 +310,8 @@ object GameServerHost {
     }
 
   /** What is being installed or was, by name (so that what is being downloaded, e.g. by
-    * [[prepare]], is not downloaded twice). The failures are forgotten, to be tried again. What
-    * was installed is checked again on the next run of the client.
+    * [[prepare]], is not downloaded twice). The failures are forgotten, to be tried again. What was
+    * installed is checked again on the next run of the client.
     */
   private var installs = Map.empty[String, Future[String]]
 

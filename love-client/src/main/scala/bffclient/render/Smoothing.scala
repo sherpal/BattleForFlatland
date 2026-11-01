@@ -40,7 +40,10 @@ final class Smoothing(
             val jump = offset + previous.currentPosition(now) - body.currentPosition(now)
             val turn =
               Smoothing.shortestAngle(rotationOffset + rotationOf(previous) - rotationOf(body))
-            (if jump.modulus > snapDistance then Complex.zero else jump * decay, turn * rotationDecay)
+            (
+              if jump.modulus > snapDistance then Complex.zero else jump * decay,
+              turn * rotationDecay
+            )
           case Some(Smoothed(_, offset, rotationOffset)) =>
             (offset * decay, rotationOffset * rotationDecay)
           case None => (Complex.zero, 0.0)

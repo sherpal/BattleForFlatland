@@ -104,7 +104,7 @@ object VisibilityGraphChecks extends Properties("VisibilityGraph") {
   }
 
   property("goes around a non convex obstacle when starting inside it") = {
-    val start = Complex(0, 0)   // inside the cup of the U
+    val start = Complex(0, 0) // inside the cup of the U
     val goal  = Complex(300, 0) // behind the U
     arenaWithU.findPath(start, goal) match {
       case Some(path) =>

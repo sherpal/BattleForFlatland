@@ -14,8 +14,8 @@ import models.bff.ingame.{Controls, InGameWSProtocol, UserInput}
 import models.bff.ingame.InGameWSProtocol.*
 
 /** Plays on a real Battle for Flatland game server (see [[GameLink]]): plays the start-of-game
-  * handshake like the frontend, keeps a client-side copy of the game state from the server's updates (with our own
-  * movements predicted), and sends the player's inputs.
+  * handshake like the frontend, keeps a client-side copy of the game state from the server's
+  * updates (with our own movements predicted), and sends the player's inputs.
   */
 final class GameClient(
     link: GameLink,
@@ -27,12 +27,13 @@ final class GameClient(
     /** The entity whose frame (in the HUD) is under the mouse. */
     hovered: () => Option[Entity.Id]
 ) {
-  private var gatherer: ActionGatherer    = GreedyActionGatherer(GameState.empty)
-  var myId: Option[Entity.Id]             = None
-  var messagesReceived                    = 0
-  private var elapsed                     = 0.0
-  private var lastStatus                  = 0.0
-  private var actionsReceived             = 0
+  private var gatherer: ActionGatherer = GreedyActionGatherer(GameState.empty)
+  var myId: Option[Entity.Id]          = None
+  var messagesReceived                 = 0
+  private var elapsed                  = 0.0
+  private var lastStatus               = 0.0
+  private var actionsReceived          = 0
+
   /** When the boss spawned (our `elapsed`). */
   private var gameBeganAt: Option[Double] = None
 
@@ -54,9 +55,9 @@ final class GameClient(
   private var countdownStartedAt = Option.empty[Long]
   private var letsBeginSent      = false
 
-  private var readyToStartSent = false
-  private var scriptedMovements           = 0
-  private var scriptedDirection           = Complex.zero
+  private var readyToStartSent  = false
+  private var scriptedMovements = 0
+  private var scriptedDirection = Complex.zero
 
   /** Whether the player faces its target (instead of the mouse), toggled by `ToggleTargetLockIn`.
     */
@@ -135,22 +136,23 @@ final class GameClient(
         c  <- caster
         id <- myId
         me <- gameState.players.get(id)
-      do abilityInput.abilityId(me) match {
-        case Some(abilityId) =>
-          request(
-            c.cast(
-              abilityId,
-              me,
-              gameState,
-              serverNow,
-              currentTarget,
-              mouseWorld(),
-              if controls.mouseOverEnabled then hovered() else None
+      do
+        abilityInput.abilityId(me) match {
+          case Some(abilityId) =>
+            request(
+              c.cast(
+                abilityId,
+                me,
+                gameState,
+                serverNow,
+                currentTarget,
+                mouseWorld(),
+                if controls.mouseOverEnabled then hovered() else None
+              )
             )
-          )
-        case None =>
-          request(CastRequest.Error(s"No ability on input ${abilityInput.abilityIndex + 1}"))
-      }
+          case None =>
+            request(CastRequest.Error(s"No ability on input ${abilityInput.abilityIndex + 1}"))
+        }
     case UserInput.NextTarget =>
       nextTarget()
     case UserInput.ToggleTargetLockIn =>
@@ -238,7 +240,9 @@ final class GameClient(
     if gameState.started && gameBeganAt.isEmpty then {
       gameBeganAt = Some(elapsed)
       if countdownRequested then
-        send(GameActionWrapper(Vector(RemoveMarker(GameAction.Id.dummy, serverNow, countdownMarker))))
+        send(
+          GameActionWrapper(Vector(RemoveMarker(GameAction.Id.dummy, serverNow, countdownMarker)))
+        )
     }
   }
 
@@ -266,7 +270,7 @@ final class GameClient(
 
   private def measureBossJumps(): Unit =
     for boss <- gameState.bosses.values.headOption do {
-      val now     = serverNow
+      val now = serverNow
       val current = (
         boss.currentPosition(now),
         smoothing.position(boss, now),
@@ -324,8 +328,8 @@ final class GameClient(
   def canSurrender: Boolean = gameState.started && !gameState.ended && link.isOpen
 
   /** Ends the fight, for everyone: BFF has no surrender, but the game server takes the players'
-    * actions as they are, and the game's own `EndGame` ends it (in a defeat, since the boss is alive).
-    * The end of the game then arrives like any other, with its overlay.
+    * actions as they are, and the game's own `EndGame` ends it (in a defeat, since the boss is
+    * alive). The end of the game then arrives like any other, with its overlay.
     */
   def surrender(): Unit = {
     send(GameActionWrapper(Vector(EndGame(GameAction.Id.dummy, serverNow))))
@@ -389,7 +393,7 @@ final class GameClient(
       }.toSet
       val now      = serverNow
       val position = me.currentPosition(now)
-      val facing   = (for
+      val facing = (for
         targetId <- currentTarget if lockInToTarget
         case target: Body <- gameState.entities.get(targetId)
       yield target.currentPosition(now) - position).getOrElse(mouseWorld() - position)
@@ -408,15 +412,14 @@ final class GameClient(
       val now       = serverNow
       val moving    = direction != Complex.zero
       val obstacles = gameState.obstacles.values
-      val position  =
+      val position =
         if moving then {
           // At most 100 ms, so that a long frame does not make us jump
           val step   = me.speed * math.min(dt, 0.1) * Complex.rotation(direction.arg)
           val target = me.pos + step // our previous frame (predicted) position
           // BFF's lastValidPosition ignores moves under 2 units, which are common at high frame rates
           if step.modulus >= 2 then me.lastValidPosition(target, obstacles)
-          else if
-            obstacles
+          else if obstacles
               .exists(o => o.shape.collides(o.pos, o.rotation, me.shape, target, me.rotation))
           then me.pos
           else target
@@ -438,8 +441,7 @@ final class GameClient(
       // Starting and stopping must arrive: nothing follows a stop to make up for a lost one. The
       // others are snapshots of our movement, of which only the latest matters, and can be lost.
       val startsOrStops = moving != me.moving
-      if
-        startsOrStops || directionChanged || !lastRotationSent.contains(rotation) ||
+      if startsOrStops || directionChanged || !lastRotationSent.contains(rotation) ||
         (moving && now - lastMovementSentAt >= 16)
       then {
         lastRotationSent = Some(rotation)
@@ -481,8 +483,9 @@ final class GameClient(
       id <- myId
       me <- gameState.players.get(id)
     do
-      if
-        scriptedMovements == 2 && elapsed - lastScriptedCast > 0.5 && !gameState.entityIsCasting(id)
+      if scriptedMovements == 2 && elapsed - lastScriptedCast > 0.5 && !gameState.entityIsCasting(
+          id
+        )
       then {
         lastScriptedCast = elapsed
         request(
@@ -494,7 +497,7 @@ final class GameClient(
     val bosses =
       gameState.bosses.values.map(b => s"${b.name} life=${math.round(b.life)}").mkString(", ")
     def show(z: Complex) = s"(${math.round(z.re)}, ${math.round(z.im)})"
-    val me               = myId.flatMap(gameState.players.get).fold("-") { p =>
+    val me = myId.flatMap(gameState.players.get).fold("-") { p =>
       val server =
         myId.flatMap(serverGameState.players.get).fold("-")(s => show(s.currentPosition(serverNow)))
       s"life=${math.round(p.life)} pos=${show(p.currentPosition(serverNow))} (server: $server)"

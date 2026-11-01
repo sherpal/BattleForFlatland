@@ -1,7 +1,6 @@
 package gamelogic.gamestate
 
-
-object GameActionSerializerSpecs {//extends DefaultRunnableSpec {
+object GameActionSerializerSpecs { // extends DefaultRunnableSpec {
 
   // def spec = suite("Game action serializer")(
   //   testM("Decoder is left inverse of encoder") {

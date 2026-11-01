@@ -43,15 +43,20 @@ final class DocsPanel {
       ui.text("Boss", panel.x + 16, panel.y + 58, colour = Theme.muted)
       changeBoss match {
         case Some(change) =>
-          ui.selector(BossMetadata.allBossNames, bossName, chooserRect, enabled = enabled).foreach(change)
+          ui.selector(BossMetadata.allBossNames, bossName, chooserRect, enabled = enabled)
+            .foreach(change)
         case None => ui.textIn(bossName, chooserRect)
       }
     } else {
       ui.text("Class", panel.x + 16, panel.y + 58, colour = Theme.muted)
-      ui.selector(PlayerClasses.allChoices, shownClass(myClass), chooserRect, (_: PlayerClasses).value)
-        .foreach { cls =>
-          browsedClass = Some(cls); scroll = 0
-        }
+      ui.selector(
+        PlayerClasses.allChoices,
+        shownClass(myClass),
+        chooserRect,
+        (_: PlayerClasses).value
+      ).foreach { cls =>
+        browsedClass = Some(cls); scroll = 0
+      }
     }
     val area = Rect(panel.x + 1, panel.y + 96, panel.width - 2, panel.height - 104)
     if ui.hovered(area) then
@@ -60,17 +65,19 @@ final class DocsPanel {
       val top = area.y - scroll
       val end =
         if tab == "Boss" then
-          BossMetadata.maybeMetadataByName(bossName).fold(top)(metadata =>
-            docs(
-              ui,
-              area.x + 15,
-              top,
-              area.width - 30,
-              s"${metadata.maxLife.toInt} life points, for ${metadata.intendedFor} player(s)",
-              metadata.description,
-              metadata.abilitiesDoc
+          BossMetadata
+            .maybeMetadataByName(bossName)
+            .fold(top)(metadata =>
+              docs(
+                ui,
+                area.x + 15,
+                top,
+                area.width - 30,
+                s"${metadata.maxLife.toInt} life points, for ${metadata.intendedFor} player(s)",
+                metadata.description,
+                metadata.abilitiesDoc
+              )
             )
-          )
         else {
           val builder  = shownClass(myClass).builder
           val resource = builder.initialResourceAmount
@@ -116,7 +123,7 @@ final class DocsPanel {
     y += 22
     y += ui.paragraph(description, x, y, width, Theme.small) + 14
     val (own, adds) = abilities.partition(_.caster.isEmpty)
-    val byCaster    = adds
+    val byCaster = adds
       .groupBy(_.caster.get)
       .toVector
       .sortBy((caster, _) => adds.indexWhere(_.caster.contains(caster)))

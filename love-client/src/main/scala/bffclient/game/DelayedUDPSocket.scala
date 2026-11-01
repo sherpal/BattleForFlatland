@@ -5,8 +5,8 @@ import scala.scalajs.js
 import communication.udp.{Peer, UDPSocket}
 
 /** Delays everything going through a socket, in both directions, by `delayMs` (BFF_LAG_MS simulates
-  * a round trip of twice that), and loses `lossPercent`% of the datagrams (BFF_LOSS_PERCENT), to try
-  * the game with a bad network. As the delays are timers, they have the precision of a frame.
+  * a round trip of twice that), and loses `lossPercent`% of the datagrams (BFF_LOSS_PERCENT), to
+  * try the game with a bad network. As the delays are timers, they have the precision of a frame.
   */
 final class DelayedUDPSocket(underlying: UDPSocket, delayMs: Int, lossPercent: Int = 0)
     extends UDPSocket {

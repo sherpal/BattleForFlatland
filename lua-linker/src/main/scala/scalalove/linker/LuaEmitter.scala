@@ -127,8 +127,8 @@ final class LuaEmitter(moduleSet: ModuleSet) {
       val ancestors =
         c.ancestors.map(a => FunctionEmitter.luaString(a.nameString)).mkString("{", ", ", "}")
       ln(s"""${cls(c.className)} = R.declare(${FunctionEmitter.luaString(
-          c.className.nameString
-        )}, "${kindString(c.kind)}", $ancestors)""")
+        c.className.nameString
+      )}, "${kindString(c.kind)}", $ancestors)""")
       for (f <- c.fields) f match {
         case FieldDef(flags, name, _, ftpe) if flags.namespace.isStatic =>
           zeroOf(ftpe).foreach(z =>
@@ -152,7 +152,7 @@ final class LuaEmitter(moduleSet: ModuleSet) {
         val thisParam = if (ns.isStatic) None else Some("this")
         try {
           def emitWith(spill: Boolean): (String, FunctionEmitter) = {
-            val fe   = new FunctionEmitter(g, c.className, spill)
+            val fe = new FunctionEmitter(g, c.className, spill)
             val code = fe.emitMethod(
               name,
               thisParam,
@@ -199,7 +199,7 @@ final class LuaEmitter(moduleSet: ModuleSet) {
           z <- zeroOf(ftpe)
         } yield s"${Naming.fieldName(name.name)} = $z"
         ln(s"function ${cls(c.className)}.__new() return setmetatable(${inits
-            .mkString("{", ", ", "}")}, ${cls(c.className)}) end")
+          .mkString("{", ", ", "}")}, ${cls(c.className)}) end")
       }
 
       if (c.kind == ClassKind.ModuleClass) {
@@ -254,13 +254,13 @@ final class LuaEmitter(moduleSet: ModuleSet) {
     ln(s"R.hijackedAncestors.char = ${ancestorsSet(BoxedCharacterClass)}")
     ln(s"R.hijackedAncestors.unit = ${ancestorsSet(BoxedUnitClass)}")
     ln(s"""R.setToStringName("${Naming.methodName(
-        MemberNamespace.Public,
-        LuaBackend.toStringMethodName
-      )}")""")
+      MemberNamespace.Public,
+      LuaBackend.toStringMethodName
+    )}")""")
     ln(s"""R.hashCodeName = "${Naming.methodName(
-        MemberNamespace.Public,
-        LuaBackend.hashCodeMethodName
-      )}"""")
+      MemberNamespace.Public,
+      LuaBackend.hashCodeMethodName
+    )}"""")
 
     val jsExc = LuaBackend.JavaScriptExceptionClass
     if (emittedClasses.exists(_.className == jsExc)) {

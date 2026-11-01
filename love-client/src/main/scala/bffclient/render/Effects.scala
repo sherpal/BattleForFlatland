@@ -154,54 +154,57 @@ final class Effects {
     Graphics.setFont(font)
     for effect <- effects do {
       val t = now - effect.start
-      if t >= 0 && t < effect.duration then effect match {
-        case FloatingText(text, (r, g, b), entityId, offset, velocity, _) =>
-          for p <- position(entityId) do {
-            val (x, y) = toScreen(p + offset + velocity * t)
-            val alpha  =
-              math.min(1.0, 4 * (effect.duration - t)) // fades out in the last quarter second
-            Graphics.setColor(0, 0, 0, alpha * 0.8)
-            Graphics.printf(text, x - 49, y - 9, 100, "center")
-            Graphics.setColor(r, g, b, alpha)
-            Graphics.printf(text, x - 50, y - 10, 100, "center")
-          }
-        case CleaveFlash(p, rotation, cleave, _) =>
-          val (x, y) = toScreen(p)
-          Sprites.cleave match {
-            case Some(sprite) =>
-              Graphics.setColor(1, 1, 1)
-              val size = Cleave.cone.radius
-              sprite.draw(
-                x,
-                y,
-                rotation.value,
-                size,
-                size,
-                frame = (t / effect.duration * sprite.frameCount).toInt
-              )
-            case None =>
-              val corners =
-                Cleave.cone.vertices.map(v => toScreen(v.rotate(cleave.rotation) + cleave.position))
-              Graphics.setColor(1, 1, 1, 0.6 * (1 - t / effect.duration))
-              Graphics.polygon("fill", corners.flatMap((cx, cy) => Seq(cx, cy))*)
-          }
-        case DirectHitSwing(casterId, towardsTarget, _) =>
-          for caster <- position(casterId) do {
-            val angle =
-              towardsTarget - Angle.Pi / 4 + Angle.fromDouble(math.Pi / 2 * t / effect.duration)
-            val offset = 1.5 * Constants.playerRadius * Complex.rotation(angle)
-            val (x, y) = toScreen(caster + offset)
-            Graphics.setColor(1, 1, 1)
-            Sprites.sword match {
-              case Some(sprite) => sprite.draw(x, y, angle.value, sprite.frameWidth)
-              case None =>
-                val (x1, y1) = toScreen(caster + offset * 1.6)
-                Graphics.setLineWidth(2)
-                Graphics.line(x, y, x1, y1)
-                Graphics.setLineWidth(1)
+      if t >= 0 && t < effect.duration then
+        effect match {
+          case FloatingText(text, (r, g, b), entityId, offset, velocity, _) =>
+            for p <- position(entityId) do {
+              val (x, y) = toScreen(p + offset + velocity * t)
+              val alpha =
+                math.min(1.0, 4 * (effect.duration - t)) // fades out in the last quarter second
+              Graphics.setColor(0, 0, 0, alpha * 0.8)
+              Graphics.printf(text, x - 49, y - 9, 100, "center")
+              Graphics.setColor(r, g, b, alpha)
+              Graphics.printf(text, x - 50, y - 10, 100, "center")
             }
-          }
-      }
+          case CleaveFlash(p, rotation, cleave, _) =>
+            val (x, y) = toScreen(p)
+            Sprites.cleave match {
+              case Some(sprite) =>
+                Graphics.setColor(1, 1, 1)
+                val size = Cleave.cone.radius
+                sprite.draw(
+                  x,
+                  y,
+                  rotation.value,
+                  size,
+                  size,
+                  frame = (t / effect.duration * sprite.frameCount).toInt
+                )
+              case None =>
+                val corners =
+                  Cleave.cone.vertices.map(v =>
+                    toScreen(v.rotate(cleave.rotation) + cleave.position)
+                  )
+                Graphics.setColor(1, 1, 1, 0.6 * (1 - t / effect.duration))
+                Graphics.polygon("fill", corners.flatMap((cx, cy) => Seq(cx, cy))*)
+            }
+          case DirectHitSwing(casterId, towardsTarget, _) =>
+            for caster <- position(casterId) do {
+              val angle =
+                towardsTarget - Angle.Pi / 4 + Angle.fromDouble(math.Pi / 2 * t / effect.duration)
+              val offset = 1.5 * Constants.playerRadius * Complex.rotation(angle)
+              val (x, y) = toScreen(caster + offset)
+              Graphics.setColor(1, 1, 1)
+              Sprites.sword match {
+                case Some(sprite) => sprite.draw(x, y, angle.value, sprite.frameWidth)
+                case None =>
+                  val (x1, y1) = toScreen(caster + offset * 1.6)
+                  Graphics.setLineWidth(2)
+                  Graphics.line(x, y, x1, y1)
+                  Graphics.setLineWidth(1)
+              }
+            }
+        }
     }
     Graphics.setFont(previousFont)
   }

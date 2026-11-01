@@ -25,7 +25,7 @@ object Boss105Visuals extends BossVisuals {
 
   def draws(entity: Entity): Boolean = entity match {
     case _: Shade | _: ReformationPoint => true
-    case _                              => false
+    case _ => false
   }
 
   def ground(p: Painter): Unit = {
@@ -105,8 +105,7 @@ object Boss105Visuals extends BossVisuals {
       for
         alpha <- reunionAlpha
         shade <- gameState.allTEntities[Shade].values.headOption
-      do
-        line(bossPosition, position(shade), 6, shadeColour.withAlpha(alpha))
+      do line(bossPosition, position(shade), 6, shadeColour.withAlpha(alpha))
     }
 
     // The explosion radius of the charges, filling up until they explode
@@ -159,12 +158,13 @@ object Boss105Visuals extends BossVisuals {
         info <- casting(p, shade.id)
         case siphon: Siphon <- Some(info.ability)
         target <- gameState.players.get(siphon.targetId)
-      do line(
-        position(shade),
-        position(target),
-        3,
-        siphonColour.withAlpha(0.2 + 0.6 * progress(info, now))
-      )
+      do
+        line(
+          position(shade),
+          position(target),
+          3,
+          siphonColour.withAlpha(0.2 + 0.6 * progress(info, now))
+        )
       shape(
         shade,
         Some(shadeColour.withAlpha(0.55)),

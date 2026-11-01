@@ -22,7 +22,7 @@ final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using Exec
   private var launching     = false
   private var startingSince = Option.empty[Double]
 
-  private val docsPanel = new DocsPanel
+  private val docsPanel          = new DocsPanel
   private def starting           = startingSince.isDefined
   private var gameStarted        = false
   private var left               = false
@@ -70,7 +70,7 @@ final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using Exec
   private def config: Option[GameConfiguration] = game.map(_.game.gameConfiguration)
   private def me: Option[PlayerInfo]            = config.flatMap(_.playersInfo.get(user.name))
   private def amICreator: Boolean               = game.exists(_.isGameCreator(user))
-  private def boss: Option[BossMetadata]        =
+  private def boss: Option[BossMetadata] =
     config.flatMap(c => BossMetadata.maybeMetadataByName(c.bossName))
 
   /** Like the frontend, the last class, colour (and boss for the creator) are chosen again. */
@@ -86,8 +86,7 @@ final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using Exec
     for
       bossName <- preferences.bossName
       if amICreator && bossName != g.game.gameConfiguration.bossName
-    do
-      changeBoss(bossName)
+    do changeBoss(bossName)
   }
 
   private def changeMe(f: PlayerInfo => PlayerInfo): Unit = me.foreach { info =>
@@ -196,8 +195,7 @@ final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using Exec
         align = "left",
         colour = if info.isReady then Theme.positive.lighter(0.3) else Theme.negative.lighter(0.3)
       )
-      if
-        amICreator && info.playerName.name != user.name &&
+      if amICreator && info.playerName.name != user.name &&
         ui.button("Kick", Rect(row.right - 80, row.y + 5, 70, 30), enabled, ButtonStyle.Danger)
       then {
         busy = true
@@ -223,17 +221,17 @@ final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using Exec
       ).foreach(cls => changeMe(_.withClass(Some(cls))))
       ui.text("Colour", panel.x + 16, panel.y + 64, colour = Theme.muted)
       for (colour, i) <- MenuColours.palette.zipWithIndex do
-        if
-          ui.swatch(
+        if ui.swatch(
             MenuColours.toUi(colour),
             Rect(panel.x + 100 + 30 * i, panel.y + 60, 24, 24),
             info.maybePlayerColour.contains(colour),
             enabled
           )
-        then
-          changeMe(_.withColour(colour))
+        then changeMe(_.withColour(colour))
       if ui.checkbox(info.isReady, "Ready", panel.x + 16, panel.y + 108, enabled) then
-        changeMe(_.withReadyState(if info.isReady then PlayerStatus.NotReady else PlayerStatus.Ready))
+        changeMe(
+          _.withReadyState(if info.isReady then PlayerStatus.NotReady else PlayerStatus.Ready)
+        )
       y = panel.bottom + 20
     }
 
@@ -275,8 +273,7 @@ final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using Exec
       if ui.button("Add AI", Rect(width - 560, bar, 150, 44), enabled && toFill > 0) then addAIs(1)
       if ui.button("Fill with AIs", Rect(width - 400, bar, 170, 44), enabled && toFill > 0) then
         addAIs(toFill)
-      if
-        ui.button(
+      if ui.button(
           "Launch game!",
           Rect(width - 220, bar, 180, 44),
           enabled && !launching && g.game.gameConfigurationIsValid,

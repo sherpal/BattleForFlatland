@@ -24,7 +24,7 @@ final class HttpClient(baseUrl: String)(using ExecutionContext) {
   private var cookie  = ""
   private val pending = mutable.Map.empty[Int, Promise[HttpResponse]]
   // of the downloads
-  private val progress = mutable.Map.empty[Int, Double => Unit]
+  private val progress                                    = mutable.Map.empty[Int, Double => Unit]
   private var poller: Option[js.timers.SetIntervalHandle] = None
 
   def sessionCookie: String = cookie

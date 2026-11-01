@@ -104,8 +104,8 @@ final class GameLink private (access: GameAccess, lag: Double, lossPercent: Int)
         case Envelope.Packet.Hello(_) => ()
       }
 
-  private val hello    = Envelope.hello(credentials)
-  private val punch    = Rendezvous.encode(Rendezvous.Packet.Punch)
+  private val hello = Envelope.hello(credentials)
+  private val punch = Rendezvous.encode(Rendezvous.Packet.Punch)
 
   /** Punches every address of the game server until one answers, then says hello to that one. */
   private def sendHello(): Unit = server match {
@@ -180,7 +180,7 @@ final class GameLink private (access: GameAccess, lag: Double, lossPercent: Int)
 }
 
 object GameLink {
-  private val HelloInterval     = 500
+  private val HelloInterval = 500
   // the game server may need a moment to open its NAT to us (see Rendezvous)
   private val HandshakeTimeout  = 15000
   private val ClockSyncInterval = 50

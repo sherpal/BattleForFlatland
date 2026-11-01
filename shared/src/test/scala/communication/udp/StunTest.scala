@@ -55,8 +55,18 @@ final class StunTest extends munit.FunSuite {
   }
 
   test("private networks") {
-    for address <- List("127.0.0.1", "10.1.2.3", "172.16.0.1", "172.31.255.1", "192.168.1.12",
-        "169.254.3.4", "100.64.0.1", "100.127.1.1", "localhost", "::1")
+    for address <- List(
+        "127.0.0.1",
+        "10.1.2.3",
+        "172.16.0.1",
+        "172.31.255.1",
+        "192.168.1.12",
+        "169.254.3.4",
+        "100.64.0.1",
+        "100.127.1.1",
+        "localhost",
+        "::1"
+      )
     do assert(Peer(address, 1).onPrivateNetwork, address)
     for address <- List("81.12.34.56", "172.32.0.1", "100.128.0.1", "8.8.8.8", "192.169.0.1")
     do assert(!Peer(address, 1).onPrivateNetwork, address)

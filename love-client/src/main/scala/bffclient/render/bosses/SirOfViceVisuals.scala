@@ -29,24 +29,25 @@ object SirOfViceVisuals extends BossVisuals {
         Some(auraColour.withAlpha(0.08)),
         Some((2, auraColour.withAlpha(0.5)))
       )
-      for info <- casting(p, boss.id) do info.ability match {
-        case _: CleansingNova =>
-          circle(
-            centre,
-            math.max(1.0, progress(info, now) * SirOfVice.roomRadius),
-            Some(novaColour.withAlpha(0.1)),
-            Some((3, novaColour.withAlpha(0.6)))
-          )
-        case wrath: HolyWrath =>
-          for target <- gameState.players.get(wrath.targetId) do
+      for info <- casting(p, boss.id) do
+        info.ability match {
+          case _: CleansingNova =>
             circle(
-              position(target),
-              HolyWrath.jumpRange,
-              Some(wrathColour.withAlpha(0.15)),
-              Some((2, wrathColour.withAlpha(0.8)))
+              centre,
+              math.max(1.0, progress(info, now) * SirOfVice.roomRadius),
+              Some(novaColour.withAlpha(0.1)),
+              Some((3, novaColour.withAlpha(0.6)))
             )
-        case _ => ()
-      }
+          case wrath: HolyWrath =>
+            for target <- gameState.players.get(wrath.targetId) do
+              circle(
+                position(target),
+                HolyWrath.jumpRange,
+                Some(wrathColour.withAlpha(0.15)),
+                Some((2, wrathColour.withAlpha(0.8)))
+              )
+          case _ => ()
+        }
     }
     for
       chain <- gameState.allTEntities[HolyWrathChain].values

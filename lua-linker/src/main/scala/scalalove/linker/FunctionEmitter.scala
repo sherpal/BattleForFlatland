@@ -612,7 +612,7 @@ final class FunctionEmitter(g: GlobalContext, enclosingClass: ClassName, spill: 
       val methodIdent = Naming.methodName(MemberNamespace.Public, method.name)
       val recvAndArgs = exprs(receiver :: args0)
       val r           = recvAndArgs.head
-      val as          = recvAndArgs.tail
+      val as = recvAndArgs.tail
         .lazyZip(args0)
         .lazyZip(paramTypes(method.name))
         .map((c, t, exp) => adapt(LExp(c, Prefix), t.tpe, exp))
@@ -650,7 +650,7 @@ final class FunctionEmitter(g: GlobalContext, enclosingClass: ClassName, spill: 
     case ApplyTypedClosure(_, fun, args0) =>
       // A Scala lambda is a table {liftedFunction, captures...}: call liftedFunction(lambda, args...)
       val funExp = expr(fun)
-      val f      =
+      val f =
         if (DottedIdent.matches(funExp.code) && args0.forall(isSimple)) funExp.code
         else { val t = newTemp(); declare(t, Some(funExp.code)); t }
       val expected = fun.tpe match {
@@ -687,7 +687,7 @@ final class FunctionEmitter(g: GlobalContext, enclosingClass: ClassName, spill: 
         case ArrayTypeRef(base, d) =>
           ArrayType(ArrayTypeRef(base, d - 1), nullable = true, exact = false)
       }
-      val es  = args(elems, elems.map(_ => elemType))
+      val es = args(elems, elems.map(_ => elemType))
       val tbl =
         es.zipWithIndex.map((e, i) => if (i == 0) s"[0] = $e" else e).mkString("{", ", ", "}")
       call("R.arrayOf", List(s"AT[${g.arrayTypeIndex(typeRef)}]", tbl, elems.size.toString))
@@ -698,7 +698,7 @@ final class FunctionEmitter(g: GlobalContext, enclosingClass: ClassName, spill: 
     case MultipleReturns(jsCall, arity) =>
       // Pack all the values returned by the Lua function into a TupleN
       val tuple = MultipleReturns.tupleClass(arity)
-      val ctor  =
+      val ctor =
         Naming.methodName(MemberNamespace.Constructor, MultipleReturns.tupleConstructor(arity))
       call("R.tuple", List(s"C.${Naming.className(tuple)}", s""""$ctor"""", expr(jsCall).code))
 
@@ -770,7 +770,7 @@ final class FunctionEmitter(g: GlobalContext, enclosingClass: ClassName, spill: 
       call("R.jarr", List(elems.mkString("{", ", ", "}"), items.size.toString))
 
     case JSObjectConstr(fields) =>
-      val codes   = exprs(fields.flatMap((k, v) => List(k, v))).toIndexedSeq
+      val codes = exprs(fields.flatMap((k, v) => List(k, v))).toIndexedSeq
       val entries = fields.zipWithIndex.map { case ((k, _), i) =>
         val vc = codes(2 * i + 1)
         k match {

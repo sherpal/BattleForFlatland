@@ -310,7 +310,7 @@ final class Ui {
       show: A => String = (a: A) => a.toString,
       enabled: Boolean = true
   ): Option[A] = {
-    val index    = options.indexOf(current)
+    val index = options.indexOf(current)
     val previous =
       button("<", Rect(rect.x, rect.y, rect.height, rect.height), enabled && options.size > 1)
     val next = button(
@@ -339,15 +339,13 @@ final class Ui {
     var chosen = Option.empty[A]
     for (option, i) <- options.zipWithIndex do {
       val style = if current.contains(option) then ButtonStyle.Primary else ButtonStyle.Normal
-      if
-        button(
+      if button(
           show(option),
           Rect(rect.x + i * width, rect.y, width - 2, rect.height),
           enabled,
           style
         )
-      then
-        chosen = Some(option)
+      then chosen = Some(option)
     }
     chosen
   }

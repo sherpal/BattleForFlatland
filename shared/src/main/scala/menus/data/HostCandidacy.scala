@@ -11,8 +11,8 @@ import io.circe.Codec
   * @param javaVersion
   *   the major version of the `java` of the player's computer, if any (the game server is a jar)
   * @param bundledJava
-  *   whether the menu server has a Java runtime for the player's platform, which the client runs the
-  *   game server with (downloading it first, if needed), rather than the `java` of the computer
+  *   whether the menu server has a Java runtime for the player's platform, which the client runs
+  *   the game server with (downloading it first, if needed), rather than the `java` of the computer
   * @param ready
   *   whether the client has all it needs to run the game server already (nothing to download)
   * @param processorCount
@@ -45,10 +45,10 @@ object HostCandidacy {
   /** The game server's jar is compiled for Java 17. */
   val minimumJavaVersion = 17
 
-  /** The players who can (and want to) host, best first: a decent computer first, then the ones who are ready
-    * (no download before the game starts), then the best network (the fastest round trip to the
-    * menu server, in steps of 50 ms so that noise does not count), and the game creator among
-    * equals.
+  /** The players who can (and want to) host, best first: a decent computer first, then the ones who
+    * are ready (no download before the game starts), then the best network (the fastest round trip
+    * to the menu server, in steps of 50 ms so that noise does not count), and the game creator
+    * among equals.
     */
   def ranking(candidacies: Map[String, HostCandidacy], gameCreator: String): Vector[String] =
     candidacies.toVector

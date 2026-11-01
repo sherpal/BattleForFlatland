@@ -97,8 +97,8 @@ object ImmutableActionCollectorSpecs extends ZIOSpecDefault {
       } yield result
     },
     test("Adding two players makes gameState with two players") {
-      val collector     = ImmutableActionCollector(GameState.empty)
-      val gameStart     = GameStart(idGen.actionId(), 1)
+      val collector = ImmutableActionCollector(GameState.empty)
+      val gameStart = GameStart(idGen.actionId(), 1)
       idGen.entityId()
       val firstPlayer = AddPlayerByClass(
         idGen.actionId(),

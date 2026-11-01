@@ -66,7 +66,8 @@ final class HostingAgent(api: MenuApi, gameId: String, userName: String, log: St
       )
     case MenuGameComm.SpawnGameServer(_, gameSecret, rendezvousPort) =>
       val prepared =
-        if !willing then Future.failed(Exception("hosting game servers is turned off in the settings"))
+        if !willing then
+          Future.failed(Exception("hosting game servers is turned off in the settings"))
         else
           // what failed to download in the lobby may work now
           gameServer.fold(GameServerHost.prepare(api))(_.recoverWith { case _ =>

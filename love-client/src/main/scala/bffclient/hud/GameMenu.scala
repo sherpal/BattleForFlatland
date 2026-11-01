@@ -5,8 +5,8 @@ import bffclient.love.{Fullscreen, Graphics}
 import bffclient.ui.*
 
 /** The game menu, opened with Escape during the game. The game cannot be paused (it is played
-  * online), so it goes on meanwhile. Surrendering (confirmed with a second click) ends the fight, in
-  * a defeat, for everyone.
+  * online), so it goes on meanwhile. Surrendering (confirmed with a second click) ends the fight,
+  * in a defeat, for everyone.
   */
 final class GameMenu(client: GameClient, leaveGame: Option[() => Unit]) {
   private var confirmingSurrender = false
@@ -21,7 +21,8 @@ final class GameMenu(client: GameClient, leaveGame: Option[() => Unit]) {
     ui.panel(box)
     ui.textIn("Menu", Rect(box.x, box.y + 16, box.width, 50), Theme.title)
     ui.textIn(
-      if confirmingSurrender then "The fight ends in a defeat, for everyone" else "The game goes on meanwhile",
+      if confirmingSurrender then "The fight ends in a defeat, for everyone"
+      else "The game goes on meanwhile",
       Rect(box.x, box.y + 66, box.width, 24),
       Theme.small,
       if confirmingSurrender then Theme.negative.lighter(0.3) else Theme.muted
@@ -44,13 +45,14 @@ final class GameMenu(client: GameClient, leaveGame: Option[() => Unit]) {
     }
     if canSurrender then {
       val label = if confirmingSurrender then "Click again to surrender" else "Surrender"
-      if button(label, if confirmingSurrender then ButtonStyle.Danger else ButtonStyle.Normal) then {
+      if button(label, if confirmingSurrender then ButtonStyle.Danger else ButtonStyle.Normal)
+      then {
         if confirmingSurrender then client.surrender()
         confirmingSurrender = !confirmingSurrender
       }
     }
-    if button(if Fullscreen.isOn then "Windowed (F11)" else "Fullscreen (F11)", ButtonStyle.Normal) then
-      Fullscreen.toggle()
+    if button(if Fullscreen.isOn then "Windowed (F11)" else "Fullscreen (F11)", ButtonStyle.Normal)
+    then Fullscreen.toggle()
     leaveGame.foreach(leave => if button("Leave game", ButtonStyle.Normal) then leave())
     if button("Quit", ButtonStyle.Danger) then client.quit()
   }
