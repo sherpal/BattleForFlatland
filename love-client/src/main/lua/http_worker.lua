@@ -1,5 +1,6 @@
 -- Worker thread of http.lua: runs blocking LuaSocket requests one after the other, taken from the
--- channel named by its first argument, their responses going to the one named by its second.
+-- channel named by its first argument (which other workers may share), their responses going to the
+-- one named by its second.
 local requestsName, responsesName = ...
 require("love.thread")
 local socket = require("socket")

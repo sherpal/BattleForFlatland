@@ -36,7 +36,7 @@ next to `main.lua` with the Lua modules. Without an image, the client draws shap
 ## Menus
 
 The menus go through the menu server, over HTTP and the lobby websocket, with the game's own
-request/response types and circe codecs (`MenuApi.scala`). HTTP requests run on a LÖVE thread
+request/response types and circe codecs (`MenuApi.scala`). HTTP requests run on LÖVE threads
 (`http.lua`, `http_worker.lua`, LuaSocket), so the game loop never blocks; `HttpClient` returns
 `Future`s. The websocket is a small RFC 6455 client in Lua on top of LuaSocket (bundled with LÖVE),
 `websocket.lua`.
