@@ -42,3 +42,10 @@ jobs:
 
       - name: Package the LÖVE clients
         run: sbt love-client/luaPackage
+
+      # Runs the client's UDP socket in LÖVE, headless (no window, so no display needed)
+      - name: Install LÖVE
+        run: sudo apt-get update && sudo apt-get install -y love
+
+      - name: UDP smoke test (LÖVE client)
+        run: tools/love-udp-test.sh

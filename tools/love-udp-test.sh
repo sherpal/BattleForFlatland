@@ -11,7 +11,8 @@ trap 'rm -rf "$OUT"' EXIT
 cd "$HERE"
 # `luaLink` links the client's main class: link the self test instead, with the same classpath
 sbt -batch -error love-client/compile
-CP="$(sbt -batch -error "export love-client/Compile/fullClasspath" | tail -1)"
+# The classpath is the line with jars: sbt may print other lines after it (e.g. an escape sequence when CI is set)
+CP="$(sbt -batch -error "export love-client/Compile/fullClasspath" | grep -E '\.jar' | tail -1)"
 sbt -batch -error "lua-linker/runMain scalalove.linker.Main bffclient.lua.UdpSelfTest $OUT $CP" > /dev/null
 cp -r love-client/src/main/lua/. "$OUT"/
 BFF_HEADLESS=1 timeout 60 love "$OUT"
