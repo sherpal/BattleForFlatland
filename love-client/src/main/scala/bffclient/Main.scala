@@ -13,7 +13,7 @@ import bffclient.menu.{MenuApi, MenuApp, MenuSession}
 import bffclient.render.Renderer
 import gamelogic.physics.Complex
 import models.bff.outofgame.PlayerClasses
-import bffclient.ui.Ui
+import bffclient.gui.Script
 import communication.udp.Peer
 
 /** The LÖVE client of Battle for Flatland: the menus, then the game ([[GameClient]]), drawn by the
@@ -140,39 +140,32 @@ object Main {
         () => renderer.hud.hovered
       )
       renderer = Renderer(client, ClientSettings.load().hudScale)
-      // While an overlay is shown (game menu, end of game), the inputs go to it
-      val ui = new Ui
+      // The dialogs over the game (game menu, end of game) are in the HUD's Gui, unscaled: they
+      // take all the inputs while shown
+      val gui = renderer.hud.gui
       val leave =
         backToMenus.map { back => () =>
           val exit = client.exit; client.leave(); back(exit)
         }
-      val gameMenu     = GameMenu(client, leave)
-      val endOfGame    = EndOfGame(client, leave)
-      def overlayShown = client.finished || client.menuOpen
-      Love.update = dt => client.update(dt)
-      Love.draw = () => {
-        renderer.draw()
-        if client.finished then ui.frame(endOfGame.draw(ui))
-        else if client.menuOpen then ui.frame(gameMenu.draw(ui))
+      val gameMenu  = GameMenu(gui.root, client, leave)
+      val endOfGame = EndOfGame(gui.root, client, leave)
+      gui.root.setScript(Script.OnUpdate) { _ =>
+        gameMenu.update(); endOfGame.update()
       }
+      Love.update = dt => client.update(dt)
+      Love.draw = () => renderer.draw()
       Love.keypressed = (_, scancode, isRepeat) =>
         if scancode == Fullscreen.key then { if !isRepeat then Fullscreen.toggle() }
-        else if overlayShown then ui.keyPressed(scancode)
-        else if !isRepeat then client.keyPressed(scancode)
-      Love.keyreleased = (_, scancode) => if !overlayShown then client.keyReleased(scancode)
+        else if !gui.keyPressed(scancode) && !isRepeat then client.keyPressed(scancode)
+      Love.keyreleased = (_, scancode) =>
+        if !client.finished && !client.menuOpen then client.keyReleased(scancode)
+      // The frames that take the click (targets, "Start game", dialogs) get it, otherwise the left
+      // button clicks the world (targets, zones), and the others can be bound in the controls
       Love.mousepressed = (x, y, button, _, _) =>
-        if overlayShown then ui.mousePressed(x, y, button)
-        else if button == 1 then
-          if renderer.hud.startButtonAt(x, y) then client.startCountdown()
-          else
-            renderer.hud.targetAt(x, y) match {
-              case Some(id) => client.selectTarget(id) // a frame of the HUD
-              case None => client.clicked(renderer.toWorld(x, y))
-            }
+        if !gui.mousePressed(x, y, button) && button == 1 then
+          client.clicked(renderer.toWorld(x, y))
       Love.mousereleased = (x, y, button, _, _) =>
-        if overlayShown then ui.mouseReleased(x, y, button)
-        else if button != 1 then
-          client.mouseButtonReleased(button) // the left one targets and places zones
+        if !gui.mouseReleased(x, y, button) && button != 1 then client.mouseButtonReleased(button)
     }
   }
 }

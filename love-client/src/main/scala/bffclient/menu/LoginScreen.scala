@@ -3,58 +3,85 @@ package bffclient.menu
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
+import bffclient.gui.*
 import bffclient.love.Event
-import bffclient.ui.*
+import bffclient.ui.{ButtonStyle, Theme}
 import models.users.LoginUser
 
 final class LoginScreen(app: MenuApp)(using ExecutionContext) extends Screen {
-  private val server =
-    TextInput(app.server.orElse(app.preferences.server).getOrElse(""), maxLength = 64)
-  private val name  = TextInput(app.preferences.userName, maxLength = 20)
-  private var busy  = false
-  private var error = Option.empty[String]
-  app.ui.setFocus(if server.text.isEmpty then server else name)
+  private val root = Frame(app.gui.root)
+  root.setAllPoints()
+  root.enableKeyboard(true)
 
-  def draw(ui: Ui): Unit = {
-    val (width, height) = app.size
-    val box             = Rect(width / 2 - 220, height / 2 - 160, 440, 290)
-    ui.textIn("Welcome to Battle for Flatland!", Rect(0, box.y - 90, width, 50), Theme.title)
-    ui.panel(box)
-    ui.text("Server address", box.x + 30, box.y + 28)
-    val serverEntered = ui.textField(
-      server,
-      Rect(box.x + 30, box.y + 56, 380, 38),
-      s"e.g. 81.12.34.56:${MenuApi.defaultPort}",
-      enabled = !busy
-    )
-    ui.text("Please choose a pseudo", box.x + 30, box.y + 108)
-    val nameEntered =
-      ui.textField(name, Rect(box.x + 30, box.y + 136, 380, 38), "Your pseudo", enabled = !busy)
-    error.foreach(message =>
-      ui.paragraph(message, box.x + 30, box.y + 182, 380, Theme.small, Theme.negative)
-    )
-    if busy then ui.loading("Logging in", box.x + 30, box.y + 230)
-    val clicked = ui.button(
-      "LFG!",
-      Rect(box.right - 150, box.y + 220, 120, 40),
-      enabled = !busy,
-      ButtonStyle.Primary
-    )
-    if ui.wasPressed("tab") then ui.setFocus(if ui.focused(server) then name else server)
-    if serverEntered && name.text.trim.isEmpty then ui.setFocus(name)
-    else if (serverEntered || nameEntered || clicked) && !busy then login()
-    if ui.wasPressed("escape") then Event.quit(0)
+  private val box = Templates.panel(root)
+  box.setSize(440, 290)
+  box.setPoint(Point.Center, root, Point.Center, 0, -15)
+
+  root
+    .createFontString("Welcome to Battle for Flatland!", Theme.title)
+    .setPoint(Point.Center, box, Point.Top, 0, -65)
+
+  box.createFontString("Server address").setPoint(Point.TopLeft, 30, 28)
+  private val server = EditBox(
+    box,
+    app.server.orElse(app.preferences.server).getOrElse(""),
+    s"e.g. 81.12.34.56:${MenuApi.defaultPort}",
+    maxLetters = 64
+  )
+  server.setSize(380, 38)
+  server.setPoint(Point.TopLeft, 30, 56)
+
+  box.createFontString("Please choose a pseudo").setPoint(Point.TopLeft, 30, 108)
+  private val name = EditBox(box, app.preferences.userName, "Your pseudo", maxLetters = 20)
+  name.setSize(380, 38)
+  name.setPoint(Point.TopLeft, 30, 136)
+
+  private val error = box.createFontString(size = Theme.small, colour = Theme.negative)
+  error.setWordWrap(true)
+  error.setPoint(Point.TopLeft, 30, 182)
+  error.setPoint(Point.TopRight, -30, 182)
+
+  private val loading = Templates.loading(box, "Logging in")
+  loading.setPoint(Point.TopLeft, 30, 230)
+  loading.hide()
+
+  private val loginButton = Button(box, "LFG!", ButtonStyle.Primary)
+  loginButton.setSize(120, 40)
+  loginButton.setPoint(Point.TopRight, -30, 220)
+
+  server.setScript(Script.OnEnterPressed)(() =>
+    if name.text.trim.isEmpty then name.setFocus() else login()
+  )
+  server.setScript(Script.OnTabPressed)(() => name.setFocus())
+  name.setScript(Script.OnEnterPressed)(() => login())
+  name.setScript(Script.OnTabPressed)(() => server.setFocus())
+  loginButton.setScript(Script.OnClick)(_ => login())
+  for field <- Seq(server, name) do field.setScript(Script.OnEscapePressed)(() => Event.quit(0))
+  root.setScript(Script.OnKeyDown) {
+    case "escape" => Event.quit(0)
+    case "tab" => server.setFocus()
+    case _ => ()
   }
 
-  private def login(): Unit = {
+  (if server.text.isEmpty then server else name).setFocus()
+
+  override def leave(): Unit = root.remove()
+
+  private def setBusy(busy: Boolean): Unit = {
+    for field <- Seq(server, name) do field.setEnabled(!busy)
+    loginButton.setEnabled(!busy)
+    loading.setShown(busy)
+  }
+
+  private def login(): Unit = if loginButton.isEnabled then {
     val pseudo     = name.text.trim
     val nameErrors = LoginUser.validator.validate(LoginUser(pseudo, "1234")).get("name")
     (MenuApi.parseAddress(server.text), nameErrors) match {
-      case (Left(message), _) => error = Some(s"Server: $message")
-      case (_, Some(errors)) => error = Some(s"Pseudo: ${errors.map(_.repr).mkString(", ")}")
+      case (Left(message), _) => error.setText(s"Server: $message")
+      case (_, Some(errors)) => error.setText(s"Pseudo: ${errors.map(_.repr).mkString(", ")}")
       case (Right((host, port)), None) =>
-        busy = true
-        error = None
+        setBusy(true)
+        error.setText("")
         val api = new MenuApi(host, port)
         api.login(pseudo).onComplete {
           case Success(user) =>
@@ -62,8 +89,9 @@ final class LoginScreen(app: MenuApp)(using ExecutionContext) extends Screen {
             app.updatePreferences(_.copy(server = Some(api.address), userName = user.name))
             app.show(new GamesScreen(app, user))
           case Failure(failure) =>
-            busy = false
-            error = Some(s"Cannot log in to ${api.address}: ${failure.getMessage}")
+            setBusy(false)
+            name.setFocus()
+            error.setText(s"Cannot log in to ${api.address}: ${failure.getMessage}")
         }
     }
   }

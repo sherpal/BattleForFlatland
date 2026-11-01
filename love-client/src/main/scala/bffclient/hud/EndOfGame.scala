@@ -1,56 +1,70 @@
 package bffclient.hud
 
 import bffclient.game.GameClient
-import bffclient.love.Graphics
-import bffclient.ui.*
+import bffclient.gui.*
+import bffclient.ui.{ButtonStyle, Theme}
 
 /** Shown over the game once it ended, or when the connection to the game server is lost: back to
-  * the menus (when the game was joined through them) or quit.
+  * the menus (when the game was joined through them, also with Enter) or quit (also with Escape).
   */
-final class EndOfGame(client: GameClient, backToMenus: Option[() => Unit]) {
+final class EndOfGame(parent: Frame, client: GameClient, backToMenus: Option[() => Unit]) {
+  val frame: Frame = Frame(parent)
+  frame.setAllPoints()
+  frame.setFrameStrata(Strata.Dialog)
+  frame.setBackdrop(Backdrop(Theme.background.withAlpha(0.5)))
+  frame.enableMouse(true)
+  frame.enableKeyboard(true)
+  frame.setScript(Script.OnKeyDown) {
+    case "return" | "kpenter" => backToMenus.fold(client.quit())(_())
+    case "escape" => client.quit()
+    case _ => ()
+  }
+  frame.hide()
 
-  def draw(ui: Ui): Unit = {
-    val screen          = Graphics.getDimensions()
-    val (width, height) = (screen.width.toDouble, screen.height.toDouble)
-    val gameState       = client.gameState
-    ui.fill(Rect(0, 0, width, height), Theme.background.withAlpha(0.5))
-    val box = Rect(width / 2 - 230, height / 2 - 110, 460, 220)
-    ui.panel(box)
+  private val box = Templates.panel(frame)
+  box.setSize(460, 220)
+  box.setPoint(Point.Center)
+  private val title = box.createFontString(size = Theme.title)
+  title.setPoint(Point.Center, box, Point.Top, 0, 45)
+  private val subtitle = box.createFontString(colour = Theme.muted)
+  subtitle.setPoint(Point.Center, box, Point.Top, 0, 93)
 
-    val (title, colour) =
-      if !gameState.ended then ("Connection lost", Theme.negative.lighter(0.3))
-      else if gameState.playersWon then ("Victory!", Theme.positive.lighter(0.3))
-      else ("Defeat...", Theme.negative.lighter(0.3))
-    ui.textIn(title, Rect(box.x, box.y + 20, box.width, 50), Theme.title, colour)
-    val subtitle = (gameState.startTime, gameState.endTime) match {
-      case (Some(start), Some(end)) =>
-        val seconds = ((end - start) / 1000).toInt
-        f"The fight lasted ${seconds / 60}%d:${seconds % 60}%02d"
-      case _ if !gameState.ended => "The game server closed the connection"
-      case _ => ""
-    }
-    ui.textIn(subtitle, Rect(box.x, box.y + 78, box.width, 30), colour = Theme.muted)
+  backToMenus match {
+    case Some(back) =>
+      val backButton = Button(box, "Back to menus", ButtonStyle.Primary)
+      backButton.setSize(250, 44)
+      backButton.setPoint(Point.BottomLeft, 30, -26)
+      backButton.setScript(Script.OnClick)(_ => back())
+      val quitButton = Button(box, "Quit")
+      quitButton.setSize(140, 44)
+      quitButton.setPoint(Point.BottomRight, -30, -26)
+      quitButton.setScript(Script.OnClick)(_ => client.quit())
+    case None =>
+      val quitButton = Button(box, "Quit", ButtonStyle.Primary)
+      quitButton.setPoint(Point.BottomLeft, 30, -26)
+      quitButton.setPoint(Point.BottomRight, -30, -26)
+      quitButton.setHeight(44)
+      quitButton.setScript(Script.OnClick)(_ => client.quit())
+  }
 
-    val buttons = Rect(box.x + 30, box.bottom - 70, box.width - 60, 44)
-    backToMenus match {
-      case Some(back) =>
-        val clicked = ui.button(
-          "Back to menus",
-          Rect(buttons.x, buttons.y, 250, buttons.height),
-          style = ButtonStyle.Primary
-        )
-        if clicked || ui.wasPressed("return") || ui.wasPressed("kpenter") then back()
-        if ui.button("Quit", Rect(buttons.right - 140, buttons.y, 140, buttons.height)) || ui
-            .wasPressed("escape")
-        then client.quit()
-      case None =>
-        if ui.button(
-            "Quit",
-            Rect(buttons.x, buttons.y, buttons.width, buttons.height),
-            style = ButtonStyle.Primary
-          ) ||
-          ui.wasPressed("escape") || ui.wasPressed("return")
-        then client.quit()
+  /** Shows it once the game is over (every frame). */
+  def update(): Unit = {
+    frame.setShown(client.finished)
+    if frame.isShown then {
+      val gameState = client.gameState
+      val (text, colour) =
+        if !gameState.ended then ("Connection lost", Theme.negative.lighter(0.3))
+        else if gameState.playersWon then ("Victory!", Theme.positive.lighter(0.3))
+        else ("Defeat...", Theme.negative.lighter(0.3))
+      title.setText(text)
+      title.setColour(colour)
+      subtitle.setText((gameState.startTime, gameState.endTime) match {
+        case (Some(start), Some(end)) =>
+          val seconds = ((end - start) / 1000).toInt
+          f"The fight lasted ${seconds / 60}%d:${seconds % 60}%02d"
+        case _ if !gameState.ended => "The game server closed the connection"
+        case _ => ""
+      })
     }
   }
 }

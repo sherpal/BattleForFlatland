@@ -21,12 +21,13 @@ The code (`src/main/scala/bffclient`) is organised by package:
 * `game` is the client side of a game (`GameClient`, `AbilityCaster`);
 * `render` draws it (`Renderer`, `Painter`, `Sprites`, `Effects`, `Smoothing`, `FrameRate`), with
   the bosses' visuals in `render.bosses` (one `BossVisuals` per boss);
-* `hud` draws the HUD (`Hud`, `ActionBar`, in the style of `HudStyle`) and the overlays (game menu,
-  end of game);
+* `hud` holds the HUD's frames (`Hud`, `UnitFrame`, `BossFrames`, `ActionBar`, built from
+  `HudWidgets` in the style of `HudStyle`) and the overlays (`GameMenu`, `EndOfGame`);
 * `controls` loads, saves and edits the controls and the client's settings;
 * `menu` holds the menus' screens and the menu server's API;
 * `hosting` runs the game server on this computer, when the menu server chooses us to;
-* `ui` is a small immediate mode UI toolkit;
+* `gui` is a retained UI toolkit in the style of World of Warcraft's frames (the menus, the HUD
+  and the overlays), and `ui` holds the menus' theme (`Rect`, `Colour`, `Theme`);
 * `love` holds the facades of LÖVE's API (with `LoveInput`), and `lua` those of our own Lua modules
   (`src/main/lua`: `websocket.lua`, `http.lua`, `udp.lua`, `process.lua`, `images.lua`, and `conf.lua`, LÖVE's configuration).
 
@@ -66,10 +67,52 @@ storage under the key `controls`). In "General", the client's own settings, whic
 `Controls` cannot hold, saved in `settings.json`: the size of the HUD, from 0.5 to 2, and whether to
 host game servers (on by default; see below).
 
-The UI toolkit (`ui/Ui.scala`) is immediate mode: every frame, the screens call widgets that draw
-themselves and return what happened, e.g. `if ui.button("Join", rect) then join()`. It has labels,
-wrapped text, panels, buttons, text fields (UTF-8 aware, with keyboard focus), check boxes,
-`< value >` selectors, segmented buttons and colour swatches; screens position widgets with `Rect`s.
+The menus, the HUD and the game's overlays are made with `gui`, a retained UI toolkit that works like World of
+Warcraft's (and the author's former [scalajs-ui](https://github.com/sherpal/scalajs-ui)):
+
+* A screen creates its **frames** once, in the `Gui`'s `root` (WoW's UIParent, which covers the
+  window), and removes them when it is left. A `Frame` has children frames and draws **regions**:
+  `Texture`s (a colour or an image, possibly with rounded corners and an outline) and
+  `FontString`s (a text, possibly with a shadow), created with `createTexture` and
+  `createFontString`; a frame can be faded (`setAlpha`, which its descendants inherit). The widgets are frames: `Button`, `EditBox` (a text field with keyboard focus),
+  `CheckButton`, `Swatch` (a colour square), `Selector` (`< value >`), `Segmented` (side by side
+  buttons), `StatusBar` (a progress bar) and `ScrollFrame` (with a scroll child, scrolled with the
+  mouse wheel, which may fit its contents); `Templates` makes frames in the theme's style (a panel,
+  a "Loading..." text).
+* Regions are placed with **anchors**: `button.setPoint(Point.TopLeft, box, Point.BottomLeft, 0,
+  8)` puts the button's top left corner 8 pixels under the box's bottom left corner (y goes down,
+  like in LÖVE). Each axis is solved on its own: two anchors give the position and the size (e.g.
+  `setAllPoints`), one anchor and a size (`setSize`, or the size of a text) too. Points are
+  fractions of the size, so besides the nine usual ones, `Point(0.4, 0.5)` is a column at 40% of a
+  table's width. Positions are computed when needed and cached: a change (an anchor, a size, a
+  text, a bar's value) only computes again that region and the ones anchored to it, and the window's
+  size, a scale or a parent everything. The drawing is hot (the HUD redraws every frame), so the
+  per-frame code (`Gui.draw`, `Region.solve`, `Frame.draw`) uses loops and fields rather than
+  closures, tuples and `Option` combinators, which cost a lot once compiled to Lua.
+* Frames are drawn by **stratum** (`Strata.Background` ... `Strata.Tooltip`), then by **level** (one
+  more than their parent by default), then in the order of the tree; each one draws its backdrop,
+  then its regions by **layer** (`Layer.Background` ... `Layer.Highlight`). A frame can clip its
+  children (`setClipsChildren`).
+* Frames react through **scripts**, typed by kind: `button.setScript(Script.OnClick)(mouseButton =>
+  ...)` (`hookScript` adds a handler). The mouse goes to the topmost frame under it with the mouse
+  enabled (`OnEnter`, `OnLeave`, `OnMouseDown`, `OnMouseUp`, `OnClick`), the wheel to the one with
+  the wheel enabled, the keys to the focused edit box, otherwise to the topmost frames with the
+  keyboard enabled (`OnKeyDown`). A frame can take only some of the mouse buttons
+  (`registerForClicks(1)`, like WoW's `RegisterForClicks`): the others go to what is under it.
+  `OnShow`, `OnHide` and `OnUpdate` (every frame, while visible) complete them. `Selector` and `Segmented` have their own `OnValueChanged`, typed by their options
+  (`selector.setScript(selector.OnValueChanged)(...)`).
+* A frame can have a **scale** (`setScale`, like WoW's `SetScale`), which its descendants inherit:
+  its sizes and offsets are in its own units, so a frame with scale 1.5 anchored to the edges of the
+  window covers it with fewer units, and everything in it is drawn 1.5 times bigger. Anchors between
+  frames of different scales are converted, and texts are drawn with fonts of the scaled size
+  (rather than scaled), so that they stay sharp. The mouse is in the window's pixels.
+* Dialogs are frames in a higher stratum that cover the window with the mouse enabled, so that
+  nothing under them can be clicked (the settings, the lobby's "Game is starting" overlay).
+* Screens keep their state in plain fields, and show it in their frames when it changes (e.g.
+  `GamesScreen.render` and `GameLobbyScreen.render`, which reuse pools of rows); what changes on
+  its own (a download's progress, a notification's end) is polled in `OnUpdate`. The HUD shows
+  the game state, which changes every frame: the `OnUpdate` of its root updates every component
+  from the state being drawn.
 
 ## UDP
 
@@ -139,9 +182,13 @@ frames (e.g. Boss 104's twin debuffs) and add a line to the HUD (Boss 102's houn
 
 **HUD.** The frames of the team on the left (faded when out of healing range), our frame and our
 target's above the action bar, our cast bar, the boss's frame on top, the cooldowns of the boss's
-abilities on the top right and the threat meter on the bottom right. Clicking a frame targets its
-entity. The action bar (`hud/ActionBar.scala`) shows the abilities' icons, with their key, their
-cooldown, and a tooltip with what they do (the game's `AbilityDoc`).
+abilities on the top right and the threat meter on the bottom right, in a frame at the HUD's scale
+covering the window, which `Renderer` draws over the world. Clicking a frame targets its entity, and
+the frame under the mouse is the one of the "mouse over" casts. The action bar
+(`hud/ActionBar.scala`) shows the abilities' icons, with their key, their cooldown, and a tooltip
+with what they do (the game's `AbilityDoc`). The left button goes to the HUD's frames first (the
+frames, "Start game"), then to the world; they leave the other buttons to the controls, so that
+e.g. a right click bound to a heal works over a player's frame.
 
 **Window.** The window can be resized, and F11 (or the game menu) makes it fullscreen. The world is
 scaled to show as much of it as in a 1200 x 800 window (more in the longer direction), while the
@@ -155,7 +202,9 @@ ends the fight in a defeat for everyone: the client sends the game's own `EndGam
 end of the game arrives like any other. Leaving goes back to the menus. When the game ends (or the
 connection is lost), an overlay shows the outcome, with "Back to menus" and "Quit". Going back leaves
 the game (the menu server never ends games by itself, so the players would otherwise stay "already
-playing"). The game server stops by itself a minute after everyone left it.
+playing"). The game server stops by itself a minute after everyone left it. Both are dialogs in
+the HUD's `Gui`, but not in its scaled frame; while one is shown, it takes the inputs (it covers
+the window, with the mouse and the keyboard enabled).
 
 ## Hosting the game server
 

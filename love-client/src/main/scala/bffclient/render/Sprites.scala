@@ -6,7 +6,7 @@ import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff
 
 /** An image, or a sheet of `rows` x `columns` animation frames. */
-final class Sprite(image: Image, rows: Int = 1, columns: Int = 1) {
+final class Sprite(val image: Image, rows: Int = 1, columns: Int = 1) {
   val frameWidth: Double  = image.getWidth() / columns
   val frameHeight: Double = image.getHeight() / rows
 
@@ -23,6 +23,9 @@ final class Sprite(image: Image, rows: Int = 1, columns: Int = 1) {
   )
 
   def frameCount: Int = frames.size
+
+  /** The part of the image of the frame. */
+  def quad(frame: Int = 0): Quad = frames(frame % frames.size)
 
   /** Draws the frame centred at (x, y) on screen, turned by `rotation` (counterclockwise, like in
     * the game), `width` pixels wide (and as high as the frame's proportions say, unless given). The

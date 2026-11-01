@@ -3,27 +3,26 @@ package bffclient.hud
 import scala.collection.mutable
 
 import bffclient.game.GameClient
+import bffclient.gui.*
 import bffclient.hud.HudStyle.*
-import bffclient.love.Graphics
-import bffclient.render.Sprites
-import bffclient.ui.{Colour as Paint, Rect}
+import bffclient.hud.HudWidgets.*
+import bffclient.render.{Painter, Sprites}
+import bffclient.ui.Colour as Paint
 import gamelogic.abilities.Ability
 import gamelogic.docs.AbilityDoc
 import gamelogic.entities.classes.PlayerClass
-import gamelogic.gamestate.GameState
 
-/** Our abilities, as icons in frames (like the frontend's): pushed down just after it is used,
-  * darkened from the top during its cooldown with the remaining seconds, the key in a corner, and
-  * the colour of the ability as a line at the bottom. Hovering an ability shows what it does
-  * (`AbilityDoc`, like in the lobby's documentation).
-  *
-  * @param mouseOver
-  *   whether the mouse is over this rectangle (of the HUD, which is drawn at its scale)
+/** Our abilities, as icons in frames (like the frontend's), centred at the bottom: pushed down just
+  * after it is used, darkened from the top during its cooldown with the remaining seconds, the key
+  * in a corner, and the colour of the ability as a line at the bottom. Hovering an ability shows
+  * what it does (`AbilityDoc`, like in the lobby's documentation) in a tooltip.
   */
-final class ActionBar(client: GameClient, mouseOver: Rect => Boolean) {
-  private val slotSize = 52.0
-  private val gap      = 6.0
-  private val iconSize = 40.0
+final class ActionBar(parent: Frame, client: GameClient) {
+  import ActionBar.*
+
+  private val frame = Frame(parent)
+  frame.setHeight(slotSize)
+  frame.setPoint(Point.Bottom, parent, Point.Bottom, 0, -8)
 
   private val docsCache = mutable.Map.empty[String, Map[Ability.AbilityId, AbilityDoc]]
 
@@ -33,82 +32,117 @@ final class ActionBar(client: GameClient, mouseOver: Rect => Boolean) {
       player.cls.builder.abilitiesDoc.map(doc => doc.abilityId -> doc).toMap
     )
 
-  /** Where the bar is (above the bottom of the window). */
-  def top(height: Double): Double = height - slotSize - 8
+  private val tooltip = Tooltip(parent)
+  private val slots   = mutable.ArrayBuffer.empty[Slot]
 
-  def draw(gameState: GameState, now: Long, width: Double, height: Double): Unit =
-    for
-      id <- client.myId
-      me <- gameState.players.get(id)
-    do {
-      val abilities = me.abilities.toVector
-      val left      = (width - abilities.length * (slotSize + gap) + gap) / 2
-      val slots = abilities.zipWithIndex.map { (abilityId, i) =>
-        abilityId -> Rect(left + i * (slotSize + gap), top(height), slotSize, slotSize)
-      }
-      for ((abilityId, slot), i) <- slots.zipWithIndex do drawSlot(me, abilityId, i, slot, now)
-      // Over everything else of the HUD
+  private final class Slot(index: Int) {
+    var shown = Option.empty[(Ability.AbilityId, Option[AbilityDoc])]
+
+    val frame: Frame = panel(ActionBar.this.frame, radius = 8)
+    frame.setSize(slotSize, slotSize)
+    frame.setPoint(Point.TopLeft, ActionBar.this.frame, Point.TopLeft, index * (slotSize + gap), 0)
+    frame.enableMouse(true)
+    frame.registerForClicks(1)
+    frame.setScript(Script.OnEnter)(() =>
       for
-        ((abilityId, slot), i) <- slots.zipWithIndex.find((slot, _) => mouseOver(slot._2))
-        doc                    <- docs(me).get(abilityId)
-      do tooltip(doc, i, slot, width)
-    }
-
-  private def drawSlot(
-      me: PlayerClass,
-      abilityId: Ability.AbilityId,
-      index: Int,
-      slot: Rect,
-      now: Long
-  ): Unit = {
-    val used = me.relevantUsedAbilities.get(abilityId)
-    val cooldown = for
-      u         <- used
-      remaining <- Some(u.time + u.cooldown - now).filter(_ > 0)
-    yield (remaining, u.cooldown)
-    val pushed = if used.exists(u => now - u.time < 100) then 2.0 else 0.0
-
-    panel(slot, radius = 8)
-    if mouseOver(slot) then roundedLine(slot, 8, Paint(1, 1, 1, 0.5), 1)
-    val icon = Rect(
-      slot.x + (slot.width - iconSize) / 2,
-      slot.y + (slot.height - iconSize) / 2 - 2 + pushed,
-      iconSize,
-      iconSize
+        (_, doc) <- shown
+        d        <- doc
+      do tooltip.show(d, keyLabel(index), frame)
     )
-    Sprites.abilityIcons.get(abilityId) match {
-      case Some(sprite) =>
-        Graphics.setColor(1, 1, 1)
-        sprite.draw(icon.x + iconSize / 2, icon.y + iconSize / 2, 0, iconSize, iconSize)
-      case None =>
-        roundedFill(icon, 4, Paint(0, 0, 0, 0.3))
-        val initials =
-          docs(me).get(abilityId).fold(s"#$abilityId")(_.name.split(' ').map(_.take(1)).mkString)
-        text(initials, icon, "center")
-    }
-    for (remaining, total) <- cooldown do {
-      Graphics.setColor(0, 0, 0, 0.6)
-      Graphics.rectangle("fill", icon.x, icon.y, iconSize, iconSize * remaining / total.toDouble)
-      text(f"${remaining / 1000.0}%.1f", icon, "center", textSize = Some(titleSize), padding = 0)
-    }
+    frame.setScript(Script.OnLeave)(() => tooltip.hide())
+
+    private val hoverRing = frame.createTexture(Paint(0, 0, 0, 0), Layer.Highlight)
+    hoverRing.setAllPoints(frame)
+    hoverRing.setCornerRadius(8)
+    hoverRing.setOutline(Some(Paint(1, 1, 1, 0.5)))
+
+    private val icon = frame.createTexture(Layer.Artwork)
+    icon.setSize(iconSize, iconSize)
+    private var pushedBy = -1.0
+    private val initials = textOver(frame, icon, JustifyH.Center, padding = 0)
+    private val shade    = frame.createTexture(Paint(0, 0, 0, 0.6), Layer.Overlay)
+    shade.setPoint(Point.TopLeft, icon, Point.TopLeft)
+    private var shadeAt = -1.0
+    private val cooldown =
+      textOver(frame, icon, JustifyH.Center, size = titleSize, padding = 0)
     // A thin dark border, so that the (often white) icons do not glare on the panels
-    roundedLine(
-      Rect(icon.x - 1, icon.y - 1, iconSize + 2, iconSize + 2),
-      3,
-      Paint(0, 0, 0, 0.85),
-      2
-    )
+    private val border = frame.createTexture(Paint(0, 0, 0, 0), Layer.Overlay)
+    border.setPoint(Point.TopLeft, icon, Point.TopLeft, -1, -1)
+    border.setPoint(Point.BottomRight, icon, Point.BottomRight, 1, 1)
+    border.setCornerRadius(3)
+    border.setOutline(Some(Paint(0, 0, 0, 0.85)), 2)
     // The colour of the ability, as a line at the bottom
-    roundedFill(
-      Rect(slot.x + 8, slot.bottom - 4, slot.width - 16, 2),
-      1,
-      softened(Ability.abilityColour(abilityId))
-    )
+    private val colourLine = frame.createTexture(Layer.Artwork)
+    place(colourLine, frame, 8, slotSize - 4, slotSize - 16, 2)
+    colourLine.setCornerRadius(1)
     // The key, in the bottom right corner of the icon
-    val key   = shortLabel(client.controls.abilityKeys.lift(index).fold("-")(_.label))
-    val badge = Rect(icon.right - 4 - 6 * key.length, icon.bottom - 11, 6 + 6 * key.length, 13)
-    roundedFill(badge, 3, Paint(0, 0, 0, 0.7))
-    text(key, badge, "center", padding = 0, textSize = Some(smallSize))
+    private val badge = frame.createTexture(Paint(0, 0, 0, 0.7), Layer.Overlay)
+    badge.setPoint(Point.BottomRight, icon, Point.BottomRight, 2, 2)
+    badge.setHeight(13)
+    badge.setCornerRadius(3)
+    private val key = textOver(frame, badge, JustifyH.Center, size = smallSize, padding = 0)
+
+    def update(me: PlayerClass, abilityId: Option[Ability.AbilityId], now: Long): Unit = {
+      frame.setShown(abilityId.isDefined)
+      for id <- abilityId do {
+        if !shown.exists(_._1 == id) then {
+          shown = Some((id, docs(me).get(id)))
+          Sprites.abilityIcons.get(id) match {
+            case Some(sprite) =>
+              setSprite(icon, sprite)
+              icon.setColour(Paint(1, 1, 1))
+              icon.setCornerRadius(0)
+              initials.setText("")
+            case None =>
+              icon.clearImage()
+              icon.setColour(Paint(0, 0, 0, 0.3))
+              icon.setCornerRadius(4)
+              initials.setText(
+                docs(me).get(id).fold(s"#$id")(_.name.split(' ').map(_.take(1)).mkString)
+              )
+          }
+          colourLine.setColour(softened(Ability.abilityColour(id)))
+        }
+
+        val used   = me.relevantUsedAbilities.get(id)
+        val pushed = if used.exists(u => now - u.time < 100) then 2.0 else 0.0
+        if pushed != pushedBy then {
+          pushedBy = pushed
+          icon.setPoint(Point.Center, frame, Point.Center, 0, -2 + pushed)
+        }
+        val remaining = for
+          u    <- used
+          left <- Some(u.time + u.cooldown - now).filter(_ > 0)
+        yield (left, u.cooldown)
+        shade.setShown(remaining.isDefined)
+        val fraction = remaining.fold(0.0)((left, total) => left / total.toDouble)
+        if fraction != shadeAt then {
+          shadeAt = fraction
+          shade.setPoint(Point.BottomRight, icon, Point(1, fraction))
+        }
+        cooldown.setText(remaining.fold("")((left, _) => f"${left / 1000.0}%.1f"))
+
+        val label = shortLabel(keyLabel(index).getOrElse("-"))
+        key.setText(label)
+        badge.setWidth(6 + 6 * label.length)
+        hoverRing.setShown(frame.gui.isHovered(frame))
+      }
+    }
+  }
+
+  private def keyLabel(index: Int): Option[String] =
+    client.controls.abilityKeys.lift(index).map(_.label)
+
+  def update(p: Painter): Unit = {
+    val me = client.myId.flatMap(p.gameState.players.get)
+    frame.setShown(me.isDefined)
+    for player <- me do {
+      val abilities = player.abilities.toVector
+      frame.setWidth(abilities.length * (slotSize + gap) - gap)
+      while slots.size < abilities.size do slots += Slot(slots.size)
+      for (slot, i) <- slots.zipWithIndex do slot.update(player, abilities.lift(i), p.now)
+    }
+    if me.isEmpty then tooltip.hide()
   }
 
   /** Short enough for the corner of an icon: Digit1 is 1, KeyQ is Q, Shift KeyQ is S-Q, Button 2
@@ -116,49 +150,74 @@ final class ActionBar(client: GameClient, mouseOver: Rect => Boolean) {
     */
   private def shortLabel(label: String): String =
     label.replace("Shift ", "S-").replace("Digit", "").replace("Key", "").replace("Button ", "M")
+}
 
-  /** Name and key, cast time, cooldown and cost, and what it does, above the ability. */
-  private def tooltip(doc: AbilityDoc, index: Int, slot: Rect, width: Double): Unit = {
-    val tooltipWidth = 300.0
-    val padding      = 10.0
-    val inner        = tooltipWidth - 2 * padding
-    val details = (Seq(s"Cast: ${doc.castingTimeRepr}", s"Cooldown: ${doc.cooldownRepr}") ++
-      doc.maybeCostRepr.map(cost => s"Cost: $cost")).mkString("  ·  ")
-    val detailLines      = wrap(details, inner, smallSize)
-    val descriptionLines = wrap(doc.description, inner)
-    val titleHeight      = lineHeight(titleSize)
-    val height = padding + titleHeight + 6 + detailLines.size * lineHeight(smallSize) + 6 +
-      descriptionLines.size * lineHeight() + padding
-    val x =
-      math.max(4.0, math.min(width - tooltipWidth - 4, slot.x + slot.width / 2 - tooltipWidth / 2))
-    val rect = Rect(x, slot.y - 8 - height, tooltipWidth, height)
-    roundedFill(rect, 8, Paint.rgb(30, 34, 46).withAlpha(0.95))
-    roundedLine(rect, 8, softened(Ability.abilityColour(doc.abilityId)), 1)
+object ActionBar {
+  private val slotSize = 52.0
+  private val gap      = 6.0
+  private val iconSize = 40.0
 
-    var y = rect.y + padding
-    text(
-      doc.name,
-      Rect(rect.x + padding, y, inner, titleHeight),
-      textSize = Some(titleSize),
-      padding = 0
-    )
-    val key = client.controls.abilityKeys.lift(index).fold("")(_.label)
-    text(key, Rect(rect.x + padding, y, inner, titleHeight), "right", mutedColour, padding = 0)
-    y += titleHeight + 6
-    for line <- detailLines do {
-      text(
-        line,
-        Rect(rect.x + padding, y, inner, lineHeight(smallSize)),
-        colour = mutedColour,
-        padding = 0,
-        textSize = Some(smallSize)
-      )
-      y += lineHeight(smallSize)
-    }
-    y += 6
-    for line <- descriptionLines do {
-      text(line, Rect(rect.x + padding, y, inner, lineHeight()), padding = 0)
-      y += lineHeight()
-    }
+  /** From the bottom of the HUD to the top of the bar. */
+  val height: Double = slotSize + 8
+}
+
+/** Name and key, cast time, cooldown and cost, and what an ability does, above its slot (over
+  * everything, and inside the HUD).
+  */
+private final class Tooltip(parent: Frame) {
+  private val width   = 300.0
+  private val padding = 10.0
+
+  private val frame = Frame(parent)
+  frame.setFrameStrata(Strata.Tooltip)
+  frame.setWidth(width)
+  frame.hide()
+
+  private def line(size: Int, colour: Paint, justify: JustifyH = JustifyH.Left): FontString = {
+    val fontString = HudWidgets.text(frame, size, colour, justify)
+    fontString.setWordWrap(true)
+    fontString
   }
+  private val name = line(titleSize, textColour)
+  name.setPoint(Point.TopLeft, frame, Point.TopLeft, padding, padding)
+  name.setPoint(Point.TopRight, frame, Point.TopRight, -padding, padding)
+  private val key = line(normalSize, mutedColour, JustifyH.Right)
+  key.setPoint(Point.TopLeft, name, Point.TopLeft)
+  key.setPoint(Point.BottomRight, name, Point.BottomRight)
+  private val details = line(smallSize, mutedColour)
+  details.setPoint(Point.TopLeft, name, Point.BottomLeft, 0, 6)
+  details.setPoint(Point.TopRight, name, Point.BottomRight, 0, 6)
+  private val description = line(normalSize, textColour)
+  description.setPoint(Point.TopLeft, details, Point.BottomLeft, 0, 6)
+  description.setPoint(Point.TopRight, details, Point.BottomRight, 0, 6)
+
+  def show(doc: AbilityDoc, keyLabel: Option[String], slot: Frame): Unit = {
+    name.setText(doc.name)
+    key.setText(keyLabel.getOrElse(""))
+    details.setText(
+      (Seq(s"Cast: ${doc.castingTimeRepr}", s"Cooldown: ${doc.cooldownRepr}") ++
+        doc.maybeCostRepr.map(cost => s"Cost: $cost")).mkString("  ·  ")
+    )
+    description.setText(doc.description)
+    frame.setBackdrop(
+      Backdrop(
+        Paint.rgb(30, 34, 46).withAlpha(0.95),
+        Some(softened(Ability.abilityColour(doc.abilityId))),
+        8
+      )
+    )
+    // the texts' heights only depend on the width
+    frame.setHeight(
+      padding + name.stringHeight + 6 + details.stringHeight + 6 + description.stringHeight + padding
+    )
+    // above the slot, but inside the HUD
+    val centre = math.max(
+      4 + width / 2,
+      math.min(parent.width - 4 - width / 2, slot.left + slot.width / 2)
+    )
+    frame.setPoint(Point.Bottom, slot, Point.Top, centre - (slot.left + slot.width / 2), -8)
+    frame.show()
+  }
+
+  def hide(): Unit = frame.hide()
 }

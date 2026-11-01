@@ -5,19 +5,27 @@ import scala.util.{Failure, Success}
 
 import bffclient.controls.SettingsEditor
 import bffclient.game.{GameAccess, GameExit}
+import bffclient.gui.*
 import bffclient.love.{Fullscreen, Graphics, Keyboard, Love, Timer}
-import bffclient.ui.*
+import bffclient.ui.Theme
 import menus.data.User
 
-/** A screen of the menus, drawn every frame. */
+/** A screen of the menus: frames of [[MenuApp.gui]], created with the screen. */
 trait Screen {
-  def draw(ui: Ui): Unit
 
-  /** When the menus switch to another screen. */
-  def leave(): Unit = ()
+  /** When the menus switch to another screen: it removes its frames. */
+  def leave(): Unit
 }
 
-/** The menus, drawn with [[Ui]] like the frontend's pages: login, games, then the game's lobby,
+/** "Loading..." while waiting for something. */
+final class LoadingScreen(app: MenuApp, message: String) extends Screen {
+  private val frame = Templates.loading(app.gui.root, message)
+  frame.setPoint(Point.TopLeft, 40, 40)
+
+  def leave(): Unit = frame.remove()
+}
+
+/** The menus, made with [[Gui]] like the frontend's pages: login, games, then the game's lobby,
   * until the game server credentials arrive and `startGame` takes over. The game comes back to the
   * menus with the function it is given.
   *
@@ -27,7 +35,7 @@ trait Screen {
 final class MenuApp(val server: Option[String], startGame: (GameAccess, GameExit => Unit) => Unit)(
     using ExecutionContext
 ) {
-  val ui                  = new Ui
+  val gui                 = new Gui
   var preferences         = MenuPreferences.load()
   private var connectedTo = Option.empty[MenuApi]
 
@@ -35,49 +43,57 @@ final class MenuApp(val server: Option[String], startGame: (GameAccess, GameExit
   def api: MenuApi                  = connectedTo.getOrElse(sys.error("Not logged in"))
   def useServer(api: MenuApi): Unit = connectedTo = Some(api)
   private var screen: Screen        = new LoginScreen(this)
-  private var notification: Option[(String, Boolean, Double)] = None
+
+  gui.root
+    .createFontString("F11: fullscreen", Theme.small, Theme.muted)
+    .setPoint(Point.TopLeft, gui.root, Point.BottomRight, -140, -22)
+
+  /** Over everything, for 5 seconds (long ones wrap at the window's width). */
+  private val notification = Frame(gui.root)
+  notification.setFrameStrata(Strata.Tooltip)
+  notification.setPoint(Point.Center, gui.root, Point.Bottom, 0, -90)
+  notification.hide()
+  private val notificationText = notification.createFontString()
+  notificationText.setWordWrap(true)
+  notificationText.setJustifyH(JustifyH.Center)
+  notificationText.setPoint(Point.TopLeft, 20, 10)
+  notificationText.setPoint(Point.TopRight, -20, 10)
+  private var notificationUntil = 0.0
+  notification.setScript(Script.OnUpdate)(_ =>
+    if Timer.getTime() > notificationUntil then notification.hide()
+  )
 
   /** The settings, over the current screen (which stays open, e.g. the lobby and its websocket). */
   private var settingsEditor = Option.empty[SettingsEditor]
 
-  def showSettings(): Unit = settingsEditor = Some(SettingsEditor(() => settingsEditor = None))
+  def showSettings(): Unit = if settingsEditor.isEmpty then
+    settingsEditor = Some(SettingsEditor(gui.root, () => settingsEditor = None))
 
   def install(): Unit = {
     Keyboard.setKeyRepeat(true)
     Love.draw = () => {
       Graphics.setBackgroundColor(Theme.background.r, Theme.background.g, Theme.background.b)
-      ui.frame {
-        settingsEditor match {
-          case Some(editor) =>
-            ui.inert(screen.draw(ui))
-            val (width, height) = size
-            editor.draw(ui, width, height)
-          case None => screen.draw(ui)
-        }
-        drawNotification()
-        val (width, height) = size
-        ui.text("F11: fullscreen", width - 140, height - 22, Theme.small, Theme.muted)
-      }
+      gui.draw()
     }
-    Love.wheelmoved = (_, dy) => ui.wheelMoved(dy)
-    Love.mousepressed = (x, y, button, _, _) => ui.mousePressed(x, y, button)
-    Love.mousereleased = (x, y, button, _, _) => ui.mouseReleased(x, y, button)
-    Love.textinput = text => ui.textInput(text)
+    Love.wheelmoved = (_, dy) => gui.wheelMoved(dy)
+    Love.mousepressed = (x, y, button, _, _) => gui.mousePressed(x, y, button)
+    Love.mousereleased = (x, y, button, _, _) => gui.mouseReleased(x, y, button)
+    Love.textinput = text => gui.textInput(text)
     Love.keypressed = (_, scancode, isRepeat) =>
       if scancode == Fullscreen.key then { if !isRepeat then Fullscreen.toggle() }
-      else ui.keyPressed(scancode)
+      else gui.keyPressed(scancode)
   }
 
   def show(next: Screen): Unit = { screen.leave(); screen = next }
 
-  def size: (Double, Double) = {
-    val dimensions = Graphics.getDimensions()
-    (dimensions.width.toDouble, dimensions.height.toDouble)
-  }
-
   def notify(message: String, isError: Boolean = false): Unit = {
     println(s"[menu] $message")
-    notification = Some((message, isError, Timer.getTime() + 5))
+    notificationText.setText(message)
+    notification.setWidth(math.min(notificationText.stringWidth, gui.root.width - 120) + 40)
+    notification.setHeight(notificationText.height + 20)
+    notification.setBackdrop(Backdrop(if isError then Theme.negative else Theme.positive))
+    notificationUntil = Timer.getTime() + 5
+    notification.show()
   }
 
   /** Calls `onSuccess` with the result, or notifies the failure (and calls `onFailure`). */
@@ -100,10 +116,10 @@ final class MenuApp(val server: Option[String], startGame: (GameAccess, GameExit
     * it.
     */
   def gameStarts(access: GameAccess, user: User, lobby: Option[Lobby]): Unit = {
+    settingsEditor.foreach(_.frame.remove())
     settingsEditor = None
-    screen = new Screen {
-      def draw(ui: Ui): Unit = ui.loading("Connecting to the game server", 40, 40)
-    }
+    // the lobby's screen leaves its websocket open, now that the game started
+    show(LoadingScreen(this, "Connecting to the game server"))
     startGame(access, exit => backToMenus(user, access.gameId, lobby, exit))
   }
 
@@ -129,23 +145,12 @@ final class MenuApp(val server: Option[String], startGame: (GameAccess, GameExit
         notify(s"Cannot connect to the game server: $error", isError = true)
     }
     lobby.foreach(_.close())
-    screen = new Screen { def draw(ui: Ui): Unit = ui.loading("Leaving the game", 40, 40) }
+    show(LoadingScreen(this, "Leaving the game"))
     api.leaveGame(gameId).onComplete { result =>
       result.failed.foreach(failure =>
         notify(s"Could not leave the game: ${failure.getMessage}", isError = true)
       )
       show(new GamesScreen(this, user))
-    }
-  }
-
-  private def drawNotification(): Unit = notification.foreach { (message, isError, until) =>
-    if Timer.getTime() > until then notification = None
-    else {
-      val (width, height) = size
-      val textWidth       = ui.textWidth(message)
-      val rect            = Rect((width - textWidth) / 2 - 20, height - 110, textWidth + 40, 40)
-      ui.fill(rect, if isError then Theme.negative else Theme.positive)
-      ui.textIn(message, rect)
     }
   }
 }

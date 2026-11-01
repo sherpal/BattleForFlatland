@@ -1,7 +1,7 @@
 package bffclient.render
 
 import bffclient.game.GameClient
-import bffclient.hud.{Hud, HudStyle}
+import bffclient.hud.Hud
 import bffclient.love.{Graphics, Mouse, Timer}
 import bffclient.render.bosses.BossVisuals
 import gamelogic.abilities.Ability
@@ -14,7 +14,6 @@ import gamelogic.entities.movingstuff.PentagonBullet
 import gamelogic.entities.staticstuff.Obstacle
 import gamelogic.entities.{Body, Entity, LivingEntity, WithPosition}
 import gamelogic.gameextras.GameMarkerInfo
-import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import utils.misc.{Colour, RGBColour}
 
@@ -27,11 +26,20 @@ final class Renderer(client: GameClient, hudScale: Double = 1.0) {
   /** The visuals of the boss being fought (kept once it died, for its adds that are left). */
   private var bossVisuals = Option.empty[BossVisuals]
 
-  /** Team frames, boss frame, boss cooldowns and threat meter. */
-  val hud = new Hud(client, () => bossVisuals, hudScale)
-
   private var cameraPosition = Complex.zero
   private val frameRate      = FrameRate()
+
+  /** The painter of the frame being drawn, for the HUD. */
+  private var painter = Option.empty[Painter]
+
+  /** Team frames, boss frame, boss cooldowns, threat meter, action bar, ... */
+  val hud = new Hud(
+    client,
+    () => bossVisuals,
+    () => painter,
+    () => frameRate.fps.fold("-")(f => math.round(f).toString),
+    hudScale
+  )
 
   /** The world is drawn as on a screen of this size (scaled), and the HUD at the window's size. */
   private var screenWidth  = Renderer.referenceWidth
@@ -75,6 +83,7 @@ final class Renderer(client: GameClient, hudScale: Double = 1.0) {
         client.smoothing,
         worldScale
       )
+    this.painter = Some(painter)
     import painter.*
     Graphics.push()
     Graphics.scale(worldScale)
@@ -245,39 +254,8 @@ final class Renderer(client: GameClient, hudScale: Double = 1.0) {
 
     Graphics.pop()
 
-    // The HUD, at its own scale (the `hudScale` setting) whatever the window's size: it is placed
-    // at the edges of a window of this size, which are the window's once scaled
-    val (hudWidth, hudHeight) = (screen.width / hudScale, screen.height / hudScale)
-    HudStyle.scaled(hudScale) {
-      infoLines(gameState, hudWidth)
-      hud.draw(painter, hudWidth, hudHeight)
-    }
-  }
-
-  /** Ping, controls, target and messages (the lives are in the HUD's frames). */
-  private def infoLines(gameState: GameState, width: Double): Unit = {
-    Graphics.setColor(0, 0, 0)
-    val fps = frameRate.fps.fold("-")(f => math.round(f).toString)
-    HudStyle.print(
-      s"fps: $fps   ping: ${client.roundTrip} ms   messages: ${client.messagesReceived}",
-      10,
-      72,
-      width - 20
-    )
-    Graphics.setColor(0, 0, 0)
-    val message =
-      if gameState.ended then if gameState.playersWon then "Victory!" else "Defeat..."
-      else if !gameState.started && !client.inPreGame then "Waiting for the game to start..."
-      else ""
-    if message.nonEmpty then Graphics.printf(message, 0, 170, width, "center")
-    client.errorMessage.foreach { error =>
-      Graphics.setColor(0.8, 0, 0)
-      Graphics.printf(error, 0, 190, width, "center")
-    }
-    if client.choosingPosition.isDefined then {
-      Graphics.setColor(0, 0, 0)
-      Graphics.printf("Click to place the zone (Escape to cancel)", 0, 210, width, "center")
-    }
+    // The HUD, at its own scale (the `hudScale` setting), whatever the window's size
+    hud.draw()
   }
 }
 

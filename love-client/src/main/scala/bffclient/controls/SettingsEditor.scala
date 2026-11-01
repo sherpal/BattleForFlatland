@@ -1,7 +1,8 @@
 package bffclient.controls
 
+import bffclient.gui.*
 import bffclient.love.LoveInput
-import bffclient.ui.*
+import bffclient.ui.{ButtonStyle, Theme}
 import models.bff.ingame.{Controls, GameMarkerControls}
 import models.bff.ingame.Controls.InputCode
 import models.syntax.Pointed
@@ -12,9 +13,10 @@ import models.syntax.Pointed
   *     `controls.json` (see [[ControlsFile]]), which the next game loads;
   *   - the client's own settings ([[ClientSettings]]), saved to `settings.json`.
   *
-  * Drawn over the menus (which stay open behind, e.g. the lobby and its websocket).
+  * A dialog over the menus (which stay open behind, e.g. the lobby and its websocket): the frames
+  * under it cannot be clicked. Its frame is removed when it is closed.
   */
-final class SettingsEditor(close: () => Unit) {
+final class SettingsEditor(parent: Frame, close: () => Unit) {
   private var controls = ControlsFile.load()._1
   private var settings = ClientSettings.current
   private var error    = Option.empty[String]
@@ -25,8 +27,8 @@ final class SettingsEditor(close: () => Unit) {
   }
   private var tab = Tab.Bindings
 
-  /** The action whose binding is being changed, and how to change it. */
-  private var waiting = Option.empty[(String, InputCode => Controls)]
+  /** The action whose binding is being changed: its column and its index there. */
+  private var waiting = Option.empty[(Controls => Seq[Binding], Int)]
 
   private final case class Binding(action: String, code: InputCode, change: InputCode => Controls)
 
@@ -87,141 +89,191 @@ final class SettingsEditor(close: () => Unit) {
   private def set(newControls: Controls): Unit = {
     controls = newControls
     error = ControlsFile.save(newControls)
+    render()
   }
 
   private def change(newSettings: ClientSettings): Unit = {
     settings = newSettings
     error = settings.save()
+    render()
   }
 
-  def draw(ui: Ui, width: Double, height: Double): Unit = {
-    ui.fill(Rect(0, 0, width, height), Theme.background.withAlpha(0.75))
-    val box = Rect(width / 2 - 450, height / 2 - 300, 900, 600)
-    ui.panel(box)
-    ui.text("Settings", box.x + 24, box.y + 18, Theme.large)
-    ui.segmented(
-      Tab.values.toSeq,
-      Some(tab),
-      Rect(box.right - 284, box.y + 16, 260, 32),
-      (_: Tab).label,
-      waiting.isEmpty
-    ).foreach(tab = _)
-
-    (tab, waiting) match {
-      case (Tab.Bindings, Some((action, change))) => capture(ui, box, action, change)
-      case (Tab.Bindings, None) => bindings(ui, box); footer(ui, box)
-      case (Tab.General, _) => general(ui, box); footer(ui, box)
-    }
+  private def closeEditor(): Unit = {
+    frame.remove()
+    close()
   }
 
-  /** Waits for the key or mouse button to bind. */
-  private def capture(ui: Ui, box: Rect, action: String, change: InputCode => Controls): Unit = {
-    ui.textIn(
-      s"Press a key or a mouse button for \"$action\"",
-      Rect(box.x, box.y + 250, box.width, 30),
-      Theme.large
-    )
-    ui.textIn("Escape to cancel", Rect(box.x, box.y + 290, box.width, 24), colour = Theme.muted)
-    val modifiers = Set("lshift", "rshift")
-    if ui.wasPressed("escape") then waiting = None
-    else
-      ui.pressedKeys
-        .filterNot(modifiers)
-        .flatMap(LoveInput.inputCode)
-        .headOption
-        .orElse(ui.pressedButtons.headOption.map(LoveInput.mouseCode)) match {
-        case Some(code) => set(change(code)); waiting = None
-        case None => ()
-      }
+  // --- Frames ---
+
+  val frame: Frame = Frame(parent)
+  frame.setAllPoints()
+  frame.setFrameStrata(Strata.Dialog)
+  frame.setBackdrop(Backdrop(Theme.background.withAlpha(0.75)))
+  frame.enableMouse(true) // nothing under it can be clicked
+  frame.enableKeyboard(true)
+  frame.gui.clearFocus()
+
+  private val box = Templates.panel(frame)
+  box.setSize(900, 600)
+  box.setPoint(Point.Center)
+  box.createFontString("Settings", Theme.large).setPoint(Point.TopLeft, 24, 18)
+
+  private val tabs = Segmented[Tab](box, _.label)
+  tabs.setSize(260, 32)
+  tabs.setPoint(Point.TopRight, -24, 16)
+  tabs.setScript(tabs.OnValueChanged) { chosen =>
+    tab = chosen
+    render()
   }
 
-  private def bindings(ui: Ui, box: Rect): Unit = {
-    ui.text(
+  private def view(): Frame = {
+    val view = Frame(box)
+    view.setAllPoints()
+    view
+  }
+
+  // Controls
+  private val bindingsView = view()
+  bindingsView
+    .createFontString(
       "Click a binding, then press a key (possibly with Shift) or a mouse button. Changes apply to the next game.",
-      box.x + 24,
-      box.y + 52,
       Theme.small,
       Theme.muted
     )
-    def column(bindings: Seq[Binding], left: Double): Unit =
-      for (binding, i) <- bindings.zipWithIndex do {
-        val y = box.y + 84 + 25 * i
-        ui.text(binding.action, left, y + 3)
-        if ui.button(binding.code.label, Rect(left + 190, y, 200, 23)) then
-          waiting = Some((binding.action, binding.change))
-      }
-    column(movementsAndAbilities(controls), box.x + 24)
-    val markerBindings = markers(controls)
-    column(markerBindings, box.x + 470)
+    .setPoint(Point.TopLeft, 24, 52)
 
-    val toggleY = box.y + 84 + 25 * markerBindings.size + 12
-    if ui.checkbox(controls.mouseOverEnabled, "Mouse over", box.x + 470, toggleY) then
-      set(controls.copy(mouseOverEnabled = !controls.mouseOverEnabled))
-    ui.paragraph(
-      "Abilities fall back to the frame under the mouse when the target is not valid for them.",
-      box.x + 470,
-      toggleY + 28,
-      390,
-      Theme.small,
-      Theme.muted
-    )
-
-    val bottom = box.bottom - 60
-    for key <- controls.maybeMultipleKey do
-      ui.text(
-        s"${key.label} is bound to several actions",
-        box.x + 24,
-        bottom + 12,
-        colour = Theme.negative.lighter(0.3)
+  /** The buttons of the bindings, with what they show. */
+  private val bindingButtons =
+    for
+      (column, left) <- Seq[(Controls => Seq[Binding], Double)](
+        (movementsAndAbilities, 24),
+        (markers, 470)
       )
-    if ui.button("Reset to defaults", Rect(box.right - 380, bottom, 190, 40)) then
-      set(Pointed[Controls].unit)
+      (binding, i) <- column(controls).zipWithIndex
+    yield {
+      val y = 84 + 25 * i
+      bindingsView.createFontString(binding.action).setPoint(Point.TopLeft, left, y + 3)
+      val button = Button(bindingsView)
+      button.setSize(200, 23)
+      button.setPoint(Point.TopLeft, left + 190, y)
+      button.setScript(Script.OnClick) { _ =>
+        waiting = Some((column, i))
+        render()
+      }
+      button -> ((c: Controls) => column(c)(i).code.label)
+    }
+
+  private val toggleY   = 84 + 25 * markers(controls).size + 12
+  private val mouseOver = CheckButton(bindingsView, "Mouse over")
+  mouseOver.setPoint(Point.TopLeft, 470, toggleY)
+  mouseOver.setScript(Script.OnClick)(_ =>
+    set(controls.copy(mouseOverEnabled = mouseOver.isChecked))
+  )
+  private val mouseOverHelp = bindingsView.createFontString(
+    "Abilities fall back to the frame under the mouse when the target is not valid for them.",
+    Theme.small,
+    Theme.muted
+  )
+  mouseOverHelp.setWordWrap(true)
+  mouseOverHelp.setWidth(390)
+  mouseOverHelp.setPoint(Point.TopLeft, 470, toggleY + 28)
+
+  private val boundTwice = bindingsView.createFontString(colour = Theme.negative.lighter(0.3))
+  boundTwice.setPoint(Point.TopLeft, 24, 552)
+  private val resetButton = Button(bindingsView, "Reset to defaults")
+  resetButton.setSize(190, 40)
+  resetButton.setPoint(Point.TopLeft, 520, 540)
+  resetButton.setScript(Script.OnClick)(_ => set(Pointed[Controls].unit))
+
+  // Waiting for the key or mouse button to bind (see `capture`)
+  private val captureView = view()
+  private val captureText = captureView.createFontString(size = Theme.large)
+  captureText.setPoint(Point.Center, box, Point.Top, 0, 265)
+  captureView
+    .createFontString("Escape to cancel", colour = Theme.muted)
+    .setPoint(Point.Center, box, Point.Top, 0, 302)
+
+  // The client's own settings (BFF's controls cannot hold them)
+  private val generalView = view()
+  private def help(text: String, y: Double): Unit = {
+    val paragraph = generalView.createFontString(text, Theme.small, Theme.muted)
+    paragraph.setWordWrap(true)
+    paragraph.setWidth(560)
+    paragraph.setPoint(Point.TopLeft, 24, y)
+  }
+  generalView.createFontString("HUD scale").setPoint(Point.TopLeft, 24, 88)
+  private val hudScale = Selector[Double](generalView, scale => f"$scale%.1f")
+  hudScale.setSize(200, 26)
+  hudScale.setPoint(Point.TopLeft, 214, 84)
+  hudScale.setScript(hudScale.OnValueChanged)(scale => change(settings.copy(hudScale = scale)))
+  help(
+    "The size of the frames and of the action bar, whatever the window's size. It applies to the next game.",
+    118
+  )
+  private val hostGameServers = CheckButton(generalView, "Host game servers")
+  hostGameServers.setPoint(Point.TopLeft, 24, 184)
+  hostGameServers.setScript(Script.OnClick)(_ =>
+    change(settings.copy(hostGameServers = hostGameServers.isChecked))
+  )
+  help(
+    "The game server of a game runs on the computer of one of its players. To be ready to run it, " +
+      "the client downloads it, with what runs it (several tens of MB, once), as soon as you join " +
+      "a game. Turn this off to download nothing, e.g. on a mobile network: the other players " +
+      "will run it.",
+    216
+  )
+
+  // Footer
+  private val footer = view()
+  private val errorText =
+    footer.createFontString(size = Theme.small, colour = Theme.negative.lighter(0.3))
+  errorText.setPoint(Point.TopLeft, 24, 526)
+  private val doneButton = Button(footer, "Done", ButtonStyle.Primary)
+  doneButton.setSize(150, 40)
+  doneButton.setPoint(Point.TopLeft, 726, 540)
+  doneButton.setScript(Script.OnClick)(_ => closeEditor())
+
+  frame.setScript(Script.OnKeyDown)(scancode =>
+    waiting match {
+      case Some(_) if scancode == "escape" => waiting = None; render()
+      case Some((column, i)) =>
+        if scancode != "lshift" && scancode != "rshift" then
+          for code <- LoveInput.inputCode(scancode) do bind(column, i, code)
+      case None => if scancode == "escape" then closeEditor()
+    }
+  )
+  // while waiting, a click anywhere is the mouse button to bind
+  frame.setScript(Script.OnMouseDown)(button =>
+    for (column, i) <- waiting do bind(column, i, LoveInput.mouseCode(button))
+  )
+
+  render()
+
+  private def bind(column: Controls => Seq[Binding], index: Int, code: InputCode): Unit = {
+    waiting = None
+    set(column(controls)(index).change(code))
   }
 
-  /** The client's own settings (BFF's controls cannot hold them). */
-  private def general(ui: Ui, box: Rect): Unit = {
-    val left  = box.x + 24
-    val width = 560.0
+  /** Shows the settings in the frames. */
+  private def render(): Unit = {
+    tabs.setOptions(Tab.values.toSeq, Some(tab))
+    tabs.setEnabled(waiting.isEmpty)
+    bindingsView.setShown(tab == Tab.Bindings && waiting.isEmpty)
+    captureView.setShown(tab == Tab.Bindings && waiting.isDefined)
+    generalView.setShown(tab == Tab.General)
+    footer.setShown(!(tab == Tab.Bindings && waiting.isDefined))
 
-    val scaleY = box.y + 84
-    ui.text("HUD scale", left, scaleY + 4)
-    ui.selector(
-      ClientSettings.hudScales,
-      settings.hudScale,
-      Rect(left + 190, scaleY, 200, 26),
-      (scale: Double) => f"$scale%.1f"
-    ).foreach(scale => change(settings.copy(hudScale = scale)))
-    ui.paragraph(
-      "The size of the frames and of the action bar, whatever the window's size. It applies to the next game.",
-      left,
-      scaleY + 34,
-      width,
-      Theme.small,
-      Theme.muted
+    for (column, i) <- waiting do
+      captureText.setText(s"Press a key or a mouse button for \"${column(controls)(i).action}\"")
+    for (button, label) <- bindingButtons do button.setText(label(controls))
+    mouseOver.setChecked(controls.mouseOverEnabled)
+    boundTwice.setText(
+      controls.maybeMultipleKey.fold("")(key => s"${key.label} is bound to several actions")
     )
 
-    val hostY = scaleY + 100
-    if ui.checkbox(settings.hostGameServers, "Host game servers", left, hostY) then
-      change(settings.copy(hostGameServers = !settings.hostGameServers))
-    ui.paragraph(
-      "The game server of a game runs on the computer of one of its players. To be ready to run it, " +
-        "the client downloads it, with what runs it (several tens of MB, once), as soon as you join " +
-        "a game. Turn this off to download nothing, e.g. on a mobile network: the other players " +
-        "will run it.",
-      left,
-      hostY + 32,
-      width,
-      Theme.small,
-      Theme.muted
-    )
-  }
+    hudScale.setOptions(ClientSettings.hudScales, Some(settings.hudScale))
+    hostGameServers.setChecked(settings.hostGameServers)
 
-  private def footer(ui: Ui, box: Rect): Unit = {
-    val bottom = box.bottom - 60
-    for message <- error do
-      ui.text(message, box.x + 24, bottom - 14, Theme.small, Theme.negative.lighter(0.3))
-    if ui.button("Done", Rect(box.right - 174, bottom, 150, 40), style = ButtonStyle.Primary) || ui
-        .wasPressed("escape")
-    then close()
+    errorText.setText(error.getOrElse(""))
   }
 }

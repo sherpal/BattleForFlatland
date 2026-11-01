@@ -1,14 +1,12 @@
 package bffclient.hud
 
-import scala.collection.mutable
-
-import bffclient.love.{Font, Graphics}
-import bffclient.lua.ScalaLove
+import bffclient.love.Graphics
 import bffclient.ui.{Colour as Paint, Rect}
 import utils.misc.RGBColour
 
 /** The look of the HUD: dark translucent panels with rounded corners and a thin light border,
-  * rounded bars on a dark track with a sheen, and white text with a shadow.
+  * rounded bars on a dark track with a sheen, and white text with a shadow (see [[HudWidgets]]).
+  * The bars are also drawn over the entities of the world (see `Painter`).
   */
 object HudStyle {
   val panelColour  = Paint.rgb(52, 58, 76).withAlpha(0.8)
@@ -25,62 +23,6 @@ object HudStyle {
   val titleSize  = 14
   val largeSize  = 20
   val hugeSize   = 72
-
-  /** The scale of the HUD while it is drawn (see [[scaled]]). */
-  private var currentScale = 1.0
-
-  private val fonts = mutable.Map.empty[Int, Font]
-
-  private def fontOfSize(pixels: Int): Font =
-    fonts.getOrElseUpdate(pixels, Graphics.newFont(pixels))
-
-  private def scaledFont(size: Int): Font =
-    fontOfSize(math.max(1, math.round(size * currentScale).toInt))
-
-  /** Draws the HUD at this scale (the `hudScale` setting). Its texts are drawn with fonts of the
-    * scaled size, rather than scaled, so that they stay sharp.
-    */
-  def scaled(scale: Double)(draw: => Unit): Unit = {
-    currentScale = scale
-    Graphics.push()
-    Graphics.scale(scale)
-    try draw
-    finally {
-      Graphics.pop()
-      currentScale = 1.0
-    }
-  }
-
-  /** The height of a line of text of `size` pixels, in the HUD's coordinates. */
-  def lineHeight(size: Int = normalSize): Double = scaledFont(size).getHeight() / currentScale
-
-  /** The lines of `value` wrapped at `width` (in the HUD's coordinates), in a font of `size`. */
-  def wrap(value: String, width: Double, size: Int = normalSize): Seq[String] =
-    ScalaLove.fromLuaSequence(scaledFont(size).getWrap(value, width * currentScale).lines).toSeq
-
-  /** Text at (x, y), in the HUD's coordinates, in the current colour, sharp at any scale. */
-  def print(
-      value: String,
-      x: Double,
-      y: Double,
-      limit: Double,
-      align: String = "left",
-      size: Int = normalSize
-  ): Unit = {
-    val previousFont = Graphics.getFont()
-    Graphics.setFont(scaledFont(size))
-    Graphics.push()
-    Graphics.scale(1 / currentScale)
-    Graphics.printf(
-      value,
-      math.round(x * currentScale).toDouble,
-      math.round(y * currentScale).toDouble,
-      limit * currentScale,
-      align
-    )
-    Graphics.pop()
-    Graphics.setFont(previousFont)
-  }
 
   private def set(colour: Paint, alpha: Double): Unit =
     Graphics.setColor(colour.r, colour.g, colour.b, colour.a * alpha)
@@ -122,25 +64,6 @@ object HudStyle {
     Graphics.setLineWidth(1)
   }
 
-  /** A panel, with a lighter top edge (lit from above) and a thin border. */
-  def panel(rect: Rect, alpha: Double = 1.0, radius: Double = 6): Unit = {
-    roundedFill(rect, radius, panelColour, alpha)
-    set(Paint(1, 1, 1, 0.1), alpha)
-    Graphics.line(rect.x + radius, rect.y + 1.5, rect.right - radius, rect.y + 1.5)
-    roundedLine(rect, radius, borderColour, 1, alpha)
-  }
-
-  /** The glow around the panel of the target. */
-  def targetGlow(rect: Rect, radius: Double = 6): Unit = {
-    roundedLine(
-      Rect(rect.x - 3, rect.y - 3, rect.width + 6, rect.height + 6),
-      radius + 3,
-      targetColour.withAlpha(0.3),
-      4
-    )
-    roundedLine(rect, radius, targetColour, 2)
-  }
-
   /** A bar: filled in `colour` up to `ratio` (between 0 and 1) on a dark track. */
   def bar(rect: Rect, ratio: Double, colour: Paint, alpha: Double = 1.0): Unit = {
     val radius = math.min(3.0, rect.height / 2)
@@ -159,28 +82,6 @@ object HudStyle {
         Graphics.rectangle("fill", rect.x + 1, rect.y + 1, width - 2, rect.height * 0.4)
       }
     }
-  }
-
-  /** Text with a shadow, vertically centred in `rect`, of the normal size (small in thin
-    * rectangles), unless another one is given.
-    */
-  def text(
-      value: String,
-      rect: Rect,
-      align: String = "left",
-      colour: Paint = textColour,
-      alpha: Double = 1.0,
-      padding: Double = 4,
-      textSize: Option[Int] = None
-  ): Unit = {
-    val size  = textSize.getOrElse(if rect.height < 15 then smallSize else normalSize)
-    val y     = rect.y + (rect.height - lineHeight(size)) / 2
-    val x     = rect.x + padding
-    val limit = rect.width - 2 * padding
-    set(Paint(0, 0, 0, 0.7), alpha)
-    print(value, x + 1, y + 1, limit, align, size)
-    set(colour, alpha)
-    print(value, x, y, limit, align, size)
   }
 
   def ratio(value: Double, max: Double): Double =
