@@ -58,6 +58,11 @@ final case class CreateHexagonZone(
       _ <- Option
         .unless((player.pos - position).modulus < CreateHexagonZone.range)("Not in range")
         .toLeft(())
+      _ <- Option
+        .unless(gameState.isPositionInSight(player, position, time))(
+          "Position is not in sight"
+        )
+        .toLeft(())
     yield ()).swap.toOption
 }
 
