@@ -861,12 +861,14 @@ final class FunctionEmitter(g: GlobalContext, enclosingClass: ClassName, spill: 
       (jsGlobal(ref) :: path).mkString(".")
     case Some(JSNativeLoadSpec.Import(module, path)) =>
       // @JSImport("mod", JSImport.Namespace) or JSImport.Default is the module itself;
-      // @JSImport("mod", "x") is require("mod").x
+      // @JSImport("mod", "x") is require("mod").x. IMP requires the modules once (see the runtime).
       val members = path match {
         case "default" :: rest => rest
         case _ => path
       }
-      (s"require(${luaString(module)})" :: members).mkString(".")
+      val imported =
+        if (Naming.isValidLuaIdent(module)) s"IMP.$module" else s"IMP[${luaString(module)}]"
+      (imported :: members).mkString(".")
     case Some(JSNativeLoadSpec.ImportWithGlobalFallback(importSpec, _)) =>
       loadSpec(Some(importSpec), what)
     case _ =>

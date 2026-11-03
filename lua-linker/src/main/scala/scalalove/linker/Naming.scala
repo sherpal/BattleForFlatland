@@ -40,6 +40,7 @@ object Naming {
     "C",
     "MOD",
     "LOAD",
+    "IMP",
     "AT",
     "L",
     "F",
