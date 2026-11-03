@@ -61,14 +61,24 @@ object LuaBackend {
   }
 }
 
-/** Usage: Main <main class> <output dir> <classpath> */
+/** Usage: Main [--mode dev|prod] <main class> <output dir> <classpath>
+  *
+  * The mode (dev by default) is Scala.js' production mode, like its fastLink (dev) and fullLink
+  * (prod): `scala.scalajs.LinkingInfo.productionMode` is a constant, and the branch of
+  * `LinkingInfo.linkTimeIf` that is not taken is not linked.
+  */
 object Main {
   def main(args: Array[String]): Unit = {
-    val Array(mainClass, outDir, cp) = args
+    val (productionMode, Array(mainClass, outDir, cp)) = args.toList match {
+      case "--mode" :: "dev" :: rest => (false, rest.toArray)
+      case "--mode" :: "prod" :: rest => (true, rest.toArray)
+      case "--mode" :: _ => sys.error("--mode is dev or prod")
+      case rest => (false, rest.toArray)
+    }
     val classpath = cp.split(java.io.File.pathSeparator).toSeq.filter(_.nonEmpty).map(Paths.get(_))
 
     val config = StandardConfig()
-      .withSemantics(LuaBackend.semantics)
+      .withSemantics(LuaBackend.semantics.withProductionMode(productionMode))
       .withESFeatures(LuaBackend.esFeatures)
       .withModuleKind(ModuleKind.CommonJSModule)
       .withOptimizer(false)
@@ -111,6 +121,7 @@ object Main {
     val mainLua = outPath.resolve("main.lua")
     Files.write(mainLua, lua.getBytes(StandardCharsets.UTF_8))
     val classCount = moduleSet.modules.map(_.classDefs.size).sum
-    println(s"Wrote $mainLua ($classCount classes, ${lua.linesIterator.size} lines)")
+    val mode       = if (productionMode) "prod" else "dev"
+    println(s"Wrote $mainLua ($mode, $classCount classes, ${lua.linesIterator.size} lines)")
   }
 }

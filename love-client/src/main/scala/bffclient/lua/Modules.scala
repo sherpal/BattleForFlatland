@@ -168,6 +168,18 @@ object Jit extends js.Object {
   val arch: String = js.native
 }
 
+/** The values given by the build (`luaConfig`, see project/LuaSettings.scala), from the Lua module
+  * that `luaLink` generates. A value that the build does not give is null.
+  *
+  * Whether the program was linked in prod mode is `scala.scalajs.LinkingInfo.productionMode`.
+  */
+@js.native @JSImport("bff_config", JSImport.Namespace)
+object BuildConfig extends js.Object {
+
+  /** The menu server's address that the login screen shows when there is no other. */
+  val menuServer: String = js.native
+}
+
 @js.native @JSGlobal("os")
 object Os extends js.Object {
   def getenv(name: String): String = js.native
