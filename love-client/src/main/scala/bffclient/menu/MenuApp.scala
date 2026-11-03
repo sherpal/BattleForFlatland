@@ -30,7 +30,7 @@ final class LoadingScreen(app: MenuApp, message: String) extends Screen {
   * menus with the function it is given.
   *
   * The menu server is the one typed on the login screen (`server` fills it in, otherwise the last
-  * one used).
+  * one used, otherwise the build's default, `BuildConfig.menuServer`).
   */
 final class MenuApp(val server: Option[String], startGame: (GameAccess, GameExit => Unit) => Unit)(
     using ExecutionContext

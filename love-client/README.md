@@ -11,7 +11,20 @@ sbt love-client/luaRun    # links it and runs it with LÖVE (`love` must be inst
 ```
 
 To play, the menu server must run (see the main README). On the login screen, type the menu
-server's address (`127.0.0.1` locally; `host` or `host:port`, port 9000 by default).
+server's address (`127.0.0.1` locally, which `luaLink` fills in; `host` or `host:port`, port 9000
+by default).
+
+### Dev and prod builds
+
+`luaLink` links in dev mode and `luaPackage` in prod mode (`LuaSettings.luaMode`, like Scala.js'
+fastLink and fullLink). In the code, `scala.scalajs.LinkingInfo.productionMode` tells which, and
+`LinkingInfo.linkTimeIf(LinkingInfo.productionMode) { ... } { ... }` only links one of the branches.
+
+Values set by the build (`LuaSettings.luaConfig` in `build.sbt`, scoped to `luaPackage` for the
+packages) are written to a generated Lua module, `bff_config.lua`, and read through the
+`bffclient.lua.BuildConfig` facade (a value that the build does not set is null). For now, it is the
+menu server's address that the login screen shows by default (`127.0.0.1` in dev, none in the
+packages).
 
 ## Code organisation
 
@@ -268,7 +281,7 @@ frames (see its `main.lua`).
 
 `sbt love-client/luaPackage` packages the client with LÖVE's own release builds, so that players do
 not need to install LÖVE (see [Game Distribution](https://love2d.org/wiki/Game_Distribution)). It
-links the client, zips it into `love-client/target/dist/BattleForFlatland.love`, and writes next to
+links the client in prod mode (in `love-client/target/lua-package`), zips it into `love-client/target/dist/BattleForFlatland.love`, and writes next to
 it:
 
 * `BattleForFlatland-windows.zip`: `BattleForFlatland.exe` (`love.exe` with the game appended, which

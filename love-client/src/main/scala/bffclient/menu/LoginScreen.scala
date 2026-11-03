@@ -5,6 +5,7 @@ import scala.util.{Failure, Success}
 
 import bffclient.gui.*
 import bffclient.love.Event
+import bffclient.lua.BuildConfig
 import bffclient.ui.{ButtonStyle, Theme}
 import models.users.LoginUser
 
@@ -24,7 +25,7 @@ final class LoginScreen(app: MenuApp)(using ExecutionContext) extends Screen {
   box.createFontString("Server address").setPoint(Point.TopLeft, 30, 28)
   private val server = EditBox(
     box,
-    app.server.orElse(app.preferences.server).getOrElse(""),
+    app.server.orElse(app.preferences.server).orElse(Option(BuildConfig.menuServer)).getOrElse(""),
     s"e.g. 81.12.34.56:${MenuApi.defaultPort}",
     maxLetters = 64
   )

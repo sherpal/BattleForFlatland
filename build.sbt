@@ -115,7 +115,7 @@ lazy val `lua-linker` = project
 /** The game's client, with LÖVE: Scala.js code linked to Lua by `lua-linker` (`love-client/luaLink`
   * writes the program in love-client/target/lua, `love-client/luaRun` runs it, and
   * `love-client/luaPackage` packages it with LÖVE for Windows, macOS and Linux, in
-  * love-client/target/dist).
+  * love-client/target/dist, linked in prod mode).
   */
 lazy val `love-client` = project
   .in(file("./love-client"))
@@ -123,6 +123,10 @@ lazy val `love-client` = project
   .settings(
     LuaSettings(`lua-linker`),
     LuaSettings.luaPackageTitle := "Battle for Flatland",
+    // read by `bffclient.lua.BuildConfig`
+    LuaSettings.luaConfig := Map("menuServer" -> "127.0.0.1"),
+    // the players type the menu server's address (no stable one yet)
+    LuaSettings.luaPackage / LuaSettings.luaConfig := Map.empty,
     // there is also `bffclient.lua.UdpSelfTest`, linked by tools/love-udp-test.sh
     Compile / mainClass := Some("bffclient.Main"),
     scalaJSUseMainModuleInitializer := true

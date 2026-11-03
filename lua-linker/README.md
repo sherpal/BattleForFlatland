@@ -13,8 +13,20 @@ The projects compiled to Lua use the settings of `project/LuaSettings.scala`:
 | `luaPackage` | Packages it with LÖVE's builds for Windows, macOS and Linux (`target/dist`)          |
 | `luaProbe`   | Prints the linked classes and IR node statistics (debugging)                         |
 
-The linker is run by sbt (`lua-linker/runMain scalalove.linker.Main <main class> <output dir>
-<classpath>`), with the classpath of the project's compiled Scala.js IR.
+The linker is run by sbt (`lua-linker/runMain scalalove.linker.Main [--mode dev|prod] <main class>
+<output dir> <classpath>`), with the classpath of the project's compiled Scala.js IR.
+
+Build settings:
+
+* `luaMode` (`LuaMode.Dev` by default, `LuaMode.Prod` for `luaPackage`): Scala.js' production mode,
+  as with its fastLink (dev) and fullLink (prod). `LinkingInfo.productionMode` is a constant, and
+  `LinkingInfo.linkTimeIf` only links the branch that is taken (the frontend resolves them).
+* `luaConfig` (a `Map[String, String]`, empty by default): written by `luaLink` to a generated Lua
+  module, `bff_config.lua`, next to `main.lua` (`return { ["key"] = "value", ... }`), to read with a
+  `@JSImport("bff_config", JSImport.Namespace)` facade. Scope it to `luaPackage` (`luaPackage /
+  luaConfig`) for values specific to the packages.
+
+To link in prod mode with `luaLink`: `` set `love-client`/LuaSettings.luaMode := LuaSettings.LuaMode.Prod ``.
 
 ## How it works
 
