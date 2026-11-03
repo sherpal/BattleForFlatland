@@ -111,6 +111,7 @@ final class LuaEmitter(moduleSet: ModuleSet) {
     sb.append(runtime)
     ln("end)()")
     ln("local C, MOD, LOAD = R.C, R.MOD, R.LOAD")
+    ln("local IMP = R.IMP")
     ln("local bit = R.bit")
     ln("local tobit, band, bor, bxor, bnot = bit.tobit, bit.band, bit.bor, bit.bxor, bit.bnot")
     ln("local lshift, rshift, arshift = bit.lshift, bit.rshift, bit.arshift")

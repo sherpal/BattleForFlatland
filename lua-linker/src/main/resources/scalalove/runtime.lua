@@ -31,6 +31,17 @@ R.bit, R.ffi = bit, ffi
 local C, MOD, LOAD = {}, {}, {}
 R.C, R.MOD, R.LOAD = C, MOD, LOAD
 
+-- Lua modules of @JSImport, by name: `IMP.mod` only calls `require` (a C function, which LuaJIT
+-- does not compile) the first time, then it is a plain field
+local IMP = setmetatable({}, {
+  __index = function(imports, name)
+    local m = require(name)
+    rawset(imports, name, m)
+    return m
+  end
+})
+R.IMP = IMP
+
 -- ---------------------------------------------------------------------------
 -- Classes
 

@@ -84,6 +84,9 @@ wrapped), so `Future`s and `js.timers` work as in the browser; elsewhere, call
 `scalalove.runTimers()`.
 
 Lua modules: `@JSImport("mod", ...)` facades are compiled to `require("mod")`,
+read from `IMP.mod`, whose `__index` metatable requires them the first time and
+stores them (`require` is a C function, which LuaJIT does not compile; then it
+is a plain field),
 and the `.lua` files of a project's `src/main/lua` are copied next to `main.lua`
 by `luaLink`. The runtime also exposes a `scalalove` global with
 `stringToBytes`/`bytesToString` to convert between Lua (binary) strings and
