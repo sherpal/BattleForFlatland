@@ -127,5 +127,7 @@ object Buff {
   val boss105VolatileCharge    = nextId()
   val boss105Yearning          = nextId()
   val rageTrickle              = nextId()
+  val squareGuarding           = nextId()
+  val squareGuarded            = nextId()
 
 }
