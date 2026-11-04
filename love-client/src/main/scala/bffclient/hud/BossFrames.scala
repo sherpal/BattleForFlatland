@@ -9,7 +9,8 @@ import bffclient.hud.HudWidgets.*
 import bffclient.render.Painter
 import bffclient.ui.Colour as Paint
 import gamelogic.abilities.Ability
-import gamelogic.entities.Entity
+import gamelogic.entities.{Entity, WithName}
+import gamelogic.gameextras.DamageTracker
 import utils.misc.RGBColour
 
 /** Life and name of the boss, what it casts, and its buffs, on top (clicking it targets it). */
@@ -74,10 +75,12 @@ private abstract class BarsPanel(parent: Frame, title: String) {
   val frame: Frame = panel(parent)
   frame.setWidth(164)
   private val titleText = text(frame, colour = mutedColour)
-  titleText.setText(title)
+  setTitle(title)
   titleText.setPoint(Point.TopLeft, frame, Point.TopLeft, 6, 3)
   titleText.setPoint(Point.TopRight, frame, Point.TopRight, -6, 3)
   titleText.setHeight(16)
+
+  protected def setTitle(title: String): Unit = titleText.setText(title)
 
   private val rows = mutable.ArrayBuffer.empty[HudBar]
 
@@ -139,6 +142,49 @@ final class ThreatMeter(parent: Frame) extends BarsPanel(parent, "Threat") {
         row.setValue(amount / maxThreat)
         row.setColour(softened(RGBColour.fromIntColour(player.colour)))
         row.label.setText(player.name)
+      }
+    }
+  }
+}
+
+/** The players by the damage that they dealt to our target, the highest first, above the threat
+  * meter. When the target is not an enemy (an ally, or nothing), it is the one of the boss.
+  *
+  * The damage per second is the one since the target was first hit (until it dies, if it does).
+  */
+final class DamageMeter(parent: Frame, below: Frame) extends BarsPanel(parent, "Damage") {
+  frame.setPoint(Point.BottomRight, below, Point.TopRight, 0, -4)
+
+  def update(p: Painter, tracker: DamageTracker, target: Option[Entity.Id]): Unit = {
+    val gameState = p.gameState
+    val enemy = target
+      .flatMap(gameState.entities.get)
+      .filter(_.teamId != Entity.teams.playerTeam)
+    val shown = enemy.orElse(gameState.bosses.values.headOption)
+    frame.setShown(shown.isDefined)
+    for entity <- shown do {
+      setTitle(entity match {
+        case named: WithName => s"Damage: ${named.name}"
+        case _ => "Damage"
+      })
+      val players = gameState.players ++ gameState.deadPlayers
+      val dealt = tracker
+        .damageTo(entity.id)
+        .flatMap((id, amount) => players.get(id).map(_ -> amount))
+      val maxDamage = dealt.headOption.map(_._2).filter(_ > 0).getOrElse(1.0)
+      val seconds = tracker.hitTimes(entity.id).fold(0.0) { (first, last) =>
+        val end = if gameState.entities.contains(entity.id) then p.now else last
+        math.max(0L, end - first) / 1000.0
+      }
+      showRows(dealt.size) { (row, i) =>
+        val (player, amount) = dealt(i)
+        row.setValue(amount / maxDamage)
+        row.setColour(softened(RGBColour.fromIntColour(player.colour)))
+        row.label.setText(player.name)
+        row.value.setText(
+          if seconds >= 1.0 then s"${math.round(amount)} (${math.round(amount / seconds)}/s)"
+          else math.round(amount).toString
+        )
       }
     }
   }
