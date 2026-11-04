@@ -2,10 +2,10 @@ package gamelogic.entities.classes
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
-import gamelogic.abilities.square.{Brace, Cleave, Enrage, HammerHit, ShieldSlam, Taunt}
+import gamelogic.abilities.square.{Brace, Cleave, Enrage, Guard, HammerHit, ShieldSlam, Taunt}
 import gamelogic.abilities.WithTargetAbility
 import gamelogic.buffs.Buff
-import gamelogic.buffs.abilities.classes.BraceShield
+import gamelogic.buffs.abilities.classes.{BraceShield, Guarding}
 import gamelogic.buffs.resourcebuffs.{RageFiller, RageTrickle}
 import gamelogic.docs.{formatNumber, formatPeriod, formatSeconds, AbilityDoc}
 import gamelogic.entities.Resource.{Rage, ResourceAmount}
@@ -86,7 +86,8 @@ object Square extends PlayerClassBuilder {
       Ability.squareEnrageId,
       Ability.squareCleaveId,
       Ability.squareBraceId,
-      Ability.squareShieldSlamId
+      Ability.squareShieldSlamId,
+      Ability.squareGuardId
     )
 
   final val initialMaxLife: Double = 200
@@ -145,6 +146,17 @@ object Square extends PlayerClassBuilder {
       ShieldSlam.cooldown,
       0L,
       ShieldSlam.cost
+    ),
+    AbilityDoc(
+      Ability.squareGuardId,
+      "Guard",
+      s"Protects an ally (within ${formatNumber(WithTargetAbility.healRange)} units) for " ++
+        s"${formatSeconds(Guarding.duration)}: ${formatNumber(Guarding.redirectedShare * 100)}% of " ++
+        "the damage it takes is taken by you instead, as if it was hitting you (your shield " ++
+        "reduces it, and it gives you rage). You can only guard one ally at a time.",
+      Guard.cooldown,
+      0L,
+      Guard.cost
     ),
     AbilityDoc(
       Ability.squareEnrageId,

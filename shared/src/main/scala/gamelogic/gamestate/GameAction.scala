@@ -96,6 +96,7 @@ object GameAction {
     case x: NewPentagonBullet => customEncode(x, "NewPentagonBullet")
     case x: NewSimpleBullet => customEncode(x, "NewSimpleBullet")
     case x: PutSimpleBuff => customEncode(x, "PutSimpleBuff")
+    case x: classes.square.PutGuarding => customEncode(x, "classes.square.PutGuarding")
     case x: PutStackedBuff => customEncode(x, "PutStackedBuff")
     case x: PutConstantDot => customEncode(x, "PutConstantDot")
     case x: RemoveBuff => customEncode(x, "RemoveBuff")
@@ -135,6 +136,7 @@ object GameAction {
     customDecoder[NewPentagonBullet]("NewPentagonBullet"),
     customDecoder[NewSimpleBullet]("NewSimpleBullet"),
     customDecoder[PutSimpleBuff]("PutSimpleBuff"),
+    customDecoder[classes.square.PutGuarding]("classes.square.PutGuarding"),
     customDecoder[PutStackedBuff]("PutStackedBuff"),
     customDecoder[PutConstantDot]("PutConstantDot"),
     customDecoder[RemoveBuff]("RemoveBuff"),
