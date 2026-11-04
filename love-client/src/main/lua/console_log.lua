@@ -10,7 +10,8 @@ local function append(text)
   if file == nil then
     file = false
     if love.filesystem and love.filesystem.getIdentity() ~= "" then
-      local ok, opened = pcall(love.filesystem.newFile, "client.log", "w")
+      -- (LÖVE 12 renamed newFile to openFile)
+      local ok, opened = pcall(love.filesystem.openFile or love.filesystem.newFile, "client.log", "w")
       if ok and opened then file = opened end
     end
   end

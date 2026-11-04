@@ -13,7 +13,10 @@ while true do
   if file then
     local contents = file:read("*a")
     file:close()
-    local sha256 = love.data.encode("string", "hex", love.data.hash("sha256", contents)):lower()
+    -- (LÖVE 12 takes the type of what it gives first)
+    local digest = love._version_major >= 12 and love.data.hash("string", "sha256", contents)
+      or love.data.hash("sha256", contents)
+    local sha256 = love.data.encode("string", "hex", digest):lower()
     -- the files are big (tens of MB): not to keep them until the next collection
     contents = nil
     collectgarbage()

@@ -171,7 +171,7 @@ object GameServerHost {
   )(using ExecutionContext): Future[Unit] = for
     server <- gameServer
     log       = s"$directory/game-server.log"
-    arguments = Vector(api.host, api.port.toString, rendezvousPort.toString, gameId, gameSecret)
+    arguments = Vector(api.url, rendezvousPort.toString, gameId, gameSecret)
     command   = (Vector(server.java, "-jar", server.jar) ++ arguments).map(quote).mkString(" ")
     _ = println(s"[host] Running the game server (${server.java} -jar ${server.jar}), into $log")
     _ <- Processes.spawn(command, log)

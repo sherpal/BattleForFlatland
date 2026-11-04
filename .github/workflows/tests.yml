@@ -27,7 +27,8 @@ jobs:
       - name: Set up sbt
         uses: sbt/setup-sbt@v1
 
-      # LÖVE's release builds, downloaded by `love-client/luaPackage` (project/LovePackage.scala)
+      # LÖVE 12's builds, downloaded by `love-client/luaPackage` (project/LovePackage.scala) from a run
+      # of LÖVE's own CI, which needs a token
       - name: Cache LÖVE builds
         uses: actions/cache@v4
         with:
@@ -42,10 +43,10 @@ jobs:
 
       - name: Package the LÖVE clients
         run: sbt love-client/luaPackage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Runs the client's UDP socket in LÖVE, headless (no window, so no display needed)
-      - name: Install LÖVE
-        run: sudo apt-get update && sudo apt-get install -y love
-
+      # Runs the client's UDP socket (and its HMAC) in LÖVE 12, headless (no window, so no display
+      # needed), with the AppImage that luaPackage downloaded
       - name: UDP smoke test (LÖVE client)
         run: tools/love-udp-test.sh

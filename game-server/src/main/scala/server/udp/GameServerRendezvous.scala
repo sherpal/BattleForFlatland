@@ -12,6 +12,9 @@ import scala.concurrent.{Future, Promise}
   * When the menu server sees us on a private network, we ask a STUN server our public address, and
   * tell it to the menu server (see [[Stun]]).
   *
+  * The registers are signed with the secret of the game, and so are the answers of the menu server
+  * (see [[Rendezvous]]): the others are ignored.
+  *
   * The socket must be the one of the players' sessions (the datagrams of the rendezvous it receives
   * are given to [[received]], and the ones of STUN to [[receivedStun]], see
   * [[Rendezvous.SharedSocket]]).
@@ -24,7 +27,9 @@ final class GameServerRendezvous(
     gameSecret: String,
     isConnected: String => Boolean
 ) {
-  private val punch      = Rendezvous.encode(Packet.Punch)
+  private val punch      = Rendezvous.punch
+  private val key        = Hmac(gameSecret)
+  private val counter    = Rendezvous.Counter()
   private val registered = Promise[Unit]()
   private val stun       = Stun.Lookup(socket, timers, onFound = _ => sendRegister())
 
@@ -41,7 +46,7 @@ final class GameServerRendezvous(
   private def sendRegister(): Unit =
     try
       socket.send(
-        Rendezvous.encode(Packet.ServerRegister(gameId, gameSecret, stun.address)),
+        Rendezvous.encode(Packet.ServerRegister(gameId, counter.next(), stun.address), key),
         menuServer.port,
         menuServer.address
       )
@@ -50,8 +55,8 @@ final class GameServerRendezvous(
       case e: java.io.IOException => println(s"Cannot reach the rendezvous: ${e.getMessage}")
     }
 
-  def received(packet: Packet, from: Peer): Unit = packet match {
-    case Packet.Players(you, players) if from.port == menuServer.port =>
+  def received(received: Rendezvous.Received, from: Peer): Unit = received.packet match {
+    case Packet.Players(you, players) if from.port == menuServer.port && received.signedWith(key) =>
       if stun.answered(you.seenAs, you.publicAddress) && registered.trySuccess(()) then
         println(
           s"Registered at the rendezvous ($menuServer), which sees us as ${you.seenAs}" +

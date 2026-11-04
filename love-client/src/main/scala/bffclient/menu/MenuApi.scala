@@ -1,22 +1,35 @@
 package bffclient.menu
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.scalajs.js
 
 import bffclient.game.GameAccess
-import bffclient.lua.{WebSocket, WebSocketModule}
+import bffclient.lua.BuildConfig
 import communication.udp.Peer
-import io.circe.parser.decode
 import menus.data.*
 import models.bff.outofgame.MenuGameWithPlayers
 import models.bff.outofgame.gameconfig.{GameConfiguration, PlayerInfo}
 
-/** The endpoints of Battle for Flatland's menu server, like the frontend's `services.menugames`. */
-final class MenuApi(val host: String, val port: Int)(using ExecutionContext) {
-  private val http = new HttpClient(s"http://$host:$port")
+/** The endpoints of Battle for Flatland's menu server, like the frontend's `services.menugames`.
+  *
+  * @param scheme
+  *   `https` (in front of the packaged clients' menu server, see deploy.md) or `http` (locally, or
+  *   when a player runs it at home)
+  */
+final class MenuApi(val scheme: String, val host: String, val port: Int)(using ExecutionContext) {
 
-  /** How the address is shown (and remembered). */
-  def address: String = s"$host:$port"
+  /** Where the menu server is, e.g. `https://bff.example.com` (also given to the game server). */
+  val url: String =
+    if port == MenuApi.standardPort(scheme) then s"$scheme://$host" else s"$scheme://$host:$port"
+
+  private val http = new HttpClient(url)
+
+  /** How the address is shown (and remembered): without the scheme and the port when they are the
+    * default ones.
+    */
+  def address: String = {
+    val hostAndPort = if port == MenuApi.defaultPort(scheme) then host else s"$host:$port"
+    if scheme == MenuApi.defaultScheme then hostAndPort else s"$scheme://$hostAndPort"
+  }
 
   def sessionCookie: String = http.sessionCookie
 
@@ -76,7 +89,7 @@ final class MenuApi(val host: String, val port: Int)(using ExecutionContext) {
   def startGame(gameId: String): Future[Boolean] =
     http.postApi[GameIdFormData, Boolean]("/api/bff/start-game", GameIdFormData(gameId))
 
-  /** How to reach the game server, from what the lobby websocket says. */
+  /** How to reach the game server, from what the lobby says. */
   def gameAccess(
       userName: String,
       credentials: MenuGameComm.HereAreYourCredentials
@@ -127,63 +140,65 @@ final class MenuApi(val host: String, val port: Int)(using ExecutionContext) {
   ): Future[Unit] =
     http.download(s"/api/bff/game-server/runtime?platform=$platform", file, onProgress)
 
-  /** The lobby websocket: tells when data changed, chooses who runs the game server, and pushes the
-    * game server credentials. With a game id, it must stay open (also during the game): the menu
-    * server kicks the players who are not connected.
+  /** Subscribes to the messages of the menu server, of the list of games or of the lobby of a game
+    * (see [[Lobby]]).
     */
-  def lobby(gameId: Option[String])(onMessage: MenuGameComm => Unit): Future[Lobby] = {
-    val query = gameId.fold("")(id => s"?gameId=$id")
-    val connection =
-      WebSocketModule.connect(s"ws://$host:$port/ws/bff/game-anti-chamber$query", 5, sessionCookie)
-    if connection.socket == null then
-      Future.failed(HttpError(s"Lobby websocket: ${connection.error}"))
-    else Future.successful(new Lobby(connection.socket, onMessage))
-  }
+  def subscribe(gameId: Option[String]): Future[LobbySubscription] =
+    http.postApi[LobbySubscribeFormData, LobbySubscription](
+      "/api/bff/lobby/subscribe",
+      LobbySubscribeFormData(gameId)
+    )
+
+  /** The messages of the subscription after the `after`-th. */
+  def lobbyMessages(subscription: String, after: Long): Future[Vector[LobbyMessage]] =
+    http.getApi[Vector[LobbyMessage]](s"/api/bff/lobby/messages?id=$subscription&after=$after")
+
+  def unsubscribe(subscription: String): Future[Boolean] =
+    http.postApi[LobbyUnsubscribeFormData, Boolean](
+      "/api/bff/lobby/unsubscribe",
+      LobbyUnsubscribeFormData(subscription)
+    )
+
+  /** The messages of the menu server: when data changed, who runs the game server, its credentials.
+    * With a game id, it must stay open (also during the game): the menu server kicks the players
+    * who are not there.
+    */
+  def lobby(gameId: Option[String])(onMessage: MenuGameComm => Unit): Future[Lobby] =
+    Lobby.open(this, gameId, onMessage)
 }
 
 object MenuApi {
-  val defaultPort = 9000
 
-  /** The host and port of an address typed by a player: `host`, `host:port`, possibly with
-    * `http://` and a trailing slash. Without a port, the menu server's default one.
+  /** The scheme of an address typed without one: `https` for the packaged clients (their menu
+    * server is behind TLS), `http` otherwise (the build's `menuServerScheme`).
     */
-  def parseAddress(address: String): Either[String, (String, Int)] = {
-    val trimmed = address.trim.stripPrefix("http://").stripSuffix("/")
-    if address.trim.startsWith("https://") then Left("https is not supported, use http://")
-    else
-      trimmed.split(":") match {
-        case Array(host) if host.nonEmpty => Right((host, defaultPort))
-        case Array(host, port) if host.nonEmpty =>
-          port.toIntOption
-            .filter(p => p > 0 && p < 65536)
-            .map(p => (host, p))
-            .toRight(s"Invalid port: $port")
-        case _ => Left(s"Invalid address: $address (expected host or host:port)")
-      }
-  }
-}
+  def defaultScheme: String = BuildConfig.menuServerScheme.getOrElse("http")
 
-/** An open lobby websocket, polled every frame. */
-final class Lobby(ws: WebSocket, onMessage: MenuGameComm => Unit) {
-  private val poller = js.timers.setInterval(1)(poll())
-  private var closed = false
+  /** HTTPS on its usual port (behind a reverse proxy), HTTP on the menu server's. */
+  def defaultPort(scheme: String): Int = if scheme == "https" then 443 else 9000
 
-  def isOpen: Boolean = !closed && ws.isOpen()
+  /** The port of a URL without one. */
+  def standardPort(scheme: String): Int = if scheme == "https" then 443 else 80
 
-  def close(): Unit = if !closed then {
-    closed = true
-    js.timers.clearInterval(poller)
-    ws.close()
-  }
-
-  private def poll(): Unit = {
-    var data = ws.poll()
-    while data != null && !closed do {
-      decode[MenuGameComm](data) match {
-        case Right(message) => onMessage(message)
-        case Left(error) => println(s"[lobby] Unknown message $data: $error")
-      }
-      data = ws.poll()
+  /** The scheme, host and port of an address typed by a player: `host`, `host:port`, possibly with
+    * `http://` or `https://` (otherwise [[defaultScheme]]) and a trailing slash. Without a port,
+    * the default one of the scheme.
+    */
+  def parseAddress(address: String): Either[String, (String, String, Int)] = {
+    val trimmed = address.trim.stripSuffix("/")
+    val (scheme, rest) = trimmed match {
+      case s"http://$rest" => ("http", rest)
+      case s"https://$rest" => ("https", rest)
+      case rest => (defaultScheme, rest)
+    }
+    rest.split(":") match {
+      case Array(host) if host.nonEmpty => Right((scheme, host, defaultPort(scheme)))
+      case Array(host, port) if host.nonEmpty =>
+        port.toIntOption
+          .filter(p => p > 0 && p < 65536)
+          .map(p => (scheme, host, p))
+          .toRight(s"Invalid port: $port")
+      case _ => Left(s"Invalid address: $address (expected host or host:port)")
     }
   }
 }

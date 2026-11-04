@@ -12,17 +12,13 @@ import menus.data.User
 import menus.data.CreateGameFormData
 import menus.data.ChangePlayerInfoFormData
 import io.circe.Encoder
-import menus.data.MenuGameComm
 import services.events
 import services.hostelections
-import java.util.concurrent.atomic.AtomicBoolean
 import menus.data.*
 
 //noinspection TypeAnnotation
-class MenuGameRoutes(rendezvousPort: Int)(using
-    val runtime: zio.Runtime[BackendEnv],
-    ac: castor.Context,
-    log: cask.util.Logger
+class MenuGameRoutes(rendezvousPort: Int, lobby: LobbyServer)(using
+    val runtime: zio.Runtime[BackendEnv]
 ) extends cask.Routes
     with WithZIOEndpoints[BackendEnv] {
 
@@ -145,96 +141,28 @@ class MenuGameRoutes(rendezvousPort: Int)(using
     )
   } yield result.map(_ => true)).map(APIResponse.fromEither)
 
-  @cask.websocket("/ws/bff/game-anti-chamber")
-  def gameAntiChamberWS(ctx: cask.Request, gameId: Option[String] = None): cask.WebsocketResult =
-    maybeLoggedInUser(ctx) match {
-      case None => unauthenticatedResponse
-      case Some(user) =>
-        cask.WsHandler { channel =>
-          val isOpen    = AtomicBoolean(true)
-          val isOpenZIO = ZIO.succeed(isOpen.get())
+  /** Subscribes to the messages of the menu server (see `communication.udp.Lobby`): of the list of
+    * games, or of the lobby of `gameId`.
+    */
+  @loggedIn()
+  @readBody[LobbySubscribeFormData]
+  @caskz.postJ[APIResponse[LobbySubscription]]("api/bff/lobby/subscribe")
+  def subscribe()(body: LobbySubscribeFormData)(user: User) =
+    ZIO.succeed(APIResponse.fromEither(Right(lobby.subscribe(user, body.gameId))))
 
-          def sendMsg(msg: MenuGameComm) = ZIO.succeed(
-            channel.send(
-              cask.Ws.Text(
-                Encoder[MenuGameComm].apply(msg).noSpaces
-              )
-            )
-          )
+  /** The messages of the subscription after the `after`-th (which the client got already). */
+  @loggedIn()
+  @caskz.getJ[APIResponse[Vector[LobbyMessage]]]("api/bff/lobby/messages")
+  def lobbyMessages(id: String, after: Long)(user: User) =
+    ZIO.succeed(
+      APIResponse.fromEither(lobby.messages(user, id, after).toRight(ErrorADT.RawNotFound()))
+    )
 
-          // whether the event is about our game
-          def ours(eventGameId: String) = gameId.contains[String](eventGameId)
-
-          val registerEvents = events
-            .registerEvents[
-              events.Event.GameDataRefreshed | events.Event.GameStarted |
-                events.Event.HostCandidacyRequested | events.Event.HostElected |
-                events.Event.GameLaunchFailed | events.Event.GameCredentials
-            ](isOpenZIO) {
-              case events.Event.GameDataRefreshed(maybeGameId)
-                  // we are interested in this event if
-                  // - gameId is None, because that means we are in the list-games ui
-                  // - maybeGameId is None, because then it could be any game, including the one we care about
-                  // - maybeGameId is the exact gameId I care about
-                  if gameId.forall(id => maybeGameId.forall(_ == id)) =>
-                ZIO.whenZIO(isOpenZIO)(sendMsg(MenuGameComm.DataUpdated())).unit
-              case events.Event.GameStarted(startedGameId) if ours(startedGameId) =>
-                sendMsg(MenuGameComm.GameStarted())
-              case events.Event.HostCandidacyRequested(electionGameId) if ours(electionGameId) =>
-                sendMsg(MenuGameComm.HostCandidacyRequested())
-              case events.Event.HostElected(electedGameId, host, gameSecret, rendezvousPort)
-                  if ours(electedGameId) =>
-                sendMsg(MenuGameComm.HostElected(host)) *> ZIO
-                  .when(host == user.name)(
-                    sendMsg(MenuGameComm.SpawnGameServer(electedGameId, gameSecret, rendezvousPort))
-                  )
-                  .unit
-              case events.Event.GameLaunchFailed(failedGameId, reason) if ours(failedGameId) =>
-                sendMsg(MenuGameComm.GameLaunchFailed(reason))
-              case events.Event.GameCredentials(creds, addresses, host, port, rendezvousPort)
-                  if ours(creds.gameCredentials.gameId) =>
-                creds.allGameUserCredentials.find(_.userName == user.name) match {
-                  case Some(userCreds) =>
-                    // the host runs the game server: no need to go through the network
-                    val loopback = Option
-                      .when(host.contains[String](user.name))(GameServerAddress("127.0.0.1", port))
-                    sendMsg(
-                      MenuGameComm.HereAreYourCredentials(
-                        userCreds.gameId,
-                        userCreds.userSecret,
-                        (loopback.toVector ++ addresses).distinct,
-                        rendezvousPort
-                      )
-                    )
-                  case None =>
-                    ZIO.die(
-                      IllegalStateException(
-                        s"I received all game credentials but it did not contain the info ${user.name}."
-                      )
-                    )
-                }
-              case _ => ZIO.unit // not interested
-            }
-          val dispatchUserConnected = gameId
-            .map(id => events.dispatchEvent(events.Event.UserConnectedSocket(user, id)))
-            .getOrElse(ZIO.unit)
-          runEffect(registerEvents *> dispatchUserConnected)
-          cask.WsActor {
-            case cask.Ws.Text(_) =>
-              println(s"Received some text, going to ignore...")
-            case _: cask.Ws.Close =>
-              isOpen.set(false)
-              gameId.foreach(id =>
-                runEffect(events.dispatchEvent(events.Event.UserSocketDisconnected(user, id)))
-              )
-
-          }
-        }
-
-    }
-
-  private def runEffect[R >: BackendEnv, E <: Throwable, A](effect: ZIO[R, E, A]) =
-    Unsafe.unsafe(implicit unsafe => runtime.unsafe.run(effect).getOrThrow())
+  @loggedIn()
+  @readBody[LobbyUnsubscribeFormData]
+  @caskz.postJ[APIResponse[Boolean]]("api/bff/lobby/unsubscribe")
+  def unsubscribe()(body: LobbyUnsubscribeFormData)(user: User) =
+    ZIO.succeed(APIResponse.fromEither(Right { lobby.unsubscribe(user, body.id); true }))
 
   initialize()
 }

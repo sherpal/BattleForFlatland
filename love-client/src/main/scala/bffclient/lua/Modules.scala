@@ -5,15 +5,7 @@ import scala.scalajs.js.annotation.*
 
 import bffclient.love.Image
 
-/** The WebSocket client written in Lua (src/main/lua/websocket.lua). */
-@js.native @JSImport("websocket", JSImport.Namespace)
-object WebSocketModule extends js.Object {
-  def connect(url: String): (socket: WebSocket, error: String) = js.native
-  def connect(url: String, timeout: Double, cookie: String): (socket: WebSocket, error: String) =
-    js.native
-}
-
-/** Non-blocking HTTP (src/main/lua/http.lua). */
+/** Non-blocking HTTP and HTTPS (src/main/lua/http.lua). */
 @js.native @JSImport("http", JSImport.Namespace)
 object HttpModule extends js.Object {
 
@@ -46,19 +38,6 @@ trait HttpResponse extends js.Object {
   val body: String      = js.native
   val setCookie: String = js.native
   val error: String     = js.native
-}
-
-@js.native
-trait WebSocket extends js.Object {
-
-  /** Sends a binary message (a Lua string). */
-  def send(data: String): Unit = js.native
-
-  /** Next received message, or null. Never blocks. */
-  def poll(): String = js.native
-
-  def isOpen(): Boolean = js.native
-  def close(): Unit     = js.native
 }
 
 /** A module whose inputs are handled one after the other by a LÖVE thread, see `workers.module`
@@ -178,6 +157,9 @@ object BuildConfig extends js.Object {
 
   /** The menu server's address that the login screen shows when there is no other. */
   val menuServer: String = js.native
+
+  /** The scheme of the addresses typed without one: `https` for the packages, `http` otherwise. */
+  val menuServerScheme: js.UndefOr[String] = js.native
 }
 
 @js.native @JSGlobal("os")

@@ -72,12 +72,9 @@ class GameLaunchingRoutes(
   }
 
   @cask.get("api/bff/game-server/jar")
-  def gameServerJarFile(): cask.Response.Raw =
+  def gameServerJarFile(request: cask.Request): cask.Response.Raw =
     if os.exists(gameServerJar) then
-      cask.Response[cask.Response.Data](
-        os.read.stream(gameServerJar),
-        headers = Seq("Content-Type" -> "application/java-archive")
-      )
+      GameLaunchingRoutes.fileResponse(gameServerJar, "application/java-archive", request)
     else noJar
 
   /** The version of the Java runtime of this platform (e.g. `linux-x64`), a [[GameServerFile]]: the
@@ -94,13 +91,9 @@ class GameLaunchingRoutes(
 
   /** The Java runtime of this platform, a tar.gz (with its manifest, `bff-runtime.sha256`). */
   @cask.get("api/bff/game-server/runtime")
-  def gameServerRuntime(platform: String): cask.Response.Raw =
+  def gameServerRuntime(request: cask.Request, platform: String): cask.Response.Raw =
     runtimeFile(platform, "tar.gz").filter(os.exists) match {
-      case Some(archive) =>
-        cask.Response[cask.Response.Data](
-          os.read.stream(archive),
-          headers = Seq("Content-Type" -> "application/gzip")
-        )
+      case Some(archive) => GameLaunchingRoutes.fileResponse(archive, "application/gzip", request)
       case None => cask.Response[cask.Response.Data](s"No Java runtime for $platform", 404)
     }
 
@@ -125,6 +118,52 @@ class GameLaunchingRoutes(
 }
 
 object GameLaunchingRoutes {
+
+  private val MaxRange = 16L << 20
+
+  private val ByteRange = """bytes=(\d+)-(\d*)""".r
+
+  /** The file, or the part of it that the `Range` header asks for (`bytes=<first>-[<last>]`, the
+    * only form supported), which the clients use to download it a piece at a time (LÖVE's HTTPS
+    * gives nothing before the end of a response, so that is how they tell the progress).
+    */
+  def fileResponse(file: os.Path, contentType: String, request: cask.Request): cask.Response.Raw = {
+    val size = os.size(file)
+    request.headers.get("range").flatMap(_.headOption) match {
+      case Some(ByteRange(first, last)) if first.toLong < size =>
+        val from = first.toLong
+        // (in memory: not more than MaxRange at a time, which the clients ask for anyway)
+        val until =
+          math.min(last.toLongOption.fold(size)(l => math.min(l + 1, size)), from + MaxRange)
+        val bytes = {
+          val channel = java.nio.channels.FileChannel.open(file.toNIO)
+          try {
+            val buffer = java.nio.ByteBuffer.allocate((until - from).toInt)
+            while buffer.hasRemaining && channel.read(buffer, from + buffer.position()) >= 0 do ()
+            buffer.array()
+          } finally channel.close()
+        }
+        cask.Response[cask.Response.Data](
+          bytes,
+          statusCode = 206,
+          headers = Seq(
+            "Content-Type"  -> contentType,
+            "Content-Range" -> s"bytes $from-${until - 1}/$size"
+          )
+        )
+      case Some(_) =>
+        cask.Response[cask.Response.Data](
+          "",
+          statusCode = 416,
+          headers = Seq("Content-Range" -> s"bytes */$size")
+        )
+      case None =>
+        cask.Response[cask.Response.Data](
+          os.read.stream(file),
+          headers = Seq("Content-Type" -> contentType, "Accept-Ranges" -> "bytes")
+        )
+    }
+  }
 
   // by file: (last modified, sha-256), computed again when the file changes
   private var cachedSha256 = Map.empty[os.Path, (Long, String)]

@@ -1,18 +1,23 @@
 # Deploying the menu server on a VM (Oracle Cloud free tier)
 
-The menu server needs **TCP** (HTTP, websockets) and **UDP** (the rendezvous of the hole punching)
-on the same port, 9000, on a public IPv4 address that nothing proxies. Most platforms-as-a-service
-do not offer that; a plain virtual machine does, and Oracle Cloud's "Always Free" tier gives some at
-no cost. (Check their current free-tier terms: they change. Any VM with a public IPv4, on any
-provider, works the same way with the steps below.)
+The menu server needs **HTTPS** (TCP 443, the menus) and **UDP** (port 9000: the rendezvous of the
+hole punching, and the lobby's pokes) on a public IPv4 address that nothing proxies in UDP. Most
+platforms-as-a-service do not offer that; a plain virtual machine does, and Oracle Cloud's "Always
+Free" tier gives some at no cost. (Check their current free-tier terms: they change. Any VM with a
+public IPv4, on any provider, works the same way with the steps below.)
 
-What runs there is the Docker image of the [Dockerfile](Dockerfile), with `--network host`. The image
-only copies files that are built on your computer, which the `deploy` task of sbt does for you.
+What runs there is the Docker image of the [Dockerfile](Dockerfile), with `--network host`, its HTTP
+only on the loopback, behind [Caddy](https://caddyserver.com) (in a container of its own, see
+[deploy/Caddyfile](deploy/Caddyfile)), which does the TLS: it gets a certificate from
+[Let's Encrypt](https://letsencrypt.org), for the VM's IP address (Let's Encrypt gives some since
+January 2026: they last six days, and Caddy renews them) or for a domain name that points to it, and
+renews it by itself. The image only copies files that are built on your computer, which the `deploy`
+task of sbt does for you.
 
 | | |
 |---|---|
-| `deploy/oracle-vm-setup.sh` | runs **on the VM**, once: installs Docker, opens port 9000 (TCP and UDP) in its firewall |
-| `sbt deploy` (`project/Deploy.scala`) | runs **on your computer**, on any system: builds, uploads the image to the VM, (re)starts the server |
+| `deploy/oracle-vm-setup.sh` | runs **on the VM**, once: installs Docker, opens ports 80 and 443 (TCP) and 9000 (UDP) in its firewall |
+| `sbt deploy` (`project/Deploy.scala`) | runs **on your computer**, on any system: builds, uploads the image and the Caddyfile to the VM, (re)starts the server and Caddy |
 
 ## 1. Create the VM
 
@@ -35,15 +40,17 @@ In the Oracle Cloud console (the labels move around, but the choices are these):
 The VM's firewall is not the only one: the virtual network has its own rules, which let in only SSH.
 
 *Networking → Virtual cloud networks →* the VM's VCN *→ Security → Security lists →* the subnet's
-list *→ Add ingress rules*, two of them:
+list *→ Add ingress rules*, three of them:
 
 | Source CIDR | IP protocol | Destination port |
 |---|---|---|
-| `0.0.0.0/0` | TCP | `9000` |
+| `0.0.0.0/0` | TCP | `443` (HTTPS) |
+| `0.0.0.0/0` | TCP | `80` (for Let's Encrypt to check that the address is ours) |
 | `0.0.0.0/0` | UDP | `9000` |
 
-The **destination** port is 9000: leave the *source* port range empty (all). Putting 9000 as the source
-port makes the rule match nothing, and connections just time out.
+These are **destination** ports: leave the *source* port range empty (all). Putting them as the source
+port makes the rules match nothing, and connections just time out. (The TCP port 9000 of a previous
+deploy can be closed: the menu server only listens on the loopback now.)
 
 ## 3. Prepare the VM
 
@@ -62,31 +69,39 @@ From the repository, on your computer (Linux, macOS or Windows: it only needs `s
 and `scp` in the `PATH`, which Windows 10 and later have for the last two):
 
 ```
-sbt "deploy ubuntu@<ip> linux/amd64 --key ~/.ssh/oracle.key"
+BFF_MENU_SERVER=<ip> sbt "deploy ubuntu@<ip> linux/amd64 --key ~/.ssh/oracle.key"
 ```
 
 - the platform is the VM's processor: `linux/amd64` (the default) or `linux/arm64` (`uname -m` on the VM
   says `x86_64` or `aarch64`);
 - `--key` is the private key, if not one of your default ones (`~` and `$HOME`-like paths work, on Windows
   too: `--key C:/Users/you/.ssh/oracle.key`). Without it, ssh uses its own rules, which include the hosts
-  of your `~/.ssh/config`, so `sbt "deploy oracle"` works with a `Host oracle` entry there.
+  of your `~/.ssh/config`, so `sbt "deploy oracle --site <ip>"` works with a `Host oracle` entry there.
+- `--site` is what the players type, which the certificate is for: the VM's IP address (the default,
+  when the target is one), or a domain name that points to it (better: the IP address of a VM may
+  change).
+- `BFF_MENU_SERVER` (optional) is the address that the packaged clients show on their login screen.
+- LÖVE 12's builds, which the clients are packaged with, need a GitHub token the first time (see
+  [the client's README](love-client/README.md#playing-with-friends)): `GITHUB_TOKEN=...`.
 
 It runs the build (jars, Java runtimes, clients), builds the image for that processor, saves it
-(compressed: about 370 MB) and uploads it with `scp`, and starts it on the VM, restarting automatically after
-a reboot.
+(compressed: about 370 MB) and uploads it with `scp`, and starts it on the VM with Caddy in front of it,
+both restarting automatically after a reboot. Caddy gets the certificate within a minute (`docker logs
+bff-caddy`); it keeps it in a Docker volume, which outlives the deploys.
 
 Do it again to deploy a new version.
 
 ## 5. Check
 
 ```bash
-curl http://<ip>:9000/api                       # Hello World!
-curl -o /dev/null -w '%{http_code}\n' http://<ip>:9000/api/bff/client/linux   # 200
+curl https://<site>/api                       # Hello World!
+curl -o /dev/null -w '%{http_code}\n' https://<site>/api/bff/client/linux   # 200
 ssh ubuntu@<ip> docker logs bff                 # ... rendezvous on UDP 0.0.0.0:9000
+ssh ubuntu@<ip> docker logs bff-caddy           # ... certificate obtained successfully
 ```
 
-Players then download the client from `http://<ip>:9000/api/bff/client/<windows|macos|linux>` (see
-[the client's README](love-client/README.md#playing-with-friends)), or use theirs, and type `<ip>` on
+Players then download the client from `https://<site>/api/bff/client/<windows|macos|linux>` (see
+[the client's README](love-client/README.md#playing-with-friends)), or use theirs, and type `<site>` on
 the login screen. The hole punching is the real test: two players on different networks, in the same
 game, and the logs of the VM (`docker logs bff`) and of the clients (`client.log`).
 
@@ -99,9 +114,13 @@ game, and the logs of the VM (`docker logs bff`) and of the clients (`client.log
 - **Data**: the server's data (`target/db` in the container) is lost when the container is
   removed, i.e. at each `sbt deploy`.
 - **Logs and restarts**: `ssh <vm> docker logs -f bff`, `docker restart bff`.
-- **No TLS**: the connections are plain HTTP and UDP (LuaSocket has no TLS), and there are no
-  passwords: anyone with the address can log in with any pseudo. It is fine for tests, not more.
+- **TLS**: the menus are in HTTPS (with LÖVE 12's HTTPS module, which checks the certificate against
+  the system's: a self-signed one would not do). The UDP datagrams are authenticated with the secrets
+  of the games, not encrypted (see [game-hosting.md](game-hosting.md)). There are still no passwords:
+  anyone with the address can log in with any pseudo.
+- **Certificates**: Let's Encrypt limits how many it gives for the same address (a few a week): the
+  volume `bff-caddy-data` keeps them across the deploys, do not remove it.
 - **Not on Oracle**: on another provider, only the network rules of step 2 change (the provider's
-  firewall or security group: TCP and UDP 9000). On Fly.io, see [fly.toml](fly.toml): its UDP needs a
+  firewall or security group: TCP 80 and 443, UDP 9000). On Fly.io, see [fly.toml](fly.toml): its UDP needs a
   paid dedicated IPv4.
 - **Not tested here**: these scripts were written without an Oracle VM to run them on.

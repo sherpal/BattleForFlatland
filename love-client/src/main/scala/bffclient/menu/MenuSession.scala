@@ -11,8 +11,8 @@ import utils.misc.RGBColour
 
 /** Plays the menus against the menu server like the frontend does, without a UI (for headless
   * runs): logs in, creates a game, chooses a class and gets ready, picks the boss, starts the game
-  * (running the game server if chosen to) and waits for the game server credentials (pushed on the
-  * lobby websocket).
+  * (running the game server if chosen to) and waits for the game server credentials (from the
+  * lobby, see [[Lobby]]).
   */
 final class MenuSession(
     api: MenuApi,
@@ -44,7 +44,7 @@ final class MenuSession(
         info(s"<- $other")
         hosting.handle(other)
     }
-    _ = info("Lobby websocket connected")
+    _ = info("Subscribed to the lobby")
     _ <- api.changePlayerInfo(game.id, readyPlayerInfo)
     _ = info(s"Playing a $playerClass, ready")
     config <- api.changeGameConfig(game.id, GameConfiguration.GameConfigMetadata(bossName))

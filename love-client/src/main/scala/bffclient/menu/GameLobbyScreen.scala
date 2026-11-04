@@ -262,7 +262,7 @@ final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using Exec
     case other => hosting.handle(other)
   })(opened => lobby = Some(opened))
 
-  // Once the game started, the lobby websocket is closed by MenuApp when coming back to the menus
+  // Once the game started, the lobby is closed by MenuApp when coming back to the menus
   override def leave(): Unit = {
     left = true
     if !gameStarted then lobby.foreach(_.close())

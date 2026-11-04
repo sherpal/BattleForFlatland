@@ -1,6 +1,6 @@
 package server
 
-import communication.udp.{Peer, Rendezvous, UDPSocket}
+import communication.udp.{Hmac, Peer, Rendezvous, UDPSocket}
 import communication.udp.Rendezvous.Packet
 import menus.data.AllGameCredentials
 
@@ -9,7 +9,10 @@ import menus.data.AllGameCredentials
   * where their players are. For the ones seen on a private network, it also remembers the public
   * address they say they have (see `communication.udp.Stun`).
   *
-  * Only the game servers and players with the credentials of their game are considered.
+  * Only the registers signed with the secret of their game (the game servers) or of their player
+  * are considered, and only if their number is greater than the one of the previous register of the
+  * same one (so that a register seen on the way cannot be replayed from elsewhere). The answers are
+  * signed with the same secret.
   *
   * @param credentials
   *   the credentials of a started game (it may block)
@@ -20,8 +23,10 @@ final class RendezvousServer(
 ) {
   import RendezvousServer.*
 
-  /** `peers`: where it was seen from, and its public address if it gave one. */
-  private case class Seen(peers: Vector[Peer], at: Long)
+  /** `peers`: where it was seen from, and its public address if it gave one; `number`: of its
+    * latest register.
+    */
+  private case class Seen(peers: Vector[Peer], at: Long, number: Long)
   private case class Game(server: Option[Seen], players: Map[String, Seen])
 
   private val lock                                              = new Object
@@ -30,7 +35,9 @@ final class RendezvousServer(
 
   def start(port: Int, address: Option[String]): Unit = {
     println(s"Starting rendezvous server on port $port")
-    socket.setMessageCallback(receive)
+    socket.setMessageCallback((datagram, from) =>
+      Rendezvous.parse(datagram).foreach(receive(_, from))
+    )
     socket.bind(port, address)
   }
 
@@ -47,48 +54,67 @@ final class RendezvousServer(
       found
     }
 
-  private def reply(to: Peer, packet: Packet): Unit =
-    socket.send(Rendezvous.encode(packet), to.port, to.address)
+  private def reply(to: Peer, packet: Packet, key: Hmac): Unit =
+    socket.send(Rendezvous.encode(packet, key), to.port, to.address)
 
-  private def receive(datagram: Array[Byte], from: Peer): Unit =
-    Rendezvous.parse(datagram).foreach {
-      case Packet.ServerRegister(gameId, gameSecret, publicAddress)
-          if credentialsOf(gameId).exists(_.secret == gameSecret) =>
-        val registered = Packet.Registered(from, publicAddress.filter(_ => from.onPrivateNetwork))
-        val players = seen(gameId, game => game.copy(server = Some(seenAs(registered))))
-          .fold(Vector.empty)(_.players.toVector.flatMap((name, seen) => seen.peers.map(name -> _)))
-        reply(from, Packet.Players(registered, players))
-      case Packet.PlayerRegister(userCredentials, publicAddress)
-          if credentialsOf(userCredentials.gameId)
-            .exists(_.allGameUserCredentials.contains(userCredentials)) =>
-        val registered = Packet.Registered(from, publicAddress.filter(_ => from.onPrivateNetwork))
-        seen(
-          userCredentials.gameId,
+  private def receive(received: Rendezvous.Received, from: Peer): Unit = received.packet match {
+    case Packet.ServerRegister(gameId, number, publicAddress) =>
+      for
+        creds <- credentialsOf(gameId)
+        key = Hmac(creds.secret)
+        if received.signedWith(key)
+        registered = Packet.Registered(from, publicAddress.filter(_ => from.onPrivateNetwork))
+        game <- seen(
+          gameId,
           game =>
-            game.copy(players = game.players + (userCredentials.userName -> seenAs(registered)))
+            Option.when(game.server.forall(_.number < number))(
+              game.copy(server = Some(seenAs(registered, number)))
+            )
         )
-        reply(from, registered)
-      case _ => () // not for us, or not authorized
-    }
+      do
+        val players =
+          game.players.toVector.flatMap((name, seen) => seen.peers.map(name -> _))
+        reply(from, Packet.Players(registered, players), key)
+    case Packet.PlayerRegister(userName, gameId, number, publicAddress) =>
+      for
+        creds     <- credentialsOf(gameId)
+        userCreds <- creds.allGameUserCredentials.find(_.userName == userName)
+        key = Hmac(userCreds.userSecret)
+        if received.signedWith(key)
+        registered = Packet.Registered(from, publicAddress.filter(_ => from.onPrivateNetwork))
+        _ <- seen(
+          gameId,
+          game =>
+            Option.when(game.players.get(userName).forall(_.number < number))(
+              game.copy(players = game.players + (userName -> seenAs(registered, number)))
+            )
+        )
+      do reply(from, registered, key)
+    case _ => () // not for us
+  }
 
-  private def seenAs(registered: Packet.Registered): Seen =
-    Seen((registered.seenAs +: registered.publicAddress.toVector).distinct, now)
+  private def seenAs(registered: Packet.Registered, number: Long): Seen =
+    Seen((registered.seenAs +: registered.publicAddress.toVector).distinct, now, number)
 
   private def now: Long = System.currentTimeMillis()
 
-  /** Updates the game, and forgets what was not seen for too long. */
-  private def seen(gameId: String, update: Game => Game): Option[Game] = lock.synchronized {
-    val limit = now - Forget
-    games = games.updatedWith(gameId)(game => Some(update(game.getOrElse(Game(None, Map.empty)))))
-    games = games.view
-      .mapValues(game =>
-        Game(game.server.filter(_.at > limit), game.players.filter(_._2.at > limit))
-      )
-      .filter((_, game) => game.server.isDefined || game.players.nonEmpty)
-      .toMap
-    knownCredentials = knownCredentials.filter((gameId, _) => games.contains(gameId))
-    games.get(gameId)
-  }
+  /** Updates the game (unless `update` gives nothing: then it is not changed, and nothing is
+    * returned), and forgets what was not seen for too long.
+    */
+  private def seen(gameId: String, update: Game => Option[Game]): Option[Game] =
+    lock.synchronized {
+      val limit   = now - Forget
+      val updated = update(games.getOrElse(gameId, Game(None, Map.empty)))
+      updated.foreach(game => games += gameId -> game)
+      games = games.view
+        .mapValues(game =>
+          Game(game.server.filter(_.at > limit), game.players.filter(_._2.at > limit))
+        )
+        .filter((_, game) => game.server.isDefined || game.players.nonEmpty)
+        .toMap
+      knownCredentials = knownCredentials.filter((gameId, _) => games.contains(gameId))
+      updated.flatMap(_ => games.get(gameId))
+    }
 }
 
 object RendezvousServer {

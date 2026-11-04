@@ -5,6 +5,9 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
+# LÖVE 12: LOVE, or the AppImage that `sbt love-client/luaRun` (or luaPackage) downloads, or `love`
+LOVE="${LOVE:-$(ls "$HERE"/target/love-12.0/love.AppImage 2>/dev/null || echo love)}"
+export APPIMAGE_EXTRACT_AND_RUN=1
 OUT="$(mktemp -d)"
 trap 'rm -rf "$OUT"' EXIT
 
@@ -15,4 +18,4 @@ sbt -batch -error love-client/compile
 CP="$(sbt -batch -error "export love-client/Compile/fullClasspath" | grep -E '\.jar' | tail -1)"
 sbt -batch -error "lua-linker/runMain scalalove.linker.Main bffclient.lua.UdpSelfTest $OUT $CP" > /dev/null
 cp -r love-client/src/main/lua/. "$OUT"/
-BFF_HEADLESS=1 timeout 60 love "$OUT"
+BFF_HEADLESS=1 timeout 60 "$LOVE" "$OUT"

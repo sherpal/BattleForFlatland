@@ -3,6 +3,8 @@ require("console_log")
 
 function love.conf(t)
   t.identity = "battle-for-flatland"
+  -- (for its HTTPS module, see http_worker.lua)
+  t.version = "12.0"
   if os.getenv("BFF_HEADLESS") then
     -- Headless: no window, no graphics
     t.window = false

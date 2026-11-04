@@ -48,8 +48,9 @@ object LuaSettings {
       (linker / Compile / runMain).toTask(s" scalalove.linker.Probe $mainCls ${classpath.value}")
     }.value,
     luaRun := {
-      val dir = luaLink.value
-      scala.sys.process.Process(Seq("love", dir.getAbsolutePath)).!
+      val dir  = luaLink.value
+      val love = loveCommand((LocalRootProject / target).value, streams.value.log)
+      scala.sys.process.Process(Seq(love, dir.getAbsolutePath), None, "APPIMAGE_EXTRACT_AND_RUN" -> "1").!
     },
     luaPackageTitle := name.value,
     // LÖVE's builds are downloaded once, in the root's target directory
@@ -61,6 +62,16 @@ object LuaSettings {
       streams.value.log
     )
   )
+
+  /** What runs LÖVE (12): `LOVE` if set, on Linux x64 LÖVE's AppImage (downloaded once, see
+    * [[LovePackage]]), otherwise the `love` command.
+    */
+  def loveCommand(rootTarget: File, log: Logger): String =
+    sys.env.get("LOVE").filter(_.nonEmpty).getOrElse {
+      val linuxX64 = System.getProperty("os.name") == "Linux" && System.getProperty("os.arch") == "amd64"
+      if (linuxX64) LovePackage.appImage(rootTarget / s"love-${LovePackage.loveVersion}", log).getAbsolutePath
+      else "love"
+    }
 
   /** Links the program in `mode` to `output`, with the project's Lua modules (src/main/lua) and the
     * generated `configModule`.

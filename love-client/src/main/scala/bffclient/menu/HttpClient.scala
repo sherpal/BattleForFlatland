@@ -15,7 +15,7 @@ final class HttpError(message: String) extends Exception(message)
 /** The menu server answered with an error (e.g. "you are not the game creator"). */
 final class ApiError(val error: ErrorADT) extends Exception(error.repr)
 
-/** JSON over HTTP, with the session cookie of the menu server.
+/** JSON over HTTP or HTTPS (see `http_worker.lua`), with the session cookie of the menu server.
   *
   * Requests run on a LÖVE thread; their responses are polled every frame by a timer, which
   * completes the corresponding futures.
@@ -76,6 +76,10 @@ final class HttpClient(baseUrl: String)(using ExecutionContext) {
   def get[B: Decoder](path: String): Future[B] =
     request("GET", path, "").flatMap(decoded[B])
 
+  /** GET returning an `APIResponse[B]` (failed with an [[ApiError]]). */
+  def getApi[B](path: String)(using Encoder[B], Decoder[B]): Future[B] =
+    request("GET", path, "").flatMap(apiResult[B])
+
   /** GET of a text that is not JSON. */
   def getText(path: String): Future[String] = request("GET", path, "")
 
@@ -93,7 +97,9 @@ final class HttpClient(baseUrl: String)(using ExecutionContext) {
     * [[ApiError]]).
     */
   def postApi[A: Encoder, B](path: String, data: A)(using Encoder[B], Decoder[B]): Future[B] =
-    request("POST", path, Encoder[A].apply(data).noSpaces)
-      .flatMap(decoded[APIResponse[B]])
+    request("POST", path, Encoder[A].apply(data).noSpaces).flatMap(apiResult[B])
+
+  private def apiResult[B](body: String)(using Encoder[B], Decoder[B]): Future[B] =
+    decoded[APIResponse[B]](body)
       .flatMap(response => Future.fromTry(response.toEither.left.map(ApiError(_)).toTry))
 }

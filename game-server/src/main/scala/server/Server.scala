@@ -63,8 +63,9 @@ object Server extends cask.MainRoutes {
   override def verbose: Boolean = true
 
   /** Run by one of the players of the game (see `programs.launchGame` in the menu server), with the
-    * arguments `<menu server host> <menu server port> <rendezvous port> <game id> <game secret>
-    * [<UDP port>]` (UDP port 0, the default, lets the system choose).
+    * arguments `<menu server url> <rendezvous port> <game id> <game secret> [<UDP port>]` (UDP port
+    * 0, the default, lets the system choose). The url is the one the players use, e.g.
+    * `https://bff.example.com` (the rendezvous is on its host).
     *
     * The game server gets the game's information from the menu server, starts listening to UDP,
     * registers at the rendezvous (see `communication.udp.Rendezvous`), and tells the menu server
@@ -80,18 +81,18 @@ object Server extends cask.MainRoutes {
 | |_\ \ (_| | | | | | |  __/ /\__/ /  __/ |   \ V /  __/ |    | |_/ / |   | |    
  \____/\__,_|_| |_| |_|\___| \____/ \___|_|    \_/ \___|_|    \____/\_|   \_|    
 """)
-    if args.length < 5 then {
+    if args.length < 4 then {
       System.err.println(
-        "Usage: <menu server host> <menu server port> <rendezvous port> <game id> <game secret> [<UDP port>]"
+        "Usage: <menu server url> <rendezvous port> <game id> <game secret> [<UDP port>]"
       )
       sys.exit(2)
     }
-    val menuServerHost = args(0)
-    val menuServerUrl  = s"http://$menuServerHost:${args(1)}"
-    val rendezvousPort = args(2).toInt
-    val gameId         = args(3)
-    val gameSecret     = args(4)
-    val udpPort        = args.lift(5).fold(0)(_.toInt)
+    val menuServerUrl  = args(0).stripSuffix("/")
+    val menuServerHost = java.net.URI(menuServerUrl).getHost
+    val rendezvousPort = args(1).toInt
+    val gameId         = args(2)
+    val gameSecret     = args(3)
+    val udpPort        = args.lift(4).fold(0)(_.toInt)
 
     println(s"Requesting the game's information from $menuServerUrl...")
     val credentialsBody = requests
@@ -171,6 +172,17 @@ object Server extends cask.MainRoutes {
           (400, s"Incorrect secret for $userName")
         )
       } yield allGameInfo.gameInfo.game.gameConfiguration.playersInfo(userName)
+
+  /** The secret of this player of this game (with which they prove who they are in UDP, see
+    * [[PlayerSessions]]), otherwise the reason to give (see [[Envelope.RejectReason]]).
+    */
+  private def secretOf(userName: String, gameId: String): Either[Byte, String] =
+    if allGameInfo == null then Left(Envelope.RejectReason.NotReady)
+    else
+      allGameInfo.allGameCredentials.allGameUserCredentials
+        .find(creds => creds.userName == userName && creds.gameId == gameId)
+        .map(_.userSecret)
+        .toRight(Envelope.RejectReason.Unauthorized)
 
   private def playerConnected(playerInfo: PlayerInfo, send: InGameWSProtocol => Unit): Unit = {
     println(s"User is connected: $playerInfo")
@@ -276,16 +288,7 @@ object Server extends cask.MainRoutes {
     playerSessions = PlayerSessions(
       Rendezvous.SharedSocket(socket, rendezvous.received, rendezvous.receivedStun),
       timers,
-      authenticate = credentials =>
-        authorize(credentials.userName, credentials.userSecret, credentials.gameId).fold(
-          { case (statusCode, _) =>
-            Left(
-              if statusCode == 429 then Envelope.RejectReason.NotReady
-              else Envelope.RejectReason.Unauthorized
-            )
-          },
-          _ => Right(())
-        ),
+      secretOf = secretOf,
       listener = new PlayerSessions.Listener {
         def connected(userName: String): Unit = {
           humansConnected.updateAndGet(_ + userName)

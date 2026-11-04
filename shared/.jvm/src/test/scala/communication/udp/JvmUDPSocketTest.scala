@@ -86,15 +86,18 @@ final class JvmUDPSocketTest extends munit.FunSuite {
     val a        = new Listening
     val b        = new Listening
     val received = new LinkedBlockingQueue[TestMessage]()
+    val nonce    = Envelope.Nonce(Array.fill[Byte](Envelope.Nonce.Size)(7))
+    val nonces   = Envelope.Packet.Challenge(nonce, nonce)
+    val keys     = Envelope.SessionKeys(Hmac("s3cr3t"), nonces, towardsServer = false)
     val connection = new Connection[TestMessage](
       b.socket.peer,
-      new Envelope.DataSocket(a.socket),
+      new Envelope.DataSocket(a.socket, Envelope.SessionKeys(Hmac("s3cr3t"), nonces, true)),
       new TimersImpl,
       _ => ()
     )
     val server = new Connection[TestMessage](
       a.socket.peer,
-      new Envelope.DataSocket(b.socket),
+      new Envelope.DataSocket(b.socket, keys),
       new TimersImpl,
       received.put(_)
     )
@@ -102,7 +105,7 @@ final class JvmUDPSocketTest extends munit.FunSuite {
     connection.sendOrderedReliable(Text("through the real thing"))
     val datagram = b.next().map(_._1.toArray)
     datagram.flatMap(Envelope.parse(_)) match {
-      case Some(Envelope.Packet.Data(payload)) => server.onMessage(payload)
+      case Some(data: Envelope.Packet.Data) => keys.open(data).foreach(server.onMessage)
       case other => fail(s"unexpected $other")
     }
 
