@@ -121,6 +121,7 @@ object Ability {
   val boss101SmallHitId: AbilityId              = nextAbilityId()
   val squareEnrageId: AbilityId                 = nextAbilityId()
   val squareBraceId: AbilityId                  = nextAbilityId()
+  val squareShieldSlamId: AbilityId             = nextAbilityId()
   val boss102PutDamageZones: AbilityId          = nextAbilityId()
   val boss102SpawnBossHound: AbilityId          = nextAbilityId()
   val autoAttackId: AbilityId                   = nextAbilityId()
@@ -188,6 +189,7 @@ object Ability {
     case x: square.Cleave => customEncode(x, "square.Cleave")
     case x: square.Enrage => customEncode(x, "square.Enrage")
     case x: square.HammerHit => customEncode(x, "square.HammerHit")
+    case x: square.ShieldSlam => customEncode(x, "square.ShieldSlam")
     case x: square.Taunt => customEncode(x, "square.Taunt")
     case x: triangle.DirectHit => customEncode(x, "triangle.DirectHit")
     case x: triangle.UpgradeDirectHit => customEncode(x, "triangle.UpgradeDirectHit")
@@ -220,6 +222,7 @@ object Ability {
     customDecoder[square.Cleave]("square.Cleave"),
     customDecoder[square.Enrage]("square.Enrage"),
     customDecoder[square.HammerHit]("square.HammerHit"),
+    customDecoder[square.ShieldSlam]("square.ShieldSlam"),
     customDecoder[square.Taunt]("square.Taunt"),
     customDecoder[triangle.DirectHit]("triangle.DirectHit"),
     customDecoder[triangle.UpgradeDirectHit]("triangle.UpgradeDirectHit"),

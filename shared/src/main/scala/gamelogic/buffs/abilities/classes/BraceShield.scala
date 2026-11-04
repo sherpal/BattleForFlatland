@@ -2,10 +2,10 @@ package gamelogic.buffs.abilities.classes
 
 import gamelogic.buffs.{Buff, PassiveBuff, StackedBuff}
 import gamelogic.entities.Entity
-import gamelogic.gamestate.GameState
-import gamelogic.gamestate.GameAction
-import gamelogic.gamestate.gameactions.EntityTakesDamage
+import gamelogic.gamestate.{GameAction, GameState}
+import gamelogic.gamestate.gameactions.{EntityTakesDamage, PutStackedBuff, RemoveBuff}
 import gamelogic.physics.PosInt
+import gamelogic.utils.{IdGeneratorContainer, IdsProducer}
 
 /** The shield of the square (see [[gamelogic.abilities.square.Brace]]). Each stack reduces all
   * damage taken by the bearer by multiplying it by `BraceShield.damageMultiplier`. After
@@ -48,5 +48,31 @@ object BraceShield {
   /** The shields that `entityId` currently has. There should be at most one. */
   def on(gameState: GameState, entityId: Entity.Id): Vector[BraceShield] =
     gameState.allBuffsOfEntity(entityId).collect { case shield: BraceShield => shield }.toVector
+
+  /** The number of stacks that `entityId` currently has, if any. */
+  def stacksOn(gameState: GameState, entityId: Entity.Id): Option[PosInt] =
+    // Normally at most one shield, but if two ever coexist, the biggest one wins.
+    on(gameState, entityId).map(_.stacks).maxOption
+
+  /** Actions replacing the shield of `entityId` (if any) by one with `stacks` stacks (if any),
+    * starting at `time`. The number of stacks can't go above `maxStacks`.
+    */
+  def setStacks(gameState: GameState, entityId: Entity.Id, time: Long, stacks: Option[PosInt])(using
+      IdGeneratorContainer
+  ): Vector[GameAction] =
+    on(gameState, entityId).map(shield =>
+      RemoveBuff(IdsProducer.genActionId(), time, entityId, shield.buffId)
+    ) ++ stacks.map(newStacks =>
+      PutStackedBuff(
+        IdsProducer.genActionId(),
+        time,
+        IdsProducer.genBuffId(),
+        entityId,
+        entityId,
+        time,
+        Buff.squareBrace,
+        newStacks.min(maxStacks)
+      )
+    )
 
 }
