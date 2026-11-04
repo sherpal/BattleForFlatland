@@ -27,12 +27,15 @@ final case class RageFiller(
           gameAction.id,
           gameAction.time,
           bearerId,
-          RageFiller.rageOnDamageTaken,
+          gameAction.amount * RageFiller.ragePerDamage,
           Rage
         )
       )
     case _ => Vector(gameAction)
   }
+
+  /** The damage must be seen before it is reduced by other buffs. */
+  override def transformerOrder: Int = -1
 
   def duration: Long = -1L
 
@@ -41,7 +44,7 @@ final case class RageFiller(
 
 object RageFiller {
 
-  /** Rage gained by the bearer each time they take damage. */
-  inline def rageOnDamageTaken: Double = 5.0
+  /** Rage gained by the bearer for each point of damage they take, before any reduction. */
+  inline def ragePerDamage: Double = 1.0
 
 }

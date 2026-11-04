@@ -3,7 +3,7 @@ package gamelogic.buffs
 import gamelogic.buffs.abilities.classes.{Silenced, TriangleStunDebuff, UpgradeDirectHit}
 import gamelogic.buffs.ai.{DamageThreatAware, HealingThreatAware}
 import gamelogic.buffs.boss.boss110.BrokenArmor
-import gamelogic.buffs.resourcebuffs.{EnergyFiller, ManaFiller, RageFiller}
+import gamelogic.buffs.resourcebuffs.{EnergyFiller, ManaFiller, RageFiller, RageTrickle}
 import gamelogic.entities.Entity
 
 /** A lot of buffs (especially the "never ending" ones) simply require
@@ -22,6 +22,9 @@ object SimpleBuffs {
     Buff.damageThreatAware  -> DamageThreatAware.apply,
     Buff.energyFiller -> { (buffId, entityId, sourceId, appearanceTime) =>
       EnergyFiller(buffId, entityId, appearanceTime, appearanceTime)
+    },
+    Buff.rageTrickle -> { (buffId, entityId, sourceId, appearanceTime) =>
+      RageTrickle(buffId, entityId, appearanceTime, appearanceTime)
     },
     Buff.triangleUpgradeDirectHit -> UpgradeDirectHit.apply,
     Buff.manaFiller -> { (buffId, entityId, sourceId, appearanceTime) =>

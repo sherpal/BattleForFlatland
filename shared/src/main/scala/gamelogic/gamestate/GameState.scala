@@ -69,14 +69,15 @@ final case class GameState(
     * passive buff could also have a priority.
     */
   def applyActionChangers(action: GameAction): List[GameAction] =
-    passiveBuffs.valuesIterator
-      .flatMap(_.valuesIterator)
-      .map(buff => buff.actionTransformer(_))
-      .foldLeft(List(action))(_.flatMap(_))
+    orderedActionChangers.foldLeft(List(action))((as, changer) => as.flatMap(changer.actionTransformer))
+
+  /** All the passive buffs, in the order in which they transform actions. */
+  private def orderedActionChangers: List[PassiveBuff] =
+    passiveBuffs.valuesIterator.flatMap(_.valuesIterator).toList.sortBy(_.transformerOrder)
 
   /** See other overloaded methods. */
   def applyActionChangers(actions: List[GameAction]): List[GameAction] = {
-    val changers = passiveBuffs.valuesIterator.flatMap(_.valuesIterator).toList
+    val changers = orderedActionChangers
     actions.flatMap(action =>
       changers.foldLeft(List(action)) { (as: List[GameAction], changer: PassiveBuff) =>
         as.flatMap(changer.actionTransformer)
