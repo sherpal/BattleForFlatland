@@ -1,6 +1,7 @@
 package application.ai.goodais.bosses.sirofvice
 
 import application.ai.goodais.classes.SquareAIController
+import gamelogic.buffs.boss.sirofvice.Inflamed
 import gamelogic.entities.Entity
 import gamelogic.entities.boss.firstraid.SirOfVice
 import gamelogic.entities.classes.Square
@@ -42,7 +43,18 @@ final case class SquareForSirOfVice(index: Int, entityId: Entity.Id)
     val maybeHammerHit =
       Option.when(shouldIHammer)(maybeHammerHitUsage(gameState, time, me, boss)).flatten
 
-    maybeBraceUsage(gameState, time, me)
+    // When a single player burns (the Pentagons dispel the others), the tank takes part of the
+    // damage with its shield.
+    val maybeGuard =
+      maybeGuardLastBearer(
+        gameState,
+        time,
+        me,
+        gameState.allTBuffs[Inflamed].map(_.bearerId).toSet
+      )
+
+    maybeGuard
+      .orElse(maybeBraceUsage(gameState, time, me))
       .orElse(maybeHammerHit)
       .orElse(maybeTaunt)
       .orElse(maybeEnrage)

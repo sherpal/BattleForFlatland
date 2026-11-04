@@ -1,6 +1,7 @@
 package application.ai.goodais.bosses.boss105
 
 import application.ai.goodais.classes.SquareAIController
+import gamelogic.buffs.boss.boss105.VolatileCharge
 import gamelogic.entities.boss.boss105.Shade
 import gamelogic.entities.boss.dawnoftime.Boss105
 import gamelogic.entities.classes.Square
@@ -62,7 +63,19 @@ final case class SquareForBoss105(index: Int, entityId: Entity.Id)
     if holdsTheShade(gameState, me, time) then Boss105Bot.theShade(gameState)
     else Boss105Bot.theBoss(gameState)
 
+  /** When a single player has a [[VolatileCharge]] left (the boss puts two and the Pentagon
+    * dispels one), the tank guards them: the explosion hurts them less, and the tank has the
+    * shield for it.
+    */
   override def instantActions(gameState: GameState, me: Square, time: Long): Vector[GameAction] =
+    maybeGuardLastBearer(
+      gameState,
+      time,
+      me,
+      gameState.allTBuffs[VolatileCharge].map(_.bearerId).toSet
+    ).fold(twinActions(gameState, me, time))(Vector(_))
+
+  private def twinActions(gameState: GameState, me: Square, time: Long): Vector[GameAction] =
     myTwin(gameState, me, time).fold(Vector.empty[GameAction]) { twin =>
       val shouldIHammer = twin match {
         case shade: Shade => isMyThreatTowardsTargetEnough(shade, me)
