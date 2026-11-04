@@ -3,8 +3,9 @@ package application.ai.goodais.classes
 import application.ai.goodais.GoodAIController
 import application.ai.utils.maybeAbilityUsage
 import gamelogic.abilities.Ability
-import gamelogic.abilities.square.{Brace, Cleave, Enrage, HammerHit, Taunt}
+import gamelogic.abilities.square.{Brace, Cleave, Enrage, Guard, HammerHit, Taunt}
 import gamelogic.buffs.Buff
+import gamelogic.buffs.abilities.classes.Guarded
 import gamelogic.buffs.abilities.classes.BraceShield
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
@@ -52,6 +53,30 @@ trait SquareAIController(index: Int) extends GoodAIController[Square] {
         maybeAbilityUsage(me, Enrage(Ability.UseId.dummy, time, me.id), gameState).startCasting
       )
       .flatten
+
+  final def maybeGuardUsage(gameState: GameState, time: Long, me: Square, ally: Entity) =
+    maybeAbilityUsage(
+      me,
+      Guard(Ability.UseId.dummy, time, me.id, ally.id),
+      gameState
+    ).startCasting
+
+  /** Guards the only player that a dangerous debuff is still on (bosses put several of them, and
+    * the Pentagons dispel some), so that a tank takes part of what it will take. Nothing when there
+    * are several bearers, when the only one is the tank, or when someone (it can be the other
+    * tank) already guards it.
+    */
+  final def maybeGuardLastBearer(
+      gameState: GameState,
+      time: Long,
+      me: Square,
+      bearers: Set[Entity.Id]
+  ) =
+    bearers.headOption
+      .filter(bearer => bearers.size == 1 && bearer != me.id)
+      .filterNot(gameState.hasBuffOfType[Guarded](_))
+      .flatMap(gameState.players.get)
+      .flatMap(maybeGuardUsage(gameState, time, me, _))
 
   /** Builds the shield up to its maximum, then keeps it there by bracing again just before it loses
     * a stack.
