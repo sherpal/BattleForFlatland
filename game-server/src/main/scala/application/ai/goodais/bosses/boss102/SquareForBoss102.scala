@@ -53,7 +53,10 @@ final case class SquareForBoss102(index: Int, entityId: Entity.Id)
 
       Vector(
         maybeStopMoving,
-        maybeTaunt.orElse(maybeTauntBoss).orElse(maybeCleave)
+        maybeTaunt
+          .orElse(maybeTauntBoss)
+          .orElse(maybeCleave)
+          .orElse(maybeBraceUsage(currentGameState, startTime, me))
       ).flatten
     case Some(pos) =>
       val (previousPosition, currentPosition, travelledDistance) = someDistanceInfo(startTime, me)

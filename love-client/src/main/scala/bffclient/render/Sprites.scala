@@ -91,8 +91,8 @@ object Sprites {
   lazy val smallLock: Option[Sprite] = load("misc/small-lock.png")
 
   /** The icons of the buffs, like the frontend's `Asset.buffAssetMap`, without the permanent buffs
-    * of the classes (the square's shield, the resource fillers), which every player of the class
-    * has, and without Boss 110's.
+    * of the classes (the resource fillers), which every player of the class has, and without Boss
+    * 110's.
     */
   lazy val buffIcons: Map[Buff.ResourceIdentifier, Sprite] = Seq(
     Buff.hexagonHotIdentifier     -> "abilities/hexagon-hot",
@@ -101,6 +101,7 @@ object Sprites {
     Buff.triangleStun             -> "abilities/triangle-stun",
     Buff.silence                  -> "abilities/triangle-cut",
     Buff.squareEnrage             -> "abilities/square-enrage",
+    Buff.squareBrace              -> "abilities/square-brace",
     Buff.boss102LivingDamageZone  -> "boss/dawn-of-time/boss102/living-damage-zone",
     Buff.sirOfVicePunished        -> "boss/first-raid/sir-of-vice/punished",
     Buff.sirOfVicePurified        -> "boss/first-raid/sir-of-vice/purified",
@@ -121,6 +122,7 @@ object Sprites {
     Ability.squareTauntId            -> "square-taunt",
     Ability.squareEnrageId           -> "square-enrage",
     Ability.squareCleaveId           -> "square-cleave",
+    Ability.squareBraceId            -> "square-brace",
     Ability.triangleEnergyKick       -> "triangle-energy-kick",
     Ability.triangleDirectHit        -> "triangle-direct-hit",
     Ability.triangleUpgradeDirectHit -> "triangle-upgrade-direct-hit",

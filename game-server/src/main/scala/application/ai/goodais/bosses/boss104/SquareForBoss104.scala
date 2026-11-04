@@ -41,7 +41,11 @@ final case class SquareForBoss104(index: Int, entityId: Entity.Id)
         val maybeHammerHit = Option
           .when(shouldIHammer)(maybeHammerHitUsage(gameState, startTime, me, theBoss))
           .flatten
-        maybeHammerHit.orElse(maybeTaunt).orElse(maybeEnrage).toVector
+        maybeBraceUsage(gameState, startTime, me)
+          .orElse(maybeHammerHit)
+          .orElse(maybeTaunt)
+          .orElse(maybeEnrage)
+          .toVector
       case None =>
         val targetPosition = Boss104.bossStartingPosition - 50.i
         preGameMovement(startTime, me, currentPosition, targetPosition, travelledDistance)

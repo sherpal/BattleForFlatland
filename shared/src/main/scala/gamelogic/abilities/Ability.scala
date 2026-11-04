@@ -120,6 +120,7 @@ object Ability {
   val pentagonPentagonBullet: AbilityId         = nextAbilityId()
   val boss101SmallHitId: AbilityId              = nextAbilityId()
   val squareEnrageId: AbilityId                 = nextAbilityId()
+  val squareBraceId: AbilityId                  = nextAbilityId()
   val boss102PutDamageZones: AbilityId          = nextAbilityId()
   val boss102SpawnBossHound: AbilityId          = nextAbilityId()
   val autoAttackId: AbilityId                   = nextAbilityId()
@@ -183,6 +184,7 @@ object Ability {
     case x: hexagon.HexagonHot => customEncode(x, "hexagon.HexagonHot")
     case x: pentagon.CreatePentagonBullet => customEncode(x, "pentagon.CreatePentagonBullet")
     case x: pentagon.CreatePentagonZone => customEncode(x, "pentagon.CreatePentagonZone")
+    case x: square.Brace => customEncode(x, "square.Brace")
     case x: square.Cleave => customEncode(x, "square.Cleave")
     case x: square.Enrage => customEncode(x, "square.Enrage")
     case x: square.HammerHit => customEncode(x, "square.HammerHit")
@@ -214,6 +216,7 @@ object Ability {
     customDecoder[hexagon.HexagonHot]("hexagon.HexagonHot"),
     customDecoder[pentagon.CreatePentagonBullet]("pentagon.CreatePentagonBullet"),
     customDecoder[pentagon.CreatePentagonZone]("pentagon.CreatePentagonZone"),
+    customDecoder[square.Brace]("square.Brace"),
     customDecoder[square.Cleave]("square.Cleave"),
     customDecoder[square.Enrage]("square.Enrage"),
     customDecoder[square.HammerHit]("square.HammerHit"),

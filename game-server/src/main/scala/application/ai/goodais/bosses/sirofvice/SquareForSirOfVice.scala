@@ -42,7 +42,11 @@ final case class SquareForSirOfVice(index: Int, entityId: Entity.Id)
     val maybeHammerHit =
       Option.when(shouldIHammer)(maybeHammerHitUsage(gameState, time, me, boss)).flatten
 
-    maybeHammerHit.orElse(maybeTaunt).orElse(maybeEnrage).toVector
+    maybeBraceUsage(gameState, time, me)
+      .orElse(maybeHammerHit)
+      .orElse(maybeTaunt)
+      .orElse(maybeEnrage)
+      .toVector
   }
 
 }
