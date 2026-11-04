@@ -83,6 +83,8 @@ final class AbilityCaster(myId: Entity.Id) {
         )
       case Ability.squareEnrageId =>
         send(Enrage(Ability.UseId.zero, now, myId), gameState, now)
+      case Ability.squareShieldSlamId =>
+        onTarget(ShieldSlam(Ability.UseId.zero, now, myId, _))
       case Ability.squareBraceId =>
         send(Brace(Ability.UseId.zero, now, myId), gameState, now)
       case Ability.triangleEnergyKick =>

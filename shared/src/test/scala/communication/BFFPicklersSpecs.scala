@@ -16,7 +16,7 @@ import gamelogic.abilities.boss.sirofvice.{
   Punishment,
   SacredGround
 }
-import gamelogic.abilities.square.Brace
+import gamelogic.abilities.square.{Brace, ShieldSlam}
 import gamelogic.buffs.Buff
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction
@@ -110,6 +110,7 @@ final class BFFPicklersSpecs extends munit.FunSuite {
 
   test("Brace and stacked buffs survive a boopickle round trip") {
     roundTripAbility(Brace(useId, 1L, entityId))
+    roundTripAbility(ShieldSlam(useId, 1L, entityId, entityId))
     roundTripAction(
       PutStackedBuff(actionId, 1L, buffId, entityId, entityId, 1L, Buff.squareBrace, PosInt.of(3))
     )

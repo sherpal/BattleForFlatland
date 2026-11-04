@@ -123,6 +123,7 @@ object Sprites {
     Ability.squareEnrageId           -> "square-enrage",
     Ability.squareCleaveId           -> "square-cleave",
     Ability.squareBraceId            -> "square-brace",
+    Ability.squareShieldSlamId       -> "square-shield-slam",
     Ability.triangleEnergyKick       -> "triangle-energy-kick",
     Ability.triangleDirectHit        -> "triangle-direct-hit",
     Ability.triangleUpgradeDirectHit -> "triangle-upgrade-direct-hit",

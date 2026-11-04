@@ -2,7 +2,7 @@ package gamelogic.entities.classes
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
-import gamelogic.abilities.square.{Brace, Cleave, Enrage, HammerHit, Taunt}
+import gamelogic.abilities.square.{Brace, Cleave, Enrage, HammerHit, ShieldSlam, Taunt}
 import gamelogic.abilities.WithTargetAbility
 import gamelogic.buffs.Buff
 import gamelogic.buffs.abilities.classes.BraceShield
@@ -85,7 +85,8 @@ object Square extends PlayerClassBuilder {
       Ability.squareHammerHit,
       Ability.squareEnrageId,
       Ability.squareCleaveId,
-      Ability.squareBraceId
+      Ability.squareBraceId,
+      Ability.squareShieldSlamId
     )
 
   final val initialMaxLife: Double = 200
@@ -133,6 +134,17 @@ object Square extends PlayerClassBuilder {
       Brace.cooldown,
       0L,
       Brace.cost
+    ),
+    AbilityDoc(
+      Ability.squareShieldSlamId,
+      "Shield Slam",
+      s"Spends a stack of your shield to strike an enemy in melee range for " ++
+        s"${formatNumber(ShieldSlam.damage)} damage, and generates an additional " ++
+        s"${formatNumber(ShieldSlam.extraThreat.value)} threat. The stacks you keep have their " ++
+        "time reset.",
+      ShieldSlam.cooldown,
+      0L,
+      ShieldSlam.cost
     ),
     AbilityDoc(
       Ability.squareEnrageId,

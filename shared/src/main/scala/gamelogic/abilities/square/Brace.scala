@@ -2,10 +2,8 @@ package gamelogic.abilities.square
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.{AbilityId, UseId}
-import gamelogic.buffs.Buff
 import gamelogic.buffs.abilities.classes.BraceShield
 import gamelogic.entities.{Entity, Resource}
-import gamelogic.gamestate.gameactions.{PutStackedBuff, RemoveBuff}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.PosInt
 import gamelogic.utils.IdGeneratorContainer
@@ -23,27 +21,9 @@ final case class Brace(useId: Ability.UseId, time: Long, casterId: Entity.Id) ex
   def cost: Resource.ResourceAmount = Brace.cost
 
   def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] = {
-    // Normally at most one, but if two shields ever coexist, the biggest one wins.
-    val currentShields = BraceShield.on(gameState, casterId)
     val newStacks =
-      currentShields
-        .map(_.stacks)
-        .maxOption
-        .map(_ + PosInt.of(1))
-        .getOrElse(PosInt.of(1))
-        .min(BraceShield.maxStacks)
-
-    currentShields.map(shield => RemoveBuff(genActionId(), time, casterId, shield.buffId)) :+
-      PutStackedBuff(
-        genActionId(),
-        time,
-        genBuffId(),
-        casterId,
-        casterId,
-        time,
-        Buff.squareBrace,
-        newStacks
-      )
+      BraceShield.stacksOn(gameState, casterId).fold(PosInt.of(1))(_ + PosInt.of(1))
+    BraceShield.setStacks(gameState, casterId, time, Some(newStacks))
   }
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
