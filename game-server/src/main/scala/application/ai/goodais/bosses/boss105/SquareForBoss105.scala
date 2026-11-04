@@ -89,7 +89,11 @@ final case class SquareForBoss105(index: Int, entityId: Entity.Id)
           )
           .flatten
 
-      maybeHammerHit.orElse(maybeTaunt).orElse(maybeEnrage).toVector
+      maybeBraceUsage(gameState, time, me)
+        .orElse(maybeHammerHit)
+        .orElse(maybeTaunt)
+        .orElse(maybeEnrage)
+        .toVector
     }
 
   def actionsInPlace(gameState: GameState, me: Square, time: Long): Vector[GameAction] =

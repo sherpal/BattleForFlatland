@@ -79,20 +79,29 @@ object Buff {
 
   opaque type ResourceIdentifier = Int
 
+  opaque type StackedBuffIdentifier <: ResourceIdentifier = Int
+
   object ResourceIdentifier {
     given Codec[ResourceIdentifier] = Codec.from(Decoder.decodeInt, Encoder.encodeInt)
 
     given Pickler[ResourceIdentifier] = boopickle.Default.intPickler
   }
 
-  private var lastId: ResourceIdentifier = 0
-  def nextId(): ResourceIdentifier       = { lastId += 1; lastId }
+  object StackedBuffIdentifier {
+    given Codec[StackedBuffIdentifier] = Codec.from(Decoder.decodeInt, Encoder.encodeInt)
+
+    given Pickler[StackedBuffIdentifier] = boopickle.Default.intPickler
+  }
+
+  private var lastId: ResourceIdentifier                 = 0
+  private def nextId(): ResourceIdentifier               = { lastId += 1; lastId }
+  private def nextStackedBuffId(): StackedBuffIdentifier = { lastId += 1; lastId }
 
   // Each buff kind needs its own identifier here. It is what the frontend uses to pick the icon,
   // via `assets.Asset.buffAssetMap`.
   val hexagonHotIdentifier     = nextId()
   val boss101BigDotIdentifier  = nextId()
-  val squareDefaultShield      = nextId()
+  val squareBrace              = nextStackedBuffId()
   val rageFiller               = nextId()
   val healingThreatAware       = nextId()
   val damageThreatAware        = nextId()

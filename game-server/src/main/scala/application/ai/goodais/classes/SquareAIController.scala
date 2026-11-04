@@ -3,8 +3,9 @@ package application.ai.goodais.classes
 import application.ai.goodais.GoodAIController
 import application.ai.utils.maybeAbilityUsage
 import gamelogic.abilities.Ability
-import gamelogic.abilities.square.{Cleave, Enrage, HammerHit, Taunt}
+import gamelogic.abilities.square.{Brace, Cleave, Enrage, HammerHit, Taunt}
 import gamelogic.buffs.Buff
+import gamelogic.buffs.abilities.classes.BraceShield
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
 import gamelogic.entities.classes.Square
@@ -51,6 +52,21 @@ trait SquareAIController(index: Int) extends GoodAIController[Square] {
         maybeAbilityUsage(me, Enrage(Ability.UseId.dummy, time, me.id), gameState).startCasting
       )
       .flatten
+
+  /** Builds the shield up to its maximum, then keeps it there by bracing again just before it loses
+    * a stack.
+    */
+  final def maybeBraceUsage(gameState: GameState, time: Long, me: Square) = {
+    val shouldBrace = BraceShield.on(gameState, me.id).headOption.forall { shield =>
+      shield.stacks < BraceShield.maxStacks ||
+      time - shield.appearanceTime > BraceShield.duration - 1000L
+    }
+    Option
+      .when(shouldBrace)(
+        maybeAbilityUsage(me, Brace(Ability.UseId.dummy, time, me.id), gameState).startCasting
+      )
+      .flatten
+  }
 
   final def maybeHammerHitUsage(gameState: GameState, time: Long, me: Square, target: Entity) =
     maybeAbilityUsage(

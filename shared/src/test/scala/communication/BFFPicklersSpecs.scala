@@ -16,9 +16,11 @@ import gamelogic.abilities.boss.sirofvice.{
   Punishment,
   SacredGround
 }
+import gamelogic.abilities.square.Brace
 import gamelogic.buffs.Buff
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction
+import gamelogic.gamestate.gameactions.PutStackedBuff
 import gamelogic.gamestate.gameactions.boss104.*
 import gamelogic.gamestate.gameactions.boss105.{
   AddShade,
@@ -32,7 +34,7 @@ import gamelogic.gamestate.gameactions.sirofvice.{
   PutPunishedDebuff,
   PutPurifiedDebuff
 }
-import gamelogic.physics.Complex
+import gamelogic.physics.{Complex, PosInt}
 import utils.misc.RGBColour
 
 /** Every [[Ability]] and every [[GameAction]] must be declared in [[BFFPicklers]], otherwise the
@@ -104,6 +106,13 @@ final class BFFPicklersSpecs extends munit.FunSuite {
     roundTripAction(ShadeFalls(actionId, 1L, entityId, buffId, entityId, somewhere))
     roundTripAction(PutVolatileCharge(actionId, 1L, buffId, entityId, entityId))
     roundTripAction(PutYearning(actionId, 1L, buffId, entityId, entityId))
+  }
+
+  test("Brace and stacked buffs survive a boopickle round trip") {
+    roundTripAbility(Brace(useId, 1L, entityId))
+    roundTripAction(
+      PutStackedBuff(actionId, 1L, buffId, entityId, entityId, 1L, Buff.squareBrace, PosInt.of(3))
+    )
   }
 
 }

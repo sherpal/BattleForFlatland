@@ -17,10 +17,9 @@ object SimpleBuffs {
 
   final val simpleBuffs
       : Map[Buff.ResourceIdentifier, (Buff.Id, Entity.Id, Entity.Id, Long) => Buff] = Map(
-    Buff.rageFiller          -> RageFiller.apply,
-    Buff.squareDefaultShield -> BasicShield.apply,
-    Buff.healingThreatAware  -> HealingThreatAware.apply,
-    Buff.damageThreatAware   -> DamageThreatAware.apply,
+    Buff.rageFiller         -> RageFiller.apply,
+    Buff.healingThreatAware -> HealingThreatAware.apply,
+    Buff.damageThreatAware  -> DamageThreatAware.apply,
     Buff.energyFiller -> { (buffId, entityId, sourceId, appearanceTime) =>
       EnergyFiller(buffId, entityId, appearanceTime, appearanceTime)
     },

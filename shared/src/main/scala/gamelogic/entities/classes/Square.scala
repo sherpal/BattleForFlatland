@@ -2,9 +2,10 @@ package gamelogic.entities.classes
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.AbilityId
-import gamelogic.abilities.square.{Cleave, Enrage, HammerHit, Taunt}
+import gamelogic.abilities.square.{Brace, Cleave, Enrage, HammerHit, Taunt}
 import gamelogic.abilities.WithTargetAbility
-import gamelogic.buffs.{BasicShield, Buff}
+import gamelogic.buffs.Buff
+import gamelogic.buffs.abilities.classes.BraceShield
 import gamelogic.buffs.resourcebuffs.RageFiller
 import gamelogic.docs.{formatNumber, formatPeriod, formatSeconds, AbilityDoc}
 import gamelogic.entities.Resource.{Rage, ResourceAmount}
@@ -16,6 +17,8 @@ import gamelogic.physics.Complex
 import gamelogic.physics.shape.{Polygon, Shape}
 import gamelogic.utils.IdGeneratorContainer
 import models.bff.outofgame.PlayerClasses
+
+import scala.collection.immutable.ListSet
 
 /** The [[gamelogic.entities.classes.Square]] is the tank class available to players.
   */
@@ -75,20 +78,21 @@ object Square extends PlayerClassBuilder {
 
   def initialResourceAmount: ResourceAmount = ResourceAmount(100, Rage)
 
-  final val abilities =
-    Set(
+  // A ListSet, so that the order of the abilities (and thus their keys) is the one written here.
+  final val abilities: Set[AbilityId] =
+    ListSet(
       Ability.squareTauntId,
       Ability.squareHammerHit,
       Ability.squareEnrageId,
-      Ability.squareCleaveId
+      Ability.squareCleaveId,
+      Ability.squareBraceId
     )
 
   final val initialMaxLife: Double = 200
 
   def description: String =
-    s"The tank. With its ${formatNumber(initialMaxLife)} life points and a permanent shield " ++
-      s"reducing all damage it takes by ${formatNumber((1 - BasicShield.damageMultiplier) * 100)}%, " ++
-      "the Square is the one keeping the boss' attention. It gains " ++
+    s"The tank. With its ${formatNumber(initialMaxLife)} life points and a shield it has to " ++
+      "keep building up, the Square is the one keeping the boss' attention. It gains " ++
       s"${formatNumber(RageFiller.rageOnDamageTaken)} rage each time it takes damage, and spends " ++
       "it on its abilities."
 
@@ -119,6 +123,17 @@ object Square extends PlayerClassBuilder {
       Cleave.cost
     ),
     AbilityDoc(
+      Ability.squareBraceId,
+      "Brace",
+      s"Adds a stack to your shield, up to ${BraceShield.maxStacks} stacks. Each stack reduces " ++
+        s"all damage you take by ${formatNumber((1 - BraceShield.damageMultiplier) * 100)}%. " ++
+        s"Your shield loses a stack after ${formatSeconds(BraceShield.duration)}, unless you " ++
+        "Brace again, which also resets that time when the shield is full.",
+      Brace.cooldown,
+      0L,
+      Brace.cost
+    ),
+    AbilityDoc(
       Ability.squareEnrageId,
       "Enrage",
       s"Hurts yourself for ${formatNumber(Enrage.damageOnTick)} damage every " ++
@@ -142,15 +157,6 @@ object Square extends PlayerClassBuilder {
         entityId,
         time,
         Buff.rageFiller
-      ),
-      PutSimpleBuff(
-        GameAction.Id.zero,
-        time,
-        genBuffId(),
-        entityId,
-        entityId,
-        time,
-        Buff.squareDefaultShield
       )
     )
 }
