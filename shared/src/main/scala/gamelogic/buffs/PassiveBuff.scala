@@ -29,4 +29,11 @@ trait PassiveBuff extends Buff {
     */
   def actionTransformer(gameAction: GameAction): Vector[GameAction]
 
+  /** Buffs with a lower order transform actions first (the others are in no particular order).
+    *
+    * This only matters for transformers that don't commute. For example, a buff that gives rage
+    * proportionally to the damage taken needs to see that damage before another buff reduces it.
+    */
+  def transformerOrder: Int = 0
+
 }

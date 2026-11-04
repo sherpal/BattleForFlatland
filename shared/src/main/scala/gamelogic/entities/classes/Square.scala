@@ -6,7 +6,7 @@ import gamelogic.abilities.square.{Brace, Cleave, Enrage, HammerHit, Taunt}
 import gamelogic.abilities.WithTargetAbility
 import gamelogic.buffs.Buff
 import gamelogic.buffs.abilities.classes.BraceShield
-import gamelogic.buffs.resourcebuffs.RageFiller
+import gamelogic.buffs.resourcebuffs.{RageFiller, RageTrickle}
 import gamelogic.docs.{formatNumber, formatPeriod, formatSeconds, AbilityDoc}
 import gamelogic.entities.Resource.{Rage, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
@@ -93,8 +93,9 @@ object Square extends PlayerClassBuilder {
   def description: String =
     s"The tank. With its ${formatNumber(initialMaxLife)} life points and a shield it has to " ++
       "keep building up, the Square is the one keeping the boss' attention. It gains " ++
-      s"${formatNumber(RageFiller.rageOnDamageTaken)} rage each time it takes damage, and spends " ++
-      "it on its abilities."
+      s"${formatNumber(RageFiller.ragePerDamage)} rage for each point of damage it takes (before " ++
+      s"its shield reduces it), and ${formatNumber(RageTrickle.rageRefillPerSecond)} rage every " ++
+      "second whatever happens. It spends its rage on its abilities."
 
   def abilitiesDoc: Vector[AbilityDoc] = Vector(
     AbilityDoc(
@@ -157,6 +158,15 @@ object Square extends PlayerClassBuilder {
         entityId,
         time,
         Buff.rageFiller
+      ),
+      PutSimpleBuff(
+        GameAction.Id.zero,
+        time,
+        genBuffId(),
+        entityId,
+        entityId,
+        time,
+        Buff.rageTrickle
       )
     )
 }
