@@ -111,7 +111,7 @@ final class GamesScreen(app: MenuApp, user: User)(using ExecutionContext) extend
 
   render()
   refresh()
-  // Any change on the server is announced on the lobby websocket
+  // Any change on the server is announced by the lobby
   app.attempt(app.api.lobby(None)(_ => refresh()))(opened => lobby = Some(opened))
 
   override def leave(): Unit = {

@@ -12,7 +12,7 @@ everyone, on entering the lobby: downloads the Java runtime of their platform an
                     (GET api/bff/game-server/runtime/version, .../runtime, .../version, .../jar),
                     unless they turned off "Host game servers" in their settings
 creator ── POST start-game ──────────────▶ menu server        game marked as started, credentials created
-everyone ◀── HostCandidacyRequested ─────  (lobby websocket)
+everyone ◀── HostCandidacyRequested ─────  (lobby: poked in UDP, fetched in HTTPS)
 everyone ── POST host-candidacy ─────────▶                    willing, java, ready, processors, round trip
            (everyone answered, or 5 s)                        HostCandidacy.ranking
 everyone ◀── HostElected(host) ──────────
@@ -35,7 +35,8 @@ everyone ◀── HereAreYourCredentials(addresses, rendezvous port)
   server is not ready within 3 minutes), the next candidate takes over. Without any candidate left,
   everyone receives `GameLaunchFailed`, and the game can be launched again.
 * **The game server** takes its configuration from its arguments,
-  `<menu server host> <menu server port> <rendezvous port> <game id> <game secret> [<UDP port>]`, and
+  `<menu server url> <rendezvous port> <game id> <game secret> [<UDP port>]` (the url is the one the
+  players use, e.g. `https://bff.example.com`; the rendezvous is on its host), and
   asks the menu server for the rest. It listens to UDP on a port chosen by the system, its HTTP server
   only on the loopback. It stops by itself when nobody came within 3 minutes, or when everyone left
   for a minute (`Watchdog`).
@@ -84,6 +85,37 @@ The players punch before saying hello because a hello creates a session for the 
 from: saying hello to several addresses would make the game server believe that the player keeps
 reconnecting from another one.
 
+### What protects the datagrams
+
+The secrets of a game (the game's, for its game server, and one per player) come from the menu server
+in HTTPS, and never travel in UDP: they are the keys of HMAC-SHA256 tags (`communication.udp.Hmac`,
+with the JVM's SHA-256 on the servers, LÖVE's in the clients), 16 bytes at the end of the datagrams.
+
+* **The rendezvous**: the registers, and the answers of the menu server, are signed with the secret of
+  who they are about (`Signed`), and the registers are numbered (the time, in milliseconds, or one more
+  than the previous one): one that is not newer than the previous one of the same player (or game
+  server) is ignored, so that a register seen on the way cannot be replayed from elsewhere, to divert
+  the punches there. The punches carry nothing, and are not signed.
+* **The handshake** with the game server (`Envelope`): the player says hello (its name, the game, a
+  nonce), the game server challenges it with a nonce of its own (the tag of the player's address, of
+  their nonce and of the current minute, with a key that only the game server knows: it remembers
+  nothing about who did not prove anything), and the player proves who they are with the tag of both
+  nonces with their secret. A proof is only good for the address it was challenged at, for a minute or
+  two. The game server answers with a tag that only who knows the secret can make: the player knows
+  that it is the game server.
+* **The game**: both sides derive the keys of the session (one per direction) from the secret and the
+  nonces. Every datagram of the game is numbered and tagged: the ones that are not of the session, or
+  that come again (a window of the 64 latest numbers), are dropped.
+* **The lobby** (`communication.udp.Lobby`): the clients subscribe in HTTPS, which gives them a key,
+  with which their hellos (numbered too) and the pokes of the menu server are signed. The messages
+  themselves only travel in HTTPS.
+
+The clients run in Lua, where reading past the end of an array is not checked: they only decode what
+has a fixed layout, or is signed with their key (checked first).
+
+The datagrams are not encrypted: who is on the way sees the game (not the secrets), and can still drop
+datagrams, or send `Rejected` or punches in the name of the game server.
+
 * **Players on the host's local network** reach it at its local address (their NAT is not involved),
   the host itself at the loopback.
 * **Other players** reach it at its public address, once both NATs are open.
@@ -109,8 +141,8 @@ The peers the rendezvous sees on a public address never contact the STUN server.
   would be the fallback.
 * **The STUN server** is a third party (Google's): the peers on the menu server's network depend on
   it, and tell it their address. It is not configurable yet.
-* **Spoofing**: like the rest of the UDP protocol, the addresses of the datagrams are not
-  authenticated (only the credentials in them are checked).
+* **Not encrypted**: the datagrams are authenticated, not encrypted (see above). Encrypting them would
+  need a cipher in Lua (LÖVE has none).
 * **The host leaving** the game does not stop it (the game server outlives its client), but if their
   computer or network goes away, the game is over: there is no migration of the game server.
 * **macOS** is not tested. On Windows, the client's commands (`java -version`, `tar`, the game

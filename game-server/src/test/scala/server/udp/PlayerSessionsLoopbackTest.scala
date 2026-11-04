@@ -2,9 +2,9 @@ package server.udp
 
 import communication.BFFPicklers.*
 import communication.udp.*
-import communication.udp.Envelope.Packet
+import communication.udp.Envelope.{Nonce, Packet}
 import communication.udp.Connection.Delivery
-import models.bff.ingame.{GameUserCredentials, InGameWSProtocol}
+import models.bff.ingame.InGameWSProtocol
 
 import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 
@@ -17,14 +17,16 @@ final class PlayerSessionsLoopbackTest extends munit.FunSuite {
     result
   }
 
-  test("a player says hello, then exchanges messages with the game, and agrees on the time") {
+  test(
+    "a player proves who they are, then exchanges messages with the game, and agrees on the time"
+  ) {
     val serverMessages = new LinkedBlockingQueue[(String, InGameWSProtocol)]()
     val events         = new LinkedBlockingQueue[String]()
     val sessions = new PlayerSessions(
       new JvmUDPSocket,
       new TimersImpl,
-      credentials =>
-        Either.cond(credentials.userSecret == "secret", (), Envelope.RejectReason.Unauthorized),
+      (userName, _) =>
+        Either.cond(userName == "alice", "secret", Envelope.RejectReason.Unauthorized),
       new PlayerSessions.Listener {
         def connected(userName: String): Unit = events.put(s"connected $userName")
         def message(userName: String, message: InGameWSProtocol): Unit =
@@ -36,39 +38,38 @@ final class PlayerSessionsLoopbackTest extends munit.FunSuite {
     // the port was chosen by the system
     val serverPeer = Peer("127.0.0.1", sessions.localPort)
 
-    val packets                                  = new LinkedBlockingQueue[Packet]()
-    val clientSocket                             = new JvmUDPSocket
-    val fromServer                               = new LinkedBlockingQueue[InGameWSProtocol]()
-    var connection: Connection[InGameWSProtocol] = null
+    val packets      = new LinkedBlockingQueue[Packet]()
+    val clientSocket = new JvmUDPSocket
+    val fromServer   = new LinkedBlockingQueue[InGameWSProtocol]()
+    @volatile var connection: Connection[InGameWSProtocol] = null
+    @volatile var keys: Envelope.SessionKeys               = null
     clientSocket.setMessageCallback { (bytes, _) =>
       Envelope.parse(bytes).foreach {
-        case Packet.Data(payload) => connection.onMessage(payload)
+        case data: Packet.Data => keys.open(data).foreach(connection.onMessage)
         case other => packets.put(other)
       }
     }
     clientSocket.bind(0, Some("127.0.0.1"))
-    connection = new Connection[InGameWSProtocol](
-      serverPeer,
-      new Envelope.DataSocket(clientSocket),
-      new TimersImpl,
-      fromServer.put(_)
-    )
+    def send(packet: Packet) =
+      clientSocket.send(Envelope.encode(packet), serverPeer.port, serverPeer.address)
+
+    send(Packet.Hello("alice", "g", Nonce.fresh(() => 1)))
+    val challenge = await(packets).asInstanceOf[Packet.Challenge]
 
     // wrong secret
-    clientSocket.send(
-      Envelope.hello(GameUserCredentials("alice", "g", "nope")),
-      serverPeer.port,
-      serverPeer.address
-    )
+    send(Envelope.proof("alice", "g", challenge, Hmac("nope")))
     assertEquals(await(packets), Packet.Rejected(Envelope.RejectReason.Unauthorized))
 
     // right secret
-    clientSocket.send(
-      Envelope.hello(GameUserCredentials("alice", "g", "secret")),
-      serverPeer.port,
-      serverPeer.address
+    keys = Envelope.SessionKeys(Hmac("secret"), challenge, towardsServer = true)
+    connection = new Connection[InGameWSProtocol](
+      serverPeer,
+      new Envelope.DataSocket(clientSocket, keys),
+      new TimersImpl,
+      fromServer.put(_)
     )
-    assertEquals(await(packets), Packet.Accepted)
+    send(Envelope.proof("alice", "g", challenge, Hmac("secret")))
+    assert(keys.isAccepted(await(packets).asInstanceOf[Packet.Accepted]))
     assertEquals(await(events), "connected alice")
 
     connection.send(InGameWSProtocol.Ready("alice"), Delivery.OrderedReliable)

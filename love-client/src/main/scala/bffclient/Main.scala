@@ -40,13 +40,13 @@ object Main {
     val menuUrl  = Option(Os.getenv("BFF_MENU_URL"))
     menuUrl match {
       case Some(url) if headless =>
-        val (host, port) =
+        val (scheme, host, port) =
           MenuApi.parseAddress(url).fold(message => sys.error(s"BFF_MENU_URL: $message"), identity)
-        val api = new MenuApi(host, port)
+        val api = MenuApi(scheme, host, port)
         val playerClass = PlayerClasses
           .playerClassByName(env("BFF_CLASS", "Triangle"))
           .getOrElse(PlayerClasses.Triangle)
-        val menu = new MenuSession(api, user, playerClass, env("BFF_BOSS", "Boss 101"))
+        val menu = MenuSession(api, user, playerClass, env("BFF_BOSS", "Boss 101"))
         menu.run().onComplete {
           case Success(access) => startGame(access, headless)
           case Failure(error) =>

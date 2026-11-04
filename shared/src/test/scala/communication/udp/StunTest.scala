@@ -1,7 +1,5 @@
 package communication.udp
 
-import models.bff.ingame.GameUserCredentials
-
 final class StunTest extends munit.FunSuite {
 
   private def bytes(hex: String): Array[Byte] =
@@ -43,13 +41,18 @@ final class StunTest extends munit.FunSuite {
   }
 
   test("our other datagrams are not taken for STUN") {
-    val credentials = GameUserCredentials("some user", "game-id", "s3cr3t")
+    val key    = Hmac("s3cr3t")
+    val nonce  = Envelope.Nonce(Array.fill[Byte](Envelope.Nonce.Size)(0))
+    val nonces = Envelope.Packet.Challenge(nonce, nonce)
+    val keys   = Envelope.SessionKeys(key, nonces, towardsServer = true)
     for datagram <- List(
-        Envelope.hello(credentials),
-        Envelope.accepted,
-        Envelope.data(Array.fill[Byte](40)(0)),
-        Rendezvous.encode(Rendezvous.Packet.PlayerRegister(credentials, None)),
-        Rendezvous.encode(Rendezvous.Packet.Punch)
+        Envelope.encode(Envelope.Packet.Hello("some user", "game-id", nonce)),
+        Envelope.encode(nonces),
+        Envelope.encode(keys.accepted),
+        keys.seal(Array.fill[Byte](40)(0)),
+        Rendezvous.encode(Rendezvous.Packet.PlayerRegister("some user", "game-id", 1, None), key),
+        Rendezvous.punch,
+        Lobby.encode(Lobby.Packet.Hello("abc", 1), key)
       )
     do assert(!Stun.isStun(datagram))
   }

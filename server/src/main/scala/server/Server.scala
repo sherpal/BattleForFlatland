@@ -6,7 +6,7 @@ import cask.router.Result
 import zio.*
 import menus.data.User
 import cask.main.Routes
-import communication.udp.JvmUDPSocket
+import communication.udp.{JvmUDPSocket, Lobby}
 
 object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] {
 
@@ -29,12 +29,15 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
   val rendezvousPort: Int =
     Option(java.lang.System.getProperty("rendezvousPort")).fold(port)(_.toInt)
 
-  /** The address that the rendezvous' UDP socket binds to, `host` by default (or the
-    * `rendezvousAddress` property). On fly.io, it must be `fly-global-services`: bound to 0.0.0.0,
-    * Linux replies from the wrong source address, and the NATs of the players drop the replies.
+  /** The address that the rendezvous' UDP socket binds to, all of them in prod, the loopback
+    * otherwise (or the `rendezvousAddress` property). On fly.io, it must be `fly-global-services`:
+    * bound to 0.0.0.0, Linux replies from the wrong source address, and the NATs of the players
+    * drop the replies.
     */
   val rendezvousAddress: String =
-    Option(java.lang.System.getProperty("rendezvousAddress")).filter(_.nonEmpty).getOrElse(host)
+    Option(java.lang.System.getProperty("rendezvousAddress")).filter(_.nonEmpty).getOrElse {
+      if isProd then "0.0.0.0" else "127.0.0.1"
+    }
 
   /** The game server's jar, that the players download to run it, relative to where the server runs
     * (or the `gameServerJar` property).
@@ -58,8 +61,17 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
   val clientPackages: os.Path = Option(java.lang.System.getProperty("clientPackages"))
     .fold(os.pwd / os.RelPath("..") / "love-client" / "target" / "dist")(os.Path(_, os.pwd))
 
+  /** Of the rendezvous and of the lobby, which share it (see `communication.udp.Lobby`). */
+  private val udpSocket = JvmUDPSocket()
+
+  val lobby: LobbyServer = LobbyServer(
+    udpSocket,
+    rendezvousPort,
+    effect => Unsafe.unsafe(implicit unsafe => runtime.unsafe.run(effect).getOrThrow())
+  )
+
   val rendezvous: RendezvousServer = RendezvousServer(
-    JvmUDPSocket(),
+    Lobby.SharedSocket(udpSocket, lobby.received),
     gameId =>
       Unsafe.unsafe { implicit unsafe =>
         runtime.unsafe
@@ -73,7 +85,7 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
     given Runtime[BackendEnv] = runtime
     Vector(
       this,
-      MenuGameRoutes(rendezvousPort),
+      MenuGameRoutes(rendezvousPort, lobby),
       GameLaunchingRoutes(rendezvous, rendezvousPort, gameServerJar, gameServerRuntimes),
       ClientPackageRoutes(clientPackages)
     )
@@ -81,9 +93,16 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
 
   override def port: Int = Option(java.lang.System.getProperty("port")).fold(9000)(_.toInt)
 
-  override def host: String = Option(java.lang.System.getProperty("isProd"))
-    .map(_.toBoolean)
-    .fold("0.0.0.0")(isProd => if isProd then "0.0.0.0" else "127.0.0.1")
+  private def isProd: Boolean =
+    Option(java.lang.System.getProperty("isProd")).forall(_.toBoolean)
+
+  /** Where the HTTP server listens: all the interfaces in prod, the loopback otherwise, or the
+    * `httpAddress` property (the loopback behind a reverse proxy that does the TLS, see deploy.md).
+    */
+  override def host: String =
+    Option(java.lang.System.getProperty("httpAddress")).filter(_.nonEmpty).getOrElse {
+      if isProd then "0.0.0.0" else "127.0.0.1"
+    }
 
   @caskz.getJ[Option[User]]("/api/users/me")
   def me(request: cask.Request) =

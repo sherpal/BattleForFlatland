@@ -2,9 +2,9 @@ package server.udp
 
 import communication.BFFPicklers.*
 import communication.udp.*
-import communication.udp.Envelope.{Packet, RejectReason}
+import communication.udp.Envelope.{Nonce, Packet, RejectReason}
 import communication.udp.Connection.Delivery
-import models.bff.ingame.{GameUserCredentials, InGameWSProtocol}
+import models.bff.ingame.InGameWSProtocol
 import scala.collection.mutable
 
 final class PlayerSessionsTest extends munit.FunSuite {
@@ -78,13 +78,17 @@ final class PlayerSessionsTest extends munit.FunSuite {
       def close(): Unit = ()
     }
 
-    /** The connection a client sets up once it was accepted. */
-    val connection = new Connection[InGameWSProtocol](
+    private var keys = Envelope.SessionKeys(Hmac("a stranger"), strangerNonces, true)
+
+    private def newConnection() = new Connection[InGameWSProtocol](
       network.serverPeer,
-      new Envelope.DataSocket(rawSocket),
+      new Envelope.DataSocket(rawSocket, keys),
       timers,
       messages += _
     )
+
+    /** The connection a client sets up once it was accepted (before: of a stranger). */
+    var connection: Connection[InGameWSProtocol] = newConnection()
 
     /** An offline client does not answer anything, not even the pings. */
     var online = true
@@ -93,18 +97,49 @@ final class PlayerSessionsTest extends munit.FunSuite {
       Envelope.parse(datagram).foreach { packet =>
         packets += packet
         packet match {
-          case Packet.Data(payload) => connection.onMessage(payload)
+          case data: Packet.Data => keys.open(data).foreach(connection.onMessage)
           case _ => ()
         }
       }
 
     def sendRaw(datagram: Array[Byte]): Unit = network.deliverToServer(datagram, peer)
 
-    def hello(userName: String, secret: String, gameId: String = "g"): Unit =
-      sendRaw(Envelope.hello(GameUserCredentials(userName, gameId, secret)))
+    private var nonces = 0
+    var lastProof      = Option.empty[Packet.Proof]
+
+    /** The handshake: hello, and the proof when challenged. Whether it was accepted (by the game
+      * server: it knows the secret).
+      */
+    def hello(userName: String, secret: String, gameId: String = "g"): Boolean = {
+      nonces += 1
+      sendRaw(Envelope.encode(Packet.Hello(userName, gameId, Nonce.fresh(() => nonces))))
+      lastPacket match {
+        case Some(challenge: Packet.Challenge) =>
+          val proof = Envelope.proof(userName, gameId, challenge, Hmac(secret))
+          lastProof = Some(proof)
+          val candidate = Envelope.SessionKeys(Hmac(secret), challenge, towardsServer = true)
+          sendRaw(Envelope.encode(proof))
+          lastPacket match {
+            case Some(accepted: Packet.Accepted) if candidate.isAccepted(accepted) =>
+              keys = candidate
+              connection = newConnection()
+              true
+            case _ => false
+          }
+        case _ => false
+      }
+    }
+
+    /** Sends the last proof again (as when its answer is lost). */
+    def proveAgain(): Unit = lastProof.foreach(proof => sendRaw(Envelope.encode(proof)))
 
     def lastPacket: Option[Packet] = packets.lastOption
+
+    def wasAccepted: Boolean = lastPacket.exists(_.isInstanceOf[Packet.Accepted])
   }
+
+  private val strangerNonces =
+    Packet.Challenge(Nonce(Array.fill[Byte](16)(1)), Nonce(Array.fill[Byte](16)(2)))
 
   private final class Fixture {
     val timers         = new ManualTimers
@@ -118,13 +153,9 @@ final class PlayerSessionsTest extends munit.FunSuite {
     val sessions = new PlayerSessions(
       network.serverSocket,
       timers,
-      credentials =>
+      (userName, gameId) =>
         if !ready then Left(RejectReason.NotReady)
-        else if credentials.gameId == "g" && secrets
-            .get(credentials.userName)
-            .contains(credentials.userSecret)
-        then Right(())
-        else Left(RejectReason.Unauthorized),
+        else secrets.get(userName).filter(_ => gameId == "g").toRight(RejectReason.Unauthorized),
       new PlayerSessions.Listener {
         def connected(userName: String): Unit = events += s"connected $userName"
         def message(userName: String, message: InGameWSProtocol): Unit =
@@ -142,9 +173,9 @@ final class PlayerSessionsTest extends munit.FunSuite {
     val f     = new Fixture
     val alice = f.client("alice-machine", 1000)
 
-    alice.hello("alice", "a-secret")
+    assert(alice.hello("alice", "a-secret"))
 
-    assertEquals(alice.lastPacket, Some(Packet.Accepted))
+    assertEquals(alice.packets.map(_.getClass.getSimpleName).toList, List("Challenge", "Accepted"))
     assertEquals(f.events.toList, List("connected alice"))
     assert(f.sessions.isConnected("alice"))
     assert(!f.sessions.isConnected("bob"))
@@ -154,11 +185,11 @@ final class PlayerSessionsTest extends munit.FunSuite {
     val f   = new Fixture
     val eve = f.client("eve-machine", 1000)
 
-    eve.hello("alice", "wrong secret")
+    assert(!eve.hello("alice", "wrong secret"))
     assertEquals(eve.lastPacket, Some(Packet.Rejected(RejectReason.Unauthorized)))
-    eve.hello("nobody", "a-secret")
+    assert(!eve.hello("nobody", "a-secret"))
     assertEquals(eve.lastPacket, Some(Packet.Rejected(RejectReason.Unauthorized)))
-    eve.hello("alice", "a-secret", gameId = "another game")
+    assert(!eve.hello("alice", "a-secret", gameId = "another game"))
     assertEquals(eve.lastPacket, Some(Packet.Rejected(RejectReason.Unauthorized)))
 
     assertEquals(f.events.toList, Nil)
@@ -170,12 +201,44 @@ final class PlayerSessionsTest extends munit.FunSuite {
     val alice = f.client("alice-machine", 1000)
     f.ready = false
 
-    alice.hello("alice", "a-secret")
+    assert(!alice.hello("alice", "a-secret"))
     assertEquals(alice.lastPacket, Some(Packet.Rejected(RejectReason.NotReady)))
 
     f.ready = true
-    alice.hello("alice", "a-secret")
-    assertEquals(alice.lastPacket, Some(Packet.Accepted))
+    assert(alice.hello("alice", "a-secret"))
+  }
+
+  test("a proof seen on the way is no good from another address") {
+    val f     = new Fixture
+    val alice = f.client("alice-machine", 1000)
+    val eve   = f.client("eve-machine", 1000)
+    assert(alice.hello("alice", "a-secret"))
+
+    alice.lastProof.foreach(proof => eve.sendRaw(Envelope.encode(proof)))
+
+    assertEquals(eve.lastPacket, Some(Packet.Rejected(RejectReason.Unauthorized)))
+    assertEquals(f.events.toList, List("connected alice"))
+  }
+
+  test("a challenge creates nothing") {
+    val f   = new Fixture
+    val eve = f.client("eve-machine", 1000)
+    eve.sendRaw(Envelope.encode(Packet.Hello("alice", "g", Nonce.fresh(() => 3))))
+    assert(eve.lastPacket.exists(_.isInstanceOf[Packet.Challenge]))
+    assertEquals(f.events.toList, Nil)
+    assert(!f.sessions.isConnected("alice"))
+  }
+
+  test("data that is not of the session is dropped") {
+    val f     = new Fixture
+    val alice = f.client("alice-machine", 1000)
+    assert(alice.hello("alice", "a-secret"))
+    val stranger = Envelope.SessionKeys(Hmac("a-secret"), strangerNonces, towardsServer = true)
+
+    alice.sendRaw(stranger.seal(Array[Byte](1, 2, 3)))
+
+    assertEquals(f.serverMessages.toList, Nil)
+    assert(f.sessions.isConnected("alice"))
   }
 
   test("data from someone who did not say hello is rejected, and does not reach the game") {
@@ -198,7 +261,7 @@ final class PlayerSessionsTest extends munit.FunSuite {
 
     eve.sendRaw(Array.emptyByteArray)
     eve.sendRaw(Array[Byte](99, 1, 2, 3))
-    eve.sendRaw(Envelope.accepted) // meant for clients
+    eve.sendRaw(Envelope.encode(Packet.Accepted(Nonce(Array.fill[Byte](16)(0))))) // for clients
 
     assertEquals(eve.packets.toList, Nil)
     assertEquals(f.events.toList, Nil)
@@ -229,15 +292,15 @@ final class PlayerSessionsTest extends munit.FunSuite {
     assertEquals(bob.messages.toList, List(InGameWSProtocol.EveryoneIsReady))
   }
 
-  test("saying hello again changes nothing, except that the answer is sent again") {
+  test("proving again changes nothing, except that the answer is sent again") {
     val f     = new Fixture
     val alice = f.client("alice-machine", 1000)
 
-    alice.hello("alice", "a-secret")
-    alice.hello("alice", "a-secret")
-    alice.hello("alice", "a-secret")
+    assert(alice.hello("alice", "a-secret"))
+    alice.proveAgain()
+    alice.proveAgain()
 
-    assertEquals(alice.packets.toList, List.fill(3)(Packet.Accepted))
+    assertEquals(alice.packets.count(_.isInstanceOf[Packet.Accepted]), 3)
     assertEquals(f.events.toList, List("connected alice"))
 
     alice.connection.sendOrderedReliable(InGameWSProtocol.LetsBegin)
@@ -250,8 +313,7 @@ final class PlayerSessionsTest extends munit.FunSuite {
     val after  = f.client("alice-phone", 3000)
     before.hello("alice", "a-secret")
 
-    after.hello("alice", "a-secret")
-    assertEquals(after.lastPacket, Some(Packet.Accepted))
+    assert(after.hello("alice", "a-secret"))
     assertEquals(f.events.toList, List("connected alice", "lost alice", "connected alice"))
 
     before.connection.sendOrderedReliable(InGameWSProtocol.LetsBegin)
@@ -296,7 +358,7 @@ final class PlayerSessionsTest extends munit.FunSuite {
     assertEquals(f.events.toList, List("connected alice", "lost alice"))
 
     alice.online = true
-    alice.hello("alice", "a-secret")
+    assert(alice.hello("alice", "a-secret"))
     assertEquals(f.events.toList, List("connected alice", "lost alice", "connected alice"))
     alice.connection.sendOrderedReliable(InGameWSProtocol.LetsBegin)
     assertEquals(f.serverMessages.toList, List("alice" -> InGameWSProtocol.LetsBegin))

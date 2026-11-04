@@ -65,8 +65,9 @@ lazy val server = project
   .in(file("./server"))
   .settings(
     libraryDependencies ++= List(
-      "com.lihaoyi" %% "cask"      % "0.9.1",
-      "com.lihaoyi" %% "scalatags" % "0.13.1"
+      "com.lihaoyi"   %% "cask"      % "0.9.1",
+      "com.lihaoyi"   %% "scalatags" % "0.13.1",
+      "org.scalameta" %% "munit"     % "1.0.1" % Test
     ),
     assembly / mainClass := Some("server.Server"),
     assembly / assemblyJarName := "app.jar"
@@ -123,10 +124,12 @@ lazy val `love-client` = project
   .settings(
     LuaSettings(`lua-linker`),
     LuaSettings.luaPackageTitle := "Battle for Flatland",
-    // read by `bffclient.lua.BuildConfig`
-    LuaSettings.luaConfig := Map("menuServer" -> "127.0.0.1"),
-    // the players type the menu server's address (no stable one yet)
-    LuaSettings.luaPackage / LuaSettings.luaConfig := Map.empty,
+    // read by `bffclient.lua.BuildConfig`: in dev, the menu server runs locally, in plain HTTP
+    LuaSettings.luaConfig := Map("menuServer" -> "127.0.0.1", "menuServerScheme" -> "http"),
+    // the packages talk HTTPS (to the menu server behind Caddy, see deploy.md) unless the player
+    // types http://...; the address shown by default is BFF_MENU_SERVER's, if set when packaging
+    LuaSettings.luaPackage / LuaSettings.luaConfig :=
+      Map("menuServerScheme" -> "https") ++ sys.env.get("BFF_MENU_SERVER").map("menuServer" -> _),
     // there is also `bffclient.lua.UdpSelfTest`, linked by tools/love-udp-test.sh
     Compile / mainClass := Some("bffclient.Main"),
     scalaJSUseMainModuleInitializer := true
@@ -148,7 +151,7 @@ packageApplication := {
 }
 
 val deploy = inputKey[Unit](
-  "Build everything and deploy the menu server on a VM (see deploy.md): deploy <user@host> [<platform>] [--key <file>]"
+  "Build everything and deploy the menu server on a VM (see deploy.md): deploy <user@host> [<platform>] [--key <file>] [--site <IP or domain>]"
 )
 
 deploy := {

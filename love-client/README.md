@@ -1,18 +1,23 @@
 # The LÖVE client
 
-The game's client is a [LÖVE](https://love2d.org) (11.5) game written in Scala: the code is compiled
+The game's client is a [LÖVE](https://love2d.org) (12.0, for its HTTPS module) game written in Scala: the code is compiled
 by Scala.js, and its IR is linked to Lua by [`lua-linker`](../lua-linker/README.md) instead of
 JavaScript. It uses the game's `shared` code as it is (game logic, models, codecs), like the former
 browser frontend did, and talks to the same servers.
 
 ```bash
 sbt love-client/luaLink   # writes the program in love-client/target/lua
-sbt love-client/luaRun    # links it and runs it with LÖVE (`love` must be installed)
+sbt love-client/luaRun    # links it and runs it with LÖVE 12 (see below)
 ```
 
+LÖVE 12 has no release yet: `luaRun` runs it with `LOVE` if set, on Linux x64 with LÖVE's AppImage
+of the builds that the packages are made with (see "Playing with friends", which tells how to get
+them), otherwise with the `love` command (which must be LÖVE 12).
+
 To play, the menu server must run (see the main README). On the login screen, type the menu
-server's address (`127.0.0.1` locally, which `luaLink` fills in; `host` or `host:port`, port 9000
-by default).
+server's address (`127.0.0.1` locally, which `luaLink` fills in; `host` or `host:port`, possibly
+with `http://` or `https://`). Without a scheme, it is `http` (port 9000) in dev and `https` (port
+443) in the packages.
 
 ### Dev and prod builds
 
@@ -22,9 +27,10 @@ fastLink and fullLink). In the code, `scala.scalajs.LinkingInfo.productionMode` 
 
 Values set by the build (`LuaSettings.luaConfig` in `build.sbt`, scoped to `luaPackage` for the
 packages) are written to a generated Lua module, `bff_config.lua`, and read through the
-`bffclient.lua.BuildConfig` facade (a value that the build does not set is null). For now, it is the
-menu server's address that the login screen shows by default (`127.0.0.1` in dev, none in the
-packages).
+`bffclient.lua.BuildConfig` facade (a value that the build does not set is null): the menu server's
+address that the login screen shows by default (`127.0.0.1` in dev; in the packages, the
+`BFF_MENU_SERVER` environment variable's when packaging, if set), and the scheme of the addresses
+typed without one (`http` in dev, `https` in the packages).
 
 ## Code organisation
 
@@ -42,30 +48,40 @@ The code (`src/main/scala/bffclient`) is organised by package:
 * `gui` is a retained UI toolkit in the style of World of Warcraft's frames (the menus, the HUD
   and the overlays), and `ui` holds the menus' theme (`Rect`, `Colour`, `Theme`);
 * `love` holds the facades of LÖVE's API (with `LoveInput`), and `lua` those of our own Lua modules
-  (`src/main/lua`: `websocket.lua`, `http.lua`, `udp.lua`, `process.lua`, `images.lua`, and `conf.lua`, LÖVE's configuration).
+  (`src/main/lua`: `http.lua`, `udp.lua`, `process.lua`, `images.lua`, and `conf.lua`, LÖVE's configuration).
 
 The images (`src/main/lua/assets`) come from the former browser frontend; `luaLink` copies them
 next to `main.lua` with the Lua modules. Without an image, the client draws shapes instead.
 
 ## Menus
 
-The menus go through the menu server, over HTTP and the lobby websocket, with the game's own
-request/response types and circe codecs (`MenuApi.scala`). HTTP requests run on LÖVE threads
-(`http.lua`, `http_worker.lua`, LuaSocket), so the game loop never blocks; `HttpClient` returns
-`Future`s. The websocket is a small RFC 6455 client in Lua on top of LuaSocket (bundled with LÖVE),
-`websocket.lua`.
+The menus go through the menu server, in HTTPS (or HTTP locally), with the game's own
+request/response types and circe codecs (`MenuApi.scala`). Requests run on LÖVE threads
+(`http.lua`, `http_worker.lua`), so the game loop never blocks; `HttpClient` returns `Future`s. They
+are made with LÖVE 12's HTTPS module (lua-https, which does TLS with the system's libraries and checks
+the certificates against the system's, so a self-signed certificate does not work), or with LuaSocket
+in LÖVE 11 (HTTP only). lua-https gives nothing before the end of a response: downloads are made of
+4 MB pieces (asked with `Range`), after each of which their progress is told.
+
+What happens on the menu server comes through the lobby (`menu/Lobby.scala`, see
+`communication.udp.Lobby`): the client subscribes in HTTPS, which gives it a key, says hello in UDP to
+the menu server every 5 seconds (signed with that key), which pokes it when there are new messages (and
+answers its hellos the same way). The pokes of half a second make one HTTPS request for the messages,
+which are given to the screens in order. When the menu server forgets the subscription (it restarted)
+or stops poking, the client subscribes again. The menu server deems the players of a game's lobby gone
+when they stop saying hello, and kicks them a while later.
 
 The screens (package `menu`, one file per screen) are:
 
 * **login**: type the menu server's address and choose a pseudo (validated with
   `LoginUser.validator`);
-* **games**: the games that did not start, refreshed live from the lobby websocket; create one, or
+* **games**: the games that did not start, refreshed live from the lobby; create one, or
   join one (or join back the one you are in);
 * **game lobby**: the players with their class, colour and readiness; choose your class and colour,
   get ready; the creator chooses the boss, kicks players, adds AIs and launches the game once
   `GameConfiguration.validate` has nothing to say. One of the players' clients then runs the game
-  server (see "Hosting the game server" below), its addresses and our credentials arrive on the
-  lobby websocket, and the game starts. The panel on the right (`DocsPanel`) documents the boss and
+  server (see "Hosting the game server" below), its addresses and our credentials arrive from the
+  lobby, and the game starts. The panel on the right (`DocsPanel`) documents the boss and
   the classes (life, resource, description, and each ability with its icon, cast time, cooldown and
   cost); it scrolls with the mouse wheel.
 
@@ -142,7 +158,10 @@ system when it first sends. Sending to a host name resolves it first, which bloc
 The game is played over UDP (`game/GameLink.scala`): the client punches every address of the game
 server it was given, and registers at the menu server's rendezvous meanwhile, so that the game server
 punches back through its NAT (`Rendezvous`, see [game-hosting.md](../game-hosting.md)). It says hello
-to the first address that answers, with its credentials, until the server answers (`Envelope`), then synchronizes its
+to the first address that answers, and proves who it is when challenged, without its secret ever
+travelling (`Envelope`), until the server accepts it, which proves that it is the game server. The
+datagrams of the game are then numbered and tagged with the keys of the session, the others are
+dropped. Then it synchronizes its
 clock with the server's (`Connection.computeLinkTime`), and only then starts the game, whose messages
 all go through a `Connection`: the ones that have to arrive do (`OrderedReliable`: the handshake, the
 actions the server sends, our casts), our position is sent as often as before but is allowed to get
@@ -279,7 +298,7 @@ frames (see its `main.lua`).
 
 ## Playing with friends
 
-`sbt love-client/luaPackage` packages the client with LÖVE's own release builds, so that players do
+`sbt love-client/luaPackage` packages the client with LÖVE's own builds, so that players do
 not need to install LÖVE (see [Game Distribution](https://love2d.org/wiki/Game_Distribution)). It
 links the client in prod mode (in `love-client/target/lua-package`), zips it into `love-client/target/dist/BattleForFlatland.love`, and writes next to
 it:
@@ -291,9 +310,14 @@ it:
 * `BattleForFlatland-linux.tar.gz`: LÖVE's AppImage, the game, and a `BattleForFlatland` launcher
   (which runs the AppImage without FUSE, often not installed nowadays).
 
-LÖVE's builds (11.5) are downloaded once into `target/love-11.5`, and their archives are copied
-entry by entry (`project/LovePackage.scala`, with commons-compress), keeping the Unix modes and the
-symbolic links of the macOS app.
+LÖVE 12 has no release yet: its builds are the artifacts of a run of LÖVE's continuous integration,
+pinned in `project/LovePackage.scala` (`Build`). GitHub only gives them with a token: set
+`GITHUB_TOKEN` (or `GH_TOKEN`) to a token of your GitHub account (LÖVE's repository is public, so any
+token works, e.g. a fine-grained one with no permission), or download them from the page of the run
+(`love-windows-x64.zip`, `love-macos.zip`, `love-linux-X64.AppImage.zip`) into `target/love-12.0`.
+They are downloaded once, but GitHub keeps them for 90 days only: after that, take a newer run (its
+id, and the ids of its artifacts, see `Build`). Their archives are copied entry by entry (with
+commons-compress), keeping the Unix modes and the symbolic links of the macOS app.
 
 What the client prints (and its uncaught errors) also goes to `client.log` in LÖVE's save directory
 (`src/main/lua/console_log.lua`), started anew at each launch: on Windows, a LÖVE game has no console.
@@ -310,10 +334,12 @@ xattr -cr "Battle for Flatland.app"
 codesign --force --deep --sign - "Battle for Flatland.app"
 ```
 
-To host the menu server, run it as usual (`server/reStart` listens on all interfaces; not with
-`-DisProd=false`, which only listens on 127.0.0.1), and forward the port **9000**, in **TCP** (menu
-server) and in **UDP** (rendezvous), of the router to that machine (and open them in its firewall, if
-any). Players then type the router's public address on the login screen, e.g. `81.12.34.56`. When the
+The packages talk HTTPS to the menu server: on a VM, it runs behind Caddy, which does the TLS (see
+[deploy.md](../deploy.md)). To host it at home without TLS, run it as usual (`server/reStart` listens
+on all interfaces; not with `-DisProd=false`, which only listens on 127.0.0.1), and forward the port
+**9000**, in **TCP** (menu server) and in **UDP** (rendezvous and lobby), of the router to that machine
+(and open them in its firewall, if any). Players then type `http://` and the router's public address
+on the login screen, e.g. `http://81.12.34.56` (without `http://`, the packages try HTTPS). When the
 address changes, they type the new one (or use a dynamic DNS name: host names work too). There are no
 passwords: anyone with the address can log in, with any pseudo.
 
@@ -331,4 +357,7 @@ through UDP hole punching (see [game-hosting.md](../game-hosting.md)). The host'
 whether to let `java` receive connections (it must). The menu server can run on the computer of one
 of the players: their client and game server then find out their public address with a STUN server.
 
-The connections are plain HTTP, websockets and UDP (LuaSocket has no TLS).
+Behind Caddy, the menus are in HTTPS (which is also what protects the downloads of the game server and
+of the Java runtime, that the players run, and the secrets of the games). The datagrams of UDP are not
+encrypted, but authenticated (see [game-hosting.md](../game-hosting.md)): the secrets never travel
+there.

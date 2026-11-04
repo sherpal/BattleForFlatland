@@ -147,9 +147,31 @@ object UdpSelfTest {
     socket
   }
 
+  /** LÖVE's SHA-256 (see [[Sha256]]) is the standard one: RFC 4231's test case 2, and one bigger
+    * than a block, against the portable implementation.
+    */
+  private def hmacIsStandard(): Future[Unit] = {
+    println("HMAC-SHA256 (with LÖVE's SHA-256) is the standard one")
+    def hex(bytes: Array[Byte]) = bytes.map(b => f"${b & 0xff}%02x").mkString
+    check(
+      hex(Hmac("Jefe")(Hmac.utf8("what do ya want for nothing?"))) ==
+        "5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843",
+      "RFC 4231, test case 2"
+    )
+    val big = Array.tabulate[Byte](1000)(i => (i * 31).toByte)
+    check(hex(Sha256.digest(big)) == hex(PortableSha256.digest(big)), "same as the portable one")
+    Future.unit
+  }
+
   private def connectionsWork(): Future[Unit] = {
     println("Connections work on top of it, through the envelope, with the real timers")
     import Msg.given
+    val nonces = Envelope.Packet.Challenge(
+      Envelope.Nonce.fresh(() => 1),
+      Envelope.Nonce(Array.fill[Byte](Envelope.Nonce.Size)(2))
+    )
+    val clientKeys     = Envelope.SessionKeys(Hmac("s3cr3t"), nonces, towardsServer = true)
+    val serverKeys     = Envelope.SessionKeys(Hmac("s3cr3t"), nonces, towardsServer = false)
     val clientSocket   = listening()
     val serverSocket   = listening()
     val timers         = new TimersImpl
@@ -160,25 +182,25 @@ object UdpSelfTest {
 
     val client = new Connection[Msg](
       serverSocket.peer,
-      new Envelope.DataSocket(clientSocket),
+      new Envelope.DataSocket(clientSocket, clientKeys),
       timers,
       m => { clientReceived += m; clientGot.trySuccess(()); () }
     )
     val server = new Connection[Msg](
       clientSocket.peer,
-      new Envelope.DataSocket(serverSocket),
+      new Envelope.DataSocket(serverSocket, serverKeys),
       timers,
       m => { received += m; if received.size == 3 then serverGot.trySuccess(()); () }
     )
-    def route(socket: LuaUDPSocket, connection: Connection[Msg]): Unit =
+    def route(socket: LuaUDPSocket, connection: Connection[Msg], keys: Envelope.SessionKeys): Unit =
       socket.setMessageCallback { (bytes, _) =>
         Envelope.parse(bytes).foreach {
-          case Envelope.Packet.Data(payload) => connection.onMessage(payload)
+          case data: Envelope.Packet.Data => keys.open(data).foreach(connection.onMessage)
           case _ => ()
         }
       }
-    route(clientSocket, client)
-    route(serverSocket, server)
+    route(clientSocket, client, clientKeys)
+    route(serverSocket, server, serverKeys)
     client.connect()
     server.connect()
 
@@ -215,6 +237,7 @@ object UdpSelfTest {
       () => badDestinationDoesNotThrow(),
       () => closing(),
       () => bindingTwiceFails(),
+      () => hmacIsStandard(),
       () => connectionsWork()
     )
     steps

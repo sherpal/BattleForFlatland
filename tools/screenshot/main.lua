@@ -44,6 +44,9 @@ for event in (arg[4] or ""):gmatch("[^,]+") do
   else error("Unknown event " .. event) end
 end
 
+-- (before conf.lua, which may require the game's modules)
+package.path = gameDir .. "/?.lua;" .. package.path
+
 local conf = loadfile(gameDir .. "/conf.lua")
 if conf then
   conf()
@@ -53,7 +56,6 @@ if conf then
   love.conf = nil
 end
 
-package.path = gameDir .. "/?.lua;" .. package.path
 dofile(gameDir .. "/main.lua")
 
 local frame = 0

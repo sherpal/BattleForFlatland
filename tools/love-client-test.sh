@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Plays a game through the menu server, like a player: the LÖVE client logs in, creates a game, gets ready, starts it, is chosen to run the
 # game server (it downloads it from the menu server, into LÖVE's save directory, and runs it), receives the game server credentials on the
-# lobby websocket, then plays. Headless by default (with scripted menus).
+# lobby (UDP pokes, HTTP fetches), then plays. Headless by default (with scripted menus).
 #   --window                    plays in a window, with the menus' UI
 #   --screenshot FRAMES EVENTS  runs the window through tools/screenshot (see there), e.g.
 #                               --screenshot 30,90 "text@10:alice,return@20"
@@ -17,6 +17,9 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
+# LÖVE 12: LOVE, or the AppImage that `sbt love-client/luaRun` (or luaPackage) downloads, or `love`
+LOVE="${LOVE:-$(ls "$HERE"/target/love-12.0/love.AppImage 2>/dev/null || echo love)}"
+export APPIMAGE_EXTRACT_AND_RUN=1
 # The menu server needs port 9000 (TCP, and UDP for the rendezvous). If it is taken (e.g. by a server
 # started by hand), stop before doing anything: we would talk to that server, and stop its game servers.
 if ss -ltn | grep -qE ':9000\b' || ss -lun | grep -qE ':9000\b'; then
@@ -57,12 +60,12 @@ done
 curl -s -o /dev/null http://127.0.0.1:9000/api/users/me || { tail "$WORK/menu-server.log"; exit 1; }
 
 export BFF_MENU_URL=http://127.0.0.1:9000 BFF_USER="${BFF_USER:-alice}" BFF_CLASS="${BFF_CLASS:-Triangle}"
-client=(love "$HERE/love-client/target/lua")
+client=("$LOVE" "$HERE/love-client/target/lua")
 [[ -z "${BFF_CLIENT:-}" ]] || client=("$BFF_CLIENT")
 if [[ "${1:-}" == "--window" ]]; then
   "${client[@]}"
 elif [[ "${1:-}" == "--screenshot" ]]; then
-  timeout 180 love "$HERE/tools/screenshot" "$HERE/love-client/target/lua" "$2" "${3:-}"
+  timeout 180 "$LOVE" "$HERE/tools/screenshot" "$HERE/love-client/target/lua" "$2" "${3:-}"
 else
   BFF_HEADLESS=1 timeout 120 "${client[@]}"
 fi

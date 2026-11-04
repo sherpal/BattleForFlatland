@@ -7,16 +7,19 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 
 import bffclient.lua.LuaUDPSocket
 import communication.BFFPicklers.*
-import communication.udp.{Connection, Envelope, Peer, Rendezvous, Stun, TimersImpl, UDPSocket}
+import scala.util.Random
+
+import communication.udp.{Connection, Envelope, Hmac, Peer, Rendezvous, Stun, TimersImpl, UDPSocket}
 import communication.udp.Connection.Delivery
-import models.bff.ingame.{GameUserCredentials, InGameWSProtocol}
+import models.bff.ingame.InGameWSProtocol
 
 /** The connection to a game server, through UDP (see `communication.udp`).
   *
   * It is opened by [[GameLink.open]]: we punch all the addresses of the game server, and register
   * at the rendezvous meanwhile, so that it can open its NAT to us (see [[Rendezvous]]), with our
   * public address if it sees us on a private network (see [[Stun]]). The first of its addresses
-  * that answers is the one we say hello to (until it answers) with our credentials. Then we
+  * that answers is the one we say hello to, and prove who we are to (with our secret, which never
+  * travels, see [[Envelope]]), until it accepts us, proving that it is the game server. Then we
   * synchronize our clock with its clock. Then messages can be sent, and the ones received are
   * collected until they are [[poll]]ed, so none is lost while the game is being set up. The
   * connection is deemed lost (see [[isOpen]]) when the server does not talk for a while.
@@ -47,7 +50,14 @@ final class GameLink private (access: GameAccess, lag: Double, lossPercent: Int)
 
   socket.setMessageCallback(receive)
 
-  private val credentials = GameUserCredentials(access.userName, access.gameId, access.secret)
+  private val secret      = Hmac(access.secret)
+  private val counter     = Rendezvous.Counter()
+  private val clientNonce = Envelope.Nonce.fresh(() => Random.nextInt())
+
+  /** Once the game server challenged our hello: what we prove ourselves with, and the keys of the
+    * session.
+    */
+  private var proof = Option.empty[(Envelope.Packet.Proof, Envelope.SessionKeys)]
 
   /** Whether a datagram from `from` comes from `address`. We can only tell for sure when it was
     * given as an IP address (the port is checked in any case).
@@ -55,27 +65,30 @@ final class GameLink private (access: GameAccess, lag: Double, lossPercent: Int)
   private def isFrom(address: Peer, from: Peer): Boolean =
     from.port == address.port && (!isIpAddress(address.address) || from.address == address.address)
 
-  /** The connection with the game server, if `from` is its address (created when it first answers
-    * our hello, with Accepted, or Data, the datagrams being what they are).
+  /** The connection with the game server, if `from` is its address and it accepted our proof
+    * (created when it first answers it, with Accepted, or Data, the datagrams being what they are).
     */
-  private def connectionWith(from: Peer): Option[Connection[InGameWSProtocol]] =
-    server.filter(isFrom(_, from)).map { server =>
-      connection.getOrElse {
-        val created = Connection[InGameWSProtocol](
-          server,
-          Envelope.DataSocket(socket),
-          timers,
-          inbox.enqueue(_),
-          () => println("The game server stopped talking.")
-        )
-        connection = Some(created)
-        created
-      }
-    }
+  private def connectionWith(
+      from: Peer
+  ): Option[(Connection[InGameWSProtocol], Envelope.SessionKeys)] =
+    for
+      server    <- server.filter(isFrom(_, from))
+      (_, keys) <- proof
+    yield connection.getOrElse {
+      val created = Connection[InGameWSProtocol](
+        server,
+        Envelope.DataSocket(socket, keys),
+        timers,
+        inbox.enqueue(_),
+        () => println("The game server stopped talking.")
+      )
+      connection = Some(created)
+      created
+    } -> keys
 
   private def receive(datagram: Array[Byte], from: Peer): Unit =
     if Rendezvous.isRendezvous(datagram) then
-      Rendezvous.parse(datagram).foreach {
+      Rendezvous.parseSignedWith(datagram, secret).foreach {
         case Rendezvous.Packet.Registered(seenAs, publicAddress)
             if access.rendezvous.exists(isFrom(_, from)) && !registered =>
           registered = stun.answered(seenAs, publicAddress)
@@ -94,28 +107,57 @@ final class GameLink private (access: GameAccess, lag: Double, lossPercent: Int)
     else if Stun.isStun(datagram) then stun.received(datagram)
     else
       Envelope.parse(datagram).foreach {
-        case Envelope.Packet.Data(payload) => connectionWith(from).foreach(_.onMessage(payload))
-        case Envelope.Packet.Accepted =>
-          if connectionWith(from).isDefined then accepted.trySuccess(())
+        case data: Envelope.Packet.Data =>
+          for
+            (_, keys) <- proof if server.exists(isFrom(_, from))
+            payload   <- keys.open(data)
+            (link, _) <- connectionWith(from)
+          do link.onMessage(payload)
+        case Envelope.Packet.Challenge(nonce, serverNonce)
+            if nonce == clientNonce && proof.isEmpty && server.exists(isFrom(_, from)) =>
+          val nonces = Envelope.Packet.Challenge(nonce, serverNonce)
+          proof = Some(
+            Envelope.proof(access.userName, access.gameId, nonces, secret) ->
+              Envelope.SessionKeys(secret, nonces, towardsServer = true)
+          )
+          sendHello()
+        case packet: Envelope.Packet.Accepted =>
+          if proof.exists(_._2.isAccepted(packet)) && connectionWith(from).isDefined then
+            accepted.trySuccess(())
         case Envelope.Packet.Rejected(reason) =>
           if server.exists(isFrom(_, from)) then
             if accepted.isCompleted then forgotten = true
             else accepted.tryFailure(new IOException(rejection(reason)))
-        case Envelope.Packet.Hello(_) => ()
+        case _ => ()
       }
 
-  private val hello = Envelope.hello(credentials)
-  private val punch = Rendezvous.encode(Rendezvous.Packet.Punch)
+  private val hello = Envelope.encode(
+    Envelope.Packet.Hello(access.userName, access.gameId, clientNonce)
+  )
 
-  /** Punches every address of the game server until one answers, then says hello to that one. */
+  /** Punches every address of the game server until one answers, then says hello to that one, and
+    * proves who we are once challenged.
+    */
   private def sendHello(): Unit = server match {
-    case Some(server) => socket.send(hello, server.port, server.address)
+    case Some(server) =>
+      val datagram = proof.fold(hello)((proof, _) => Envelope.encode(proof))
+      socket.send(datagram, server.port, server.address)
     case None =>
-      access.addresses.foreach(address => socket.send(punch, address.port, address.address))
+      access.addresses.foreach(address =>
+        socket.send(Rendezvous.punch, address.port, address.address)
+      )
       if !registered then
         access.rendezvous.foreach(rendezvous =>
           socket.send(
-            Rendezvous.encode(Rendezvous.Packet.PlayerRegister(credentials, stun.address)),
+            Rendezvous.encode(
+              Rendezvous.Packet.PlayerRegister(
+                access.userName,
+                access.gameId,
+                counter.next(),
+                stun.address
+              ),
+              secret
+            ),
             rendezvous.port,
             rendezvous.address
           )

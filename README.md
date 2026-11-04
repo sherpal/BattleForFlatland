@@ -40,7 +40,7 @@ Or perhaps contribute?
 That's great!
 We'll walk you through the steps to make it happen.
 
-In order to proceed, make sure you have sbt and [LÖVE](https://love2d.org) (11.5, for the `love` command) installed on your machine.
+In order to proceed, make sure you have sbt installed on your machine, and [LÖVE](https://love2d.org) 12 (in development, see [the client's README](love-client/README.md): on Linux, sbt gets it for you).
 
 The game's client is a LÖVE game written in Scala, in the `love-client` sub-project (see [its README](love-client/README.md)), compiled to Lua by the `lua-linker` sub-project (see [its README](lua-linker/README.md)).
 
@@ -77,7 +77,7 @@ Run it again when the jar's dependencies change (they may need other modules of 
 
 There are two programs that must be ran in dev mode:
 
-- `server/reStart` in `sbt`: runs the backend (port 9000, TCP for HTTP and UDP for the rendezvous) (If you want to play with other people, you should use `sbt "server/reStart -DisProd=true"` instead).
+- `server/reStart` in `sbt`: runs the backend (port 9000, TCP for HTTP and UDP for the rendezvous and the lobby) (If you want to play with other people, you should use `sbt "server/reStart -DisProd=true"` instead). It is plain HTTP: in production, it runs behind Caddy, which does HTTPS (see [deploy.md](deploy.md)).
 - `sbt love-client/luaRun`: runs the client, in which you log in by typing the address of the backend (`127.0.0.1` locally).
 
 ### Playing with friends

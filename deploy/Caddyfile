@@ -1,0 +1,21 @@
+# The TLS in front of the menu server (see deploy.md): Caddy gets the certificate from Let's Encrypt,
+# renews it, and passes the requests to the menu server, which only listens on the loopback.
+#
+# BFF_SITE is the VM's public IP address, or a domain name that points to it.
+{
+	# The clients do not say which name they want (SNI) when they connect to an IP address, and Caddy
+	# would then look for a certificate of the address they reached, which on Oracle's VMs is a private
+	# one (the public address is translated to it). (Only kept when the site has a tls directive.)
+	default_sni {$BFF_SITE}
+}
+
+{$BFF_SITE} {
+	tls {
+		# Let's Encrypt only gives certificates for IP addresses with this profile (they last six
+		# days, Caddy renews them in time). It works for domain names too.
+		issuer acme {
+			profile shortlived
+		}
+	}
+	reverse_proxy 127.0.0.1:{$BFF_HTTP_PORT:9000}
+}

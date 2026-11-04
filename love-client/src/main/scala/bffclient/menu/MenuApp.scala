@@ -63,7 +63,8 @@ final class MenuApp(val server: Option[String], startGame: (GameAccess, GameExit
     if Timer.getTime() > notificationUntil then notification.hide()
   )
 
-  /** The settings, over the current screen (which stays open, e.g. the lobby and its websocket). */
+  /** The settings, over the current screen (which stays open, e.g. the lobby and its subscription).
+    */
   private var settingsEditor = Option.empty[SettingsEditor]
 
   def showSettings(): Unit = if settingsEditor.isEmpty then
@@ -112,13 +113,12 @@ final class MenuApp(val server: Option[String], startGame: (GameAccess, GameExit
     preferences.save()
   }
 
-  /** The lobby websocket stays open during the game: the menu server kicks the players who leave
-    * it.
+  /** The lobby stays subscribed during the game: the menu server kicks the players who are not.
     */
   def gameStarts(access: GameAccess, user: User, lobby: Option[Lobby]): Unit = {
     settingsEditor.foreach(_.frame.remove())
     settingsEditor = None
-    // the lobby's screen leaves its websocket open, now that the game started
+    // the lobby's screen leaves it subscribed, now that the game started
     show(LoadingScreen(this, "Connecting to the game server"))
     startGame(access, exit => backToMenus(user, access.gameId, lobby, exit))
   }

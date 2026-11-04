@@ -26,7 +26,7 @@ final class LoginScreen(app: MenuApp)(using ExecutionContext) extends Screen {
   private val server = EditBox(
     box,
     app.server.orElse(app.preferences.server).orElse(Option(BuildConfig.menuServer)).getOrElse(""),
-    s"e.g. 81.12.34.56:${MenuApi.defaultPort}",
+    "e.g. bff.example.com, or http://81.12.34.56:9000",
     maxLetters = 64
   )
   server.setSize(380, 38)
@@ -80,15 +80,15 @@ final class LoginScreen(app: MenuApp)(using ExecutionContext) extends Screen {
     (MenuApi.parseAddress(server.text), nameErrors) match {
       case (Left(message), _) => error.setText(s"Server: $message")
       case (_, Some(errors)) => error.setText(s"Pseudo: ${errors.map(_.repr).mkString(", ")}")
-      case (Right((host, port)), None) =>
+      case (Right((scheme, host, port)), None) =>
         setBusy(true)
         error.setText("")
-        val api = new MenuApi(host, port)
+        val api = MenuApi(scheme, host, port)
         api.login(pseudo).onComplete {
           case Success(user) =>
             app.useServer(api)
             app.updatePreferences(_.copy(server = Some(api.address), userName = user.name))
-            app.show(new GamesScreen(app, user))
+            app.show(GamesScreen(app, user))
           case Failure(failure) =>
             setBusy(false)
             name.setFocus()

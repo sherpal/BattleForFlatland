@@ -26,6 +26,8 @@ EXPOSE 9000/tcp 9000/udp
 
 # -DisProd=true makes the servers listen on all the interfaces (0.0.0.0) instead of the loopback only,
 # without which nothing outside of the container can reach them.
+# HTTP_ADDRESS, when set, is the address that the HTTP server listens on instead: 127.0.0.1 behind
+# Caddy, which does the TLS (see deploy.md), so that the menu server is only reached in HTTPS.
 # RENDEZVOUS_ADDRESS, when set, is the address that the rendezvous' UDP socket binds to (all the
 # interfaces otherwise): on fly.io, `fly-global-services` (see fly.toml). It does not resolve elsewhere.
 # The server's data (target/db) is relative to the working directory: it does not outlive the container.
@@ -33,6 +35,7 @@ CMD exec java \
     -XX:MaxRAMPercentage=75 \
     -DisProd=true \
     -Dport="$PORT" \
+    ${HTTP_ADDRESS:+-DhttpAddress="$HTTP_ADDRESS"} \
     -DrendezvousPort="${RENDEZVOUS_PORT:-$PORT}" \
     ${RENDEZVOUS_ADDRESS:+-DrendezvousAddress="$RENDEZVOUS_ADDRESS"} \
     -DgameServerJar=/app/game-server.jar \
