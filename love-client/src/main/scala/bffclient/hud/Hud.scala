@@ -19,8 +19,9 @@ import gamelogic.entities.classes.PlayerClass
   * which are the window's once scaled): the frames of the team on the left
   * (`PlayerFrameContainer`), our frame, our target's and our cast bar above the action bar
   * (`PlayerFrame`, `TargetFrame`, `PlayerCastBar`), the boss's frame on top (`BossFrame`), the
-  * cooldowns of the boss's abilities on the top right (`BossCooldownsContainer`) and the threat
-  * meter on the bottom right (`BossThreadMeter`), in the [[HudStyle]].
+  * cooldowns of the boss's abilities on the top right (`BossCooldownsContainer`), the threat meter
+  * on the bottom right (`BossThreadMeter`) and above it the damage meter (`DamageMeter`), in the
+  * [[HudStyle]].
   *
   * Like in the frontend, clicking the frame of a player or of the boss targets it. The frames show
   * the game state of the frame being drawn (the `painter`'s), in the `OnUpdate` of the HUD's frame.
@@ -52,6 +53,7 @@ final class Hud(
 
   private val cooldowns = BossCooldowns(root)
   private val threat    = ThreatMeter(root)
+  private val damage    = DamageMeter(root, threat.frame)
 
   /** What we cast, in the colour of the ability, above our frame and our target's (the frontend's
     * `PlayerCastBar`), with the time remaining.
@@ -149,6 +151,7 @@ final class Hud(
     boss.update(p)
     cooldowns.update(p)
     threat.update(p)
+    damage.update(p, client.damageTracker, client.currentTarget)
     actionBar.update(p)
 
     val casting = for
