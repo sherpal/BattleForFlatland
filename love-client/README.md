@@ -111,7 +111,8 @@ Warcraft's (and the author's former [scalajs-ui](https://github.com/sherpal/scal
   widgets are frames: `Button`, `EditBox` (a text field with keyboard focus, a caret and a
   selection: arrows, Home and End, with Ctrl or Alt by word and with Shift to select; Ctrl or Cmd +
   A, C, X and V for the clipboard; clicks, drags, double and triple clicks), `CheckButton`, `Swatch` (a colour square), `Selector` (`< value >`), `Segmented` (side by side
-  buttons), `StatusBar` (a progress bar) and `ScrollFrame` (with a scroll child, scrolled with the
+  buttons), `Slider` (a value from a minimum to a maximum by a step, dragged or with the mouse
+  wheel), `StatusBar` (a progress bar) and `ScrollFrame` (with a scroll child, scrolled with the
   mouse wheel, which may fit its contents); `Templates` makes frames in the theme's style (a panel,
   a "Loading..." text).
 * Regions are placed with **anchors**: `button.setPoint(Point.TopLeft, box, Point.BottomLeft, 0,
@@ -134,7 +135,7 @@ Warcraft's (and the author's former [scalajs-ui](https://github.com/sherpal/scal
   the wheel enabled, the keys to the focused edit box, otherwise to the topmost frames with the
   keyboard enabled (`OnKeyDown`). A frame can take only some of the mouse buttons
   (`registerForClicks(1)`, like WoW's `RegisterForClicks`): the others go to what is under it.
-  `OnShow`, `OnHide` and `OnUpdate` (every frame, while visible) complete them. `Selector` and `Segmented` have their own `OnValueChanged`, typed by their options
+  `OnShow`, `OnHide` and `OnUpdate` (every frame, while visible) complete them. `Selector`, `Segmented` and `Slider` have their own `OnValueChanged`, typed by their values
   (`selector.setScript(selector.OnValueChanged)(...)`).
 * A frame can have a **scale** (`setScale`, like WoW's `SetScale`), which its descendants inherit:
   its sizes and offsets are in its own units, so a frame with scale 1.5 anchored to the edges of the
