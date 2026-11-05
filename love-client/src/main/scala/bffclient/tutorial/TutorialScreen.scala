@@ -6,34 +6,34 @@ import bffclient.gui.*
 import bffclient.menu.{MenuApp, Screen}
 import bffclient.ui.{Colour, Theme}
 import menus.data.User
+import services.i18n.I18n
 
 /** The tutorial's entry: a panel per [[Topic]] (how the game works, then each class), each one
   * opening its page.
   */
 final class TutorialScreen(app: MenuApp, user: User)(using ExecutionContext) extends Screen {
+  private val i18n = app.i18n
+
   if !app.preferences.tutorialVisited then app.updatePreferences(_.copy(tutorialVisited = true))
 
   private val root = Frame(app.gui.root)
   root.setAllPoints()
 
-  root.createFontString("Learn to play", Theme.title).setPoint(Point.TopLeft, 40, 30)
-  private val intro = root.createFontString(
-    "Battle for Flatland in a few minutes: how the game works, then each class, with a practice " ++
-      "fight against Boss 101 alongside bots.",
-    colour = Theme.muted
-  )
+  root.createFontString(i18n.learnToPlay, Theme.title).setPoint(Point.TopLeft, 40, 30)
+  private val intro = root.createFontString(i18n.tutorialIntro, colour = Theme.muted)
   intro.setWordWrap(true)
   intro.setPoint(Point.TopLeft, 40, 80)
   intro.setPoint(Point.TopRight, -40, 80)
 
+  // under the intro, which may take two lines
   private val row = Frame(root)
-  row.setPoint(Point.TopLeft, 40, 130)
-  row.setPoint(Point.TopRight, -40, 130)
+  row.setPoint(Point.TopLeft, intro, Point.BottomLeft, 0, 28)
+  row.setPoint(Point.TopRight, intro, Point.BottomRight, 0, 28)
   row.setHeight(340)
 
   private val count = Topic.values.length
   for topic <- Topic.values do {
-    val card = TopicCard(row, topic, () => app.show(TopicScreen(app, user, topic)))
+    val card = TopicCard(row, topic, i18n, () => app.show(TopicScreen(app, user, topic)))
     val i    = topic.ordinal
     card.frame.setPoint(
       Point.TopLeft,
@@ -51,13 +51,10 @@ final class TutorialScreen(app: MenuApp, user: User)(using ExecutionContext) ext
     )
   }
 
-  private val hint = root.createFontString(
-    "New here? Start with the overview, then read about the class you'd like to play.",
-    colour = Theme.muted
-  )
+  private val hint = root.createFontString(i18n.tutorialHint, colour = Theme.muted)
   hint.setPoint(Point.TopLeft, row, Point.BottomLeft, 0, 24)
 
-  private val back = Button(root, "Back to the games")
+  private val back = Button(root, i18n.backToTheGames)
   back.setSize(200, 44)
   back.setPoint(Point.BottomLeft, 40, -26)
   back.setScript(Script.OnClick)(_ => app.show(app.home(user)))
@@ -68,7 +65,7 @@ final class TutorialScreen(app: MenuApp, user: User)(using ExecutionContext) ext
 /** A panel of the tutorial's entry: its picture, title, role and summary, lit when hovered, which
   * calls `open` when clicked.
   */
-private final class TopicCard(parent: Frame, topic: Topic, open: () => Unit) {
+private final class TopicCard(parent: Frame, topic: Topic, i18n: I18n, open: () => Unit) {
   val frame: Frame = Frame(parent)
   frame.setBackdrop(Backdrop(Theme.panel, Some(Theme.border), 8))
   frame.enableMouse(true)
@@ -117,7 +114,7 @@ private final class TopicCard(parent: Frame, topic: Topic, open: () => Unit) {
     fontString.setPoint(Point.TopRight, above, Point.BottomRight, -inset, gap)
     fontString
   }
-  private val title = line(topic.title, Theme.large, Theme.text, pictureRow, 14, inset = 12)
-  private val role  = line(topic.role, Theme.body, topic.colour, title, 4)
-  line(topic.summary, Theme.small, Theme.muted, role, 14)
+  private val title = line(topic.title(i18n), Theme.large, Theme.text, pictureRow, 14, inset = 12)
+  private val role  = line(topic.role(i18n), Theme.body, topic.colour, title, 4)
+  line(topic.summary(i18n), Theme.small, Theme.muted, role, 14)
 }

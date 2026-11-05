@@ -10,6 +10,7 @@ import bffclient.ui.{ButtonStyle, Theme}
   * Surrendering (confirmed with a second click) ends the fight, in a defeat, for everyone.
   */
 final class GameMenu(parent: Frame, client: GameClient, leaveGame: Option[() => Unit]) {
+  private val i18n                = client.i18n
   private var confirmingSurrender = false
 
   val frame: Frame = Frame(parent)
@@ -24,7 +25,7 @@ final class GameMenu(parent: Frame, client: GameClient, leaveGame: Option[() => 
   private val box = Templates.panel(frame)
   box.setWidth(360)
   box.setPoint(Point.Center)
-  private val title = box.createFontString("Menu", Theme.title)
+  private val title = box.createFontString(i18n.menu, Theme.title)
   title.setPoint(Point.Center, box, Point.Top, 0, 41)
   private val subtitle = box.createFontString(size = Theme.small)
   subtitle.setPoint(Point.Center, box, Point.Top, 0, 78)
@@ -34,15 +35,15 @@ final class GameMenu(parent: Frame, client: GameClient, leaveGame: Option[() => 
     button.setScript(Script.OnClick)(_ => onClick)
     button
   }
-  private val resumeButton = button("Resume", ButtonStyle.Primary)(resume())
-  private val surrenderButton = button("Surrender", ButtonStyle.Normal) {
+  private val resumeButton = button(i18n.resume, ButtonStyle.Primary)(resume())
+  private val surrenderButton = button(i18n.surrender, ButtonStyle.Normal) {
     if confirmingSurrender then client.surrender()
     confirmingSurrender = !confirmingSurrender
   }
   private val fullscreenButton = button("", ButtonStyle.Normal)(Fullscreen.toggle())
   private val leaveButton =
-    leaveGame.map(leave => button("Leave game", ButtonStyle.Normal)(leave()))
-  private val quitButton = button("Quit", ButtonStyle.Danger)(client.quit())
+    leaveGame.map(leave => button(i18n.leaveGame, ButtonStyle.Normal)(leave()))
+  private val quitButton = button(i18n.quit, ButtonStyle.Danger)(client.quit())
 
   /** The buttons shown, one under the other. */
   private var stacked = Seq.empty[Button]
@@ -59,17 +60,16 @@ final class GameMenu(parent: Frame, client: GameClient, leaveGame: Option[() => 
       val canSurrender = client.canSurrender
       if !canSurrender then confirmingSurrender = false
       subtitle.setText(
-        if confirmingSurrender then "The fight ends in a defeat, for everyone"
-        else "The game goes on meanwhile"
+        if confirmingSurrender then i18n.surrenderEndsInDefeat else i18n.gameGoesOnMeanwhile
       )
       subtitle.setColour(if confirmingSurrender then Theme.negative.lighter(0.3) else Theme.muted)
       surrenderButton.setText(
-        if confirmingSurrender then "Click again to surrender" else "Surrender"
+        if confirmingSurrender then i18n.clickAgainToSurrender else i18n.surrender
       )
       surrenderButton.setStyle(
         if confirmingSurrender then ButtonStyle.Danger else ButtonStyle.Normal
       )
-      fullscreenButton.setText(if Fullscreen.isOn then "Windowed (F11)" else "Fullscreen (F11)")
+      fullscreenButton.setText(if Fullscreen.isOn then i18n.windowed else i18n.fullscreen)
 
       val buttons = Seq(resumeButton) ++ Option.when(canSurrender)(surrenderButton) ++
         Seq(fullscreenButton) ++ leaveButton ++ Seq(quitButton)

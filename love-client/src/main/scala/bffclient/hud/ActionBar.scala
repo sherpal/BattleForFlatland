@@ -10,6 +10,7 @@ import bffclient.ui.Colour as Paint
 import gamelogic.abilities.Ability
 import gamelogic.docs.AbilityDoc
 import gamelogic.entities.classes.PlayerClass
+import services.i18n.I18n
 
 /** Our abilities, as icons in frames (like the frontend's), centred at the bottom: pushed down just
   * after it is used, darkened from the top during its cooldown with the remaining seconds, the key
@@ -31,7 +32,7 @@ final class ActionBar(parent: Frame, client: HudClient) {
       player.cls.builder.abilitiesDoc.map(doc => doc.abilityId -> doc).toMap
     )
 
-  private val tooltip = Tooltip(parent)
+  private val tooltip = Tooltip(parent, client.i18n)
   private val slots   = mutable.ArrayBuffer.empty[Slot]
 
   private final class Slot(index: Int) {
@@ -163,7 +164,7 @@ object ActionBar {
 /** Name and key, cast time, cooldown and cost, and what an ability does, above its slot (over
   * everything, and inside the HUD).
   */
-private final class Tooltip(parent: Frame) {
+private final class Tooltip(parent: Frame, i18n: I18n) {
   private val width   = 300.0
   private val padding = 10.0
 
@@ -194,8 +195,8 @@ private final class Tooltip(parent: Frame) {
     name.setText(doc.name)
     key.setText(keyLabel.getOrElse(""))
     details.setText(
-      (Seq(s"Cast: ${doc.castingTimeRepr}", s"Cooldown: ${doc.cooldownRepr}") ++
-        doc.maybeCostRepr.map(cost => s"Cost: $cost")).mkString("  ·  ")
+      (Seq(i18n.castingTime(doc.castingTimeRepr), i18n.cooldown(doc.cooldownRepr)) ++
+        doc.maybeCostRepr.map(i18n.cost)).mkString("  ·  ")
     )
     description.setText(doc.description)
     frame.setBackdrop(

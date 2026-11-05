@@ -56,8 +56,14 @@ object GameServerHost {
   /** What runs the game server: `java -jar jar`. */
   final case class GameServer(java: String, jar: String)
 
-  /** The download of `what` (e.g. "the Java runtime"): `received` bytes out of `size`. */
-  final case class Download(what: String, received: Double, size: Long) {
+  /** What is downloaded to run the game server (`description` in the logs). */
+  enum Downloaded(val description: String) {
+    case JavaRuntime extends Downloaded("the Java runtime")
+    case GameServerJar extends Downloaded("the game server")
+  }
+
+  /** The download of `what`: `received` bytes out of `size`. */
+  final case class Download(what: Downloaded, received: Double, size: Long) {
     def fraction: Double = if size <= 0 then 0 else math.min(1, received / size.toDouble)
   }
 
@@ -69,7 +75,7 @@ object GameServerHost {
   /** Runs the download of `what` (given the function to tell the bytes received so far), told by
     * [[downloading]] meanwhile, and logged every quarter.
     */
-  private def download(what: String, size: Long)(
+  private def download(what: Downloaded, size: Long)(
       run: (Double => Unit) => Future[Unit]
   )(using ExecutionContext): Future[Unit] = {
     var loggedQuarters = 0
@@ -80,7 +86,7 @@ object GameServerHost {
       val quarters = (download.fraction * 4).toInt
       if quarters > loggedQuarters && quarters < 4 then {
         loggedQuarters = quarters
-        println(s"[host] Downloading $what: ${quarters * 25}%")
+        println(s"[host] Downloading ${what.description}: ${quarters * 25}%")
       }
     }.andThen(_ => currentDownload = None)
   }
@@ -224,7 +230,7 @@ object GameServerHost {
           Filesystem.createDirectory(s"$directoryName/$name")
           println(s"[host] Downloading the Java runtime ($name)")
           for
-            _ <- download("the Java runtime", size)(
+            _ <- download(Downloaded.JavaRuntime, size)(
               api.downloadGameServerRuntime(platform, archive, _)
             )
             output <- Processes.run(
@@ -291,7 +297,7 @@ object GameServerHost {
             removeAll("game-server-")
             println(s"[host] Downloading the game server ($name)")
             for
-              _     <- download("the game server", size)(api.downloadGameServer(path, _))
+              _     <- download(Downloaded.GameServerJar, size)(api.downloadGameServer(path, _))
               valid <- isValid
             yield
               if valid then {

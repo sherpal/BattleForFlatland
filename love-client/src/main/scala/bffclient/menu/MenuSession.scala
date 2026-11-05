@@ -7,6 +7,7 @@ import bffclient.hosting.HostingAgent
 import menus.data.*
 import models.bff.outofgame.PlayerClasses
 import models.bff.outofgame.gameconfig.*
+import services.i18n.EnglishI18n
 import utils.misc.RGBColour
 
 /** Plays the menus against the menu server like the frontend does, without a UI (for headless
@@ -33,7 +34,7 @@ final class MenuSession(
     _ = info(s"${games.size} game(s) on the server")
     game <- api.createGame(s"ScalaLove ${System.currentTimeMillis()}")
     _       = info(s"Created game '${game.game.gameName}' (${game.id})")
-    hosting = HostingAgent(api, game.id, userName, info)
+    hosting = HostingAgent(api, game.id, userName, EnglishI18n, info)
     _ <- api.lobby(Some(game.id)) {
       case received: MenuGameComm.HereAreYourCredentials =>
         credentials.trySuccess(api.gameAccess(userName, received))

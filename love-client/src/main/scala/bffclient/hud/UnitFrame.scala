@@ -138,7 +138,7 @@ final class UnitFrame(
       life.setValue(lifeRatio)
       life.setColour(lifeColour(lifeRatio))
       life.value.setText(
-        living.fold("Dead")(e => s"${math.round(e.life)} / ${math.round(e.maxLife)}")
+        living.fold(client.i18n.dead)(e => s"${math.round(e.life)} / ${math.round(e.maxLife)}")
       )
 
       val withResource = living.collect {

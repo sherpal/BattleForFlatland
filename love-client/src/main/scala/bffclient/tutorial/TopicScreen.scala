@@ -18,6 +18,7 @@ import models.bff.outofgame.PlayerClasses
   */
 final class TopicScreen(app: MenuApp, user: User, topic: Topic)(using ExecutionContext)
     extends Screen {
+  private val i18n     = app.i18n
   private val controls = ControlsFile.load()._1
   private var busy     = false
 
@@ -32,13 +33,13 @@ final class TopicScreen(app: MenuApp, user: User, topic: Topic)(using ExecutionC
     case Some(cls) => Shapes.player(icon, cls, topic.colour, 30, 28, 50)
     case None => Shapes.team(icon, 0.5)
   }
-  private val title = root.createFontString(topic.title, Theme.title)
+  private val title = root.createFontString(topic.title(i18n), Theme.title)
   title.setPoint(Point.TopLeft, 106, 22)
   root
-    .createFontString(topic.role, Theme.body, topic.colour)
+    .createFontString(topic.role(i18n), Theme.body, topic.colour)
     .setPoint(Point.TopLeft, title, Point.BottomLeft, 0, 2)
 
-  private val tabs = Segmented[Topic](root, _.title.stripPrefix("The "))
+  private val tabs = Segmented[Topic](root, _.shortTitle(i18n))
   tabs.setSize(520, 36)
   tabs.setPoint(Point.TopRight, -40, 34)
   tabs.setOptions(Topic.values.toSeq, Some(topic))
@@ -68,7 +69,8 @@ final class TopicScreen(app: MenuApp, user: User, topic: Topic)(using ExecutionC
     topic.playerClass.getOrElse(PlayerClasses.Triangle),
     user.name,
     app.preferences.colour.getOrElse(MenuColours.palette.head),
-    controls
+    controls,
+    i18n
   )
   private val legendLines = 5
   private val legend      = Frame(preview)
@@ -86,7 +88,7 @@ final class TopicScreen(app: MenuApp, user: User, topic: Topic)(using ExecutionC
   area.setPoint(Point.BottomRight, legend, Point.TopRight, 4, -10)
 
   private val hud   = HudPreview(preview, area, topic, scene)
-  private val arena = Option.when(topic == Topic.Overview)(ArenaPreview(preview, area))
+  private val arena = Option.when(topic == Topic.Overview)(ArenaPreview(preview, area, i18n))
   private val hint  = preview.createFontString(colour = Theme.muted, size = Theme.small)
   hint.setPoint(Point.TopRight, -14, 18)
 
@@ -99,14 +101,14 @@ final class TopicScreen(app: MenuApp, user: User, topic: Topic)(using ExecutionC
     (mark, text)
   }
 
-  private val arenaTab = "Arena"
-  private val hudTab   = "Screen"
+  private val arenaTab = i18n.arena
+  private val hudTab   = i18n.screen
   private def showPreview(tab: String): Unit = {
     val showArena = arena.isDefined && tab == arenaTab
     previewTabs.setOptions(if arena.isDefined then Seq(arenaTab, hudTab) else Nil, Some(tab))
     arena.foreach(_.frame.setShown(showArena))
     hud.frame.setShown(!showArena)
-    hint.setText(if showArena then "" else "Hover the abilities, click the frames")
+    hint.setText(if showArena then "" else i18n.hoverHint)
     // the arena's legend has no marks
     val lines = if showArena then arena.fold(Nil)(_.legend) else hud.legend
     for ((mark, text), i) <- legendRows.zipWithIndex do {
@@ -118,12 +120,12 @@ final class TopicScreen(app: MenuApp, user: User, topic: Topic)(using ExecutionC
   showPreview(if arena.isDefined then arenaTab else hudTab)
 
   // Actions
-  private val back = Button(root, "Back to the tutorial")
+  private val back = Button(root, i18n.backToTheTutorial)
   back.setSize(210, 44)
   back.setPoint(Point.BottomLeft, 40, -26)
   back.setScript(Script.OnClick)(_ => app.show(TutorialScreen(app, user)))
 
-  private val practice = Button(root, "Practice against Boss 101", ButtonStyle.Positive)
+  private val practice = Button(root, i18n.practiceAgainst(Practice.bossName), ButtonStyle.Positive)
   practice.setSize(270, 44)
   practice.setPoint(Point.BottomRight, -40, -26)
   practice.setShown(topic.playerClass.isDefined)
@@ -132,7 +134,7 @@ final class TopicScreen(app: MenuApp, user: User, topic: Topic)(using ExecutionC
   for next <- topic.next do {
     // after the overview, the way to go
     val style  = if topic.playerClass.isEmpty then ButtonStyle.Primary else ButtonStyle.Normal
-    val button = Button(root, s"Next: ${next.title}", style)
+    val button = Button(root, i18n.next(next.title(i18n)), style)
     button.setSize(220, 44)
     if topic.playerClass.isDefined then
       button.setPoint(Point.BottomRight, practice, Point.BottomLeft, -16, 0)
@@ -164,7 +166,7 @@ final class TopicScreen(app: MenuApp, user: User, topic: Topic)(using ExecutionC
       fontString
     }
 
-    for (section, i) <- TutorialTexts.sections(topic, controls).zipWithIndex do {
+    for (section, i) <- topic.sections(i18n, controls).zipWithIndex do {
       add(section.heading, Theme.large, topic.colour, if i == 0 then 4 else 22, 0)
       for paragraph <- section.paragraphs do
         if paragraph.startsWith("- ") then {
@@ -183,9 +185,9 @@ final class TopicScreen(app: MenuApp, user: User, topic: Topic)(using ExecutionC
   private def startPractice(cls: PlayerClasses): Unit = if !busy then {
     busy = true
     practice.setEnabled(false)
-    practice.setText("Setting up the game...")
+    practice.setText(i18n.settingUpTheGame)
     val colour = app.preferences.colour.getOrElse(MenuColours.palette.head)
-    app.attempt(Practice.create(app.api, user))(
+    app.attempt(Practice.create(app.api, user, i18n))(
       gameId => {
         app.returnAfterGame(TopicScreen(app, _, topic))
         def enter(): Unit = app.show(GameLobbyScreen(app, user, gameId, launchWhenReady = true))
@@ -195,7 +197,7 @@ final class TopicScreen(app: MenuApp, user: User, topic: Topic)(using ExecutionC
       _ => {
         busy = false
         practice.setEnabled(true)
-        practice.setText("Practice against Boss 101")
+        practice.setText(i18n.practiceAgainst(Practice.bossName))
       }
     )
   }

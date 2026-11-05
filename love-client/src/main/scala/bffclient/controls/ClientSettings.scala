@@ -4,6 +4,7 @@ import bffclient.love.Filesystem
 import io.circe.{Decoder, Encoder}
 import io.circe.parser.decode
 import io.circe.syntax.*
+import services.i18n.{EnglishI18n, I18n, Language}
 
 /** The client's own settings (BFF's [[models.bff.ingame.Controls]] cannot hold them), stored as
   * JSON in LÖVE's save directory and changed in the settings (see [[SettingsEditor]]).
@@ -16,8 +17,18 @@ import io.circe.syntax.*
   *   players on a mobile network.
   * @param volumes
   *   how loud the sounds are
+  * @param language
+  *   the language of the texts, once chosen (on the first launch, see `menu.LanguageScreen`)
   */
-final case class ClientSettings(hudScale: Double, hostGameServers: Boolean, volumes: Volumes) {
+final case class ClientSettings(
+    hudScale: Double,
+    hostGameServers: Boolean,
+    volumes: Volumes,
+    language: Option[Language]
+) {
+
+  /** The texts, in English until a language is chosen. */
+  def i18n: I18n = language.fold(EnglishI18n)(_.i18n)
 
   /** Writes the settings (the HUD scale is used by the next game). An error message if it failed.
     */
@@ -33,10 +44,20 @@ final case class ClientSettings(hudScale: Double, hostGameServers: Boolean, volu
 object ClientSettings {
   val fileName = "settings.json"
 
-  val default = ClientSettings(hudScale = 1.0, hostGameServers = true, volumes = Volumes.default)
+  val default = ClientSettings(
+    hudScale = 1.0,
+    hostGameServers = true,
+    volumes = Volumes.default,
+    language = None
+  )
 
   /** From 0.5 to 2. */
   val hudScales: Seq[Double] = (5 to 20).map(_ / 10.0)
+
+  // by its code (an unknown one is no language)
+  given Encoder[Language] = Encoder.encodeString.contramap(_.code)
+  given Decoder[Language] =
+    Decoder.decodeString.emap(code => Language.byCode(code).toRight(s"Unknown language $code"))
 
   given Encoder[ClientSettings] = io.circe.generic.semiauto.deriveEncoder
 
@@ -46,7 +67,8 @@ object ClientSettings {
       hudScale        <- cursor.getOrElse[Double]("hudScale")(default.hudScale)
       hostGameServers <- cursor.getOrElse[Boolean]("hostGameServers")(default.hostGameServers)
       volumes         <- cursor.getOrElse[Volumes]("volumes")(default.volumes)
-    yield ClientSettings(hudScale, hostGameServers, volumes)
+      language = cursor.get[Language]("language").toOption
+    yield ClientSettings(hudScale, hostGameServers, volumes, language)
   )
 
   private var known = Option.empty[ClientSettings]

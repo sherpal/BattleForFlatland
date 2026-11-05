@@ -8,6 +8,7 @@ import communication.udp.Peer
 import menus.data.*
 import models.bff.outofgame.MenuGameWithPlayers
 import models.bff.outofgame.gameconfig.{GameConfiguration, PlayerInfo}
+import services.i18n.I18n
 
 /** The endpoints of Battle for Flatland's menu server, like the frontend's `services.menugames`.
   *
@@ -182,9 +183,9 @@ object MenuApi {
 
   /** The scheme, host and port of an address typed by a player: `host`, `host:port`, possibly with
     * `http://` or `https://` (otherwise [[defaultScheme]]) and a trailing slash. Without a port,
-    * the default one of the scheme.
+    * the default one of the scheme. What is wrong with it is told in the language of `i18n`.
     */
-  def parseAddress(address: String): Either[String, (String, String, Int)] = {
+  def parseAddress(address: String, i18n: I18n): Either[String, (String, String, Int)] = {
     val trimmed = address.trim.stripSuffix("/")
     val (scheme, rest) = trimmed match {
       case s"http://$rest" => ("http", rest)
@@ -197,8 +198,8 @@ object MenuApi {
         port.toIntOption
           .filter(p => p > 0 && p < 65536)
           .map(p => (scheme, host, p))
-          .toRight(s"Invalid port: $port")
-      case _ => Left(s"Invalid address: $address (expected host or host:port)")
+          .toRight(i18n.invalidPort(port))
+      case _ => Left(i18n.invalidAddress(address))
     }
   }
 }

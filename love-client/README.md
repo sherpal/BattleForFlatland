@@ -51,6 +51,13 @@ The code (`src/main/scala/bffclient`) is organised by package:
 * `love` holds the facades of LÖVE's API (with `LoveInput`), and `lua` those of our own Lua modules
   (`src/main/lua`: `http.lua`, `udp.lua`, `process.lua`, `images.lua`, and `conf.lua`, LÖVE's configuration).
 
+The texts of the UI come from an `I18n` (in the shared module's `services.i18n`, one
+implementation per language: English, French, Dutch, German and Albanian, listed by `Language`), in
+the language of the settings (`ClientSettings.language`): the menus read it (`MenuApp.i18n`), and the
+game takes the one of the moment it starts (`GameClient.i18n`,
+which the HUD's frames get from their `HudClient`). The names of the bosses and abilities, and the
+errors of the menu server, are not translated yet.
+
 The images (`src/main/lua/assets`) come from the former browser frontend; `luaLink` copies them
 next to `main.lua` with the Lua modules. Without an image, the client draws shapes instead. The
 sounds of the abilities are the files `assets/sounds/<name>.ogg` (e.g. `brace.ogg`, see
@@ -91,7 +98,7 @@ The screens (package `menu`, one file per screen) are:
 
 The tutorial (package `tutorial`) starts with a panel per page (`TutorialScreen`): an overview of
 the game, then one per class (`Topic`). A page (`TopicScreen`, with tabs to the others) has its
-texts on the left (`TutorialTexts`, with the player's own keys), and on the right the HUD as it is
+texts on the left (`I18n.overviewSections` and `classSections`, with the player's own keys), and on the right the HUD as it is
 in a fight: the HUD's own frames (which take a `HudClient`, implemented by the `GameClient` in a
 game) showing a made-up moment of a fight against Boss 101 (`TutorialScene`, a real game state made
 with the game's actions, whose time loops over a few seconds), with numbered marks that a legend
@@ -112,6 +119,9 @@ storage under the key `controls`). In "General", the client's own settings, whic
 `Controls` cannot hold, saved in `settings.json`: the size of the HUD, from 0.5 to 2, whether to
 host game servers (on by default; see below), and the volumes of the sounds, from off to 10: the
 main one, and one per kind of sound (the abilities', for now), relative to the main one.
+It also has the language, in a dropdown (`gui.Dropdown`): choosing another one shows the menus in
+it right away (the screens that can be are made again, see `Screen.reopened`). Until a language is
+chosen, the client starts with a button per language (`LanguageScreen`) rather than the login.
 
 The menus, the HUD and the game's overlays are made with `gui`, a retained UI toolkit that works like World of
 Warcraft's (and the author's former [scalajs-ui](https://github.com/sherpal/scalajs-ui)):

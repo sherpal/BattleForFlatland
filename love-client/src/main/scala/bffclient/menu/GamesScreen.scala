@@ -11,21 +11,22 @@ import models.bff.outofgame.MenuGameWithPlayers
 
 /** The games that did not start yet, like the frontend's `GameTable`. */
 final class GamesScreen(app: MenuApp, user: User)(using ExecutionContext) extends Screen {
+  private val i18n        = app.i18n
   private var games       = Option.empty[Vector[MenuGameWithPlayers]]
   private val refresh     = Refresh(app, () => app.api.games)(received)
   private var lobby       = Option.empty[Lobby]
   private var busy        = false
-  private val defaultName = s"${user.name}'s game"
+  private val defaultName = i18n.defaultGameName(user.name)
 
   private val root = Frame(app.gui.root)
   root.setAllPoints()
 
   root.createFontString("Battle for Flatland", Theme.title).setPoint(Point.TopLeft, 40, 30)
   root
-    .createFontString(s"Welcome, ${user.name}", colour = Theme.muted)
+    .createFontString(i18n.welcomePlayer(user.name), colour = Theme.muted)
     .setPoint(Point.Right, root, Point.TopRight, -40, 55)
 
-  private val settingsButton = Button(root, "Settings")
+  private val settingsButton = Button(root, i18n.settings)
   settingsButton.setSize(130, 40)
   settingsButton.setPoint(Point.TopRight, -40, 105)
   settingsButton.setScript(Script.OnClick)(_ => app.showSettings())
@@ -34,7 +35,7 @@ final class GamesScreen(app: MenuApp, user: User)(using ExecutionContext) extend
   private val tutorialVisited = app.preferences.tutorialVisited
   private val tutorialButton = Button(
     root,
-    "Learn to play",
+    i18n.learnToPlay,
     if tutorialVisited then ButtonStyle.Normal else ButtonStyle.Positive
   )
   tutorialButton.setSize(150, 40)
@@ -50,16 +51,16 @@ final class GamesScreen(app: MenuApp, user: User)(using ExecutionContext) extend
   currentGame.setPoint(Point.TopRight, -350, 100)
   private val currentGameText = currentGame.createFontString()
   currentGameText.setPoint(Point.Left, 16, 0)
-  private val joinBackButton = Button(currentGame, "Join it back", ButtonStyle.Primary)
+  private val joinBackButton = Button(currentGame, i18n.joinItBack, ButtonStyle.Primary)
   joinBackButton.setSize(140, 36)
   joinBackButton.setPoint(Point.TopRight, -10, 7)
 
   // Otherwise, a new game
-  private val newGameName = EditBox(root, defaultName, "Game name", maxLetters = 32)
+  private val newGameName = EditBox(root, defaultName, i18n.gameNamePlaceholder, maxLetters = 32)
   newGameName.setSize(320, 40)
   newGameName.setPoint(Point.TopLeft, 40, 105)
   newGameName.setScript(Script.OnEnterPressed)(() => create())
-  private val createButton = Button(root, "Create game", ButtonStyle.Primary)
+  private val createButton = Button(root, i18n.createGame, ButtonStyle.Primary)
   createButton.setSize(150, 40)
   createButton.setPoint(Point.TopLeft, newGameName, Point.TopRight, 10, 0)
   createButton.setScript(Script.OnClick)(_ => create())
@@ -68,15 +69,15 @@ final class GamesScreen(app: MenuApp, user: User)(using ExecutionContext) extend
   table.setPoint(Point.TopLeft, 40, 180)
   table.setPoint(Point.BottomRight, -40, -40)
   private val columns = Seq(0.0, 0.4, 0.65) // where they start, in the table's width
-  for (title, at) <- Seq("Name", "Created by", "Players").zip(columns) do
+  for (title, at) <- Seq(i18n.name, i18n.createdBy, i18n.players).zip(columns) do
     table
       .createFontString(title, colour = Theme.muted)
       .setPoint(Point.TopLeft, table, Point(at, 0), 16, 12)
 
-  private val loading = Templates.loading(table, "Loading the games")
+  private val loading = Templates.loading(table, i18n.loadingTheGames)
   loading.setPoint(Point.TopLeft, 16, 50)
   private val noGames =
-    table.createFontString("There are currently no games. Go ahead and create one!")
+    table.createFontString(i18n.noGames)
   noGames.setPoint(Point.TopLeft, 16, 50)
 
   private val list = ScrollFrame(table)
@@ -116,7 +117,7 @@ final class GamesScreen(app: MenuApp, user: User)(using ExecutionContext) extend
         val values = Seq(g.game.gameName, g.game.gameCreator.name, g.players.length.toString)
         for (cell, value) <- cells.zip(values) do cell.setText(value)
         button.setShown(gameYouAreIn.forall(_.id == g.id))
-        button.setText(if gameYouAreIn.isDefined then "Join back" else "Join")
+        button.setText(if gameYouAreIn.isDefined then i18n.joinBack else i18n.join)
         button.setEnabled(!busy)
       }
     }
@@ -131,6 +132,8 @@ final class GamesScreen(app: MenuApp, user: User)(using ExecutionContext) extend
     lobby.foreach(_.close())
     root.remove()
   }
+
+  override def reopened: Option[Screen] = Some(GamesScreen(app, user))
 
   private def gameYouAreIn: Option[MenuGameWithPlayers] =
     games.flatMap(_.find(_.containsPlayer(user)))
@@ -153,7 +156,7 @@ final class GamesScreen(app: MenuApp, user: User)(using ExecutionContext) extend
   private def render(): Unit = {
     currentGame.setShown(gameYouAreIn.isDefined)
     for game <- gameYouAreIn do {
-      currentGameText.setText(s"You are currently involved in the game '${game.game.gameName}'.")
+      currentGameText.setText(i18n.currentlyInGame(game.game.gameName))
       joinBackButton.setScript(Script.OnClick)(_ => enter(game.id))
     }
     joinBackButton.setEnabled(!busy)

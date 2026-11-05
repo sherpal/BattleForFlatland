@@ -55,9 +55,9 @@ final class Hud(
   // The stacks of our shield when we are the tank, on the left of our frame
   brace.frame.setPoint(Point.TopRight, myFrame.frame, Point.TopLeft, -4, 0)
 
-  private val cooldowns = BossCooldowns(root)
-  private val threat    = ThreatMeter(root)
-  private val damage    = DamageMeter(root, threat.frame)
+  private val cooldowns = BossCooldowns(root, client.i18n)
+  private val threat    = ThreatMeter(root, client.i18n)
+  private val damage    = DamageMeter(root, threat.frame, client.i18n)
 
   /** What we cast, in the colour of the ability, above our frame and our target's (the frontend's
     * `PlayerCastBar`), with the time remaining.
@@ -77,7 +77,7 @@ final class Hud(
 
   // Before the boss spawns: the "Start game" button where it spawns (like the frontend's), then
   // the countdown, which every player sees
-  private val startButton = Button(root, "Start game")
+  private val startButton = Button(root, client.i18n.startGame)
   startButton.setSize(130, 40)
   for (texture, colour) <- Seq(
       startButton.normalTexture    -> startColour,
@@ -98,14 +98,14 @@ final class Hud(
   hint.setSize(600, 28)
   hint.setPoint(Point.Top, root, Point.Top, 0, 40)
   textOver(hint, hint, JustifyH.Center)
-    .setText("Place yourselves, then click \"Start game\": the boss arrives 5 seconds later")
+    .setText(client.i18n.placeYourselves)
 
   private val countdown = panel(root, radius = 10)
   countdown.setSize(260, 130)
   countdown.setPoint(Point.Top, root, Point(0.5, 0.22), 0, -6)
   private val countdownTitle = text(countdown, largeSize, justify = JustifyH.Center)
   place(countdownTitle, countdown, 0, 6, 260, 30)
-  countdownTitle.setText("The boss arrives in")
+  countdownTitle.setText(client.i18n.bossArrivesIn)
   private val seconds = text(countdown, hugeSize, startColour.lighter(0.4), JustifyH.Center)
   place(seconds, countdown, 0, 36, 260, 90)
 
@@ -121,7 +121,7 @@ final class Hud(
   private val message     = info(Paint(0, 0, 0), 170, JustifyH.Center)
   private val error       = info(Paint(0.8, 0, 0), 190, JustifyH.Center)
   private val placingZone = info(Paint(0, 0, 0), 210, JustifyH.Center)
-  placingZone.setText("Click to place the zone (Escape to cancel)")
+  placingZone.setText(client.i18n.clickToPlaceZone)
 
   root.setScript(Script.OnUpdate)(_ => painter().foreach(update))
 
@@ -193,8 +193,9 @@ final class Hud(
       s"fps: ${frameRate()}   ping: ${client.roundTrip} ms   messages: ${client.messagesReceived}"
     )
     message.setText(
-      if gameState.ended then if gameState.playersWon then "Victory!" else "Defeat..."
-      else if !gameState.started && !client.inPreGame then "Waiting for the game to start..."
+      if gameState.ended then
+        if gameState.playersWon then client.i18n.victory else client.i18n.defeat
+      else if !gameState.started && !client.inPreGame then client.i18n.waitingForGameToStart
       else ""
     )
     error.setText(client.errorMessage.getOrElse(""))

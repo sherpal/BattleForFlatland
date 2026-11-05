@@ -100,3 +100,74 @@ class Segmented[A](parentFrame: Frame, show: A => String = (a: A) => a.toString)
     }
   }
 }
+
+/** A select: a field with the current option, which opens the list of the options under it, over
+  * everything. Choosing one (or clicking elsewhere, or Escape) closes it.
+  */
+class Dropdown[A](parentFrame: Frame, show: A => String = (a: A) => a.toString)
+    extends Choice[A](parentFrame, show) {
+  private val field = Button(this)
+  field.setAllPoints(this)
+  field.setStyle(ButtonStyle.Normal)
+  field.fontString.setJustifyH(JustifyH.Left)
+  field.fontString.setPoint(Point.TopLeft, field, Point.TopLeft, 12, 0)
+  field.fontString.setPoint(Point.BottomRight, field, Point.BottomRight, -28, 0)
+  // A small triangle pointing down (the font has no glyph for it): rows narrowing downwards
+  private val arrow = (0 until 5).map { row =>
+    val part = field.createTexture(Theme.muted, Layer.Overlay)
+    part.setSize(9 - 2 * row, 1)
+    part.setPoint(Point.Top, field, Point.Right, -14, row - 2)
+    part
+  }
+  field.setScript(Script.OnClick)(_ => if list.isDefined then close() else open())
+
+  /** While open: a frame over the whole window (a click on it closes the list), and the list. */
+  private var list = Option.empty[Frame]
+
+  hookScript(Script.OnHide)(() => close())
+
+  private def open(): Unit = if enabled && options.nonEmpty then {
+    val catcher = Frame(gui.root)
+    catcher.setAllPoints()
+    catcher.setFrameStrata(Strata.FullscreenDialog)
+    catcher.enableMouse(true)
+    catcher.enableKeyboard(true)
+    catcher.setScript(Script.OnClick)(_ => close())
+    catcher.setScript(Script.OnKeyDown)(scancode => if scancode == "escape" then close())
+
+    val panel = Frame(catcher)
+    panel.setBackdrop(Backdrop(Theme.panel, Some(Theme.border), 4))
+    panel.setPoint(Point.TopLeft, this, Point.BottomLeft, 0, 2)
+    panel.setPoint(Point.TopRight, this, Point.BottomRight, 0, 2)
+    panel.setHeight(options.size * height + 4)
+    panel.enableMouse(true) // its gaps do not close it
+    for (option, i) <- options.zipWithIndex do {
+      val button = Button(panel, label(option))
+      button.setPoint(Point.TopLeft, panel, Point.TopLeft, 2, 2 + i * height)
+      button.setPoint(Point.TopRight, panel, Point.TopRight, -2, 2 + i * height)
+      button.setHeight(height)
+      button.setStyle(if current.contains(option) then ButtonStyle.Primary else ButtonStyle.Normal)
+      button.fontString.setJustifyH(JustifyH.Left)
+      button.fontString.setPoint(Point.TopLeft, button, Point.TopLeft, 10, 0)
+      button.fontString.setPoint(Point.BottomRight, button, Point.BottomRight, -10, 0)
+      button.setScript(Script.OnClick) { _ =>
+        close()
+        choose(option)
+      }
+    }
+    list = Some(catcher)
+  }
+
+  /** Closes the list, if open. */
+  def close(): Unit = {
+    list.foreach(_.remove())
+    list = None
+  }
+
+  protected def updated(changedOptions: Boolean): Unit = {
+    field.setText(current.fold("")(label))
+    field.setEnabled(enabled)
+    arrow.foreach(_.setColour(if enabled then Theme.muted else Theme.disabledText))
+    if changedOptions || !enabled then close()
+  }
+}
