@@ -3,8 +3,10 @@ package bffclient.render
 import scala.collection.mutable
 import scala.util.Random
 
+import bffclient.hud.BraceGauge
 import bffclient.love.{Graphics, Timer}
-import gamelogic.abilities.square.Cleave
+import bffclient.ui.Colour
+import gamelogic.abilities.square.{Brace, Cleave, Guard, ShieldSlam}
 import gamelogic.abilities.triangle.DirectHit
 import gamelogic.entities.{Body, Entity}
 import gamelogic.entities.WithPosition.Angle
@@ -14,7 +16,8 @@ import gamelogic.gamestate.gameactions.{EntityGetsHealed, EntityTakesDamage, Use
 import gamelogic.physics.Complex
 
 /** Short visual effects of the game actions, like the frontend's `EffectsManager`: damage and heal
-  * numbers, the square's cleave, and the swing of the triangle's direct hit.
+  * numbers, the square's cleave, brace, shield slam and guard, and the swing of the triangle's
+  * direct hit.
   *
   * Unlike the frontend, the numbers follow their entity (from where it is shown: predicted for our
   * player, smoothed for the others) instead of staying where they started.
@@ -52,6 +55,33 @@ final class Effects {
   private final case class DirectHitSwing(casterId: Entity.Id, towardsTarget: Angle, start: Double)
       extends Effect {
     def duration = 0.2
+  }
+
+  /** The square's shield closes around it, in the colour of its stacks (see [[BraceGauge]]). */
+  private final case class BraceFlash(casterId: Entity.Id, radius: Double, start: Double)
+      extends Effect {
+    def duration = 0.4
+  }
+
+  /** The square's shield is thrust towards its target, which it hits with a shock wave. */
+  private final case class ShieldSlamThrust(
+      casterId: Entity.Id,
+      targetId: Entity.Id,
+      casterRadius: Double,
+      targetRadius: Double,
+      start: Double
+  ) extends Effect {
+    def duration = 0.4
+  }
+
+  /** A link from the square to the ally that it guards, around which a ring closes. */
+  private final case class GuardLink(
+      casterId: Entity.Id,
+      targetId: Entity.Id,
+      targetRadius: Double,
+      start: Double
+  ) extends Effect {
+    def duration = 0.6
   }
 
   private val effects   = mutable.ArrayBuffer.empty[Effect]
@@ -142,6 +172,14 @@ final class Effects {
           caster <- gameState.players.get(casterId)
           case target: Body <- gameState.entities.get(hit.targetId)
         yield DirectHitSwing(casterId, (target.pos - caster.pos).arg, now)
+      case UseAbility(_, _, casterId, _, _: Brace) =>
+        Some(BraceFlash(casterId, radius(casterId), now))
+      case UseAbility(_, _, casterId, _, slam: ShieldSlam) =>
+        Some(
+          ShieldSlamThrust(casterId, slam.targetId, radius(casterId), radius(slam.targetId), now)
+        )
+      case UseAbility(_, _, casterId, _, guard: Guard) =>
+        Some(GuardLink(casterId, guard.targetId, radius(guard.targetId), now))
       case _ =>
         None
     }
@@ -204,8 +242,79 @@ final class Effects {
                   Graphics.setLineWidth(1)
               }
             }
+          case BraceFlash(casterId, radius, _) =>
+            for caster <- position(casterId) do {
+              val progress = t / effect.duration
+              val (x, y)   = toScreen(caster)
+              val ring     = radius * (2.2 - 1.0 * (1 - math.pow(1 - progress, 3)))
+              setColour(BraceGauge.colour, 0.25 * (1 - progress))
+              Graphics.circle("fill", x, y, ring)
+              setColour(BraceGauge.fullColour, math.min(1.0, 4 * (1 - progress)))
+              Graphics.setLineWidth(3)
+              Graphics.circle("line", x, y, ring)
+              Graphics.setLineWidth(1)
+            }
+          case ShieldSlamThrust(casterId, targetId, casterRadius, targetRadius, _) =>
+            for
+              caster <- position(casterId)
+              target <- position(targetId)
+            do {
+              val progress  = t / effect.duration
+              val direction = (target - caster).safeNormalized
+              val from      = caster + 1.2 * casterRadius * direction
+              val to        = target - targetRadius * direction
+              // The shield goes to the target, then a shock wave spreads where it hits
+              val thrust   = math.min(1.0, progress / 0.4)
+              val shield   = from + (to - from) * (thrust * thrust)
+              val side     = casterRadius * direction.orthogonal
+              val (x1, y1) = toScreen(shield + side)
+              val (x2, y2) = toScreen(shield - side)
+              setColour(BraceGauge.fullColour, if progress < 0.4 then 1.0 else 2 * (1 - progress))
+              Graphics.setLineWidth(6)
+              Graphics.line(x1, y1, x2, y2)
+              if progress >= 0.4 then {
+                val wave   = (progress - 0.4) / 0.6
+                val (x, y) = toScreen(to)
+                Graphics.setColor(1, 1, 1, 1 - wave)
+                Graphics.setLineWidth(3)
+                Graphics.circle("line", x, y, 4 + 1.6 * targetRadius * wave)
+              }
+              Graphics.setLineWidth(1)
+            }
+          case GuardLink(casterId, targetId, targetRadius, _) =>
+            for
+              caster <- position(casterId)
+              target <- position(targetId)
+            do {
+              val progress  = t / effect.duration
+              val (cx, cy)  = toScreen(caster)
+              val (tx, ty)  = toScreen(target)
+              val (r, g, b) = Effects.guardColour
+              Graphics.setColor(r, g, b, 0.6 * (1 - progress))
+              Graphics.setLineWidth(2)
+              Graphics.line(cx, cy, tx, ty)
+              // A spark runs along the link, then a ring closes around the ally
+              if progress < 0.5 then {
+                val (sx, sy) = toScreen(caster + (target - caster) * (progress / 0.5))
+                Graphics.setColor(r, g, b, 1)
+                Graphics.circle("fill", sx, sy, 4)
+              }
+              Graphics.setColor(r, g, b, math.min(1.0, 3 * (1 - progress)))
+              Graphics.setLineWidth(3)
+              Graphics.circle("line", tx, ty, targetRadius * (2 - 0.7 * progress))
+              Graphics.setLineWidth(1)
+            }
         }
     }
     Graphics.setFont(previousFont)
   }
+
+  private def setColour(colour: Colour, alpha: Double): Unit =
+    Graphics.setColor(colour.r, colour.g, colour.b, colour.a * alpha)
+}
+
+object Effects {
+
+  /** Golden, for the protection of an ally. */
+  val guardColour: (Double, Double, Double) = (0.95, 0.8, 0.35)
 }
