@@ -6,7 +6,7 @@ import scala.scalajs.js.annotation.*
 import bffclient.lua.LuaSequence
 
 @js.native @JSGlobal("love")
-object Love extends js.Object {
+object Love extends LoveExtensions {
   var update: js.Function1[Double, Unit] = js.native
   var draw: js.Function0[Unit]           = js.native
 
@@ -30,6 +30,16 @@ object Love extends js.Object {
 
   /** Not null when the graphics module is enabled (i.e. not headless). */
   val graphics: js.Any = js.native
+
+  /** Not null when the audio module is enabled (i.e. not headless). */
+  val audio: js.Any = js.native
+}
+
+trait LoveExtensions extends js.Object
+object LoveExtensions {
+  extension (love: LoveExtensions) {
+    inline def hasAudio: Boolean = Love.audio != null
+  }
 }
 
 @js.native @JSGlobal("love.graphics")
@@ -169,6 +179,24 @@ object Timer extends js.Object {
 
   /** Seconds since some unspecified time. */
   def getTime(): Double = js.native
+}
+
+@js.native @JSGlobal("love.audio")
+object Audio extends js.Object {
+
+  /** A file of the game directory, decoded once ("static") or as it plays ("stream"). */
+  def newSource(path: String, sourceType: String): Source = js.native
+}
+
+/** A sound that plays once at a time (`cloned` to play it again while it plays). */
+@js.native
+trait Source extends js.Object {
+  def play(): Boolean = js.native
+
+  /** Between 0 and 1. */
+  def setVolume(volume: Double): Unit = js.native
+  @JSName("clone")
+  def cloned(): Source = js.native
 }
 
 @js.native @JSGlobal("love.event")
