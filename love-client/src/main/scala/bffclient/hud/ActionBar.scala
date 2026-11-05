@@ -2,7 +2,6 @@ package bffclient.hud
 
 import scala.collection.mutable
 
-import bffclient.game.GameClient
 import bffclient.gui.*
 import bffclient.hud.HudStyle.*
 import bffclient.hud.HudWidgets.*
@@ -17,10 +16,10 @@ import gamelogic.entities.classes.PlayerClass
   * in a corner, and the colour of the ability as a line at the bottom. Hovering an ability shows
   * what it does (`AbilityDoc`, like in the lobby's documentation) in a tooltip.
   */
-final class ActionBar(parent: Frame, client: GameClient) {
+final class ActionBar(parent: Frame, client: HudClient) {
   import ActionBar.*
 
-  private val frame = Frame(parent)
+  val frame: Frame = Frame(parent)
   frame.setHeight(slotSize)
   frame.setPoint(Point.Bottom, parent, Point.Bottom, 0, -8)
 
@@ -210,12 +209,10 @@ private final class Tooltip(parent: Frame) {
     frame.setHeight(
       padding + name.stringHeight + 6 + details.stringHeight + 6 + description.stringHeight + padding
     )
-    // above the slot, but inside the HUD
-    val centre = math.max(
-      4 + width / 2,
-      math.min(parent.width - 4 - width / 2, slot.left + slot.width / 2)
-    )
-    frame.setPoint(Point.Bottom, slot, Point.Top, centre - (slot.left + slot.width / 2), -8)
+    // above the slot, but inside the HUD (which is not at the window's left in the tutorial)
+    val slotCentre = slot.left + slot.width / 2 - parent.left
+    val centre     = math.max(4 + width / 2, math.min(parent.width - 4 - width / 2, slotCentre))
+    frame.setPoint(Point.Bottom, slot, Point.Top, centre - slotCentre, -8)
     frame.show()
   }
 

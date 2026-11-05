@@ -87,6 +87,20 @@ final class MenuApp(val server: Option[String], startGame: (GameAccess, GameExit
 
   def show(next: Screen): Unit = { screen.leave(); screen = next }
 
+  /** Where to go back after a game (or when leaving its lobby) instead of the games' list, once:
+    * the tutorial, after a practice fight.
+    */
+  private var returnTo = Option.empty[User => Screen]
+
+  def returnAfterGame(screen: User => Screen): Unit = returnTo = Some(screen)
+
+  /** The games' list, or the screen to go back to after this game. */
+  def home(user: User): Screen = {
+    val next = returnTo.fold(new GamesScreen(this, user))(_(user))
+    returnTo = None
+    next
+  }
+
   def notify(message: String, isError: Boolean = false): Unit = {
     println(s"[menu] $message")
     notificationText.setText(message)
@@ -150,7 +164,7 @@ final class MenuApp(val server: Option[String], startGame: (GameAccess, GameExit
       result.failed.foreach(failure =>
         notify(s"Could not leave the game: ${failure.getMessage}", isError = true)
       )
-      show(new GamesScreen(this, user))
+      show(home(user))
     }
   }
 }

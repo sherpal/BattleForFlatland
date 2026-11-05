@@ -4,6 +4,7 @@ import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 
 import bffclient.gui.*
+import bffclient.tutorial.TutorialScreen
 import bffclient.ui.{ButtonStyle, Theme}
 import menus.data.User
 import models.bff.outofgame.MenuGameWithPlayers
@@ -29,12 +30,24 @@ final class GamesScreen(app: MenuApp, user: User)(using ExecutionContext) extend
   settingsButton.setPoint(Point.TopRight, -40, 105)
   settingsButton.setScript(Script.OnClick)(_ => app.showSettings())
 
-  // The game we are in, if any (the settings button is on its right)
+  // The tutorial, green with a gleam running over it until it was visited once
+  private val tutorialVisited = app.preferences.tutorialVisited
+  private val tutorialButton = Button(
+    root,
+    "Learn to play",
+    if tutorialVisited then ButtonStyle.Normal else ButtonStyle.Positive
+  )
+  tutorialButton.setSize(150, 40)
+  tutorialButton.setPoint(Point.TopRight, -180, 105)
+  tutorialButton.setScript(Script.OnClick)(_ => app.show(TutorialScreen(app, user)))
+  if !tutorialVisited then Templates.gleam(tutorialButton, Theme.positive)
+
+  // The game we are in, if any (the tutorial and settings buttons are on its right)
   private val currentGame = Frame(root)
   currentGame.setBackdrop(Backdrop(Theme.primary.withAlpha(0.25)))
   currentGame.setHeight(50)
   currentGame.setPoint(Point.TopLeft, 40, 100)
-  currentGame.setPoint(Point.TopRight, -190, 100)
+  currentGame.setPoint(Point.TopRight, -350, 100)
   private val currentGameText = currentGame.createFontString()
   currentGameText.setPoint(Point.Left, 16, 0)
   private val joinBackButton = Button(currentGame, "Join it back", ButtonStyle.Primary)

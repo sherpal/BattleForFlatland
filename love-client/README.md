@@ -44,7 +44,7 @@ The code (`src/main/scala/bffclient`) is organised by package:
 * `hud` holds the HUD's frames (`Hud`, `UnitFrame`, `BossFrames`, `ActionBar`, built from
   `HudWidgets` in the style of `HudStyle`) and the overlays (`GameMenu`, `EndOfGame`);
 * `controls` loads, saves and edits the controls and the client's settings;
-* `menu` holds the menus' screens and the menu server's API;
+* `menu` holds the menus' screens and the menu server's API, and `tutorial` the tutorial's;
 * `hosting` runs the game server on this computer, when the menu server chooses us to;
 * `gui` is a retained UI toolkit in the style of World of Warcraft's frames (the menus, the HUD
   and the overlays), and `ui` holds the menus' theme (`Rect`, `Colour`, `Theme`);
@@ -79,7 +79,8 @@ The screens (package `menu`, one file per screen) are:
 * **login**: type the menu server's address and choose a pseudo (validated with
   `LoginUser.validator`);
 * **games**: the games that did not start, refreshed live from the lobby; create one, or
-  join one (or join back the one you are in);
+  join one (or join back the one you are in), or "Learn to play" for the tutorial (until it was
+  first opened, green with a gleam running over it, `Templates.gleam`);
 * **game lobby**: the players with their class, colour and readiness; choose your class and colour,
   get ready; the creator chooses the boss, kicks players, adds AIs and launches the game once
   `GameConfiguration.validate` has nothing to say. One of the players' clients then runs the game
@@ -88,7 +89,19 @@ The screens (package `menu`, one file per screen) are:
   the classes (life, resource, description, and each ability with its icon, cast time, cooldown and
   cost); it scrolls with the mouse wheel.
 
-The server, pseudo, class, colour and boss are remembered in `menu.json` in LÖVE's save directory
+The tutorial (package `tutorial`) starts with a panel per page (`TutorialScreen`): an overview of
+the game, then one per class (`Topic`). A page (`TopicScreen`, with tabs to the others) has its
+texts on the left (`TutorialTexts`, with the player's own keys), and on the right the HUD as it is
+in a fight: the HUD's own frames (which take a `HudClient`, implemented by the `GameClient` in a
+game) showing a made-up moment of a fight against Boss 101 (`TutorialScene`, a real game state made
+with the game's actions, whose time loops over a few seconds), with numbered marks that a legend
+explains (`HudPreview`). The overview also shows where everyone stands in the arena
+(`ArenaPreview`). A class' page has "Practice against Boss 101" (`Practice`): it creates a game,
+picks the class, gets ready, chooses Boss 101 and fills the team with AIs, then goes to the game's
+lobby, which launches it as soon as it can (`launchWhenReady`). After the game (or when leaving its
+lobby), the menus come back to that page (`MenuApp.returnAfterGame`) rather than to the games.
+
+The server, pseudo, class, colour and boss, and whether the tutorial was ever opened, are remembered in `menu.json` in LÖVE's save directory
 (`~/.local/share/love/battle-for-flatland/` on Linux).
 
 The "Settings" button (in the games' list and in the lobby) opens the settings, in two tabs. In
