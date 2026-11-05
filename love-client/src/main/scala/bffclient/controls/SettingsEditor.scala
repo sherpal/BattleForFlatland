@@ -230,17 +230,19 @@ final class SettingsEditor(parent: Frame, close: () => Unit) {
   ).zipWithIndex.map { case ((label, level, changed), i) =>
     val y = 320 + 34 * i
     generalView.createFontString(label).setPoint(Point.TopLeft, 24, y + 4)
-    val selector = Selector[Int](
+    val slider = Slider(
       generalView,
-      level => if level == 0 then "Off" else level.toString,
-      wraps = false
+      Volumes.levels.min,
+      Volumes.levels.max,
+      step = 1,
+      level => if level == 0 then "Off" else level.toInt.toString
     )
-    selector.setSize(200, 26)
-    selector.setPoint(Point.TopLeft, 214, y)
-    selector.setScript(selector.OnValueChanged)(chosen =>
-      change(settings.copy(volumes = changed(settings.volumes, chosen)))
+    slider.setSize(260, 26)
+    slider.setPoint(Point.TopLeft, 214, y)
+    slider.setScript(slider.OnValueChanged)(chosen =>
+      change(settings.copy(volumes = changed(settings.volumes, chosen.toInt)))
     )
-    selector -> level
+    slider -> level
   }
   help(
     "From off to 10. The volume of each kind of sound is relative to the main volume.",
@@ -297,8 +299,7 @@ final class SettingsEditor(parent: Frame, close: () => Unit) {
 
     hudScale.setOptions(ClientSettings.hudScales, Some(settings.hudScale))
     hostGameServers.setChecked(settings.hostGameServers)
-    for (selector, level) <- volumes do
-      selector.setOptions(Volumes.levels, Some(level(settings.volumes)))
+    for (slider, level) <- volumes do slider.setValue(level(settings.volumes))
 
     errorText.setText(error.getOrElse(""))
   }
