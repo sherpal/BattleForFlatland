@@ -207,8 +207,7 @@ object Event extends js.Object {
 @js.native @JSGlobal("love.filesystem")
 object Filesystem extends js.Object {
 
-  /** Null if the file does not exist. */
-  def getInfo(path: String): FileInfo                                        = js.native
+  def getInfo(path: String): js.UndefOr[FileInfo]                            = js.native
   def read(path: String): (contents: String, size: Any)                      = js.native
   def write(path: String, data: String): (success: Boolean, message: String) = js.native
   def getSaveDirectory(): String                                             = js.native

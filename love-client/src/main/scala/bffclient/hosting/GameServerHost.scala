@@ -328,7 +328,7 @@ object GameServerHost {
       }
     )
 
-  private def exists(name: String): Boolean = Filesystem.getInfo(s"$directoryName/$name") != null
+  private def exists(name: String): Boolean = Filesystem.getInfo(s"$directoryName/$name").isDefined
 
   /** Removes what starts with this prefix in `game-servers/` (previous versions, or what failed),
     * directories with their content. What is used (by a game server still running, on Windows)
@@ -336,7 +336,7 @@ object GameServerHost {
     */
   private def removeAll(prefix: String): Unit = {
     def remove(path: String): Unit = {
-      if Filesystem.getInfo(path).kind == "directory" then
+      if Filesystem.getInfo(path).map(_.kind == "directory").getOrElse(false) then
         ScalaLove
           .fromLuaSequence(Filesystem.getDirectoryItems(path))
           .foreach(item => remove(s"$path/$item"))

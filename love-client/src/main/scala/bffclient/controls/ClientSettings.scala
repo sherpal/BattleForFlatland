@@ -60,11 +60,11 @@ object ClientSettings {
   }
 
   def load(): ClientSettings =
-    if Filesystem.getInfo(fileName) == null then default
-    else
+    Filesystem.getInfo(fileName).fold(default) { _ =>
       decode[ClientSettings](Filesystem.read(fileName).contents).toOption
         .filter(settings => hudScales.contains(settings.hudScale) && settings.volumes.valid)
         .getOrElse(default)
+    }
 }
 
 /** The volumes of the sounds, each a level from 0 (off) to 10 (full): the main one, and one per

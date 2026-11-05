@@ -31,7 +31,10 @@ object MenuPreferences {
 
   def load(): MenuPreferences = {
     val empty = MenuPreferences(None, "", None, None, None)
-    if Filesystem.getInfo(fileName) == null then empty
-    else decode[MenuPreferences](Filesystem.read(fileName).contents).getOrElse(empty)
+    Filesystem
+      .getInfo(fileName)
+      .fold(empty)(_ =>
+        decode[MenuPreferences](Filesystem.read(fileName).contents).getOrElse(empty)
+      )
   }
 }

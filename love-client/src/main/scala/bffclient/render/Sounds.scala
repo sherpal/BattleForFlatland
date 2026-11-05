@@ -31,6 +31,6 @@ object Sounds {
 
   private def load(name: String): Option[Source] = {
     val path = s"assets/sounds/$name.ogg"
-    Option.when(Filesystem.getInfo(path) != null)(Audio.newSource(path, "static"))
+    Filesystem.getInfo(path).toOption.map(_ => Audio.newSource(path, "static"))
   }
 }
