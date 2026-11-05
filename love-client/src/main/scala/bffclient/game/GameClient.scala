@@ -1,5 +1,6 @@
 package bffclient.game
 
+import bffclient.hud.HudClient
 import bffclient.love.{Event, LoveInput}
 import bffclient.render.{Effects, Smoothing}
 import communication.udp.Connection.Delivery
@@ -26,7 +27,7 @@ final class GameClient(
     mouseWorld: () => Complex,
     /** The entity whose frame (in the HUD) is under the mouse. */
     hovered: () => Option[Entity.Id]
-) {
+) extends HudClient {
   private var gatherer: ActionGatherer = GreedyActionGatherer(GameState.empty)
   var myId: Option[Entity.Id]          = None
   var messagesReceived                 = 0

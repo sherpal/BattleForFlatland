@@ -1,7 +1,6 @@
 package bffclient.hud
 
 import scala.collection.mutable
-import bffclient.game.GameClient
 import bffclient.gui.*
 import bffclient.hud.HudStyle.*
 import bffclient.hud.HudWidgets.*
@@ -13,7 +12,7 @@ import gamelogic.gameextras.DamageTracker
 import utils.misc.RGBColour
 
 /** Life and name of the boss, what it casts, and its buffs, on top (clicking it targets it). */
-final class BossFrame(parent: Frame, client: GameClient) extends UnitButton {
+final class BossFrame(parent: Frame, client: HudClient) extends UnitButton {
   var unit = Option.empty[Entity.Id]
 
   val frame: Frame = Frame(parent)

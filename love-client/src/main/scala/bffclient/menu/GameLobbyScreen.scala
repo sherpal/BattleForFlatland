@@ -15,8 +15,16 @@ import utils.misc.RGBColour
 
 /** The settings of a game before it starts, like the frontend's `GameSettings`: boss, players,
   * one's class, colour and readiness. The game creator adds AIs and launches the game.
+  *
+  * With `launchWhenReady` (the tutorial's practice fights, which set the game up beforehand), our
+  * preferences are not applied, and the game is launched as soon as it can be.
   */
-final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using ExecutionContext)
+final class GameLobbyScreen(
+    app: MenuApp,
+    user: User,
+    gameId: String,
+    launchWhenReady: Boolean = false
+)(using ExecutionContext)
     extends Screen {
   private var game          = Option.empty[MenuGameWithPlayers]
   private var lobby         = Option.empty[Lobby]
@@ -27,7 +35,8 @@ final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using Exec
   private def starting           = startingSince.isDefined
   private var gameStarted        = false
   private var left               = false
-  private var preferencesApplied = false
+  private var preferencesApplied = launchWhenReady
+  private var autoLaunched       = false
   private val refresh            = Refresh(app, () => app.api.game(gameId))(received)
 
   private val hosting =
@@ -173,11 +182,7 @@ final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using Exec
   fillButton.setScript(Script.OnClick)(_ => addAIs(aisToFill))
   private val launchButton =
     action(Button(page, "Launch game!", ButtonStyle.Positive), 180, Point.BottomRight, -40)
-  launchButton.setScript(Script.OnClick) { _ =>
-    launching = true
-    render()
-    app.attempt(app.api.startGame(gameId))(_ => (), _ => { launching = false; render() })
-  }
+  launchButton.setScript(Script.OnClick)(_ => launch())
   private val waitingText =
     page.createFontString("Waiting for the game creator to launch the game", colour = Theme.muted)
   waitingText.setPoint(Point.Right, page, Point.BottomRight, -40, -48)
@@ -260,7 +265,10 @@ final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using Exec
       gameStarted = true
       app.gameStarts(app.api.gameAccess(user.name, credentials), user, lobby)
     case other => hosting.handle(other)
-  })(opened => lobby = Some(opened))
+  }) { opened =>
+    lobby = Some(opened)
+    launchIfAsked()
+  }
 
   // Once the game started, the lobby is closed by MenuApp when coming back to the menus
   override def leave(): Unit = {
@@ -273,14 +281,15 @@ final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using Exec
     case _ if left || gameStarted => () // answers to requests made before
     case None =>
       app.notify("The game was closed by its creator", isError = true)
-      app.show(new GamesScreen(app, user))
+      app.show(app.home(user))
     case Some(g) if !g.containsPlayer(user) =>
       app.notify("You are not in this game (anymore)", isError = true)
-      app.show(new GamesScreen(app, user))
+      app.show(app.home(user))
     case Some(g) =>
       game = Some(g)
       render()
       if !preferencesApplied then { preferencesApplied = true; applyPreferences(g) }
+      launchIfAsked()
   }
 
   private def config: Option[GameConfiguration] = game.map(_.game.gameConfiguration)
@@ -354,6 +363,23 @@ final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using Exec
     }
   }
 
+  private def launch(): Unit = {
+    launching = true
+    render()
+    app.attempt(app.api.startGame(gameId))(_ => (), _ => { launching = false; render() })
+  }
+
+  /** Once, when asked to: the lobby must be open first, for the credentials to arrive. If it fails,
+    * the game can still be launched by hand.
+    */
+  private def launchIfAsked(): Unit =
+    if launchWhenReady && !autoLaunched && !launching && !starting && lobby.isDefined &&
+      amICreator && game.exists(_.game.gameConfigurationIsValid)
+    then {
+      autoLaunched = true
+      launch()
+    }
+
   private def setBusy(busy: Boolean): Unit = {
     this.busy = busy
     render()
@@ -418,7 +444,7 @@ final class GameLobbyScreen(app: MenuApp, user: User, gameId: String)(using Exec
   private def leaveGame(): Unit = {
     setBusy(true)
     app.attempt(app.api.leaveGame(gameId))(
-      _ => app.show(new GamesScreen(app, user)),
+      _ => app.show(app.home(user)),
       _ => setBusy(false)
     )
   }

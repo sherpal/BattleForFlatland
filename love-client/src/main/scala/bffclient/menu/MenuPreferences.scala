@@ -1,7 +1,8 @@
 package bffclient.menu
 
 import bffclient.love.Filesystem
-import io.circe.Codec
+import io.circe.{Decoder, Encoder, Json}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.parser.decode
 import io.circe.syntax.*
 import models.bff.outofgame.PlayerClasses
@@ -16,7 +17,9 @@ final case class MenuPreferences(
     userName: String,
     playerClass: Option[PlayerClasses],
     colour: Option[RGBColour],
-    bossName: Option[String]
+    bossName: Option[String],
+    /** Whether "Learn to play" was ever opened (it is highlighted until then). */
+    tutorialVisited: Boolean
 ) {
   def save(): Unit = {
     val written = Filesystem.write(MenuPreferences.fileName, this.asJson.spaces2)
@@ -27,10 +30,18 @@ final case class MenuPreferences(
 object MenuPreferences {
   val fileName = "menu.json"
 
-  given Codec[MenuPreferences] = io.circe.generic.semiauto.deriveCodec
+  given Encoder[MenuPreferences] = deriveEncoder
+  // preferences saved before `tutorialVisited` existed must still decode, as not visited
+  given Decoder[MenuPreferences] = deriveDecoder[MenuPreferences].prepare(
+    _.withFocus(
+      _.mapObject(obj =>
+        if obj.contains("tutorialVisited") then obj else obj.add("tutorialVisited", Json.False)
+      )
+    )
+  )
 
   def load(): MenuPreferences = {
-    val empty = MenuPreferences(None, "", None, None, None)
+    val empty = MenuPreferences(None, "", None, None, None, tutorialVisited = false)
     Filesystem
       .getInfo(fileName)
       .fold(empty)(_ =>

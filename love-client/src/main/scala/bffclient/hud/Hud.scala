@@ -209,7 +209,7 @@ object Hud {
   val bottomFramesTop: Double = -(ActionBar.height + 8 + frameHeight)
 
   /** 0.5 if the entity is out of our healing range, 1 otherwise. */
-  def inHealingRangeAlpha(client: GameClient, p: Painter, entity: Entity & WithPosition): Double =
+  def inHealingRangeAlpha(client: HudClient, p: Painter, entity: Entity & WithPosition): Double =
     (for me <- client.myId.flatMap(p.gameState.players.get) if me.id != entity.id yield {
       val distance2 = (entity.currentPosition(p.now) - me.currentPosition(p.now)).modulus2
       if distance2 > WithTargetAbility.healRangeSquared then 0.5 else 1.0

@@ -1,6 +1,5 @@
 package bffclient.hud
 
-import bffclient.game.GameClient
 import bffclient.gui.*
 import bffclient.hud.HudStyle.*
 import bffclient.hud.HudWidgets.*
@@ -25,7 +24,7 @@ trait UnitButton {
   */
 final class UnitFrame(
     parent: Frame,
-    client: GameClient,
+    client: HudClient,
     bossVisuals: () => Option[BossVisuals],
     frameWidth: Double,
     isTarget: Boolean
