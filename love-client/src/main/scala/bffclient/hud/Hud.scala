@@ -155,7 +155,7 @@ final class Hud(
     target.update(p, client.currentTarget)
     boss.update(p)
     cooldowns.update(p)
-    threat.update(p)
+    threat.update(p, client.currentTarget)
     damage.update(p, client.damageTracker, client.currentTarget)
     actionBar.update(p)
 

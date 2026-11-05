@@ -1,7 +1,6 @@
 package bffclient.hud
 
 import scala.collection.mutable
-
 import bffclient.game.GameClient
 import bffclient.gui.*
 import bffclient.hud.HudStyle.*
@@ -9,7 +8,7 @@ import bffclient.hud.HudWidgets.*
 import bffclient.render.Painter
 import bffclient.ui.Colour as Paint
 import gamelogic.abilities.Ability
-import gamelogic.entities.{Entity, WithName}
+import gamelogic.entities.{Entity, WithName, WithThreat}
 import gamelogic.gameextras.DamageTracker
 import utils.misc.RGBColour
 
@@ -129,11 +128,12 @@ final class BossCooldowns(parent: Frame) extends BarsPanel(parent, "Boss abiliti
 final class ThreatMeter(parent: Frame) extends BarsPanel(parent, "Threat") {
   frame.setPoint(Point.BottomRight, parent, Point.BottomRight, -4, -8)
 
-  def update(p: Painter): Unit = {
-    val boss = p.gameState.bosses.values.headOption
-    frame.setShown(boss.isDefined)
-    for b <- boss do {
-      val threats = b.damageThreats.toVector
+  def update(p: Painter, target: Option[Entity.Id]): Unit = {
+    val gameState = p.gameState
+    val shown     = target.flatMap(gameState.enemyByIdOrBoss[WithThreat])
+    frame.setShown(shown.isDefined)
+    for entity <- shown do {
+      val threats = entity.damageThreats.toVector
         .flatMap((id, amount) => p.gameState.players.get(id).map(_ -> amount.value))
         .sortBy(-_._2)
       val maxThreat = threats.headOption.map(_._2).filter(_ > 0).getOrElse(1.0)
@@ -156,11 +156,8 @@ final class DamageMeter(parent: Frame, below: Frame) extends BarsPanel(parent, "
   frame.setPoint(Point.BottomRight, below, Point.TopRight, 0, -4)
 
   def update(p: Painter, tracker: DamageTracker, target: Option[Entity.Id]): Unit = {
-    val gameState = p.gameState
-    val enemy = target
-      .flatMap(gameState.entities.get)
-      .filter(_.teamId != Entity.teams.playerTeam)
-    val shown = enemy.orElse(gameState.bosses.values.headOption)
+    val gameState             = p.gameState
+    val shown: Option[Entity] = target.flatMap(gameState.enemyByIdOrBoss[Entity])
     frame.setShown(shown.isDefined)
     for entity <- shown do {
       setTitle(entity match {

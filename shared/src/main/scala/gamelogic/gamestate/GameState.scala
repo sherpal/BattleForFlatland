@@ -69,7 +69,9 @@ final case class GameState(
     * passive buff could also have a priority.
     */
   def applyActionChangers(action: GameAction): List[GameAction] =
-    orderedActionChangers.foldLeft(List(action))((as, changer) => as.flatMap(changer.actionTransformer))
+    orderedActionChangers.foldLeft(List(action))((as, changer) =>
+      as.flatMap(changer.actionTransformer)
+    )
 
   /** All the passive buffs, in the order in which they transform actions. */
   private def orderedActionChangers: List[PassiveBuff] =
@@ -159,6 +161,11 @@ final case class GameState(
   lazy val obstacles: Map[Entity.Id, Obstacle]             = allTEntities[Obstacle]
 
   def entityById(entityId: Entity.Id): Option[Entity] = entities.get(entityId)
+
+  def enemyByIdOrBoss[T <: Entity](entityId: Entity.Id)(using ClassTag[T]): Option[T | BossEntity] =
+    entityByIdAs[T](entityId)
+      .filter(_.teamId != Entity.teams.playerTeam)
+      .orElse(bosses.values.headOption)
 
   def allTargetableEntities: Iterator[MovingBody & LivingEntity] =
     entities.valuesIterator.collect(filterT[LivingEntity & MovingBody])
