@@ -15,6 +15,7 @@ import gamelogic.physics.Complex
 import models.bff.outofgame.PlayerClasses
 import bffclient.gui.Script
 import communication.udp.Peer
+import services.i18n.I18n
 
 /** The LÖVE client of Battle for Flatland: the menus, then the game ([[GameClient]]), drawn by the
   * [[Renderer]] with its HUD and overlays.
@@ -24,6 +25,9 @@ import communication.udp.Peer
   */
 object Main {
   given ExecutionContext = ExecutionContext.global
+
+  /** The language of the texts, chosen in the settings (when the game starts, for the game). */
+  private def i18n: I18n = ClientSettings.current.i18n
 
   private def env(name: String, default: String): String =
     Option(Os.getenv(name)).getOrElse(default)
@@ -41,7 +45,9 @@ object Main {
     menuUrl match {
       case Some(url) if headless =>
         val (scheme, host, port) =
-          MenuApi.parseAddress(url).fold(message => sys.error(s"BFF_MENU_URL: $message"), identity)
+          MenuApi
+            .parseAddress(url, i18n)
+            .fold(message => sys.error(s"BFF_MENU_URL: $message"), identity)
         val api = MenuApi(scheme, host, port)
         val playerClass = PlayerClasses
           .playerClassByName(env("BFF_CLASS", "Triangle"))
@@ -85,7 +91,7 @@ object Main {
     if lag > 0 then println(s"Simulated latency: ${lag * 1000} ms round trip")
     val loss = env("BFF_LOSS_PERCENT", "0").toInt
     if loss > 0 then println(s"Simulated loss: $loss% of the datagrams")
-    GameLink.open(access, lag, loss).onComplete {
+    GameLink.open(access, i18n, lag, loss).onComplete {
       case Failure(error) =>
         println(s"Connection failed: ${error.getMessage}")
         backToMenus match {
@@ -101,7 +107,8 @@ object Main {
             error.printStackTrace()
             link.close()
             backToMenus match {
-              case Some(back) => back(GameExit.CannotConnect(s"the game could not start ($error)"))
+              case Some(back) =>
+                back(GameExit.CannotConnect(i18n.gameCouldNotStart(error.toString)))
               case None => Event.quit(1)
             }
         }
@@ -124,6 +131,7 @@ object Main {
         headless,
         controls,
         controlsInfo,
+        i18n,
         () => Complex.zero,
         () => None
       )
@@ -136,6 +144,7 @@ object Main {
         headless,
         controls,
         controlsInfo,
+        i18n,
         () => renderer.mouseWorld,
         () => renderer.hud.hovered
       )

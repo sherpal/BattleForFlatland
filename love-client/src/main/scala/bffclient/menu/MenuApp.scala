@@ -3,18 +3,22 @@ package bffclient.menu
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-import bffclient.controls.SettingsEditor
+import bffclient.controls.{ClientSettings, SettingsEditor}
 import bffclient.game.{GameAccess, GameExit}
 import bffclient.gui.*
 import bffclient.love.{Fullscreen, Graphics, Keyboard, Love, Timer}
 import bffclient.ui.Theme
 import menus.data.User
+import services.i18n.I18n
 
 /** A screen of the menus: frames of [[MenuApp.gui]], created with the screen. */
 trait Screen {
 
   /** When the menus switch to another screen: it removes its frames. */
   def leave(): Unit
+
+  /** The same screen made again, e.g. in another language (if it can be, and needs to be). */
+  def reopened: Option[Screen] = None
 }
 
 /** "Loading..." while waiting for something. */
@@ -31,10 +35,14 @@ final class LoadingScreen(app: MenuApp, message: String) extends Screen {
   *
   * The menu server is the one typed on the login screen (`server` fills it in, otherwise the last
   * one used, otherwise the build's default, `BuildConfig.menuServer`).
+  *
+  * The texts are in the language of the settings ([[ClientSettings]]). Until one is chosen, the
+  * menus start with the choice of the language ([[LanguageScreen]]).
   */
-final class MenuApp(val server: Option[String], startGame: (GameAccess, GameExit => Unit) => Unit)(
-    using ExecutionContext
-) {
+final class MenuApp(
+    val server: Option[String],
+    startGame: (GameAccess, GameExit => Unit) => Unit
+)(using ExecutionContext) {
   val gui                 = new Gui
   var preferences         = MenuPreferences.load()
   private var connectedTo = Option.empty[MenuApi]
@@ -42,11 +50,17 @@ final class MenuApp(val server: Option[String], startGame: (GameAccess, GameExit
   /** The menu server we logged in to. */
   def api: MenuApi                  = connectedTo.getOrElse(sys.error("Not logged in"))
   def useServer(api: MenuApi): Unit = connectedTo = Some(api)
-  private var screen: Screen        = new LoginScreen(this)
 
-  gui.root
-    .createFontString("F11: fullscreen", Theme.small, Theme.muted)
-    .setPoint(Point.TopLeft, gui.root, Point.BottomRight, -140, -22)
+  /** The texts, in the language of the settings. */
+  def i18n: I18n = ClientSettings.current.i18n
+
+  private val fullscreenHint =
+    gui.root.createFontString(i18n.fullscreenHint, Theme.small, Theme.muted)
+  fullscreenHint.setPoint(Point.TopLeft, gui.root, Point.BottomRight, -140, -22)
+
+  private var screen: Screen =
+    if ClientSettings.current.language.isDefined then new LoginScreen(this)
+    else new LanguageScreen(this)
 
   /** Over everything, for 5 seconds (long ones wrap at the window's width). */
   private val notification = Frame(gui.root)
@@ -67,8 +81,23 @@ final class MenuApp(val server: Option[String], startGame: (GameAccess, GameExit
     */
   private var settingsEditor = Option.empty[SettingsEditor]
 
-  def showSettings(): Unit = if settingsEditor.isEmpty then
-    settingsEditor = Some(SettingsEditor(gui.root, () => settingsEditor = None))
+  def showSettings(onGeneral: Boolean = false): Unit = if settingsEditor.isEmpty then
+    settingsEditor = Some(
+      SettingsEditor(gui.root, i18n, () => settingsEditor = None, languageChanged, onGeneral)
+    )
+
+  /** Shows the texts in the language just chosen: the current screen is made again (if it can be),
+    * and the settings too (where it was chosen).
+    */
+  def languageChanged(): Unit = {
+    fullscreenHint.setText(i18n.fullscreenHint)
+    for reopened <- screen.reopened do show(reopened)
+    for editor   <- settingsEditor do {
+      editor.frame.remove()
+      settingsEditor = None
+      showSettings(onGeneral = true)
+    }
+  }
 
   def install(): Unit = {
     Keyboard.setKeyRepeat(true)
@@ -133,7 +162,7 @@ final class MenuApp(val server: Option[String], startGame: (GameAccess, GameExit
     settingsEditor.foreach(_.frame.remove())
     settingsEditor = None
     // the lobby's screen leaves it subscribed, now that the game started
-    show(LoadingScreen(this, "Connecting to the game server"))
+    show(LoadingScreen(this, i18n.connectingToGameServer))
     startGame(access, exit => backToMenus(user, access.gameId, lobby, exit))
   }
 
@@ -154,16 +183,15 @@ final class MenuApp(val server: Option[String], startGame: (GameAccess, GameExit
       // the game server stops by itself once everyone left
       case GameExit.Ended | GameExit.LeftEarly(_) => ()
       case GameExit.ConnectionLost =>
-        notify("The connection to the game server was lost", isError = true)
+        notify(i18n.connectionToGameServerLost, isError = true)
       case GameExit.CannotConnect(error) =>
-        notify(s"Cannot connect to the game server: $error", isError = true)
+        notify(i18n.cannotConnectToGameServer(error), isError = true)
     }
     lobby.foreach(_.close())
-    show(LoadingScreen(this, "Leaving the game"))
+    show(LoadingScreen(this, i18n.leavingTheGame))
     api.leaveGame(gameId).onComplete { result =>
-      result.failed.foreach(failure =>
-        notify(s"Could not leave the game: ${failure.getMessage}", isError = true)
-      )
+      result.failed
+        .foreach(failure => notify(i18n.couldNotLeaveGame(failure.getMessage), isError = true))
       show(home(user))
     }
   }

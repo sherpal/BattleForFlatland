@@ -9,6 +9,7 @@ import bffclient.ui.{Colour, Theme}
 import gamelogic.entities.Entity
 import gamelogic.entities.classes.Constants
 import models.bff.outofgame.PlayerClasses
+import services.i18n.I18n
 
 /** A frame of a fixed size (in its units), centred in `area`, and scaled down to fit in it, on the
   * arena's grey with the aztec diamond (half transparent, as in the game).
@@ -142,9 +143,9 @@ final class HudPreview(parent: Frame, area: Region, topic: Topic, scene: Tutoria
   // The HUD, placed as in the game (see Hud)
   private val noVisuals = () => None
   private val boss      = BossFrame(root, scene)
-  private val cooldowns = BossCooldowns(root)
-  private val threat    = ThreatMeter(root)
-  private val damage    = DamageMeter(root, threat.frame)
+  private val cooldowns = BossCooldowns(root, scene.i18n)
+  private val threat    = ThreatMeter(root, scene.i18n)
+  private val damage    = DamageMeter(root, threat.frame, scene.i18n)
   private val actionBar = ActionBar(root, scene)
   private val myFrame   = UnitFrame(root, scene, noVisuals, 200, isTarget = false)
   private val target    = UnitFrame(root, scene, noVisuals, 200, isTarget = true)
@@ -179,57 +180,57 @@ final class HudPreview(parent: Frame, area: Region, topic: Topic, scene: Tutoria
   private def marks: Seq[(Region, Point, Double, Double, String)] = topic match {
     case Topic.Overview =>
       Seq(
-        (boss.frame, Point.Left, -16, 0, "The boss: its life, and what it casts."),
-        (cooldowns.frame, Point.Left, -16, 0, "When the boss' abilities come back."),
-        (team.head.frame, Point.TopRight, 6, 6, "Your team. Click a frame to target the player."),
-        (myFrame.frame, Point.Left, -16, 0, "You and your target, above your abilities."),
-        (damage.frame, Point.Left, -16, 0, "Damage dealt to your target, and the boss' threat.")
+        (boss.frame, Point.Left, -16, 0, scene.i18n.legendBoss),
+        (cooldowns.frame, Point.Left, -16, 0, scene.i18n.legendBossCooldowns),
+        (team.head.frame, Point.TopRight, 6, 6, scene.i18n.legendTeam),
+        (myFrame.frame, Point.Left, -16, 0, scene.i18n.legendYouAndTarget),
+        (damage.frame, Point.Left, -16, 0, scene.i18n.legendMeters)
       )
     case Topic.Triangle =>
       Seq(
-        (myFrame.frame, Point.Left, -16, 0, "Your energy: spend it, it refills steadily."),
-        (actionBar.frame, Point.Left, -16, 0, "Your abilities: Direct Hit, Energy Kick, ..."),
-        (damage.frame, Point.Left, -16, 0, "Your place on the damage meter: the top!"),
-        (threat.frame, Point.Left, -16, 0, "But not on the threat meter: that's the Square's.")
+        (myFrame.frame, Point.Left, -16, 0, scene.i18n.legendTriangleEnergy),
+        (actionBar.frame, Point.Left, -16, 0, scene.i18n.legendTriangleAbilities),
+        (damage.frame, Point.Left, -16, 0, scene.i18n.legendTriangleDamage),
+        (threat.frame, Point.Left, -16, 0, scene.i18n.legendTriangleThreat)
       )
     case Topic.Square =>
       Seq(
-        (brace.frame, Point.Left, -16, 0, "Your shield's stacks (Brace): keep them up."),
-        (myFrame.frame, Point.BottomLeft, -10, 2, "Your rage, earned by taking damage."),
-        (boss.frame, Point.Left, -16, 0, "The boss casts Big Hit on you: have your stacks up!"),
-        (threat.frame, Point.Left, -16, 0, "You must stay on top of the threat meter.")
+        (brace.frame, Point.Left, -16, 0, scene.i18n.legendSquareStacks),
+        (myFrame.frame, Point.BottomLeft, -10, 2, scene.i18n.legendSquareRage),
+        (boss.frame, Point.Left, -16, 0, scene.i18n.legendSquareBigHit),
+        (threat.frame, Point.Left, -16, 0, scene.i18n.legendSquareThreat)
       )
     case Topic.Pentagon =>
       Seq(
-        (myFrame.frame, Point.Left, -16, 0, "Your mana."),
+        (myFrame.frame, Point.Left, -16, 0, scene.i18n.legendPentagonMana),
         (
           actionBar.frame,
           Point.Left,
           -16,
           0,
-          "Bullets fly towards the mouse, zones are placed with a click."
+          scene.i18n.legendPentagonAim
         ),
         (
           teamFrame(scene.idOf(PlayerClasses.Pentagon, 1)),
           Point.TopRight,
           6,
           6,
-          "The players' debuffs: dispel the ones that can be."
+          scene.i18n.legendPentagonDebuffs
         ),
-        (damage.frame, Point.Left, -16, 0, "Your place on the damage meter.")
+        (damage.frame, Point.Left, -16, 0, scene.i18n.legendPentagonDamage)
       )
     case Topic.Hexagon =>
       Seq(
-        (team.head.frame, Point.TopRight, 6, 6, "Your team: click a frame to target the player."),
+        (team.head.frame, Point.TopRight, 6, 6, scene.i18n.legendHexagonTeam),
         (
           teamFrame(scene.idOf(PlayerClasses.Pentagon, 1)),
           Point.TopRight,
           6,
           6,
-          "Faded: out of your healing range. Get closer!"
+          scene.i18n.legendHexagonFaded
         ),
-        (myFrame.frame, Point.Left, -16, 0, "Your mana: it regenerates slowly."),
-        (target.frame, Point.TopRight, 6, 6, "Your target, the tank, with your heal over time.")
+        (myFrame.frame, Point.Left, -16, 0, scene.i18n.legendHexagonMana),
+        (target.frame, Point.TopRight, 6, 6, scene.i18n.legendHexagonTarget)
       )
   }
 
@@ -242,7 +243,7 @@ final class HudPreview(parent: Frame, area: Region, topic: Topic, scene: Tutoria
 }
 
 /** Where everyone stands in a fight, with a word on what they do. */
-final class ArenaPreview(parent: Frame, area: Region) {
+final class ArenaPreview(parent: Frame, area: Region, i18n: I18n) {
   private val canvas = Canvas(parent, area, 780, 460)
   val frame: Frame   = canvas.frame
 
@@ -258,28 +259,28 @@ final class ArenaPreview(parent: Frame, area: Region) {
   range.setPoint(Point.Center, frame, Point.TopLeft, healerX, healerY)
   range.setCornerRadius(280)
   range.setOutline(Some(Topic.Hexagon.colour.withAlpha(0.7)), 2)
-  label("The healer's range", healerX + 150, healerY - 262, Colour.rgb(30, 110, 60))
+  label(i18n.arenaHealerRange, healerX + 150, healerY - 262, Colour.rgb(30, 110, 60))
 
   Shapes.boss(frame, bossX, bossY, 48)
-  label("The boss", bossX - 34, bossY - 11, dark)
+  label(i18n.arenaBoss, bossX - 34, bossY - 11, dark)
 
   private def place(topic: Topic, x: Double, y: Double): Unit =
     for cls <- topic.playerClass do Shapes.player(frame, cls, topic.colour, x, y, 40)
 
   place(Topic.Square, bossX, bossY + 80)
-  label("The Square holds the boss, facing it", bossX + 30, bossY + 70, dark)
+  label(i18n.arenaSquare, bossX + 30, bossY + 70, dark)
   place(Topic.Triangle, bossX + 40, bossY - 78)
-  label("The Triangle hits it in melee, from behind", bossX + 70, bossY - 90, dark)
+  label(i18n.arenaTriangle, bossX + 70, bossY - 90, dark)
   place(Topic.Pentagon, bossX - 250, bossY + 110)
   place(Topic.Pentagon, bossX + 250, bossY + 110)
-  label("The Pentagons shoot from afar", bossX - 340, bossY + 140, dark)
+  label(i18n.arenaPentagons, bossX - 340, bossY + 140, dark)
   place(Topic.Hexagon, healerX, healerY)
-  label("The Hexagon heals, within reach of everyone", healerX + 30, healerY - 11, dark)
+  label(i18n.arenaHexagon, healerX + 30, healerY - 11, dark)
 
-  /** On a light background, to be read over the arena. */
+  /** On a light background, to be read over the arena (moved to the left when it is too long). */
   private def label(text: String, x: Double, y: Double, colour: Colour): Unit = {
     val fontString = frame.createFontString(text, Theme.body, colour, Layer.Overlay)
-    fontString.setPoint(Point.TopLeft, x, y)
+    fontString.setPoint(Point.TopLeft, math.min(x, canvas.width - fontString.stringWidth - 8), y)
     val pill = frame.createTexture(Colour(1, 1, 1, 0.75), Layer.Border)
     pill.setPoint(Point.TopLeft, fontString, Point.TopLeft, -5, -2)
     pill.setPoint(Point.BottomRight, fontString, Point.BottomRight, 5, 2)
@@ -287,7 +288,7 @@ final class ArenaPreview(parent: Frame, area: Region) {
   }
 
   def legend: Seq[String] = Seq(
-    "The tank turns the boss away from the others, who hit it from behind or from afar.",
-    "Everyone stays within the healer's range (the team's frames fade outside of it)."
+    i18n.arenaLegendPositions,
+    i18n.arenaLegendRange
   )
 }

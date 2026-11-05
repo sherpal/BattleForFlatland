@@ -9,6 +9,7 @@ import bffclient.ui.Colour as Paint
 import gamelogic.abilities.Ability
 import gamelogic.entities.{Entity, WithName, WithThreat}
 import gamelogic.gameextras.DamageTracker
+import services.i18n.I18n
 import utils.misc.RGBColour
 
 /** Life and name of the boss, what it casts, and its buffs, on top (clicking it targets it). */
@@ -98,7 +99,7 @@ private abstract class BarsPanel(parent: Frame, title: String) {
 }
 
 /** One bar per ability of the boss, in its colour, emptying until it is ready again (top right). */
-final class BossCooldowns(parent: Frame) extends BarsPanel(parent, "Boss abilities") {
+final class BossCooldowns(parent: Frame, i18n: I18n) extends BarsPanel(parent, i18n.bossAbilities) {
   frame.setPoint(Point.TopRight, parent, Point.TopRight, -4, 4)
 
   def update(p: Painter): Unit = {
@@ -124,7 +125,7 @@ final class BossCooldowns(parent: Frame) extends BarsPanel(parent, "Boss abiliti
 }
 
 /** The players by the boss's threat towards them, the highest first (bottom right). */
-final class ThreatMeter(parent: Frame) extends BarsPanel(parent, "Threat") {
+final class ThreatMeter(parent: Frame, i18n: I18n) extends BarsPanel(parent, i18n.threat) {
   frame.setPoint(Point.BottomRight, parent, Point.BottomRight, -4, -8)
 
   def update(p: Painter, target: Option[Entity.Id]): Unit = {
@@ -151,7 +152,8 @@ final class ThreatMeter(parent: Frame) extends BarsPanel(parent, "Threat") {
   *
   * The damage per second is the one since the target was first hit (until it dies, if it does).
   */
-final class DamageMeter(parent: Frame, below: Frame) extends BarsPanel(parent, "Damage") {
+final class DamageMeter(parent: Frame, below: Frame, i18n: I18n)
+    extends BarsPanel(parent, i18n.damage) {
   frame.setPoint(Point.BottomRight, below, Point.TopRight, 0, -4)
 
   def update(p: Painter, tracker: DamageTracker, target: Option[Entity.Id]): Unit = {
@@ -160,8 +162,8 @@ final class DamageMeter(parent: Frame, below: Frame) extends BarsPanel(parent, "
     frame.setShown(shown.isDefined)
     for entity <- shown do {
       setTitle(entity match {
-        case named: WithName => s"Damage: ${named.name}"
-        case _ => "Damage"
+        case named: WithName => i18n.damageTo(named.name)
+        case _ => i18n.damage
       })
       val players = gameState.players ++ gameState.deadPlayers
       val dealt = tracker

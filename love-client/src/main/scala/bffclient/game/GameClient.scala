@@ -13,6 +13,7 @@ import gamelogic.gamestate.gameactions.{EndGame, MovingBodyMoves}
 import gamelogic.physics.Complex
 import models.bff.ingame.{Controls, InGameWSProtocol, UserInput}
 import models.bff.ingame.InGameWSProtocol.*
+import services.i18n.I18n
 
 /** Plays on a real Battle for Flatland game server (see [[GameLink]]): plays the start-of-game
   * handshake like the frontend, keeps a client-side copy of the game state from the server's
@@ -24,6 +25,7 @@ final class GameClient(
     headless: Boolean,
     val controls: Controls,
     val controlsInfo: String,
+    val i18n: I18n,
     mouseWorld: () => Complex,
     /** The entity whose frame (in the HUD) is under the mouse. */
     hovered: () => Option[Entity.Id]
@@ -152,7 +154,7 @@ final class GameClient(
               )
             )
           case None =>
-            request(CastRequest.Error(s"No ability on input ${abilityInput.abilityIndex + 1}"))
+            request(CastRequest.Error(i18n.noAbilityOnKey(abilityInput.abilityIndex + 1)))
         }
     case UserInput.NextTarget =>
       nextTarget()
@@ -532,7 +534,7 @@ final class GameClient(
     case YourEntityIdIs(id) =>
       println(s"<- YourEntityIdIs($id)")
       myId = Some(id)
-      caster = Some(new AbilityCaster(id))
+      caster = Some(new AbilityCaster(id, i18n))
       readyToStart()
     case StartingBossPosition(x, y) =>
       println(s"<- StartingBossPosition($x, $y)")

@@ -21,6 +21,7 @@ import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
 import models.bff.ingame.Controls
 import models.bff.outofgame.PlayerClasses
+import services.i18n.I18n
 import utils.misc.{RGBAColour, RGBColour}
 
 /** A made-up moment of a fight against Boss 101, for the tutorial to show the HUD's frames with: a
@@ -34,7 +35,8 @@ final class TutorialScene(
     myClass: PlayerClasses,
     myName: String,
     myColour: RGBColour,
-    val controls: Controls
+    val controls: Controls,
+    val i18n: I18n
 ) extends HudClient {
   import TutorialScene.*
 
@@ -57,7 +59,7 @@ final class TutorialScene(
       PlayerClasses.Pentagon -> Complex(750, 260) // out of the Hexagon's range
     )
     val mine = classes.indexWhere(_._1 == myClass)
-    // the others are named after their class: Pentagon, then Pentagon 2
+    // the others are named after their class: Pentagon, then Pentagon 2 (in our language)
     var named = Map.empty[PlayerClasses, Int]
     classes.zipWithIndex.map { case ((cls, at), i) =>
       val name =
@@ -65,7 +67,8 @@ final class TutorialScene(
         else {
           val count = named.getOrElse(cls, 0) + 1
           named += cls -> count
-          if count == 1 then cls.value else s"${cls.value} $count"
+          val className = i18n.playerClassName(cls)
+          if count == 1 then className else s"$className $count"
         }
       Member(summon[IdGeneratorContainer].entityId(), cls, name, at)
     }

@@ -13,6 +13,7 @@ import gamelogic.entities.classes.pentagon.PentagonZone
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.gameactions.EntityStartsCasting
 import gamelogic.physics.Complex
+import services.i18n.I18n
 import utils.misc.RGBColour
 
 /** What to do after the player asked to use an ability. */
@@ -22,8 +23,10 @@ enum CastRequest {
   case Error(message: String)
 }
 
-/** Builds the abilities of the players, like the frontend's `CastAbilitiesHandler`. */
-final class AbilityCaster(myId: Entity.Id) {
+/** Builds the abilities of the players, like the frontend's `CastAbilitiesHandler` (with the errors
+  * in the language of `i18n`).
+  */
+final class AbilityCaster(myId: Entity.Id, i18n: I18n) {
   import CastRequest.*
 
   /** The ability on key `index + 1` (abilities in the same order as the frontend's action bar). */
@@ -35,12 +38,12 @@ final class AbilityCaster(myId: Entity.Id) {
       mouse: Complex
   ): CastRequest =
     gameState.players.get(myId) match {
-      case None => Error("You are dead")
+      case None => Error(i18n.youAreDead)
       case Some(player) =>
         val abilities = player.abilities.toArray
         if index < abilities.length then
           cast(abilities(index), player, gameState, now, target, mouse)
-        else Error(s"No ability on key ${index + 1}")
+        else Error(i18n.noAbilityOnKey(index + 1))
     }
 
   /** @param mouseOver
@@ -119,7 +122,7 @@ final class AbilityCaster(myId: Entity.Id) {
       case Ability.createPentagonZoneId | Ability.hexagonHexagonZoneId =>
         ChoosePosition(abilityId)
       case other =>
-        Error(s"Ability $other is not supported yet")
+        Error(i18n.abilityNotSupported(other.toString))
     }
   }
 
@@ -131,7 +134,7 @@ final class AbilityCaster(myId: Entity.Id) {
       now: Long
   ): CastRequest =
     gameState.players.get(myId) match {
-      case None => Error("You are dead")
+      case None => Error(i18n.youAreDead)
       case Some(player) =>
         val colour = RGBColour.fromIntColour(player.colour).withAlpha(0.5)
         abilityId match {
@@ -164,7 +167,7 @@ final class AbilityCaster(myId: Entity.Id) {
               now
             )
           case other =>
-            Error(s"Ability $other is not placed with the mouse")
+            Error(i18n.abilityNotPlacedWithMouse(other.toString))
         }
     }
 
@@ -179,7 +182,7 @@ final class AbilityCaster(myId: Entity.Id) {
       now: Long
   ): CastRequest = {
     val onTarget =
-      target.fold(Error("No target"))(targetId => send(ability(targetId), gameState, now))
+      target.fold(Error(i18n.noTarget))(targetId => send(ability(targetId), gameState, now))
     onTarget match {
       case sent: Send => sent
       case failure =>

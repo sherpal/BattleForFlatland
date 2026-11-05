@@ -10,6 +10,8 @@ import bffclient.ui.{ButtonStyle, Theme}
 import models.users.LoginUser
 
 final class LoginScreen(app: MenuApp)(using ExecutionContext) extends Screen {
+  private val i18n = app.i18n
+
   private val root = Frame(app.gui.root)
   root.setAllPoints()
   root.enableKeyboard(true)
@@ -19,21 +21,21 @@ final class LoginScreen(app: MenuApp)(using ExecutionContext) extends Screen {
   box.setPoint(Point.Center, root, Point.Center, 0, -15)
 
   root
-    .createFontString("Welcome to Battle for Flatland!", Theme.title)
+    .createFontString(i18n.welcomeToBattleForFlatland, Theme.title)
     .setPoint(Point.Center, box, Point.Top, 0, -65)
 
-  box.createFontString("Server address").setPoint(Point.TopLeft, 30, 28)
+  box.createFontString(i18n.serverAddress).setPoint(Point.TopLeft, 30, 28)
   private val server = EditBox(
     box,
     app.server.orElse(app.preferences.server).orElse(Option(BuildConfig.menuServer)).getOrElse(""),
-    "e.g. bff.example.com, or http://81.12.34.56:9000",
+    i18n.serverAddressExample,
     maxLetters = 64
   )
   server.setSize(380, 38)
   server.setPoint(Point.TopLeft, 30, 56)
 
-  box.createFontString("Please choose a pseudo").setPoint(Point.TopLeft, 30, 108)
-  private val name = EditBox(box, app.preferences.userName, "Your pseudo", maxLetters = 20)
+  box.createFontString(i18n.choosePseudo).setPoint(Point.TopLeft, 30, 108)
+  private val name = EditBox(box, app.preferences.userName, i18n.yourPseudo, maxLetters = 20)
   name.setSize(380, 38)
   name.setPoint(Point.TopLeft, 30, 136)
 
@@ -42,12 +44,12 @@ final class LoginScreen(app: MenuApp)(using ExecutionContext) extends Screen {
   error.setPoint(Point.TopLeft, 30, 182)
   error.setPoint(Point.TopRight, -30, 182)
 
-  private val loading = Templates.loading(box, "Logging in")
+  private val loading = Templates.loading(box, i18n.loggingIn)
   loading.setPoint(Point.TopLeft, 30, 230)
   loading.hide()
 
-  private val loginButton = Button(box, "Enter Battle for Flatland", ButtonStyle.Primary)
-  loginButton.setSize(220, 40)
+  private val loginButton = Button(box, i18n.enterBattleForFlatland, ButtonStyle.Primary)
+  loginButton.setSize(300, 40)
   loginButton.setPoint(Point.TopRight, -30, 220)
 
   server.setScript(Script.OnEnterPressed)(() =>
@@ -77,9 +79,9 @@ final class LoginScreen(app: MenuApp)(using ExecutionContext) extends Screen {
   private def login(): Unit = if loginButton.isEnabled then {
     val pseudo     = name.text.trim
     val nameErrors = LoginUser.validator.validate(LoginUser(pseudo, "1234")).get("name")
-    (MenuApi.parseAddress(server.text), nameErrors) match {
-      case (Left(message), _) => error.setText(s"Server: $message")
-      case (_, Some(errors)) => error.setText(s"Pseudo: ${errors.map(_.repr).mkString(", ")}")
+    (MenuApi.parseAddress(server.text, i18n), nameErrors) match {
+      case (Left(message), _) => error.setText(i18n.serverError(message))
+      case (_, Some(errors)) => error.setText(i18n.pseudoError(errors.map(_.repr).mkString(", ")))
       case (Right((scheme, host, port)), None) =>
         setBusy(true)
         error.setText("")
@@ -92,7 +94,7 @@ final class LoginScreen(app: MenuApp)(using ExecutionContext) extends Screen {
           case Failure(failure) =>
             setBusy(false)
             name.setFocus()
-            error.setText(s"Cannot log in to ${api.address}: ${failure.getMessage}")
+            error.setText(i18n.cannotLogIn(api.address, failure.getMessage))
         }
     }
   }

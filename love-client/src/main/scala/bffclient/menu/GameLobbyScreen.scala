@@ -4,7 +4,7 @@ import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
 import bffclient.gui.*
-import bffclient.hosting.HostingAgent
+import bffclient.hosting.{GameServerHost, HostingAgent}
 import bffclient.love.Timer
 import bffclient.ui.{ButtonStyle, Colour, Theme}
 import gamelogic.docs.BossMetadata
@@ -17,15 +17,18 @@ import utils.misc.RGBColour
   * one's class, colour and readiness. The game creator adds AIs and launches the game.
   *
   * With `launchWhenReady` (the tutorial's practice fights, which set the game up beforehand), our
-  * preferences are not applied, and the game is launched as soon as it can be.
+  * preferences are not applied, and the game is launched as soon as it can be. Neither are they
+  * when the screen is `reopened` (e.g. in another language).
   */
 final class GameLobbyScreen(
     app: MenuApp,
     user: User,
     gameId: String,
-    launchWhenReady: Boolean = false
+    launchWhenReady: Boolean = false,
+    reopening: Boolean = false
 )(using ExecutionContext)
     extends Screen {
+  private val i18n          = app.i18n
   private var game          = Option.empty[MenuGameWithPlayers]
   private var lobby         = Option.empty[Lobby]
   private var busy          = false
@@ -35,12 +38,12 @@ final class GameLobbyScreen(
   private def starting           = startingSince.isDefined
   private var gameStarted        = false
   private var left               = false
-  private var preferencesApplied = launchWhenReady
+  private var preferencesApplied = launchWhenReady || reopening
   private var autoLaunched       = false
   private val refresh            = Refresh(app, () => app.api.game(gameId))(received)
 
   private val hosting =
-    HostingAgent(app.api, gameId, user.name, message => println(s"[menu] $message"))
+    HostingAgent(app.api, gameId, user.name, i18n, message => println(s"[menu] $message"))
 
   // --- Frames ---
 
@@ -48,7 +51,7 @@ final class GameLobbyScreen(
   root.setAllPoints()
   root.setScript(Script.OnUpdate)(_ => hosting.prefetch()) // it may be turned on in the settings
 
-  private val loading = Templates.loading(root, "Loading the game")
+  private val loading = Templates.loading(root, i18n.loadingTheGame)
   loading.setPoint(Point.TopLeft, 40, 40)
 
   /** Everything, once the game is loaded. */
@@ -60,7 +63,7 @@ final class GameLobbyScreen(
   private val subtitle = page.createFontString(size = Theme.small, colour = Theme.muted)
   subtitle.setPoint(Point.TopLeft, 40, 58)
   page
-    .createFontString(s"Logged in as ${user.name}", colour = Theme.muted)
+    .createFontString(i18n.loggedInAs(user.name), colour = Theme.muted)
     .setPoint(Point.Right, page, Point.TopRight, -40, 45)
 
   /** The left column, 60% of the width. */
@@ -73,7 +76,7 @@ final class GameLobbyScreen(
   private val table = Templates.panel(page)
   leftColumn(table, 90)
   private val columns = Seq(0.0, 0.35, 0.58, 0.72) // where they start, in the table's width
-  for (header, at) <- Seq("Name", "Class", "Colour", "Ready").zip(columns) do
+  for (header, at) <- Seq(i18n.name, i18n.playerClass, i18n.colour, i18n.ready).zip(columns) do
     table
       .createFontString(header, colour = Theme.muted)
       .setPoint(Point.TopLeft, table, Point(at, 0), 16, 12)
@@ -97,7 +100,7 @@ final class GameLobbyScreen(
     private val colour      = cell(Swatch(frame), 2)
     private val noColour    = cell(frame.createFontString("-", colour = Theme.muted), 2)
     private val ready       = cell(frame.createFontString(), 3)
-    private val kick        = Button(frame, "Kick", ButtonStyle.Danger)
+    private val kick        = Button(frame, i18n.kick, ButtonStyle.Danger)
     colour.setSize(22, 22)
     colour.setEnabled(false)
     kick.setSize(70, 30)
@@ -110,15 +113,15 @@ final class GameLobbyScreen(
         player = Some(info.playerName.name)
         name.setText(info.playerName match {
           case PlayerName.HumanPlayerName(name) =>
-            if name == user.name then s"$name (you)" else name
-          case ai: PlayerName.AIPlayerName => s"${ai.name} (AI)"
+            if name == user.name then i18n.you(name) else name
+          case ai: PlayerName.AIPlayerName => i18n.ai(ai.name)
         })
-        playerClass.setText(info.maybePlayerClass.fold("Not chosen")(_.value))
+        playerClass.setText(info.maybePlayerClass.fold(i18n.classNotChosen)(i18n.playerClassName))
         playerClass.setColour(if info.maybePlayerClass.isDefined then Theme.text else Theme.muted)
         info.maybePlayerColour.foreach(c => colour.setColour(MenuColours.toUi(c)))
         colour.setShown(info.maybePlayerColour.isDefined)
         noColour.setShown(info.maybePlayerColour.isEmpty)
-        ready.setText(if info.isReady then "Ready" else "Not ready")
+        ready.setText(if info.isReady then i18n.ready else i18n.notReady)
         ready.setColour(
           if info.isReady then Theme.positive.lighter(0.3) else Theme.negative.lighter(0.3)
         )
@@ -133,12 +136,12 @@ final class GameLobbyScreen(
   mine.setPoint(Point.TopLeft, table, Point.BottomLeft, 0, 20)
   mine.setPoint(Point.TopRight, table, Point.BottomRight, 0, 20)
   mine.setHeight(150)
-  mine.createFontString("Class", colour = Theme.muted).setPoint(Point.TopLeft, 16, 18)
-  private val classes = Segmented[PlayerClasses](mine, _.value)
+  mine.createFontString(i18n.playerClass, colour = Theme.muted).setPoint(Point.TopLeft, 16, 18)
+  private val classes = Segmented[PlayerClasses](mine, i18n.playerClassName)
   classes.setSize(420, 36)
   classes.setPoint(Point.TopLeft, 100, 10)
   classes.setScript(classes.OnValueChanged)(cls => changeMe(_.withClass(Some(cls))))
-  mine.createFontString("Colour", colour = Theme.muted).setPoint(Point.TopLeft, 16, 64)
+  mine.createFontString(i18n.colour, colour = Theme.muted).setPoint(Point.TopLeft, 16, 64)
   private val swatches = MenuColours.palette.zipWithIndex.map { (colour, i) =>
     val swatch = Swatch(mine, MenuColours.toUi(colour))
     swatch.setSize(24, 24)
@@ -146,7 +149,7 @@ final class GameLobbyScreen(
     swatch.setScript(Script.OnClick)(_ => changeMe(_.withColour(colour)))
     colour -> swatch
   }
-  private val readyCheck = CheckButton(mine, "Ready")
+  private val readyCheck = CheckButton(mine, i18n.ready)
   readyCheck.setPoint(Point.TopLeft, 16, 108)
   readyCheck.setScript(Script.OnClick)(_ =>
     changeMe(
@@ -160,7 +163,7 @@ final class GameLobbyScreen(
   problems.setPoint(Point.TopLeft, problemsTitle, Point.BottomLeft, 16, 5)
 
   // What the boss and the classes do, like the frontend's `GameDocs`
-  private val docsPanel = DocsPanel(page, changeBoss)
+  private val docsPanel = DocsPanel(page, i18n, changeBoss)
   docsPanel.frame.setPoint(Point.TopLeft, page, Point(0.6, 0), 70, 90)
   docsPanel.frame.setPoint(Point.BottomRight, -40, -90)
 
@@ -170,21 +173,21 @@ final class GameLobbyScreen(
     button.setPoint(point, x, -26)
     button
   }
-  private val leaveButton = action(Button(page, "Leave game"), 150, Point.BottomLeft, 40)
+  private val leaveButton = action(Button(page, i18n.leaveGame), 150, Point.BottomLeft, 40)
   leaveButton.setScript(Script.OnClick)(_ => leaveGame())
-  private val settingsButton = action(Button(page, "Settings"), 130, Point.BottomLeft, 200)
+  private val settingsButton = action(Button(page, i18n.settings), 130, Point.BottomLeft, 200)
   settingsButton.setScript(Script.OnClick)(_ => app.showSettings())
   DownloadIndicator(page).frame.setPoint(Point.TopLeft, page, Point.BottomLeft, 350, -64)
 
-  private val addAIButton = action(Button(page, "Add AI"), 150, Point.BottomRight, -410)
+  private val addAIButton = action(Button(page, i18n.addAI), 150, Point.BottomRight, -410)
   addAIButton.setScript(Script.OnClick)(_ => addAIs(1))
-  private val fillButton = action(Button(page, "Fill with AIs"), 170, Point.BottomRight, -230)
+  private val fillButton = action(Button(page, i18n.fillWithAIs), 170, Point.BottomRight, -230)
   fillButton.setScript(Script.OnClick)(_ => addAIs(aisToFill))
   private val launchButton =
-    action(Button(page, "Launch game!", ButtonStyle.Positive), 180, Point.BottomRight, -40)
+    action(Button(page, i18n.launchGame, ButtonStyle.Positive), 180, Point.BottomRight, -40)
   launchButton.setScript(Script.OnClick)(_ => launch())
   private val waitingText =
-    page.createFontString("Waiting for the game creator to launch the game", colour = Theme.muted)
+    page.createFontString(i18n.waitingForCreatorToLaunch, colour = Theme.muted)
   waitingText.setPoint(Point.Right, page, Point.BottomRight, -40, -48)
 
   // While the game starts, over everything
@@ -194,7 +197,7 @@ final class GameLobbyScreen(
   startingOverlay.setBackdrop(Backdrop(Theme.background.withAlpha(0.8)))
   startingOverlay.enableMouse(true) // nothing under it can be clicked
   Templates
-    .loading(startingOverlay, "Game is starting, please wait for setup to finish")
+    .loading(startingOverlay, i18n.gameIsStarting)
     .setPoint(Point.TopLeft, startingOverlay, Point.Center, -240, 0)
   private val hostingStatus = startingOverlay.createFontString(colour = Theme.muted)
   hostingStatus.setPoint(Point.Center, 0, 55)
@@ -202,9 +205,9 @@ final class GameLobbyScreen(
     .setPoint(Point.TopLeft, startingOverlay, Point.Center, -130, 80)
   // the host may have to download the game server first (and someone else may take over)
   private val notReady =
-    startingOverlay.createFontString("The game server is not ready yet.", colour = Theme.muted)
+    startingOverlay.createFontString(i18n.gameServerNotReadyYet, colour = Theme.muted)
   notReady.setPoint(Point.Center, 0, 135)
-  private val leaveWhileStarting = Button(startingOverlay, "Leave game")
+  private val leaveWhileStarting = Button(startingOverlay, i18n.leaveGame)
   leaveWhileStarting.setSize(150, 44)
   leaveWhileStarting.setPoint(Point.TopLeft, startingOverlay, Point.Center, -75, 160)
   leaveWhileStarting.setScript(Script.OnClick)(_ => leaveGame())
@@ -237,9 +240,12 @@ final class GameLobbyScreen(
         case Some(download) =>
           def megabytes(bytes: Double) = (bytes / 1000000).toInt
           content.show()
-          what.setText(s"Downloading ${download.what}")
+          what.setText(download.what match {
+            case GameServerHost.Downloaded.JavaRuntime => i18n.downloadingJavaRuntime
+            case GameServerHost.Downloaded.GameServerJar => i18n.downloadingGameServer
+          })
           amount.setText(
-            s"${megabytes(download.received)} / ${megabytes(download.size.toDouble)} MB"
+            i18n.megabytes(megabytes(download.received), megabytes(download.size.toDouble))
           )
           bar.setValue(download.fraction)
         case None => content.hide()
@@ -270,6 +276,10 @@ final class GameLobbyScreen(
     launchIfAsked()
   }
 
+  // once it starts, the game's frames take over
+  override def reopened: Option[Screen] =
+    Option.when(!starting && !gameStarted)(GameLobbyScreen(app, user, gameId, reopening = true))
+
   // Once the game started, the lobby is closed by MenuApp when coming back to the menus
   override def leave(): Unit = {
     left = true
@@ -280,10 +290,10 @@ final class GameLobbyScreen(
   private def received(maybeGame: Option[MenuGameWithPlayers]): Unit = maybeGame match {
     case _ if left || gameStarted => () // answers to requests made before
     case None =>
-      app.notify("The game was closed by its creator", isError = true)
+      app.notify(i18n.gameClosedByCreator, isError = true)
       app.show(app.home(user))
     case Some(g) if !g.containsPlayer(user) =>
-      app.notify("You are not in this game (anymore)", isError = true)
+      app.notify(i18n.notInThisGame, isError = true)
       app.show(app.home(user))
     case Some(g) =>
       game = Some(g)
@@ -315,7 +325,7 @@ final class GameLobbyScreen(
       val configuration = g.game.gameConfiguration
       val enabled       = !busy && !starting
       title.setText(g.game.gameName)
-      subtitle.setText(s"Created by ${g.game.gameCreator.name} - game ${g.id}")
+      subtitle.setText(i18n.gameCreatedBy(g.game.gameCreator.name, g.id))
 
       val players = configuration.playersInfo.values.toVector.sortBy(info =>
         (info.playerName.name != user.name, info.playerName.name)
@@ -340,8 +350,7 @@ final class GameLobbyScreen(
       problemsTitle.setPoint(Point.TopLeft, above, Point.BottomLeft, 0, 20)
       val gameProblems = configuration.validate.toVector.sortBy(_._1)
       problemsTitle.setText(
-        if gameProblems.isEmpty then "Everyone is ready and well set, let's go!"
-        else "The following things prevent the game to start:"
+        if gameProblems.isEmpty then i18n.everyoneReady else i18n.thingsPreventingStart
       )
       problemsTitle.setColour(
         if gameProblems.isEmpty then Theme.positive.lighter(0.3) else Theme.text

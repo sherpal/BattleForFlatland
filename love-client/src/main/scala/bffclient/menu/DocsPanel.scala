@@ -5,6 +5,7 @@ import bffclient.render.Sprites
 import bffclient.ui.{Colour, Theme}
 import gamelogic.docs.{AbilityDoc, BossMetadata}
 import models.bff.outofgame.PlayerClasses
+import services.i18n.I18n
 
 /** What the boss and the classes do, like the frontend's `GameDocs`: a tab for the boss (which the
   * game creator chooses here, with `changeBoss`), a tab for the classes (ours unless another one is
@@ -12,7 +13,7 @@ import models.bff.outofgame.PlayerClasses
   *
   * Its frame is to be anchored by its owner; [[update]] shows the game's state.
   */
-final class DocsPanel(parent: Frame, changeBoss: String => Unit) {
+final class DocsPanel(parent: Frame, i18n: I18n, changeBoss: String => Unit) {
   private enum Tab { case Boss, Classes }
 
   private var tab          = Tab.Boss
@@ -23,7 +24,13 @@ final class DocsPanel(parent: Frame, changeBoss: String => Unit) {
 
   val frame: Frame = Templates.panel(parent)
 
-  private val tabs = Segmented[Tab](frame)
+  private val tabs = Segmented[Tab](
+    frame,
+    {
+      case Tab.Boss => i18n.boss
+      case Tab.Classes => i18n.classes
+    }
+  )
   tabs.setPoint(Point.TopLeft, 12, 10)
   tabs.setPoint(Point.TopRight, -10, 10)
   tabs.setHeight(32)
@@ -51,7 +58,7 @@ final class DocsPanel(parent: Frame, changeBoss: String => Unit) {
   placeChooser(bossText)
   bossText.setJustifyH(JustifyH.Center)
 
-  private val classSelector = Selector[PlayerClasses](frame, _.value)
+  private val classSelector = Selector[PlayerClasses](frame, i18n.playerClassName)
   placeChooser(classSelector)
   classSelector.setScript(classSelector.OnValueChanged) { chosen =>
     browsedClass = Some(chosen)
@@ -90,7 +97,7 @@ final class DocsPanel(parent: Frame, changeBoss: String => Unit) {
 
   /** Makes the docs again when what they show changed. */
   private def showContents(): Unit = {
-    chooserLabel.setText(if tab == Tab.Boss then "Boss" else "Class")
+    chooserLabel.setText(if tab == Tab.Boss then i18n.boss else i18n.playerClass)
     bossSelector.setShown(tab == Tab.Boss && bossChooser)
     bossText.setShown(tab == Tab.Boss && !bossChooser)
     classSelector.setShown(tab == Tab.Classes)
@@ -107,7 +114,7 @@ final class DocsPanel(parent: Frame, changeBoss: String => Unit) {
           .foreach(metadata =>
             fill(
               docs,
-              s"${metadata.maxLife.toInt} life points, for ${metadata.intendedFor} player(s)",
+              i18n.bossFacts(metadata.maxLife.toInt, metadata.intendedFor),
               metadata.description,
               metadata.abilitiesDoc
             )
@@ -117,8 +124,12 @@ final class DocsPanel(parent: Frame, changeBoss: String => Unit) {
         val resource = builder.initialResourceAmount
         fill(
           docs,
-          s"${builder.initialMaxLife.toInt} life points, ${resource.amount.toInt} ${resource.resourceType.toString.toLowerCase}" +
-            (if myClass.contains(shownClass) then " (your class)" else ""),
+          i18n.classFacts(
+            builder.initialMaxLife.toInt,
+            resource.amount.toInt,
+            resource.resourceType,
+            isYours = myClass.contains(shownClass)
+          ),
           builder.description,
           builder.abilitiesDoc
         )
@@ -162,7 +173,7 @@ final class DocsPanel(parent: Frame, changeBoss: String => Unit) {
       .groupBy(_.caster.get)
       .toVector
       .sortBy((caster, _) => adds.indexWhere(_.caster.contains(caster)))
-    for (title, docsOfCaster) <- ("Abilities" -> own) +: byCaster if docsOfCaster.nonEmpty do {
+    for (title, docsOfCaster) <- (i18n.abilities -> own) +: byCaster if docsOfCaster.nonEmpty do {
       text(title, Theme.body, Theme.text, 14)
       for doc <- docsOfCaster do {
         val icon   = Sprites.abilityIcons.get(doc.abilityId)
@@ -175,9 +186,9 @@ final class DocsPanel(parent: Frame, changeBoss: String => Unit) {
           texture.setPoint(Point.TopLeft, name, Point.TopLeft, -32, 0)
         }
         val details = Seq(
-          s"Cast: ${doc.castingTimeRepr}",
-          s"Cooldown: ${doc.cooldownRepr}"
-        ) ++ doc.maybeCostRepr.map(c => s"Cost: $c")
+          i18n.castingTime(doc.castingTimeRepr),
+          i18n.cooldown(doc.cooldownRepr)
+        ) ++ doc.maybeCostRepr.map(i18n.cost)
         text(details.mkString("  ·  "), Theme.small, Theme.muted, 0, indent)
         text(doc.description, Theme.small, Theme.text, 2, indent)
       }

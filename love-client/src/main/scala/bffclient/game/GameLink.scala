@@ -12,6 +12,7 @@ import scala.util.Random
 import communication.udp.{Connection, Envelope, Hmac, Peer, Rendezvous, Stun, TimersImpl, UDPSocket}
 import communication.udp.Connection.Delivery
 import models.bff.ingame.InGameWSProtocol
+import services.i18n.I18n
 
 /** The connection to a game server, through UDP (see `communication.udp`).
   *
@@ -24,7 +25,7 @@ import models.bff.ingame.InGameWSProtocol
   * collected until they are [[poll]]ed, so none is lost while the game is being set up. The
   * connection is deemed lost (see [[isOpen]]) when the server does not talk for a while.
   */
-final class GameLink private (access: GameAccess, lag: Double, lossPercent: Int) {
+final class GameLink private (access: GameAccess, i18n: I18n, lag: Double, lossPercent: Int) {
   import GameLink.*
 
   private val timers = TimersImpl()
@@ -127,7 +128,7 @@ final class GameLink private (access: GameAccess, lag: Double, lossPercent: Int)
         case Envelope.Packet.Rejected(reason) =>
           if server.exists(isFrom(_, from)) then
             if accepted.isCompleted then forgotten = true
-            else accepted.tryFailure(new IOException(rejection(reason)))
+            else accepted.tryFailure(new IOException(rejection(reason, i18n)))
         case _ => ()
       }
 
@@ -171,7 +172,7 @@ final class GameLink private (access: GameAccess, lag: Double, lossPercent: Int)
 
     val clockSynchronized = Promise[Long]()
     val result = for
-      _ <- timers.within("the game server does not answer", HandshakeTimeout)(accepted.future)
+      _ <- timers.within(i18n.gameServerDoesNotAnswer, HandshakeTimeout)(accepted.future)
       _          = helloTimer.cancel()
       connection = this.connection.get
       _          = connection.connect()
@@ -180,7 +181,7 @@ final class GameLink private (access: GameAccess, lag: Double, lossPercent: Int)
         ClockSyncSamples,
         delta => clockSynchronized.trySuccess(delta)
       )
-      delta <- timers.within("cannot synchronize the clock with the game server", ClockSyncTimeout)(
+      delta <- timers.within(i18n.cannotSynchronizeClock, ClockSyncTimeout)(
         clockSynchronized.future
       )
     yield {
@@ -232,17 +233,17 @@ object GameLink {
   /** Connects to the game server, and completes when everything is ready to play. `lag` (a round
     * trip, in seconds) and `lossPercent` simulate a bad network.
     */
-  def open(access: GameAccess, lag: Double = 0, lossPercent: Int = 0)(using
+  /** The errors are in the language of `i18n`. */
+  def open(access: GameAccess, i18n: I18n, lag: Double = 0, lossPercent: Int = 0)(using
       ExecutionContext
   ): Future[GameLink] =
-    new GameLink(access, lag, lossPercent).start()
+    new GameLink(access, i18n, lag, lossPercent).start()
 
   private def isIpAddress(host: String): Boolean = host.matches("""\d{1,3}(\.\d{1,3}){3}""")
 
-  private def rejection(reason: Byte): String =
-    if reason == Envelope.RejectReason.NotReady then "the game server is not ready"
-    else if reason == Envelope.RejectReason.Unauthorized then
-      "the game server does not accept our credentials"
-    else "the game server does not know us"
+  private def rejection(reason: Byte, i18n: I18n): String =
+    if reason == Envelope.RejectReason.NotReady then i18n.gameServerNotReady
+    else if reason == Envelope.RejectReason.Unauthorized then i18n.gameServerRejectsCredentials
+    else i18n.gameServerDoesNotKnowUs
 
 }

@@ -1,0 +1,279 @@
+package services.i18n
+
+import gamelogic.entities.Resource
+import models.bff.ingame.Controls
+import models.bff.ingame.Controls.InputCode
+import models.bff.outofgame.PlayerClasses
+
+/** A part of a page (e.g. of the tutorial): a heading, then paragraphs (a line starting with "- "
+  * is an item of a list).
+  */
+final case class TextSection(heading: String, paragraphs: Seq[String])
+
+/** The texts of the UI, in one language (one implementation per language).
+  *
+  * The names of the bosses and of the abilities are not translated (they come with the game logic).
+  */
+trait I18n {
+
+  // --- Common ---
+
+  /** The name of a class (in the lobby, the tutorial...). */
+  def playerClassName(playerClass: PlayerClasses): String
+
+  /** The name of a resource (mana, energy, rage). */
+  def resourceName(resource: Resource): String
+
+  /** A mouse button, as a key of the controls in a sentence, e.g. "mouse button 2". */
+  def mouseButton(number: String): String
+
+  /** A key of the controls in a sentence: KeyW is W, Digit1 is 1, Shift KeyQ is Shift Q, and the
+    * mouse buttons are [[mouseButton]].
+    */
+  def key(code: InputCode): String = code.label match {
+    case s"Button $number" => mouseButton(number)
+    case label => label.replace("Digit", "").replace("Key", "")
+  }
+
+  /** A number in a text, without its decimal part when there is none (and the language's decimal
+    * separator otherwise).
+    */
+  def formatNumber(x: Double): String = gamelogic.docs.formatNumber(x)
+
+  /** A duration in a text, e.g. "8 seconds". */
+  def formatSeconds(millis: Long): String
+
+  /** A period, after the language's "every", e.g. "3 seconds". */
+  def formatPeriod(millis: Long): String = formatSeconds(millis)
+
+  def settings: String
+  def leaveGame: String
+  def quit: String
+  def name: String
+  def playerClass: String
+  def colour: String
+  def ready: String
+  def notReady: String
+  def boss: String
+  def victory: String
+  def defeat: String
+  def startGame: String
+
+  /** What an ability takes, in its tooltips and docs. */
+  def castingTime(time: String): String
+  def cooldown(time: String): String
+  def cost(amount: String): String
+
+  // --- Menus ---
+
+  def fullscreenHint: String
+  def connectingToGameServer: String
+  def leavingTheGame: String
+  def connectionToGameServerLost: String
+  def cannotConnectToGameServer(error: String): String
+  def couldNotLeaveGame(error: String): String
+
+  /** On the first launch, under the button of this language. */
+  def chooseYourLanguage: String
+
+  // Login
+  def welcomeToBattleForFlatland: String
+  def serverAddress: String
+  def serverAddressExample: String
+  def choosePseudo: String
+  def yourPseudo: String
+  def loggingIn: String
+  def enterBattleForFlatland: String
+  def serverError(message: String): String
+  def pseudoError(message: String): String
+  def cannotLogIn(address: String, error: String): String
+  def invalidPort(port: String): String
+  def invalidAddress(address: String): String
+
+  // Games
+  def welcomePlayer(playerName: String): String
+  def learnToPlay: String
+  def joinItBack: String
+  def gameNamePlaceholder: String
+  def defaultGameName(playerName: String): String
+  def createGame: String
+  def createdBy: String
+  def players: String
+  def loadingTheGames: String
+  def noGames: String
+  def join: String
+  def joinBack: String
+  def currentlyInGame(gameName: String): String
+
+  // Lobby of a game
+  def loadingTheGame: String
+  def loggedInAs(playerName: String): String
+  def gameCreatedBy(creator: String, gameId: String): String
+  def kick: String
+  def you(playerName: String): String
+  def ai(playerName: String): String
+  def classNotChosen: String
+  def addAI: String
+  def fillWithAIs: String
+  def launchGame: String
+  def waitingForCreatorToLaunch: String
+  def gameIsStarting: String
+  def gameServerNotReadyYet: String
+  def gameServerRunsOnYourComputer: String
+  def gameServerRunsOnComputerOf(host: String): String
+  def downloadingJavaRuntime: String
+  def downloadingGameServer: String
+  def megabytes(received: Int, size: Int): String
+  def gameClosedByCreator: String
+  def notInThisGame: String
+  def everyoneReady: String
+  def thingsPreventingStart: String
+
+  // Docs of the bosses and classes, in the lobby
+  def classes: String
+  def bossFacts(life: Int, intendedFor: Int): String
+  def classFacts(life: Int, resourceAmount: Int, resource: Resource, isYours: Boolean): String
+  def abilities: String
+
+  // Settings
+  def controls: String
+  def general: String
+  def goUp: String
+  def goDown: String
+  def goLeft: String
+  def goRight: String
+  def nextTarget: String
+  def faceTheTarget: String
+  def abilityNumber(number: Int): String
+  def markerCross: String
+  def markerLozenge: String
+  def markerMoon: String
+  def markerSquare: String
+  def markerStar: String
+  def markerTriangle: String
+  def markerOnTarget(marker: String): String
+  def markerOnGround(marker: String): String
+  def bindingsHelp: String
+  def mouseOver: String
+  def mouseOverHelp: String
+  def resetToDefaults: String
+  def escapeToCancel: String
+  def pressKeyFor(action: String): String
+  def boundToSeveralActions(key: String): String
+  def language: String
+  def languageHelp: String
+  def hudScale: String
+  def hudScaleHelp: String
+  def hostGameServers: String
+  def hostGameServersHelp: String
+  def mainVolume: String
+  def abilitiesVolume: String
+  def volumeOff: String
+  def volumesHelp: String
+  def done: String
+
+  // --- In game ---
+
+  def placeYourselves: String
+  def bossArrivesIn: String
+  def clickToPlaceZone: String
+  def waitingForGameToStart: String
+  def bossAbilities: String
+  def threat: String
+  def damage: String
+  def damageTo(name: String): String
+  def dead: String
+
+  // Casting
+  def youAreDead: String
+  def noTarget: String
+  def noAbilityOnKey(number: Int): String
+  def abilityNotSupported(ability: String): String
+  def abilityNotPlacedWithMouse(ability: String): String
+
+  // Connection to the game server
+  def gameServerDoesNotAnswer: String
+  def cannotSynchronizeClock: String
+  def gameServerNotReady: String
+  def gameServerRejectsCredentials: String
+  def gameServerDoesNotKnowUs: String
+  def gameCouldNotStart(error: String): String
+
+  // Game menu
+  def menu: String
+  def resume: String
+  def surrender: String
+  def clickAgainToSurrender: String
+  def surrenderEndsInDefeat: String
+  def gameGoesOnMeanwhile: String
+  def windowed: String
+  def fullscreen: String
+
+  // End of the game
+  def backToMenus: String
+  def connectionLost: String
+  def fightLasted(minutes: Int, seconds: Int): String
+  def gameServerClosedConnection: String
+
+  // --- Tutorial ---
+
+  def tutorialIntro: String
+  def tutorialHint: String
+  def backToTheGames: String
+  def backToTheTutorial: String
+  def next(title: String): String
+  def practiceAgainst(bossName: String): String
+  def settingUpTheGame: String
+  def alreadyInAGame: String
+  def practiceGameName(playerName: String): String
+
+  /** The pages: the overview, then one per class. */
+  def overview: String
+  def overviewRole: String
+  def overviewSummary: String
+
+  /** The title of the class' page, e.g. "The Triangle". */
+  def theClass(playerClass: PlayerClasses): String
+  def classRole(playerClass: PlayerClasses): String
+  def classSummary(playerClass: PlayerClasses): String
+
+  /** What a page says (with the player's keys, from their controls). */
+  def overviewSections(controls: Controls): Seq[TextSection]
+  def classSections(playerClass: PlayerClasses): Seq[TextSection]
+
+  // Previews of the pages
+  def arena: String
+  def screen: String
+  def hoverHint: String
+
+  def legendBoss: String
+  def legendBossCooldowns: String
+  def legendTeam: String
+  def legendYouAndTarget: String
+  def legendMeters: String
+  def legendTriangleEnergy: String
+  def legendTriangleAbilities: String
+  def legendTriangleDamage: String
+  def legendTriangleThreat: String
+  def legendSquareStacks: String
+  def legendSquareRage: String
+  def legendSquareBigHit: String
+  def legendSquareThreat: String
+  def legendPentagonMana: String
+  def legendPentagonAim: String
+  def legendPentagonDebuffs: String
+  def legendPentagonDamage: String
+  def legendHexagonTeam: String
+  def legendHexagonFaded: String
+  def legendHexagonMana: String
+  def legendHexagonTarget: String
+
+  def arenaHealerRange: String
+  def arenaBoss: String
+  def arenaSquare: String
+  def arenaTriangle: String
+  def arenaPentagons: String
+  def arenaHexagon: String
+  def arenaLegendPositions: String
+  def arenaLegendRange: String
+}

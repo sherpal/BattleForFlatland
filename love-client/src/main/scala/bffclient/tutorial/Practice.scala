@@ -8,6 +8,7 @@ import gamelogic.entities.boss.Boss101
 import menus.data.User
 import models.bff.outofgame.PlayerClasses
 import models.bff.outofgame.gameconfig.*
+import services.i18n.I18n
 import utils.misc.RGBColour
 
 /** A practice fight of the tutorial: a game against Boss 101 where we play a class, ready, and AIs
@@ -16,16 +17,16 @@ import utils.misc.RGBColour
 object Practice {
   val bossName: String = Boss101.name
 
-  /** Creates the game: its id, once we are in it. */
-  def create(api: MenuApi, user: User)(using ExecutionContext): Future[String] = for
+  /** Creates the game (named, or failing, in the language of `i18n`): its id, once we are in it. */
+  def create(api: MenuApi, user: User, i18n: I18n)(using ExecutionContext): Future[String] = for
     games <- api.games
     _ <-
       if games.exists(game => !game.started && game.containsPlayer(user)) then
-        Future.failed(new Exception("You are already in a game: leave it first, from the games."))
+        Future.failed(new Exception(i18n.alreadyInAGame))
       else Future.unit
     // Names are unique, and started games keep theirs
     taken = games.map(_.game.gameName).toSet
-    base  = s"${user.name}'s practice"
+    base  = i18n.practiceGameName(user.name)
     name  = (Iterator.single(base) ++ Iterator.from(2).map(i => s"$base $i")).find(!taken(_)).get
     game <- api.createGame(name)
   yield game.id

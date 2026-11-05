@@ -5,6 +5,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import bffclient.controls.ClientSettings
 import bffclient.menu.MenuApi
 import menus.data.MenuGameComm
+import services.i18n.I18n
 
 /** What a player's client does about the game server, from the moment it joins the game's lobby:
   * downloads what runs it ahead of time (if it can run it), then, when the game is launched (see
@@ -16,12 +17,18 @@ import menus.data.MenuGameComm
   * downloads (see [[prefetch]]); turning it off stops nothing that started already, but we are not
   * chosen.
   *
+  * @param i18n
+  *   the language of the [[status]]
   * @param log
   *   where to tell what happens
   */
-final class HostingAgent(api: MenuApi, gameId: String, userName: String, log: String => Unit)(using
-    ExecutionContext
-) {
+final class HostingAgent(
+    api: MenuApi,
+    gameId: String,
+    userName: String,
+    i18n: I18n,
+    log: String => Unit
+)(using ExecutionContext) {
   private var gameServer = Option.empty[Future[GameServerHost.GameServer]]
 
   private def willing: Boolean = ClientSettings.current.hostGameServers
@@ -61,8 +68,8 @@ final class HostingAgent(api: MenuApi, gameId: String, userName: String, log: St
         .foreach(error => log(s"Could not send our candidacy: ${error.getMessage}"))
     case MenuGameComm.HostElected(host) =>
       status = Some(
-        if host == userName then "The game server runs on your computer"
-        else s"The game server runs on the computer of $host"
+        if host == userName then i18n.gameServerRunsOnYourComputer
+        else i18n.gameServerRunsOnComputerOf(host)
       )
     case MenuGameComm.SpawnGameServer(_, gameSecret, rendezvousPort) =>
       val prepared =
