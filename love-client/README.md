@@ -38,7 +38,8 @@ The code (`src/main/scala/bffclient`) is organised by package:
 
 * `Main` starts the menus or the game;
 * `game` is the client side of a game (`GameClient`, `AbilityCaster`);
-* `render` draws it (`Renderer`, `Painter`, `Sprites`, `Effects`, `Smoothing`, `FrameRate`), with
+* `render` draws it (`Renderer`, `Painter`, `Sprites`, `Effects`, `Smoothing`, `FrameRate`) and
+  plays the sounds of the abilities (`Sounds`), with
   the bosses' visuals in `render.bosses` (one `BossVisuals` per boss);
 * `hud` holds the HUD's frames (`Hud`, `UnitFrame`, `BossFrames`, `ActionBar`, built from
   `HudWidgets` in the style of `HudStyle`) and the overlays (`GameMenu`, `EndOfGame`);
@@ -51,7 +52,9 @@ The code (`src/main/scala/bffclient`) is organised by package:
   (`src/main/lua`: `http.lua`, `udp.lua`, `process.lua`, `images.lua`, and `conf.lua`, LÖVE's configuration).
 
 The images (`src/main/lua/assets`) come from the former browser frontend; `luaLink` copies them
-next to `main.lua` with the Lua modules. Without an image, the client draws shapes instead.
+next to `main.lua` with the Lua modules. Without an image, the client draws shapes instead. The
+sounds of the abilities are the files `assets/sounds/<name>.ogg` (e.g. `brace.ogg`, see
+`Sounds.abilities` for the names): without its file, an ability plays nothing.
 
 ## Menus
 
@@ -93,8 +96,9 @@ The "Settings" button (in the games' list and in the lobby) opens the settings, 
 it; keys bound twice are pointed out, the mouse over can be toggled, and everything can be reset.
 They are saved in `controls.json` (which also accepts what the browser frontend stored in its local
 storage under the key `controls`). In "General", the client's own settings, which the game's
-`Controls` cannot hold, saved in `settings.json`: the size of the HUD, from 0.5 to 2, and whether to
-host game servers (on by default; see below).
+`Controls` cannot hold, saved in `settings.json`: the size of the HUD, from 0.5 to 2, whether to
+host game servers (on by default; see below), and the volumes of the sounds, from off to 10: the
+main one, and one per kind of sound (the abilities', for now), relative to the main one.
 
 The menus, the HUD and the game's overlays are made with `gui`, a retained UI toolkit that works like World of
 Warcraft's (and the author's former [scalajs-ui](https://github.com/sherpal/scalajs-ui)):

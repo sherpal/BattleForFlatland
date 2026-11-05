@@ -223,6 +223,30 @@ final class SettingsEditor(parent: Frame, close: () => Unit) {
     216
   )
 
+  // One per volume of [[Volumes]], with how to change it
+  private val volumes = Seq[(String, Volumes => Int, (Volumes, Int) => Volumes)](
+    ("Main volume", _.main, (volumes, level) => volumes.copy(main = level)),
+    ("Abilities", _.abilities, (volumes, level) => volumes.copy(abilities = level))
+  ).zipWithIndex.map { case ((label, level, changed), i) =>
+    val y = 320 + 34 * i
+    generalView.createFontString(label).setPoint(Point.TopLeft, 24, y + 4)
+    val selector = Selector[Int](
+      generalView,
+      level => if level == 0 then "Off" else level.toString,
+      wraps = false
+    )
+    selector.setSize(200, 26)
+    selector.setPoint(Point.TopLeft, 214, y)
+    selector.setScript(selector.OnValueChanged)(chosen =>
+      change(settings.copy(volumes = changed(settings.volumes, chosen)))
+    )
+    selector -> level
+  }
+  help(
+    "From off to 10. The volume of each kind of sound is relative to the main volume.",
+    320 + 34 * volumes.size
+  )
+
   // Footer
   private val footer = view()
   private val errorText =
@@ -273,6 +297,8 @@ final class SettingsEditor(parent: Frame, close: () => Unit) {
 
     hudScale.setOptions(ClientSettings.hudScales, Some(settings.hudScale))
     hostGameServers.setChecked(settings.hostGameServers)
+    for (selector, level) <- volumes do
+      selector.setOptions(Volumes.levels, Some(level(settings.volumes)))
 
     errorText.setText(error.getOrElse(""))
   }

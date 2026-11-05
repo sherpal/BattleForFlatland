@@ -3,8 +3,9 @@ package bffclient.render
 import scala.collection.mutable
 import scala.util.Random
 
+import bffclient.controls.ClientSettings
 import bffclient.hud.BraceGauge
-import bffclient.love.{Graphics, Timer}
+import bffclient.love.{Graphics, Source, Timer}
 import bffclient.ui.Colour
 import gamelogic.abilities.square.{Brace, Cleave, Guard, ShieldSlam}
 import gamelogic.abilities.triangle.DirectHit
@@ -17,7 +18,8 @@ import gamelogic.physics.Complex
 
 /** Short visual effects of the game actions, like the frontend's `EffectsManager`: damage and heal
   * numbers, the square's cleave, brace, shield slam and guard, and the swing of the triangle's
-  * direct hit.
+  * direct hit. Also plays the [[Sounds]] of the abilities (louder for ours), at the volume of the
+  * settings.
   *
   * Unlike the frontend, the numbers follow their entity (from where it is shown: predicted for our
   * player, smoothed for the others) instead of staying where they started.
@@ -88,6 +90,8 @@ final class Effects {
   private val seen      = mutable.Set.empty[GameAction.Id]
   private val seenOrder = mutable.Queue.empty[GameAction.Id]
   private lazy val font = Graphics.newFont(16)
+  // Loaded now rather than when an ability is first used
+  private val sounds = Sounds.abilities
 
   /** Actions received from the server, already in `gameState`. When the server corrects the past,
     * it sends actions again: each one has its effects once.
@@ -100,14 +104,28 @@ final class Effects {
     val now = Timer.getTime()
     effects.filterInPlace(effect => now - effect.start < effect.duration)
     for action <- actions do {
-      val newEffects =
-        gameState.applyActionChangers(action).flatMap(effectOf(_, gameState, myId, now))
-      if newEffects.nonEmpty && seen.add(action.id) then {
+      val changed    = gameState.applyActionChangers(action)
+      val newEffects = changed.flatMap(effectOf(_, gameState, myId, now))
+      val newSounds  = changed.flatMap(soundOf(_, gameState, myId))
+      if (newEffects.nonEmpty || newSounds.nonEmpty) && seen.add(action.id) then {
         seenOrder.enqueue(action.id)
         if seenOrder.size > 1000 then seen.remove(seenOrder.dequeue())
         effects ++= newEffects
+        for (sound, volume) <- newSounds do Sounds.play(sound, volume)
       }
     }
+  }
+
+  /** The sound of an ability that was just used (not one of the past, e.g. when we join). */
+  private def soundOf(
+      action: GameAction,
+      gameState: GameState,
+      myId: Option[Entity.Id]
+  ): Option[(Source, Double)] = action match {
+    case UseAbility(_, time, casterId, _, ability) if gameState.time - time < 1000 =>
+      val volume = if myId.contains(casterId) then 0.7 else 0.25
+      sounds.get(ability.abilityId).map(_ -> volume * ClientSettings.current.volumes.ofAbilities)
+    case _ => None
   }
 
   private def effectOf(

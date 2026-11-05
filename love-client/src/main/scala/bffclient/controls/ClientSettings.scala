@@ -14,8 +14,10 @@ import io.circe.syntax.*
   *   whether the player's computer may run the game server of their games (see
   *   `hosting.HostingAgent`). Without it, the client downloads nothing to run them, e.g. for the
   *   players on a mobile network.
+  * @param volumes
+  *   how loud the sounds are
   */
-final case class ClientSettings(hudScale: Double, hostGameServers: Boolean) {
+final case class ClientSettings(hudScale: Double, hostGameServers: Boolean, volumes: Volumes) {
 
   /** Writes the settings (the HUD scale is used by the next game). An error message if it failed.
     */
@@ -31,7 +33,7 @@ final case class ClientSettings(hudScale: Double, hostGameServers: Boolean) {
 object ClientSettings {
   val fileName = "settings.json"
 
-  val default = ClientSettings(hudScale = 1.0, hostGameServers = true)
+  val default = ClientSettings(hudScale = 1.0, hostGameServers = true, volumes = Volumes.default)
 
   /** From 0.5 to 2. */
   val hudScales: Seq[Double] = (5 to 20).map(_ / 10.0)
@@ -43,7 +45,8 @@ object ClientSettings {
     for
       hudScale        <- cursor.getOrElse[Double]("hudScale")(default.hudScale)
       hostGameServers <- cursor.getOrElse[Boolean]("hostGameServers")(default.hostGameServers)
-    yield ClientSettings(hudScale, hostGameServers)
+      volumes         <- cursor.getOrElse[Volumes]("volumes")(default.volumes)
+    yield ClientSettings(hudScale, hostGameServers, volumes)
   )
 
   private var known = Option.empty[ClientSettings]
@@ -60,6 +63,35 @@ object ClientSettings {
     if Filesystem.getInfo(fileName) == null then default
     else
       decode[ClientSettings](Filesystem.read(fileName).contents).toOption
-        .filter(settings => hudScales.contains(settings.hudScale))
+        .filter(settings => hudScales.contains(settings.hudScale) && settings.volumes.valid)
         .getOrElse(default)
+}
+
+/** The volumes of the sounds, each a level from 0 (off) to 10 (full): the main one, and one per
+  * kind of sound (only the abilities' for now), on top of the main one.
+  */
+final case class Volumes(main: Int, abilities: Int) {
+
+  /** Of the sounds of the abilities, between 0 and 1. */
+  def ofAbilities: Double = Volumes.fraction(main) * Volumes.fraction(abilities)
+
+  def valid: Boolean = Seq(main, abilities).forall(Volumes.levels.contains)
+}
+
+object Volumes {
+  val levels: Seq[Int] = 0 to 10
+
+  val default = Volumes(main = 10, abilities = 10)
+
+  private def fraction(level: Int): Double = level / levels.max.toDouble
+
+  given Encoder[Volumes] = io.circe.generic.semiauto.deriveEncoder
+
+  // like the settings, a volume added later has its default
+  given Decoder[Volumes] = Decoder.instance(cursor =>
+    for
+      main      <- cursor.getOrElse[Int]("main")(default.main)
+      abilities <- cursor.getOrElse[Int]("abilities")(default.abilities)
+    yield Volumes(main, abilities)
+  )
 }

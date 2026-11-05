@@ -38,9 +38,14 @@ sealed abstract class Choice[A](parentFrame: Frame, show: A => String) extends F
   protected def label(option: A): String = show(option)
 }
 
-/** `< value >`: the arrows go through the options. */
-class Selector[A](parentFrame: Frame, show: A => String = (a: A) => a.toString)
-    extends Choice[A](parentFrame, show) {
+/** `< value >`: the arrows go through the options, from the last back to the first (unless not
+  * `wraps`: then they stop at the ends, e.g. for a volume).
+  */
+class Selector[A](
+    parentFrame: Frame,
+    show: A => String = (a: A) => a.toString,
+    wraps: Boolean = true
+) extends Choice[A](parentFrame, show) {
   private val previous = Button(this, "<")
   private val next     = Button(this, ">")
   private val middle   = createTexture(Theme.field, Layer.Background)
@@ -59,14 +64,16 @@ class Selector[A](parentFrame: Frame, show: A => String = (a: A) => a.toString)
 
   private def step(by: Int): Unit = if options.nonEmpty then {
     val index = current.fold(0)(options.indexOf(_))
-    choose(options((index + by + options.size) % options.size))
+    val to    = if wraps then (index + by + options.size) % options.size else index + by
+    if options.indices.contains(to) then choose(options(to))
   }
 
   protected def updated(changedOptions: Boolean): Unit = {
     text.setText(current.fold("")(label))
     text.setColour(if enabled then Theme.text else Theme.disabledText)
-    previous.setEnabled(enabled && options.size > 1)
-    next.setEnabled(enabled && options.size > 1)
+    val index = current.fold(-1)(options.indexOf(_))
+    previous.setEnabled(enabled && options.size > 1 && (wraps || index > 0))
+    next.setEnabled(enabled && options.size > 1 && (wraps || index < options.size - 1))
   }
 
   override protected[gui] def refresh(gui: Gui): Unit =
