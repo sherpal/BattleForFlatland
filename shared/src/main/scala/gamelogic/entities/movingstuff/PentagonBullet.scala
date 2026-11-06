@@ -10,6 +10,10 @@ import gamelogic.physics.shape.Circle
 /** A [[PentagonBullet]] is spawned by the ability of the [[gamelogic.entities.classes.Pentagon]].
   * It moves on a strait line for a given range until it hits an enemy. The hit enemy takes an
   * amount of damage equal to the `damage` property.
+  *
+  * Either it lights a facet of its owner when it hits (see
+  * [[gamelogic.buffs.abilities.classes.Facets]]), or it `fractures` the enemy it hits (see
+  * [[gamelogic.buffs.abilities.classes.Fractured]]).
   */
 final case class PentagonBullet(
     id: Entity.Id,
@@ -21,7 +25,8 @@ final case class PentagonBullet(
     damage: Double,
     ownerId: Entity.Id,
     teamId: TeamId,
-    colour: Int
+    colour: Int,
+    fractures: Boolean
 ) extends MovingBody {
   def move(
       time: Long,
@@ -33,7 +38,7 @@ final case class PentagonBullet(
   ): PentagonBullet =
     copy(time = time, pos = position, direction = direction, speed = speed)
 
-  def shape: Circle = PentagonBullet.shape
+  def shape: Circle = if fractures then PentagonBullet.fractureShape else PentagonBullet.shape
 
   def rotation: Angle = Angle.zero
 
@@ -48,7 +53,8 @@ final case class PentagonBullet(
 
 object PentagonBullet {
 
-  final val shape = new Circle(4.0)
+  final val shape         = new Circle(4.0)
+  final val fractureShape = new Circle(6.0)
 
   final def defaultRange: Double = 1000
   final def defaultSpeed: Double = 300

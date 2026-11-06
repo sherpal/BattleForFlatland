@@ -54,12 +54,7 @@ final case class PentagonForSirOfVice(index: Int, entityId: Entity.Id)
 
       def maybeBullet = Option
         .when(gameState.areTheyInSight(me.id, boss.id, time).getOrElse(false))(
-          maybePentagonBulletUsage(
-            gameState,
-            time,
-            me,
-            (boss.currentPosition(time) - me.currentPosition(time)).arg
-          )
+          maybeDamageUsage(gameState, time, me, boss)
         )
         .flatten
 

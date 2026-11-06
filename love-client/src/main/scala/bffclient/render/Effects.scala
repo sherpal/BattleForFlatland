@@ -4,9 +4,10 @@ import scala.collection.mutable
 import scala.util.Random
 
 import bffclient.controls.ClientSettings
-import bffclient.hud.BraceGauge
+import bffclient.hud.{BraceGauge, FacetsGauge}
 import bffclient.love.{Graphics, Source, Timer}
 import bffclient.ui.Colour
+import gamelogic.abilities.pentagon.Pentagram
 import gamelogic.abilities.square.{Brace, Cleave, Guard, ShieldSlam}
 import gamelogic.abilities.triangle.DirectHit
 import gamelogic.entities.{Body, Entity}
@@ -17,9 +18,9 @@ import gamelogic.gamestate.gameactions.{EntityGetsHealed, EntityTakesDamage, Use
 import gamelogic.physics.Complex
 
 /** Short visual effects of the game actions, like the frontend's `EffectsManager`: damage and heal
-  * numbers, the square's cleave, brace, shield slam and guard, and the swing of the triangle's
-  * direct hit. Also plays the [[Sounds]] of the abilities (louder for ours), at the volume of the
-  * settings.
+  * numbers, the square's cleave, brace, shield slam and guard, the swing of the triangle's direct
+  * hit, and the pentagon's pentagram. Also plays the [[Sounds]] of the abilities (louder for ours),
+  * at the volume of the settings.
   *
   * Unlike the frontend, the numbers follow their entity (from where it is shown: predicted for our
   * player, smoothed for the others) instead of staying where they started.
@@ -78,6 +79,16 @@ final class Effects {
 
   /** A link from the square to the ally that it guards, around which a ring closes. */
   private final case class GuardLink(
+      casterId: Entity.Id,
+      targetId: Entity.Id,
+      targetRadius: Double,
+      start: Double
+  ) extends Effect {
+    def duration = 0.6
+  }
+
+  /** The five facets of the pentagon leave it, and draw a star turning on its target. */
+  private final case class PentagramStar(
       casterId: Entity.Id,
       targetId: Entity.Id,
       targetRadius: Double,
@@ -198,6 +209,8 @@ final class Effects {
         )
       case UseAbility(_, _, casterId, _, guard: Guard) =>
         Some(GuardLink(casterId, guard.targetId, radius(guard.targetId), now))
+      case UseAbility(_, _, casterId, _, pentagram: Pentagram) =>
+        Some(PentagramStar(casterId, pentagram.targetId, radius(pentagram.targetId), now))
       case _ =>
         None
     }
@@ -321,6 +334,38 @@ final class Effects {
               Graphics.setLineWidth(3)
               Graphics.circle("line", tx, ty, targetRadius * (2 - 0.7 * progress))
               Graphics.setLineWidth(1)
+            }
+          case PentagramStar(casterId, targetId, targetRadius, _) =>
+            for
+              caster <- position(casterId)
+              target <- position(targetId)
+            do {
+              val progress = t / effect.duration
+              // The five sparks fly to the target in the first third, then the star shines
+              val flight = math.min(1.0, progress * 3)
+              val spin   = Angle.fromDouble(progress * math.Pi / 2)
+              val points = (0 until 5).map(k =>
+                Complex.rotation(spin + Angle.fromDouble(math.Pi / 2 + 2 * math.Pi * k / 5))
+              )
+              val radius = targetRadius * 1.4
+              if flight < 1 then
+                for point <- points do {
+                  val (x, y) = toScreen(caster + (target + radius * point - caster) * flight)
+                  setColour(FacetsGauge.fullColour, 1)
+                  Graphics.circle("fill", x, y, 4)
+                }
+              else {
+                // Every second point, to draw the star
+                val corners = (0 until 5).map(k => toScreen(target + radius * points(2 * k % 5)))
+                setColour(FacetsGauge.fullColour, math.min(1.0, 3 * (1 - progress)))
+                Graphics.setLineWidth(3)
+                for k <- 0 until 5 do {
+                  val (x1, y1) = corners(k)
+                  val (x2, y2) = corners((k + 1) % 5)
+                  Graphics.line(x1, y1, x2, y2)
+                }
+                Graphics.setLineWidth(1)
+              }
             }
         }
     }

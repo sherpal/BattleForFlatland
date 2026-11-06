@@ -45,12 +45,7 @@ final case class PentagonForBoss105(index: Int, entityId: Entity.Id)
       .filterNot(foe => foe.isInstanceOf[Shade] && Boss105Bot.holdFireOnShade(gameState, time))
       .flatMap { foe =>
         gameState.areTheyInSight(me.id, foe.id, time).filter(identity).flatMap { _ =>
-          maybePentagonBulletUsage(
-            gameState,
-            time,
-            me,
-            (foe.currentPosition(time) - me.currentPosition(time)).arg
-          )
+          maybeDamageUsage(gameState, time, me, foe)
         }
       }
       .toVector

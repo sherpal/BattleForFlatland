@@ -1,11 +1,18 @@
 package gamelogic.entities.classes
 
-import gamelogic.abilities.Ability
+import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.abilities.Ability.AbilityId
-import gamelogic.abilities.pentagon.{CreatePentagonBullet, CreatePentagonZone, PentaDispel}
+import gamelogic.abilities.pentagon.{
+  CreatePentagonBullet,
+  CreatePentagonZone,
+  Fracture,
+  PentaDispel,
+  Pentagram
+}
 import gamelogic.buffs.Buff
+import gamelogic.buffs.abilities.classes.{Facets, Fractured}
 import gamelogic.docs.{formatNumber, formatPeriod, formatSeconds, AbilityDoc}
-import gamelogic.entities.classes.pentagon.PentagonZone
+import gamelogic.entities.classes.pentagon.{PentagonZone, SteadyAim}
 import gamelogic.entities.movingstuff.PentagonBullet
 import gamelogic.entities.Entity.{Id, TeamId}
 import gamelogic.entities.Resource.ResourceAmount
@@ -18,6 +25,12 @@ import gamelogic.physics.shape.{Polygon, Shape}
 import gamelogic.utils.IdGeneratorContainer
 import models.bff.outofgame.PlayerClasses
 
+import scala.collection.immutable.ListSet
+
+/** @param stillSince
+  *   time since which the Pentagon has not moved, for its
+  *   [[gamelogic.entities.classes.pentagon.SteadyAim]]
+  */
 final case class Pentagon(
     id: Entity.Id,
     time: Long,
@@ -32,7 +45,8 @@ final case class Pentagon(
     speed: Double,
     resourceAmount: ResourceAmount,
     maxResourceAmount: Double,
-    name: String
+    name: String,
+    stillSince: Long
 ) extends PlayerClass(PlayerClasses.Pentagon) {
   def shape: Polygon = Pentagon.shape
 
@@ -62,7 +76,8 @@ final case class Pentagon(
       direction = direction,
       rotation = rotation,
       speed = speed,
-      moving = moving
+      moving = moving,
+      stillSince = if moving || this.moving || position != pos then time else stillSince
     )
 
   def teamId: TeamId = Entity.teams.playerTeam
@@ -82,8 +97,15 @@ object Pentagon extends PlayerClassBuilder {
       )
     )
 
+  // A ListSet, so that the order of the abilities (and thus their keys) is the one written here.
   final val abilities: Set[Ability.AbilityId] =
-    Set(Ability.pentagonPentagonBullet, Ability.createPentagonZoneId, Ability.pentagonDispelId)
+    ListSet(
+      Ability.pentagonPentagonBullet,
+      Ability.createPentagonZoneId,
+      Ability.pentagonDispelId,
+      Ability.pentagonFractureId,
+      Ability.pentagonPentagramId
+    )
 
   final val shape: Polygon = Shape.regularPolygon(5, Constants.playerRadius)
 
@@ -92,7 +114,11 @@ object Pentagon extends PlayerClassBuilder {
 
   def description: String =
     "The ranged damage dealer. The Pentagon shoots its enemies from afar, and is the only one " ++
-      "able to dispel the nasty debuffs that bosses put on players."
+      "able to dispel the nasty debuffs that bosses put on players. Its steady aim rewards " ++
+      s"staying still: every ${formatPeriod(SteadyAim.stackEvery)} without moving, its abilities " ++
+      s"deal ${formatNumber(SteadyAim.damageIncreasePerStack * 100)}% more damage, up to " ++
+      s"${formatNumber(SteadyAim.maxStacks * SteadyAim.damageIncreasePerStack * 100)}%. Moving " ++
+      "loses it all."
 
   def abilitiesDoc: Vector[AbilityDoc] = Vector(
     AbilityDoc(
@@ -100,7 +126,9 @@ object Pentagon extends PlayerClassBuilder {
       "Pentagon Bullet",
       "Fires a bullet in the chosen direction. It travels up to " ++
         s"${formatNumber(PentagonBullet.defaultRange)} units and deals " ++
-        s"${formatNumber(CreatePentagonBullet.damage)} damage to the first enemy it hits.",
+        s"${formatNumber(CreatePentagonBullet.damage)} damage to the first enemy it hits, " ++
+        s"lighting one of your ${Facets.maxStacks} facets. A facet goes out after " ++
+        s"${formatSeconds(Facets.duration)} without lighting any.",
       CreatePentagonBullet.cooldown,
       CreatePentagonBullet.castingTime,
       CreatePentagonBullet.cost
@@ -114,6 +142,29 @@ object Pentagon extends PlayerClassBuilder {
       CreatePentagonZone.cooldown,
       CreatePentagonZone.castingTime,
       CreatePentagonZone.cost
+    ),
+    AbilityDoc(
+      Ability.pentagonFractureId,
+      "Fracture",
+      "Fires a bullet like Pentagon Bullet, which deals " ++
+        s"${formatNumber(Fracture.damage)} damage and fractures the enemy it hits for " ++
+        s"${formatSeconds(Fractured.duration)}: it takes " ++
+        s"${formatNumber(Fractured.damageIncrease * 100)}% more damage from you. Fracturing it " ++
+        "again adds what was left, up to " ++
+        s"${formatSeconds(Fractured.maxCarriedOver)}. It does not light a facet.",
+      Fracture.cooldown,
+      Fracture.castingTime,
+      Fracture.cost
+    ),
+    AbilityDoc(
+      Ability.pentagonPentagramId,
+      "Pentagram",
+      s"When your ${Facets.maxStacks} facets are lit, spends them all to deal " ++
+        s"${formatNumber(Pentagram.damage)} damage to an enemy (within " ++
+        s"${formatNumber(WithTargetAbility.healRange)} units). Instant: use it while you have to move.",
+      Ability.gcd,
+      0L,
+      Pentagram.cost
     ),
     AbilityDoc(
       Ability.pentagonDispelId,

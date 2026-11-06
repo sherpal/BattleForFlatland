@@ -70,9 +70,17 @@ final class SquareRageSpecs extends StoryTeller {
 
   test("The trickle gives a bit of rage at each tick") {
     val gameState = emptySquareWithBraces(0)
-    val trickle   = RageTrickle(gameState.allBuffsOfEntity(squareId).collectFirst {
-      case t: RageTrickle => t.buffId
-    }.get, squareId, 0L, 0L)
+    val trickle = RageTrickle(
+      gameState
+        .allBuffsOfEntity(squareId)
+        .collectFirst { case t: RageTrickle =>
+          t.buffId
+        }
+        .get,
+      squareId,
+      0L,
+      0L
+    )
     val afterTick = gameState.applyActions(trickle.tickEffect(gameState, 1000L))
     assertEqualsDouble(rageOf(afterTick), RageTrickle.rageRefillPerSecond, 1e-9)
   }

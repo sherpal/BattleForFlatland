@@ -19,10 +19,10 @@ import gamelogic.entities.classes.PlayerClass
   * which are the window's once scaled): the frames of the team on the left
   * (`PlayerFrameContainer`), our frame, our target's and our cast bar above the action bar
   * (`PlayerFrame`, `TargetFrame`, `PlayerCastBar`) with the stacks of our shield on the left of our
-  * frame when we are the tank ([[BraceGauge]]), the boss's frame on top (`BossFrame`), the
-  * cooldowns of the boss's abilities on the top right (`BossCooldownsContainer`), the threat meter
-  * on the bottom right (`BossThreadMeter`) and above it the damage meter (`DamageMeter`), in the
-  * [[HudStyle]].
+  * frame when we are the tank ([[BraceGauge]]), or our facets and steady aim when we are a pentagon
+  * ([[FacetsGauge]], [[SteadyAimGauge]]), the boss's frame on top (`BossFrame`), the cooldowns of
+  * the boss's abilities on the top right (`BossCooldownsContainer`), the threat meter on the bottom
+  * right (`BossThreadMeter`) and above it the damage meter (`DamageMeter`), in the [[HudStyle]].
   *
   * Like in the frontend, clicking the frame of a player or of the boss targets it. The frames show
   * the game state of the frame being drawn (the `painter`'s), in the `OnUpdate` of the HUD's frame.
@@ -46,6 +46,8 @@ final class Hud(
   private val myFrame   = UnitFrame(root, client, bossVisuals, 200, isTarget = false)
   private val target    = UnitFrame(root, client, bossVisuals, 200, isTarget = true)
   private val brace     = BraceGauge(root)
+  private val facets    = FacetsGauge(root)
+  private val steadyAim = SteadyAimGauge(root)
   private val boss      = BossFrame(root, client)
   private val actionBar = ActionBar(root, client)
 
@@ -54,6 +56,9 @@ final class Hud(
   target.frame.setPoint(Point.TopLeft, root, Point.Bottom, 10, Hud.bottomFramesTop)
   // The stacks of our shield when we are the tank, on the left of our frame
   brace.frame.setPoint(Point.TopRight, myFrame.frame, Point.TopLeft, -4, 0)
+  // Our facets and steady aim when we are a pentagon, at the same place
+  facets.frame.setPoint(Point.TopRight, myFrame.frame, Point.TopLeft, -4, 0)
+  steadyAim.frame.setPoint(Point.TopRight, facets.frame, Point.TopLeft, -2, 0)
 
   private val cooldowns = BossCooldowns(root, client.i18n)
   private val threat    = ThreatMeter(root, client.i18n)
@@ -152,6 +157,8 @@ final class Hud(
     for (frame, i) <- team.zipWithIndex do frame.update(p, players.lift(i).map(_._1))
     myFrame.update(p, client.myId)
     brace.update(p, client.myId)
+    facets.update(p, client.myId)
+    steadyAim.update(p, client.myId)
     target.update(p, client.currentTarget)
     boss.update(p)
     cooldowns.update(p)

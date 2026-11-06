@@ -2,12 +2,14 @@ package services.i18n
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.boss.boss101.{BigDot, BigHit}
+import gamelogic.abilities.pentagon.CreatePentagonZone
 import gamelogic.buffs.Buff
-import gamelogic.buffs.abilities.classes.BraceShield
+import gamelogic.buffs.abilities.classes.{BraceShield, Facets, Fractured}
 import gamelogic.docs
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.entities.boss.Boss101
 import gamelogic.entities.classes.{Hexagon, Pentagon, Square, Triangle}
+import gamelogic.entities.classes.pentagon.SteadyAim
 import models.bff.ingame.Controls
 import models.bff.outofgame.PlayerClasses
 
@@ -216,6 +218,7 @@ object EnglishI18n extends I18n {
   override def notAnEnemy: String                    = "Not an enemy"
   override def cannotGuardYourself: String           = "You can't guard yourself"
   override def needShieldStack: String               = "You need a stack of your shield"
+  override def needAllFacets: String                 = "All your facets must be lit"
   override def targetCannotBeStunned: String         = "Target can't be stunned"
   override def targetDoesNotCast: String             = "Target does not cast anything"
   override def targetAbilityCannotBeCut: String      = "The target's ability can't be cut"
@@ -521,9 +524,30 @@ object EnglishI18n extends I18n {
       "Aim",
       Seq(
         "- Pentagon Bullet flies towards your mouse (not your target), and hits the first enemy " ++
-          "on its way: keep a clear line to the boss.",
+          "on its way: keep a clear line to the boss. Fracture flies the same way.",
         "- Pentagon Zone: cast it, then click where to put it. Enemies standing in it take " ++
-          "damage over time: put it under the boss, which the tank keeps in place."
+          s"damage over time, but you can only put one every ${formatSeconds(CreatePentagonZone.cooldown)}: put it where the " ++
+          "boss will stay, not just before it moves."
+      )
+    ),
+    TextSection(
+      "Steady aim",
+      Seq(
+        s"Every ${formatPeriod(SteadyAim.stackEvery)} without moving, your abilities deal ${formatNumber(SteadyAim.damageIncreasePerStack * 100)}% more damage, up " ++
+          s"to ${formatNumber(SteadyAim.maxStacks * SteadyAim.damageIncreasePerStack * 100)}% (the gauge on the far left of your frame). Moving loses it all, " ++
+          "and stops what you cast: pick your spot early, and avoid the small steps."
+      )
+    ),
+    TextSection(
+      "Facets",
+      Seq(
+        s"Each Pentagon Bullet that hits lights one of your ${Facets.maxStacks} facets (on your sides, " ++
+          "and in the gauge on the left of your frame). Once they are all lit, Pentagram spends " ++
+          "them on an instant hit: keep it for when you have to move. But a bullet that hits " ++
+          "while they are all lit is wasted.",
+        s"Fracture deals less damage, but the enemy it hits takes ${formatNumber(Fractured.damageIncrease * 100)}% more damage from " ++
+          s"you for ${formatSeconds(Fractured.duration)}. Fracture it again a little before the end: up to " ++
+          s"${formatSeconds(Fractured.maxCarriedOver)} left are carried over."
       )
     ),
     TextSection(
@@ -617,9 +641,13 @@ object EnglishI18n extends I18n {
   override def legendPentagonDebuffs: String =
     "The players' debuffs: dispel the ones that can be."
   override def legendPentagonDamage: String = "Your place on the damage meter."
-  override def legendHexagonTeam: String    = "Your team: click a frame to target the player."
-  override def legendHexagonFaded: String   = "Faded: out of your healing range. Get closer!"
-  override def legendHexagonMana: String    = "Your mana: it regenerates slowly."
+  override def legendPentagonFacets: String =
+    "Your facets: Pentagram is ready when they are all lit."
+  override def legendPentagonSteadyAim: String =
+    "Your steady aim: stay still to fill it."
+  override def legendHexagonTeam: String  = "Your team: click a frame to target the player."
+  override def legendHexagonFaded: String = "Faded: out of your healing range. Get closer!"
+  override def legendHexagonMana: String  = "Your mana: it regenerates slowly."
   override def legendHexagonTarget: String =
     "Your target, the tank, with your heal over time."
 

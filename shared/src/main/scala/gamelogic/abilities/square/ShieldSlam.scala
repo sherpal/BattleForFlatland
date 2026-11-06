@@ -12,8 +12,8 @@ import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 import services.i18n.I18n
 
-/** Spends a stack of the caster's [[gamelogic.buffs.abilities.classes.BraceShield]] to hit an
-  * enemy in melee range, dealing more damage than a [[HammerHit]] and generating more threat.
+/** Spends a stack of the caster's [[gamelogic.buffs.abilities.classes.BraceShield]] to hit an enemy
+  * in melee range, dealing more damage than a [[HammerHit]] and generating more threat.
   *
   * The remaining stacks of the shield get their time reset, like when bracing.
   */

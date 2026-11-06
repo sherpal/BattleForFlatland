@@ -150,9 +150,13 @@ final class HudPreview(parent: Frame, area: Region, topic: Topic, scene: Tutoria
   private val myFrame   = UnitFrame(root, scene, noVisuals, 200, isTarget = false)
   private val target    = UnitFrame(root, scene, noVisuals, 200, isTarget = true)
   private val brace     = BraceGauge(root)
+  private val facets    = FacetsGauge(root)
+  private val steadyAim = SteadyAimGauge(root)
   myFrame.frame.setPoint(Point.TopLeft, root, Point.Bottom, -210, Hud.bottomFramesTop)
   target.frame.setPoint(Point.TopLeft, root, Point.Bottom, 10, Hud.bottomFramesTop)
   brace.frame.setPoint(Point.TopRight, myFrame.frame, Point.TopLeft, -4, 0)
+  facets.frame.setPoint(Point.TopRight, myFrame.frame, Point.TopLeft, -4, 0)
+  steadyAim.frame.setPoint(Point.TopRight, facets.frame, Point.TopLeft, -2, 0)
   private val team = scene.teamIds.indices.map { i =>
     val unit = UnitFrame(root, scene, noVisuals, 150, isTarget = false)
     unit.frame.setPoint(Point.TopLeft, root, Point.TopLeft, 4, 70 + i * (Hud.frameHeight + 4))
@@ -164,6 +168,8 @@ final class HudPreview(parent: Frame, area: Region, topic: Topic, scene: Tutoria
     for (unit, id) <- team.zip(scene.teamIds) do unit.update(p, Some(id))
     myFrame.update(p, scene.myId)
     brace.update(p, scene.myId)
+    facets.update(p, scene.myId)
+    steadyAim.update(p, scene.myId)
     target.update(p, scene.currentTarget)
     boss.update(p)
     cooldowns.update(p)
@@ -202,7 +208,9 @@ final class HudPreview(parent: Frame, area: Region, topic: Topic, scene: Tutoria
       )
     case Topic.Pentagon =>
       Seq(
-        (myFrame.frame, Point.Left, -16, 0, scene.i18n.legendPentagonMana),
+        (steadyAim.frame, Point.Left, -16, 0, scene.i18n.legendPentagonSteadyAim),
+        (facets.frame, Point.Top, 0, -16, scene.i18n.legendPentagonFacets),
+        (myFrame.frame, Point.BottomLeft, -10, 2, scene.i18n.legendPentagonMana),
         (
           actionBar.frame,
           Point.Left,

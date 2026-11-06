@@ -129,5 +129,7 @@ object Buff {
   val rageTrickle              = nextId()
   val squareGuarding           = nextId()
   val squareGuarded            = nextId()
+  val pentagonFacets           = nextStackedBuffId()
+  val pentagonFractured        = nextId()
 
 }

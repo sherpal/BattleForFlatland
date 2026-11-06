@@ -2,11 +2,13 @@ package services.i18n
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.boss.boss101.{BigDot, BigHit}
+import gamelogic.abilities.pentagon.CreatePentagonZone
 import gamelogic.buffs.Buff
-import gamelogic.buffs.abilities.classes.BraceShield
+import gamelogic.buffs.abilities.classes.{BraceShield, Facets, Fractured}
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.entities.boss.Boss101
 import gamelogic.entities.classes.{Hexagon, Pentagon, Square, Triangle}
+import gamelogic.entities.classes.pentagon.SteadyAim
 import models.bff.ingame.Controls
 import models.bff.outofgame.PlayerClasses
 
@@ -218,6 +220,7 @@ object AlbanianI18n extends I18n {
   override def notAnEnemy: String               = "Nuk është armik"
   override def cannotGuardYourself: String      = "Nuk mund të mbrosh veten"
   override def needShieldStack: String          = "Të duhet një shtresë e mburojës sate"
+  override def needAllFacets: String            = "Të gjitha faqet e tua duhet të jenë të ndezura"
   override def targetCannotBeStunned: String    = "Objektivi nuk mund të shtangohet"
   override def targetDoesNotCast: String        = "Objektivi nuk po hedh asgjë"
   override def targetAbilityCannotBeCut: String = "Aftësia e objektivit nuk mund të ndërpritet"
@@ -527,9 +530,31 @@ object AlbanianI18n extends I18n {
       "Shenjimi",
       Seq(
         "- Pentagon Bullet fluturon drejt miut tënd (jo objektivit tënd) dhe godet armikun e " ++
-          "parë në rrugën e tij: mbaj një vijë të lirë drejt bossit.",
+          "parë në rrugën e tij: mbaj një vijë të lirë drejt bossit. Fracture fluturon në " ++
+          "të njëjtën mënyrë.",
         "- Pentagon Zone: hidhe, pastaj kliko ku ta vendosësh. Armiqtë që qëndrojnë në të " ++
-          "marrin dëm me kalimin e kohës: vendose nën bossin, të cilin tanku e mban në vend."
+          s"marrin dëm me kalimin e kohës, por mund të vendosësh vetëm një çdo ${formatSeconds(CreatePentagonZone.cooldown)}: " ++
+          "vendose aty ku bossi do të qëndrojë, jo pak para se të lëvizë."
+      )
+    ),
+    TextSection(
+      "Shenjim i qëndrueshëm",
+      Seq(
+        s"Çdo ${formatPeriod(SteadyAim.stackEvery)} pa lëvizur, aftësitë e tua shkaktojnë ${formatNumber(SteadyAim.damageIncreasePerStack * 100)}% më shumë dëm, " ++
+          s"deri në ${formatNumber(SteadyAim.maxStacks * SteadyAim.damageIncreasePerStack * 100)}% (matësi në të majtë fare të kornizës sate). Lëvizja t'i humbet " ++
+          "të gjitha, dhe ndërpret atë që po hedh: zgjidh vendin herët, dhe shmang hapat e vegjël."
+      )
+    ),
+    TextSection(
+      "Faqet",
+      Seq(
+        s"Çdo Pentagon Bullet që godet ndez një nga ${Facets.maxStacks} faqet e tua (në anët e tua, dhe " ++
+          "në matësin në të majtë të kornizës sate). Kur janë ndezur të gjitha, Pentagram i " ++
+          "shpenzon për një goditje të menjëhershme: ruaje për kur duhet të lëvizësh. Por një " ++
+          "plumb që godet kur janë ndezur të gjitha shkon dëm.",
+        s"Fracture shkakton më pak dëm, por armiku që godet merr ${formatNumber(Fractured.damageIncrease * 100)}% më shumë dëm nga " ++
+          s"ti për ${formatSeconds(Fractured.duration)}. Hidhe sërish pak para fundit: deri në ${formatSeconds(Fractured.maxCarriedOver)} që kanë " ++
+          "mbetur shtohen."
       )
     ),
     TextSection(
@@ -624,6 +649,10 @@ object AlbanianI18n extends I18n {
   override def legendPentagonDebuffs: String =
     "Efektet negative të lojtarëve: hiq ato që mund të hiqen."
   override def legendPentagonDamage: String = "Vendi yt në matësin e dëmit."
+  override def legendPentagonFacets: String =
+    "Faqet e tua: Pentagram është gati kur janë ndezur të gjitha."
+  override def legendPentagonSteadyAim: String =
+    "Shenjimi yt i qëndrueshëm: qëndro pa lëvizur për ta mbushur."
   override def legendHexagonTeam: String  = "Ekipi yt: kliko një kornizë për të zgjedhur lojtarin."
   override def legendHexagonFaded: String = "E zbehur: jashtë rrezes së shërimit tënd. Afrohu!"
   override def legendHexagonMana: String  = "Mana jote: rigjenerohet ngadalë."

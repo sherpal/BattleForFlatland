@@ -3,7 +3,7 @@ package gamelogic.abilities.pentagon
 import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.abilities.{Ability, WithTargetAbility}
 import gamelogic.entities.WithPosition.Angle
-import gamelogic.entities.classes.pentagon.PentagonZone
+import gamelogic.entities.classes.pentagon.SteadyAim
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.classes.pentagon.PutPentagonZone
 import gamelogic.gamestate.{GameAction, GameState}
@@ -37,7 +37,7 @@ case class CreatePentagonZone(
         genEntityId(),
         position,
         rotation,
-        damage,
+        damage * SteadyAim.damageMultiplier(gameState, casterId, time),
         casterId,
         colour,
         genBuffId()
@@ -65,7 +65,8 @@ case class CreatePentagonZone(
 
 object CreatePentagonZone {
 
-  inline def cooldown: Long                = PentagonZone.duration
+  /** Much longer than the zone lasts: it has to be put where the enemies will stay. */
+  inline def cooldown: Long                = 30000L
   inline def cost: Resource.ResourceAmount = Resource.ResourceAmount(10.0, Resource.Mana)
   inline def castingTime: Long             = 1500L
   inline def range: Double                 = WithTargetAbility.healRange

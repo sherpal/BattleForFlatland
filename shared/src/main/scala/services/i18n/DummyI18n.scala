@@ -276,7 +276,9 @@ object DummyI18n extends I18n {
 
   def legendPentagonAim: String = ""
 
-  def legendPentagonDamage: String = ""
+  def legendPentagonDamage: String    = ""
+  def legendPentagonFacets: String    = ""
+  def legendPentagonSteadyAim: String = ""
 
   def legendPentagonDebuffs: String = ""
 
@@ -341,6 +343,7 @@ object DummyI18n extends I18n {
   def name: String = ""
 
   def needShieldStack: String = ""
+  def needAllFacets: String   = ""
 
   def next(title: String): String = ""
 

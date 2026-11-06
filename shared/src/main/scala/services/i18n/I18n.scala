@@ -201,6 +201,7 @@ trait I18n {
   def notAnEnemy: String
   def cannotGuardYourself: String
   def needShieldStack: String
+  def needAllFacets: String
   def targetCannotBeStunned: String
   def targetDoesNotCast: String
   def targetAbilityCannotBeCut: String
@@ -301,6 +302,8 @@ trait I18n {
   def legendPentagonAim: String
   def legendPentagonDebuffs: String
   def legendPentagonDamage: String
+  def legendPentagonFacets: String
+  def legendPentagonSteadyAim: String
   def legendHexagonTeam: String
   def legendHexagonFaded: String
   def legendHexagonMana: String

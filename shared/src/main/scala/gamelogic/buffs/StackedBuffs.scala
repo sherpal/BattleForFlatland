@@ -1,6 +1,6 @@
 package gamelogic.buffs
 
-import gamelogic.buffs.abilities.classes.BraceShield
+import gamelogic.buffs.abilities.classes.{BraceShield, Facets}
 import gamelogic.entities.Entity
 import gamelogic.physics.PosInt
 
@@ -10,7 +10,8 @@ object StackedBuffs {
   private val stackedBuffs
       : Map[Buff.StackedBuffIdentifier, (Buff.Id, Entity.Id, Entity.Id, Long, PosInt) => Buff] =
     Map(
-      Buff.squareBrace -> BraceShield.apply
+      Buff.squareBrace    -> BraceShield.apply,
+      Buff.pentagonFacets -> Facets.apply
     )
 
   def apply(

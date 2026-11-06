@@ -2,11 +2,13 @@ package services.i18n
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.boss.boss101.{BigDot, BigHit}
+import gamelogic.abilities.pentagon.CreatePentagonZone
 import gamelogic.buffs.Buff
-import gamelogic.buffs.abilities.classes.BraceShield
+import gamelogic.buffs.abilities.classes.{BraceShield, Facets, Fractured}
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.entities.boss.Boss101
 import gamelogic.entities.classes.{Hexagon, Pentagon, Square, Triangle}
+import gamelogic.entities.classes.pentagon.SteadyAim
 import models.bff.ingame.Controls
 import models.bff.outofgame.PlayerClasses
 
@@ -217,6 +219,7 @@ object DutchI18n extends I18n {
   override def notAnEnemy: String                    = "Geen vijand"
   override def cannotGuardYourself: String           = "Je kunt jezelf niet beschermen"
   override def needShieldStack: String               = "Je hebt een stack van je schild nodig"
+  override def needAllFacets: String                 = "Al je facetten moeten oplichten"
   override def targetCannotBeStunned: String         = "Het doelwit kan niet gestund worden"
   override def targetDoesNotCast: String             = "Het doelwit cast niets"
   override def targetAbilityCannotBeCut: String =
@@ -531,9 +534,31 @@ object DutchI18n extends I18n {
       "Mikken",
       Seq(
         "- Pentagon Bullet vliegt naar je muis (niet naar je doelwit), en raakt de eerste " ++
-          "vijand op zijn weg: zorg voor een vrije lijn naar de boss.",
+          "vijand op zijn weg: zorg voor een vrije lijn naar de boss. Fracture vliegt op " ++
+          "dezelfde manier.",
         "- Pentagon Zone: gebruik ze en klik dan waar je ze wilt plaatsen. Vijanden die erin " ++
-          "staan, krijgen schade over tijd: leg ze onder de boss, die de tank op zijn plaats houdt."
+          s"staan, krijgen schade over tijd, maar je kunt er maar één leggen elke ${formatSeconds(CreatePentagonZone.cooldown)}: " ++
+          "leg ze waar de boss zal blijven, niet net voor hij beweegt."
+      )
+    ),
+    TextSection(
+      "Vaste hand",
+      Seq(
+        s"Elke ${formatPeriod(SteadyAim.stackEvery)} dat je niet beweegt, doen je vaardigheden ${formatNumber(SteadyAim.damageIncreasePerStack * 100)}% meer schade, " ++
+          s"tot ${formatNumber(SteadyAim.maxStacks * SteadyAim.damageIncreasePerStack * 100)}% (de meter helemaal links van je frame). Bewegen doet alles verliezen, " ++
+          "en onderbreekt wat je cast: kies vroeg je plek, en vermijd de kleine stapjes."
+      )
+    ),
+    TextSection(
+      "Facetten",
+      Seq(
+        s"Elke Pentagon Bullet die raakt, doet een van je ${Facets.maxStacks} facetten oplichten (op je " ++
+          "zijden, en in de meter links van je frame). Zodra ze allemaal oplichten, gebruikt " ++
+          "Pentagram ze voor een onmiddellijke treffer: hou die voor wanneer je moet bewegen. " ++
+          "Maar een kogel die raakt terwijl ze allemaal oplichten, is verloren.",
+        s"Fracture doet minder schade, maar de geraakte vijand krijgt ${formatSeconds(Fractured.duration)} lang " ++
+          s"${formatNumber(Fractured.damageIncrease * 100)}% meer schade van jou. Gebruik het opnieuw net voor het einde: tot " ++
+          s"${formatSeconds(Fractured.maxCarriedOver)} die overblijven, worden meegenomen."
       )
     ),
     TextSection(
@@ -629,6 +654,10 @@ object DutchI18n extends I18n {
   override def legendPentagonDebuffs: String =
     "De debuffs van de spelers: dispel wat gedispeld kan worden."
   override def legendPentagonDamage: String = "Jouw plaats op de damage meter."
+  override def legendPentagonFacets: String =
+    "Je facetten: Pentagram is klaar als ze allemaal oplichten."
+  override def legendPentagonSteadyAim: String =
+    "Je vaste hand: blijf stilstaan om de meter te vullen."
   override def legendHexagonTeam: String =
     "Je team: klik op een kader om de speler als doelwit te kiezen."
   override def legendHexagonFaded: String = "Vervaagd: buiten je healbereik. Kom dichterbij!"

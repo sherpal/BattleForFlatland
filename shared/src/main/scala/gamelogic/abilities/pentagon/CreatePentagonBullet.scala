@@ -3,6 +3,7 @@ package gamelogic.abilities.pentagon
 import gamelogic.abilities.Ability
 import gamelogic.abilities.Ability.{AbilityId, UseId}
 import gamelogic.entities.WithPosition.Angle
+import gamelogic.entities.classes.pentagon.SteadyAim
 import gamelogic.entities.movingstuff.PentagonBullet
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.NewPentagonBullet
@@ -14,7 +15,9 @@ import services.i18n.I18n
 /** Spawn a [[gamelogic.entities.movingstuff.PentagonBullet]] at the player's position, in the given
   * direction.
   *
-  * Will deal damage equal to the specified amount.
+  * Will deal damage equal to the specified amount (increased by the
+  * [[gamelogic.entities.classes.pentagon.SteadyAim]] of the caster), and light one of its
+  * [[gamelogic.buffs.abilities.classes.Facets]] when it hits.
   */
 case class CreatePentagonBullet(
     useId: Ability.UseId,
@@ -42,10 +45,11 @@ case class CreatePentagonBullet(
       PentagonBullet.defaultSpeed,
       direction,
       PentagonBullet.defaultRange,
-      damage,
+      damage * SteadyAim.damageMultiplier(gameState, casterId, time),
       casterId,
       Entity.teams.playerTeam,
-      colour
+      colour,
+      fractures = false
     )
   )
 
@@ -62,6 +66,6 @@ object CreatePentagonBullet {
 
   final val cost = Resource.ResourceAmount(2.0, Resource.Mana)
 
-  final def damage: Double = 80.0 // approx match triangle direct hit
+  final def damage: Double = 70.0
 
 }

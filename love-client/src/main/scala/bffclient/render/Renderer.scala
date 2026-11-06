@@ -5,9 +5,10 @@ import bffclient.hud.Hud
 import bffclient.love.{Graphics, Mouse, Timer}
 import bffclient.render.bosses.BossVisuals
 import gamelogic.abilities.Ability
+import gamelogic.buffs.abilities.classes.Facets
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.boss.BossEntity
-import gamelogic.entities.classes.PlayerClass
+import gamelogic.entities.classes.{Pentagon, PlayerClass}
 import gamelogic.entities.classes.hexagon.HexagonZone
 import gamelogic.entities.classes.pentagon.PentagonZone
 import gamelogic.entities.movingstuff.PentagonBullet
@@ -138,6 +139,12 @@ final class Renderer(client: GameClient, hudScale: Double = 1.0) {
         case bullet: PentagonBullet =>
           ownerColour(RGBColour.fromIntColour(bullet.colour), 1)
           drawShape(bullet, "fill")
+          // A fracturing bullet has a white core
+          if bullet.fractures then {
+            val (x, y) = toScreen(position(bullet))
+            Graphics.setColor(1, 1, 1)
+            Graphics.circle("fill", x, y, bullet.shape.radius / 2)
+          }
         case other =>
           Graphics.setColor(0.2, 0.2, 0.2)
           drawShape(other, "line")
@@ -181,6 +188,22 @@ final class Renderer(client: GameClient, hudScale: Double = 1.0) {
         }
       }
 
+    // The lit facets of a pentagon, on its sides (see FacetsGauge)
+    def litFacets(pentagon: Pentagon): Unit =
+      for stacks <- Facets.stacksOn(gameState, pentagon.id) do {
+        val corners = pentagon.shape
+          .translateAndRotationVertices(position(pentagon), rotation(pentagon))
+          .map(toScreen)
+        Graphics.setColor(1, 225 / 255.0, 120 / 255.0)
+        Graphics.setLineWidth(3)
+        for i <- 0 until stacks.toInt do {
+          val (x1, y1) = corners(i)
+          val (x2, y2) = corners((i + 1) % corners.length)
+          Graphics.line(x1, y1, x2, y2)
+        }
+        Graphics.setLineWidth(1)
+      }
+
     // Players: the frontend's sprite of their class, tinted with their colour (or their shape)
     for player <- gameState.players.values do {
       val (r, g, b) = player.rgb
@@ -200,6 +223,10 @@ final class Renderer(client: GameClient, hudScale: Double = 1.0) {
           Graphics.setColor(0, 0, 0)
           drawShape(player, "line")
           nose(player, (1, 1, 1))
+      }
+      player match {
+        case pentagon: Pentagon => litFacets(pentagon)
+        case _ => ()
       }
       castingSparks(player)
       lifeBar(player)

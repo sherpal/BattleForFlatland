@@ -63,9 +63,8 @@ final case class SquareForBoss105(index: Int, entityId: Entity.Id)
     if holdsTheShade(gameState, me, time) then Boss105Bot.theShade(gameState)
     else Boss105Bot.theBoss(gameState)
 
-  /** When a single player has a [[VolatileCharge]] left (the boss puts two and the Pentagon
-    * dispels one), the tank guards them: the explosion hurts them less, and the tank has the
-    * shield for it.
+  /** When a single player has a [[VolatileCharge]] left (the boss puts two and the Pentagon dispels
+    * one), the tank guards them: the explosion hurts them less, and the tank has the shield for it.
     */
   override def instantActions(gameState: GameState, me: Square, time: Long): Vector[GameAction] =
     maybeGuardLastBearer(

@@ -63,8 +63,8 @@ trait SquareAIController(index: Int) extends GoodAIController[Square] {
 
   /** Guards the only player that a dangerous debuff is still on (bosses put several of them, and
     * the Pentagons dispel some), so that a tank takes part of what it will take. Nothing when there
-    * are several bearers, when the only one is the tank, or when someone (it can be the other
-    * tank) already guards it.
+    * are several bearers, when the only one is the tank, or when someone (it can be the other tank)
+    * already guards it.
     */
   final def maybeGuardLastBearer(
       gameState: GameState,

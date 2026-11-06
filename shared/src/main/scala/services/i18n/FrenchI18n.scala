@@ -2,11 +2,13 @@ package services.i18n
 
 import gamelogic.abilities.Ability
 import gamelogic.abilities.boss.boss101.{BigDot, BigHit}
+import gamelogic.abilities.pentagon.CreatePentagonZone
 import gamelogic.buffs.Buff
-import gamelogic.buffs.abilities.classes.BraceShield
+import gamelogic.buffs.abilities.classes.{BraceShield, Facets, Fractured}
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.entities.boss.Boss101
 import gamelogic.entities.classes.{Hexagon, Pentagon, Square, Triangle}
+import gamelogic.entities.classes.pentagon.SteadyAim
 import models.bff.ingame.Controls
 import models.bff.outofgame.PlayerClasses
 
@@ -224,6 +226,7 @@ object FrenchI18n extends I18n {
   override def notAnEnemy: String            = "Pas un ennemi"
   override def cannotGuardYourself: String   = "Vous ne pouvez pas vous protéger vous-même"
   override def needShieldStack: String       = "Il vous faut une charge de votre bouclier"
+  override def needAllFacets: String         = "Toutes vos facettes doivent être allumées"
   override def targetCannotBeStunned: String = "La cible ne peut pas être étourdie"
   override def targetDoesNotCast: String     = "La cible n'incante rien"
   override def targetAbilityCannotBeCut: String =
@@ -550,10 +553,33 @@ object FrenchI18n extends I18n {
       "Viser",
       Seq(
         "- Pentagon Bullet vole vers votre souris (pas vers votre cible), et touche le premier " ++
-          "ennemi sur son chemin : gardez une ligne dégagée vers le boss.",
+          "ennemi sur son chemin : gardez une ligne dégagée vers le boss. Fracture vole de la " ++
+          "même façon.",
         "- Pentagon Zone : lancez-la, puis cliquez là où la placer. Les ennemis qui s'y trouvent " ++
-          "subissent des dégâts sur la durée : placez-la sous le boss, que le tank maintient en " ++
-          "place."
+          "subissent des dégâts sur la durée, mais vous ne pouvez en placer qu'une toutes les " ++
+          s"${formatSeconds(CreatePentagonZone.cooldown)} : placez-la là où le boss va rester, pas juste avant qu'il ne bouge."
+      )
+    ),
+    TextSection(
+      "Visée stable",
+      Seq(
+        s"Toutes les ${formatPeriod(SteadyAim.stackEvery)} sans bouger, vos capacités infligent ${formatNumber(SteadyAim.damageIncreasePerStack * 100)} % de dégâts " ++
+          s"en plus, jusqu'à ${formatNumber(SteadyAim.maxStacks * SteadyAim.damageIncreasePerStack * 100)} % (la jauge tout à gauche de votre cadre). Bouger fait " ++
+          "tout perdre, et interrompt ce que vous lancez : choisissez votre place tôt, et évitez " ++
+          "les petits pas."
+      )
+    ),
+    TextSection(
+      "Facettes",
+      Seq(
+        s"Chaque Pentagon Bullet qui touche allume une de vos ${Facets.maxStacks} facettes (sur vos " ++
+          "côtés, et dans la jauge à gauche de votre cadre). Une fois qu'elles sont toutes " ++
+          "allumées, Pentagram les dépense pour un coup instantané : gardez-le pour quand vous " ++
+          "devez bouger. Mais un projectile qui touche alors qu'elles sont toutes allumées est " ++
+          "perdu.",
+        s"Fracture inflige moins de dégâts, mais l'ennemi touché subit ${formatNumber(Fractured.damageIncrease * 100)} % de dégâts " ++
+          s"en plus de votre part pendant ${formatSeconds(Fractured.duration)}. Relancez-la un peu avant la fin : " ++
+          s"jusqu'à ${formatSeconds(Fractured.maxCarriedOver)} restantes sont reportées."
       )
     ),
     TextSection(
@@ -651,6 +677,10 @@ object FrenchI18n extends I18n {
   override def legendPentagonDebuffs: String =
     "Les affaiblissements des joueurs : dissipez ceux qui peuvent l'être."
   override def legendPentagonDamage: String = "Votre place au compteur de dégâts."
+  override def legendPentagonFacets: String =
+    "Vos facettes : Pentagram est prêt quand elles sont toutes allumées."
+  override def legendPentagonSteadyAim: String =
+    "Votre visée stable : restez immobile pour la remplir."
   override def legendHexagonTeam: String =
     "Votre équipe : cliquez sur un cadre pour cibler le joueur."
   override def legendHexagonFaded: String =

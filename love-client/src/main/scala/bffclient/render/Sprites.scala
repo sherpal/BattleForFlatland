@@ -104,6 +104,7 @@ object Sprites {
     Buff.squareGuarding           -> "abilities/square-guard",
     Buff.squareGuarded            -> "abilities/square-guard",
     Buff.squareBrace              -> "abilities/square-brace",
+    Buff.pentagonFractured        -> "abilities/pentagon-fracture",
     Buff.boss102LivingDamageZone  -> "boss/dawn-of-time/boss102/living-damage-zone",
     Buff.sirOfVicePunished        -> "boss/first-raid/sir-of-vice/punished",
     Buff.sirOfVicePurified        -> "boss/first-raid/sir-of-vice/purified",
@@ -134,6 +135,8 @@ object Sprites {
     Ability.triangleCut              -> "triangle-cut",
     Ability.pentagonPentagonBullet   -> "pentagon-bullet",
     Ability.createPentagonZoneId     -> "create-pentagon-zone",
-    Ability.pentagonDispelId         -> "pentagon-dispel"
+    Ability.pentagonDispelId         -> "pentagon-dispel",
+    Ability.pentagonFractureId       -> "pentagon-fracture",
+    Ability.pentagonPentagramId      -> "pentagon-pentagram"
   ).flatMap((id, icon) => load(s"abilities/$icon.png").map(id -> _)).toMap
 }

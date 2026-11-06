@@ -40,7 +40,7 @@ object PentagonZone {
 
   final val shape: Polygon = Shape.regularPolygon(5, Constants.playerRadius * 3)
 
-  inline def duration: Long       = 5000L
+  inline def duration: Long       = 8000L
   inline def tickRate: Long       = 1000L
-  inline def damageOnTick: Double = 30.0
+  inline def damageOnTick: Double = 25.0
 }

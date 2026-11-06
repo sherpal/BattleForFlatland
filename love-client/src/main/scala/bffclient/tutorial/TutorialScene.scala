@@ -9,6 +9,7 @@ import gamelogic.abilities.hexagon.HexagonHot
 import gamelogic.abilities.pentagon.{CreatePentagonZone, PentaDispel}
 import gamelogic.abilities.square.{Brace, Guard, ShieldSlam, Taunt}
 import gamelogic.abilities.triangle.{EnergyKick, UpgradeDirectHit}
+import gamelogic.buffs.abilities.classes.{Facets, Fractured}
 import gamelogic.entities.Entity
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
@@ -17,7 +18,7 @@ import gamelogic.entities.classes.pentagon.PentagonZone
 import gamelogic.gameextras.DamageTracker
 import gamelogic.gamestate.gameactions.*
 import gamelogic.gamestate.{GameAction, GameState}
-import gamelogic.physics.Complex
+import gamelogic.physics.{Complex, PosInt}
 import gamelogic.utils.IdGeneratorContainer
 import models.bff.ingame.Controls
 import models.bff.outofgame.PlayerClasses
@@ -160,6 +161,9 @@ final class TutorialScene(
     )
   )
   cast(PentaDispel(useId(), now - 2000, pentagon, pentagon2))
+  // the bullets hit, by the game server
+  act(Fractured.refresh(state, bossId, pentagon, now - 3000)*)
+  act(Facets.setStacks(state, pentagon, now - 1500, Some(PosInt.of(3)))*)
 
   // Their resources, at this moment
   for (id, ratio) <- Seq(

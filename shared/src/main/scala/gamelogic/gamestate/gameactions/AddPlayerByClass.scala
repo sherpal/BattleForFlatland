@@ -97,7 +97,8 @@ final case class AddPlayerByClass(
             Constants.playerSpeed,
             Pentagon.initialResourceAmount,
             Pentagon.initialResourceAmount.amount,
-            playerName
+            playerName,
+            stillSince = time
           ),
           time
         )

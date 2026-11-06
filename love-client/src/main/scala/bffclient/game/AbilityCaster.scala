@@ -118,6 +118,23 @@ final class AbilityCaster(myId: Entity.Id, i18n: I18n) {
           gameState,
           now
         )
+      case Ability.pentagonFractureId =>
+        val direction = Complex.rotation(player.rotation)
+        send(
+          Fracture(
+            Ability.UseId.zero,
+            now,
+            myId,
+            player.pos + player.shape.radius * direction,
+            Fracture.damage,
+            direction.arg,
+            player.colour
+          ),
+          gameState,
+          now
+        )
+      case Ability.pentagonPentagramId =>
+        onTarget(Pentagram(Ability.UseId.zero, now, myId, _))
       case Ability.pentagonDispelId =>
         onTarget(PentaDispel(Ability.UseId.zero, now, myId, _))
       case Ability.createPentagonZoneId | Ability.hexagonHexagonZoneId =>

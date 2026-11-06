@@ -8,8 +8,8 @@ import gamelogic.gamestate.gameactions.EntityResourceChanges
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-/** Never ending buff which grants its bearer a little rage every second, so that it is never
-  * stuck waiting for the boss to hit it.
+/** Never ending buff which grants its bearer a little rage every second, so that it is never stuck
+  * waiting for the boss to hit it.
   *
   * This is a buff that the [[gamelogic.entities.classes.Square]] has by default, besides the
   * [[RageFiller]].

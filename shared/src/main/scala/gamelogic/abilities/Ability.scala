@@ -151,6 +151,8 @@ object Ability {
   val boss105VolatileMark: AbilityId            = nextAbilityId()
   val boss105ShadeSiphon: AbilityId             = nextAbilityId()
   val boss105Reunion: AbilityId                 = nextAbilityId()
+  val pentagonPentagramId: AbilityId            = nextAbilityId()
+  val pentagonFractureId: AbilityId             = nextAbilityId()
 
   opaque type AbilityColour <: RGBColour = RGBColour
 
@@ -187,6 +189,8 @@ object Ability {
     case x: hexagon.HexagonHot => customEncode(x, "hexagon.HexagonHot")
     case x: pentagon.CreatePentagonBullet => customEncode(x, "pentagon.CreatePentagonBullet")
     case x: pentagon.CreatePentagonZone => customEncode(x, "pentagon.CreatePentagonZone")
+    case x: pentagon.Fracture => customEncode(x, "pentagon.Fracture")
+    case x: pentagon.Pentagram => customEncode(x, "pentagon.Pentagram")
     case x: square.Brace => customEncode(x, "square.Brace")
     case x: square.Cleave => customEncode(x, "square.Cleave")
     case x: square.Enrage => customEncode(x, "square.Enrage")
@@ -221,6 +225,8 @@ object Ability {
     customDecoder[hexagon.HexagonHot]("hexagon.HexagonHot"),
     customDecoder[pentagon.CreatePentagonBullet]("pentagon.CreatePentagonBullet"),
     customDecoder[pentagon.CreatePentagonZone]("pentagon.CreatePentagonZone"),
+    customDecoder[pentagon.Fracture]("pentagon.Fracture"),
+    customDecoder[pentagon.Pentagram]("pentagon.Pentagram"),
     customDecoder[square.Brace]("square.Brace"),
     customDecoder[square.Cleave]("square.Cleave"),
     customDecoder[square.Enrage]("square.Enrage"),

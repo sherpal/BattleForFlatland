@@ -21,10 +21,23 @@ final case class NewPentagonBullet(
     damage: Double,
     ownerId: Entity.Id,
     teamId: TeamId,
-    colour: Int
+    colour: Int,
+    fractures: Boolean
 ) extends GameAction {
   def createGameStateTransformer(gameState: GameState): GameStateTransformer = new WithEntity(
-    PentagonBullet(bulletId, time, pos, speed, direction, range, damage, ownerId, teamId, colour),
+    PentagonBullet(
+      bulletId,
+      time,
+      pos,
+      speed,
+      direction,
+      range,
+      damage,
+      ownerId,
+      teamId,
+      colour,
+      fractures
+    ),
     time
   )
 

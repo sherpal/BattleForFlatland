@@ -31,14 +31,8 @@ final case class PentagonForBoss102(index: Int, entityId: Entity.Id)
         }
         .flatten
 
-      def maybePentagonBullet = maybeBoss.flatMap(boss =>
-        maybePentagonBulletUsage(
-          currentGameState,
-          startTime,
-          me,
-          (boss.currentPosition(startTime) - currentPosition).arg
-        )
-      )
+      def maybePentagonBullet =
+        maybeBoss.flatMap(boss => maybeDamageUsage(currentGameState, startTime, me, boss))
 
       val maybeStopMoving = stopMoving(startTime, me, currentPosition, me.rotation)
 

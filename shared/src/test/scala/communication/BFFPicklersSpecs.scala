@@ -16,11 +16,14 @@ import gamelogic.abilities.boss.sirofvice.{
   Punishment,
   SacredGround
 }
+import gamelogic.abilities.pentagon.{Fracture, Pentagram}
 import gamelogic.abilities.square.{Brace, Guard, ShieldSlam}
 import gamelogic.buffs.Buff
 import gamelogic.entities.Entity
+import gamelogic.entities.WithPosition.Angle
 import gamelogic.gamestate.GameAction
 import gamelogic.gamestate.gameactions.PutStackedBuff
+import gamelogic.gamestate.gameactions.classes.pentagon.PutFractured
 import gamelogic.gamestate.gameactions.classes.square.PutGuarding
 import gamelogic.gamestate.gameactions.boss104.*
 import gamelogic.gamestate.gameactions.boss105.{
@@ -107,6 +110,24 @@ final class BFFPicklersSpecs extends munit.FunSuite {
     roundTripAction(ShadeFalls(actionId, 1L, entityId, buffId, entityId, somewhere))
     roundTripAction(PutVolatileCharge(actionId, 1L, buffId, entityId, entityId))
     roundTripAction(PutYearning(actionId, 1L, buffId, entityId, entityId))
+  }
+
+  test("The pentagon's abilities and actions survive a boopickle round trip") {
+    roundTripAbility(Pentagram(useId, 1L, entityId, entityId))
+    roundTripAbility(Fracture(useId, 1L, entityId, somewhere, 50.0, Angle.zero, 0))
+    roundTripAction(PutFractured(actionId, 1L, buffId, entityId, entityId, 12000L))
+    roundTripAction(
+      PutStackedBuff(
+        actionId,
+        1L,
+        buffId,
+        entityId,
+        entityId,
+        1L,
+        Buff.pentagonFacets,
+        PosInt.of(5)
+      )
+    )
   }
 
   test("Brace and stacked buffs survive a boopickle round trip") {

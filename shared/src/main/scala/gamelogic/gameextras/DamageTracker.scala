@@ -10,8 +10,8 @@ import gamelogic.gamestate.{GameAction, GameState}
   *
   * Like the visual effects of the client, it is told about the actions received from the server,
   * and counts each one once, even if the server sends it again when it corrects the past. The
-  * damage counted is the one that was really dealt, after the buffs of the target (like a shield
-  * on the boss) transformed it.
+  * damage counted is the one that was really dealt, after the buffs of the target (like a shield on
+  * the boss) transformed it.
   */
 final class DamageTracker {
 
@@ -28,7 +28,8 @@ final class DamageTracker {
 
   /** Actions received from the server, already in `gameState`. */
   def received(actions: Iterable[GameAction], gameState: GameState): Unit = {
-    def isPlayer(id: Entity.Id) = gameState.players.contains(id) || gameState.deadPlayers.contains(id)
+    def isPlayer(id: Entity.Id) =
+      gameState.players.contains(id) || gameState.deadPlayers.contains(id)
 
     for case damage: EntityTakesDamage <- actions if seen.add(damage.id) do {
       seenOrder.enqueue(damage.id)

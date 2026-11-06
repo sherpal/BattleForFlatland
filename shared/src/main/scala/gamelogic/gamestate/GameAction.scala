@@ -83,6 +83,7 @@ object GameAction {
     case x: boss102.PutDamageZone => customEncode(x, "boss102.PutDamageZone")
     case x: boss102.PutLivingDamageZone => customEncode(x, "boss102.PutLivingDamageZone")
     case x: classes.pentagon.PutPentagonZone => customEncode(x, "classes.pentagon.PutPentagonZone")
+    case x: classes.pentagon.PutFractured => customEncode(x, "classes.pentagon.PutFractured")
     case x: AddDummyMob => customEncode(x, "AddDummyMob")
     case x: AddPlayer => customEncode(x, "AddPlayer")
     case x: AddPlayerByClass => customEncode(x, "AddPlayerByClass")
@@ -123,6 +124,7 @@ object GameAction {
     customDecoder[boss102.PutDamageZone]("boss102.PutDamageZone"),
     customDecoder[boss102.PutLivingDamageZone]("boss102.PutLivingDamageZone"),
     customDecoder[classes.pentagon.PutPentagonZone]("classes.pentagon.PutPentagonZone"),
+    customDecoder[classes.pentagon.PutFractured]("classes.pentagon.PutFractured"),
     customDecoder[AddDummyMob]("AddDummyMob"),
     customDecoder[AddPlayer]("AddPlayer"),
     customDecoder[AddPlayerByClass]("AddPlayerByClass"),

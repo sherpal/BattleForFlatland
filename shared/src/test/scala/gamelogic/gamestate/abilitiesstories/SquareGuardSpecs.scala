@@ -28,12 +28,12 @@ final class SquareGuardSpecs extends StoryTeller {
   )
   private val squareId: Entity.Id = addingSquare.entityId
 
-  private val addingHexagon        = addHexagon(2)
-  private val hexagonId: Entity.Id = addingHexagon.entityId
-  private val addingTriangle       = addPlayer(2)
+  private val addingHexagon         = addHexagon(2)
+  private val hexagonId: Entity.Id  = addingHexagon.entityId
+  private val addingTriangle        = addPlayer(2)
   private val triangleId: Entity.Id = addingTriangle.entityId
-  private val addingHound          = addHound(2)
-  private val houndId: Entity.Id   = addingHound.entityId
+  private val addingHound           = addHound(2)
+  private val houndId: Entity.Id    = addingHound.entityId
 
   /** The square (with its starting buffs, but no rage) and its allies, which has braced `braces`
     * times.
@@ -94,12 +94,18 @@ final class SquareGuardSpecs extends StoryTeller {
   test("Guard puts a Guarding buff on the caster, and a Guarded one on the ally") {
     val gameState = guarded(situation(), hexagonId)
 
-    assertEquals(guardings(gameState).map(g => (g.bearerId, g.guardedId)), Vector(squareId -> hexagonId))
-    assertEquals(guardeds(gameState).map(g => (g.bearerId, g.sourceId)), Vector(hexagonId -> squareId))
+    assertEquals(
+      guardings(gameState).map(g => (g.bearerId, g.guardedId)),
+      Vector(squareId -> hexagonId)
+    )
+    assertEquals(
+      guardeds(gameState).map(g => (g.bearerId, g.sourceId)),
+      Vector(hexagonId -> squareId)
+    )
   }
 
   test("Each of the two buffs knows the other one") {
-    val gameState = guarded(situation(), hexagonId)
+    val gameState    = guarded(situation(), hexagonId)
     val guardingBuff = guardings(gameState).head
     val guardedBuff  = guardeds(gameState).head
     assertEquals(guardingBuff.guardedBuffId, guardedBuff.buffId)
@@ -137,8 +143,9 @@ final class SquareGuardSpecs extends StoryTeller {
     val withShield    = hit(100, hexagonId, damage)(guarded(situation(3), hexagonId))
 
     // the shield reduces what the square takes...
-    val lostWithout = lifeOf(guarded(situation(0), hexagonId), squareId) - lifeOf(withoutShield, squareId)
-    val lostWith    = lifeOf(guarded(situation(3), hexagonId), squareId) - lifeOf(withShield, squareId)
+    val lostWithout =
+      lifeOf(guarded(situation(0), hexagonId), squareId) - lifeOf(withoutShield, squareId)
+    val lostWith = lifeOf(guarded(situation(3), hexagonId), squareId) - lifeOf(withShield, squareId)
     assertEqualsDouble(lostWithout, damage * share, 1e-9)
     assertEqualsDouble(lostWith, damage * share * math.pow(0.95, 3), 1e-9)
 
@@ -148,7 +155,7 @@ final class SquareGuardSpecs extends StoryTeller {
   }
 
   test("The buffs end together, after the duration") {
-    val gameState = guarded(situation(), hexagonId)
+    val gameState    = guarded(situation(), hexagonId)
     val guardingBuff = guardings(gameState).head
     val guardedBuff  = guardeds(gameState).head
     assert(guardingBuff.isFinite)
