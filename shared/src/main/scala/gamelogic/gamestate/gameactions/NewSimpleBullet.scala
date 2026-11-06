@@ -6,6 +6,7 @@ import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithSimpleBullet}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
+import services.i18n.I18n
 
 /** Adds a bullet to the game. */
 final case class NewSimpleBullet(
@@ -19,7 +20,7 @@ final case class NewSimpleBullet(
     range: Double
 ) extends GameAction {
 
-  def isLegal(gameState: GameState): None.type = None
+  def isLegal(gameState: GameState)(using I18n): None.type = None
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 

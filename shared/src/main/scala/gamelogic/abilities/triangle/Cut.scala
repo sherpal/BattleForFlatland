@@ -9,6 +9,7 @@ import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.{EntityCastingInterrupted, PutSimpleBuff}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 case class Cut(
     useId: Ability.UseId,
@@ -35,19 +36,19 @@ case class Cut(
   override def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
     copy(time = newTime, useId = newId)
 
-  override def canBeCast(gameState: GameState, time: Long): Option[String] =
+  override def canBeCast(gameState: GameState, time: Long)(using I18n): Option[String] =
     canBeCastEnemyOnly(gameState)
       .orElse(isInRangeAndInSight(gameState, time))
       .orElse(canCutTarget(gameState))
 
-  private def canCutTarget(gameState: GameState): Option[String] =
+  private def canCutTarget(gameState: GameState)(using i18n: I18n): Option[String] =
     Option
-      .unless(gameState.entityIsCasting(targetId))("Target does not cast anything")
+      .unless(gameState.entityIsCasting(targetId))(i18n.targetDoesNotCast)
       .orElse(gameState.castingEntityInfo.get(targetId) match {
         case None =>
-          Some("Target does not cast anything") // should not happen as it's checked before
+          Some(i18n.targetDoesNotCast) // should not happen as it's checked before
         case Some(castingInfo) =>
-          Option.unless(castingInfo.ability.canBeCut)("Ability of target can't be cut.")
+          Option.unless(castingInfo.ability.canBeCut)(i18n.targetAbilityCannotBeCut)
       })
 }
 

@@ -4,6 +4,7 @@ import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
 import gamelogic.gamestate.{GameAction, GameState}
+import services.i18n.I18n
 
 /** Action that simply change the current target of the specified entity.
   * @param entityId
@@ -27,9 +28,9 @@ final case class ChangeTarget(
         new WithEntity(entity.changeTarget(newTargetId), time)
       }
 
-  def isLegal(gameState: GameState): Option[String] =
+  def isLegal(gameState: GameState)(using i18n: I18n): Option[String] =
     gameState.withTargetEntityById(entityId) match {
-      case None => Some(s"Entity $entityId does not exist or it is not an entity with target")
+      case None => Some(i18n.entityHasNoTarget(entityId))
       case _ => None
     }
 

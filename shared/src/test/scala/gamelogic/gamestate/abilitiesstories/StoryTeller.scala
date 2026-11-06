@@ -15,11 +15,15 @@ import gamelogic.gamestate.gameactions.MovingBodyMoves
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.physics.Complex
 import gamelogic.utils.IdsProducer
+import services.i18n.{EnglishI18n, I18n}
 
 /** Contains lots of facility methods for game action stories specs.
   */
 trait StoryTeller extends munit.FunSuite with IdsProducer {
   given IdGeneratorContainer = IdGeneratorContainer.initialIdGeneratorContainer
+
+  /** The error messages that the stories check are the English ones. */
+  given I18n = EnglishI18n
 
   def gameStart(time: Long): GameStart = GameStart(genActionId(), time)
   def addHound(time: Long): AddBossHound =

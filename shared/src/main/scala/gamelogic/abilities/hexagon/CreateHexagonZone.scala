@@ -12,6 +12,7 @@ import gamelogic.gamestate.GameAction
 import gamelogic.gamestate.GameState
 import gamelogic.utils.IdGeneratorContainer
 import gamelogic.gamestate.gameactions.classes.hexagon.PutHexagonZone
+import services.i18n.I18n
 import utils.misc.RGBAColour
 import gamelogic.abilities.Ability.UseId
 
@@ -50,17 +51,17 @@ final case class CreateHexagonZone(
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Option[String] =
+  def canBeCast(gameState: GameState, time: Long)(using i18n: I18n): Option[String] =
     (for
       player <- gameState.players
         .get(casterId)
-        .toRight(s"Player $casterId does not exist (probably dead)")
+        .toRight(i18n.youAreDead)
       _ <- Option
-        .unless((player.pos - position).modulus < CreateHexagonZone.range)("Not in range")
+        .unless((player.pos - position).modulus < CreateHexagonZone.range)(i18n.notInRange)
         .toLeft(())
       _ <- Option
         .unless(gameState.isPositionInSight(player, position, time))(
-          "Position is not in sight"
+          i18n.positionNotInSight
         )
         .toLeft(())
     yield ()).swap.toOption

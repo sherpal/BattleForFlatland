@@ -9,6 +9,7 @@ import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.ThreatToEntityChange
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 /** Increases the damage threat level this caster has towards the target.
   */
@@ -36,7 +37,7 @@ final case class Taunt(useId: Ability.UseId, time: Long, casterId: Entity.Id, ta
 
   def range: Distance = WithTargetAbility.healRange
 
-  def canBeCast(gameState: GameState, time: Long): Option[String] =
+  def canBeCast(gameState: GameState, time: Long)(using I18n): Option[String] =
     canBeCastEnemyOnly(gameState) orElse isInRangeAndInSight(gameState, time)
 }
 

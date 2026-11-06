@@ -10,6 +10,7 @@ import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 /** Fires a beam from the boss through its target, all the way to the walls of the room. Every
   * player standing on the beam when the cast completes takes damage, the target included.
@@ -48,8 +49,8 @@ final case class Skewer(
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Skewer =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Option[String] =
-    Option.unless(gameState.players.contains(targetId))("The target is not there")
+  def canBeCast(gameState: GameState, time: Long)(using i18n: I18n): Option[String] =
+    Option.unless(gameState.players.contains(targetId))(i18n.targetNotThere)
 }
 
 object Skewer extends AbilityMetadata {

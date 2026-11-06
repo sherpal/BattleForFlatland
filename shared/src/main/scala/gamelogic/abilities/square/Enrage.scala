@@ -7,6 +7,7 @@ import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.PutConstantDot
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 final case class Enrage(useId: Ability.UseId, time: Long, casterId: Entity.Id) extends Ability {
   def abilityId: AbilityId = Ability.squareEnrageId
@@ -35,7 +36,7 @@ final case class Enrage(useId: Ability.UseId, time: Long, casterId: Entity.Id) e
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): None.type = None
+  def canBeCast(gameState: GameState, time: Long)(using I18n): None.type = None
 }
 
 object Enrage {

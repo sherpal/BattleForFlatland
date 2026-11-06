@@ -4,6 +4,7 @@ import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{EntityStopCastingTransformer, GameStateTransformer}
 import gamelogic.gamestate.{GameAction, GameState}
+import services.i18n.I18n
 
 /** @see
   *   [[EntityStopCastingTransformer]]
@@ -14,7 +15,7 @@ final case class EntityCastingInterrupted(id: GameAction.Id, time: Long, entityI
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     new EntityStopCastingTransformer(entityId)
 
-  def isLegal(gameState: GameState): None.type = None
+  def isLegal(gameState: GameState)(using I18n): None.type = None
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

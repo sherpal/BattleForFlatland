@@ -13,6 +13,7 @@ import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff, Wi
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import models.syntax.Pointed
+import services.i18n.I18n
 
 /** Puts the [[Shade]] in the room, with its buffs, and bonds it to the boss (see [[TwinBond]]).
   *
@@ -56,7 +57,7 @@ final case class AddShade(
       WithBuff(ShadeBond(shadeBondBuffId, entityId, bossId, time)) ++
       WithBuff(TwinBond(twinBondBuffId, bossId, entityId, time))
 
-  def isLegal(gameState: GameState): None.type = None
+  def isLegal(gameState: GameState)(using I18n): None.type = None
 
   def changeId(newId: Id): AddShade = copy(id = newId)
 }

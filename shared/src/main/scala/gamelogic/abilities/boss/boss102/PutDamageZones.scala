@@ -8,6 +8,7 @@ import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.boss102.PutDamageZone
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 final case class PutDamageZones(
     useId: Ability.UseId,
@@ -40,7 +41,7 @@ final case class PutDamageZones(
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): PutDamageZones =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): None.type = None
+  def canBeCast(gameState: GameState, time: Long)(using I18n): None.type = None
 }
 
 object PutDamageZones extends AbilityMetadata {

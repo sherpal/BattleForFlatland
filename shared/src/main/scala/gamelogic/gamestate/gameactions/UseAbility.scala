@@ -5,6 +5,7 @@ import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{CasterUsesAbility, GameStateTransformer}
 import gamelogic.gamestate.{GameAction, GameState}
+import services.i18n.I18n
 
 final case class UseAbility(
     id: GameAction.Id,
@@ -21,9 +22,9 @@ final case class UseAbility(
     CasterUsesAbility(ability)
 
   /** This is going to be handled by the Server itself, and hence */
-  def isLegal(gameState: GameState): Option[String] =
+  def isLegal(gameState: GameState)(using i18n: I18n): Option[String] =
     gameState.withAbilityEntitiesById(casterId) match {
-      case None => Some(s"Entity $casterId does not exist, or is not an entity with abilities")
+      case None => Some(i18n.entityHasNoAbilities(casterId))
       case _ => None
     }
 

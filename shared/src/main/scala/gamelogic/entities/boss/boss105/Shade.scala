@@ -109,7 +109,7 @@ final case class Shade(
         NoResource,
         Shade.meleeRange
       )
-    ).filter(_.canBeCast(gameState, time).isEmpty).filter(canUseAbilityBoolean(_, time, gameState))
+    ).filter(_.canBeCastBoolean(gameState, time)).filter(canUseAbilityBoolean(_, time, gameState))
 }
 
 object Shade {

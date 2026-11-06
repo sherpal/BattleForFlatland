@@ -6,6 +6,7 @@ import gamelogic.entities.boss.boss110.BombPod
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
 import gamelogic.physics.Complex
+import services.i18n.I18n
 
 /** Puts a [[BombPod]] on the game for each elements of the `idsAndPositions` [[List]].
   */
@@ -23,7 +24,7 @@ final case class AddBombPods(
       }
     )
 
-  def isLegal(gameState: GameState): Option[String] = Option.empty
+  def isLegal(gameState: GameState)(using I18n): Option[String] = Option.empty
 
   def changeId(newId: GameAction.Id): GameAction = copy(id = newId)
 

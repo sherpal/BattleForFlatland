@@ -4,6 +4,7 @@ import gamelogic.entities.{Entity, WithThreat}
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
 import gamelogic.gamestate.{GameAction, GameState}
+import services.i18n.I18n
 
 /** Changes the threat level that the `sourceId` has towards the `entityId`. The `deltaThreat`
   * (positive or negative) is added to the current threat.
@@ -23,7 +24,7 @@ final case class ThreatToEntityChange(
       newEntity = entity.changeThreats(sourceId, deltaThreat, isDamageThreat)
     } yield new WithEntity(newEntity, time)).getOrElse(GameStateTransformer.identityTransformer)
 
-  def isLegal(gameState: GameState): None.type = None
+  def isLegal(gameState: GameState)(using I18n): None.type = None
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

@@ -10,6 +10,7 @@ import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.{EntityTakesDamage, ThreatToEntityChange}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 /** Spends a stack of the caster's [[gamelogic.buffs.abilities.classes.BraceShield]] to hit an
   * enemy in melee range, dealing more damage than a [[HammerHit]] and generating more threat.
@@ -50,12 +51,12 @@ final case class ShieldSlam(
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Option[String] =
+  def canBeCast(gameState: GameState, time: Long)(using i18n: I18n): Option[String] =
     canBeCastEnemyOnly(gameState)
       .orElse(isInRangeAndInSight(gameState, time))
       .orElse(
         Option.when(BraceShield.stacksOn(gameState, casterId).isEmpty)(
-          "You need a stack of your shield"
+          i18n.needShieldStack
         )
       )
 

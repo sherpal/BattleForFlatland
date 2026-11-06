@@ -6,6 +6,7 @@ import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
 import gamelogic.gamestate.{GameAction, GameState}
+import services.i18n.I18n
 
 /** Puts the [[Yearning]] buff on the Shade. */
 final case class PutYearning(
@@ -18,7 +19,7 @@ final case class PutYearning(
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     WithBuff(Yearning(buffId, bearerId, sourceId, time))
 
-  def isLegal(gameState: GameState): None.type = None
+  def isLegal(gameState: GameState)(using I18n): None.type = None
 
   def changeId(newId: Id): PutYearning = copy(id = newId)
 }

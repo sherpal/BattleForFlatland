@@ -3,6 +3,7 @@ package gamelogic.gamestate.gameactions
 import gamelogic.entities.{Entity, WithChangingRadius}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
+import services.i18n.I18n
 
 final case class EntityRadiusChange(
     id: GameAction.Id,
@@ -19,7 +20,7 @@ final case class EntityRadiusChange(
         .map(_.changeRadius(radius))
         .fold(gs)(new WithEntity(_, time)(gs))
 
-  def isLegal(gameState: GameState): Option[String] = Option.empty
+  def isLegal(gameState: GameState)(using I18n): Option[String] = Option.empty
 
   def changeId(newId: GameAction.Id): GameAction = copy(id = newId)
 

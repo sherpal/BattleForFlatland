@@ -6,6 +6,7 @@ import gamelogic.gamestate.GameAction.{EntityCreatorAction, Id}
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
+import services.i18n.I18n
 
 /** Creates the [[DeathMarkTriangle]] once the third big guy has died.
   *
@@ -25,7 +26,7 @@ final case class AddDeathMarkTriangle(
   override def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     WithEntity(DeathMarkTriangle.fromMarkPositions(entityId, time, markPositions), time)
 
-  override def isLegal(gameState: GameState): Option[String] = None
+  override def isLegal(gameState: GameState)(using I18n): Option[String] = None
 
   override def changeId(newId: Id): GameAction = copy(id = newId)
 }

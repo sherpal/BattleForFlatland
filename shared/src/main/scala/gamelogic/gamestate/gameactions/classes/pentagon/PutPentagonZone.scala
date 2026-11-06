@@ -8,6 +8,7 @@ import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff, WithEntity}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
+import services.i18n.I18n
 import utils.misc.RGBAColour
 
 /** Adds a [[gamelogic.entities.classes.pentagon.PentagonZone]] to the game with the specified
@@ -31,7 +32,7 @@ final case class PutPentagonZone(
     new WithEntity(zone, time) ++ new WithBuff(buff)
   }
 
-  def isLegal(gameState: GameState): None.type = None
+  def isLegal(gameState: GameState)(using I18n): None.type = None
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

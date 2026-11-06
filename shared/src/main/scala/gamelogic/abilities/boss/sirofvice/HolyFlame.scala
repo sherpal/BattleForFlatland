@@ -9,6 +9,7 @@ import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.sirofvice.PutInflamedDebuff
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 /** Puts an [[gamelogic.buffs.boss.sirofvice.Inflamed]] on the target.
   *
@@ -41,7 +42,7 @@ final case class HolyFlame(
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): HolyFlame =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): None.type = None
+  def canBeCast(gameState: GameState, time: Long)(using I18n): None.type = None
 }
 
 object HolyFlame extends AbilityMetadata {

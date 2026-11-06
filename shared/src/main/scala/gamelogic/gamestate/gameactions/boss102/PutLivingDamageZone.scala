@@ -6,6 +6,7 @@ import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
 import gamelogic.gamestate.{GameAction, GameState}
+import services.i18n.I18n
 
 /** Puts the [[gamelogic.buffs.boss.boss102.LivingDamageZone]] debuff on the `bearerId` target.
   */
@@ -20,7 +21,7 @@ final case class PutLivingDamageZone(
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     new WithBuff(LivingDamageZone(buffId, bearerId, time, time, damage, sourceId))
 
-  def isLegal(gameState: GameState): None.type = None
+  def isLegal(gameState: GameState)(using I18n): None.type = None
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

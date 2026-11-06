@@ -7,6 +7,7 @@ import gamelogic.entities.boss.boss110.BombPod
 import gamelogic.gamestate.gameactions.{EntityTakesDamage, RemoveEntity}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 /** Check that each bomb pod touches exactly one player. If not, they explode and they kill
   * everybody (dealing them 1000 damage). Otherwise, they do nothing.
@@ -37,13 +38,13 @@ final case class ExplodeBombs(useId: Ability.UseId, time: Long, casterId: Entity
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): Ability =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Option[String] =
+  def canBeCast(gameState: GameState, time: Long)(using i18n: I18n): Option[String] =
     gameState.entities.values.find {
       case BombPod(_, _, _, powderMonkeyId) if casterId == powderMonkeyId => true
       case _ => false
     } match {
       case Some(_) => None
-      case None => Some("You don't own any bomb!")
+      case None => Some(i18n.noBombToExplode)
     }
 
 }

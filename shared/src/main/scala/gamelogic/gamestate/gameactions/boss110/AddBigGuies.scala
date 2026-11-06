@@ -7,6 +7,7 @@ import gamelogic.entities.boss.boss110.BigGuy
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
 import gamelogic.physics.Complex
+import services.i18n.I18n
 
 /** Spawn one [[BigGuy]] for each element in the `idsAndPositions` List.
   *
@@ -41,7 +42,7 @@ final case class AddBigGuies(
       }
     )
 
-  def isLegal(gameState: GameState): Option[String] = Option.empty
+  def isLegal(gameState: GameState)(using I18n): Option[String] = Option.empty
 
   def changeId(newId: GameAction.Id): GameAction = copy(id = newId)
 

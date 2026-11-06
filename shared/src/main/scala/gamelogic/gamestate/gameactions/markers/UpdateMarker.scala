@@ -4,6 +4,7 @@ import gamelogic.gamestate.GameAction
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, UpdateMarkerTransformer}
 import gamelogic.gamestate.GameState
 import gamelogic.gameextras.GameMarkerInfo
+import services.i18n.I18n
 
 /** Update or Create the marker specified in the [[GameMarkerInfo]].
   */
@@ -15,5 +16,5 @@ final case class UpdateMarker(id: GameAction.Id, time: Long, gameMarkerInfo: Gam
 
   def changeId(newId: GameAction.Id): GameAction = copy(id = newId)
 
-  def isLegal(gameState: GameState): None.type = None
+  def isLegal(gameState: GameState)(using I18n): None.type = None
 }

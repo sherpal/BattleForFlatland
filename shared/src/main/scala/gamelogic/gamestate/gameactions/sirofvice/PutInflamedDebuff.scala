@@ -6,6 +6,7 @@ import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
 import gamelogic.gamestate.{GameAction, GameState}
+import services.i18n.I18n
 
 /** Puts the [[gamelogic.buffs.boss.sirofvice.Inflamed]] on the target. */
 final case class PutInflamedDebuff(
@@ -26,7 +27,7 @@ final case class PutInflamedDebuff(
       )
     )
 
-  def isLegal(gameState: GameState): None.type = None
+  def isLegal(gameState: GameState)(using I18n): None.type = None
 
   def changeId(newId: Id): PutInflamedDebuff = copy(id = newId)
 }

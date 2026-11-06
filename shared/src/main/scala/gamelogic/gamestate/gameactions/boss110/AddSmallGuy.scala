@@ -8,6 +8,7 @@ import gamelogic.entities.WithPosition.Angle
 import gamelogic.gamestate.statetransformers.WithEntity
 import gamelogic.gamestate.statetransformers.GameStateTransformer
 import gamelogic.gamestate.GameState
+import services.i18n.I18n
 
 /** Adds an instance of a [[SmallGuy]] in the game.
   */
@@ -33,7 +34,7 @@ final case class AddSmallGuy(id: GameAction.Id, time: Long, entityId: Entity.Id,
       time
     )
 
-  def isLegal(gameState: GameState): Option[String] = Option.empty
+  def isLegal(gameState: GameState)(using I18n): Option[String] = Option.empty
 
   def changeId(newId: GameAction.Id): GameAction = copy(id = newId)
 

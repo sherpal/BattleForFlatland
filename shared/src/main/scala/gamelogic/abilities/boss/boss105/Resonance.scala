@@ -8,6 +8,7 @@ import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 /** The twins resonate when they are too close to each other: every player takes damage, with
   * nothing to do about it but pulling the twins apart.
@@ -30,9 +31,9 @@ final case class Resonance(useId: Ability.UseId, time: Long, casterId: Entity.Id
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Resonance =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Option[String] =
+  def canBeCast(gameState: GameState, time: Long)(using i18n: I18n): Option[String] =
     Option.unless(Resonance.twinsAreResonating(gameState, casterId, time))(
-      "The twins are far enough from each other"
+      i18n.twinsFarEnough
     )
 }
 

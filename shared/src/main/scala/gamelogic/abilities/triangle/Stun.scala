@@ -16,6 +16,7 @@ import gamelogic.buffs.Buff
 import gamelogic.gamestate.gameactions.RemoveBuff
 import gamelogic.gamestate.gameactions.EntityCastingInterrupted
 import gamelogic.gamestate.gameactions.MovingBodyMoves
+import services.i18n.I18n
 
 /** Impeach the target from doing anything for the next 20 seconds. If the target takes damage, the
   * effect is cancelled. If the ability is used on another target, the effect is cancelled.
@@ -78,11 +79,11 @@ final case class Stun(useId: Ability.UseId, time: Long, casterId: Entity.Id, tar
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Option[String] =
+  def canBeCast(gameState: GameState, time: Long)(using i18n: I18n): Option[String] =
     (for {
       _ <- canBeCastEnemyOnly(gameState).toLeft(())
       _ <- isInRangeAndInSight(gameState, time).toLeft(())
-      _ <- Either.cond(targetCanBeStunned(gameState), (), "Target can't be stunned")
+      _ <- Either.cond(targetCanBeStunned(gameState), (), i18n.targetCannotBeStunned)
     } yield ()).swap.toOption
 }
 

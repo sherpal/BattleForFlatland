@@ -11,6 +11,7 @@ import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.gameactions.sirofvice.PutHolyWrathChain
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 /** Hits the target, then jumps to the closest player not hit yet, if they are closer than
   * [[HolyWrath.jumpRange]], and so on. Each jump deals more damage than the previous one, so
@@ -49,7 +50,7 @@ final case class HolyWrath(
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): HolyWrath =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): None.type = None
+  def canBeCast(gameState: GameState, time: Long)(using I18n): None.type = None
 }
 
 object HolyWrath extends AbilityMetadata {

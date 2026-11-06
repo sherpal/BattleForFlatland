@@ -10,6 +10,7 @@ import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
 import scala.util.Random
+import services.i18n.I18n
 
 /** Puts a [[VolatileCharge]] on random players. */
 final case class VolatileMark(useId: Ability.UseId, time: Long, casterId: Entity.Id)
@@ -33,7 +34,7 @@ final case class VolatileMark(useId: Ability.UseId, time: Long, casterId: Entity
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): VolatileMark =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): None.type = None
+  def canBeCast(gameState: GameState, time: Long)(using I18n): None.type = None
 }
 
 object VolatileMark extends AbilityMetadata {

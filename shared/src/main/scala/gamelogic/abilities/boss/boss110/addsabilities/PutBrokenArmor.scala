@@ -10,6 +10,7 @@ import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.{PutSimpleBuff, RemoveBuff}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 /** Puts The [[gamelogic.buffs.boss.boss110.BrokenArmor]] debuff on the target.
   */
@@ -46,7 +47,7 @@ final case class PutBrokenArmor(
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): Ability =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Option[String] =
+  def canBeCast(gameState: GameState, time: Long)(using I18n): Option[String] =
     isInRangeAndInSight(gameState, time) orElse canBeCastEnemyOnly(gameState)
 
   def range: WithTargetAbility.Distance = WithTargetAbility.meleeRange

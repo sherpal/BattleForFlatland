@@ -9,6 +9,7 @@ import gamelogic.gamestate.statetransformers.{
 }
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
+import services.i18n.I18n
 
 /** Replaces the previous [[HolyWrathChain]] (if any) by a new one, going through `positions`. */
 final case class PutHolyWrathChain(
@@ -27,7 +28,7 @@ final case class PutHolyWrathChain(
       .foldLeft(GameStateTransformer.identityTransformer)(_ ++ _) ++
       WithEntity(HolyWrathChain(entityId, time, positions), time)
 
-  def isLegal(gameState: GameState): None.type = None
+  def isLegal(gameState: GameState)(using I18n): None.type = None
 
   def changeId(newId: GameAction.Id): PutHolyWrathChain = copy(id = newId)
 }

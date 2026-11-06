@@ -7,6 +7,7 @@ import gamelogic.entities.boss.dawnoftime.Boss110
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
 import gamelogic.physics.Complex
+import services.i18n.I18n
 
 /** [[GameAction]] adding a instance of [[CreepingShadow]] to the game.
   *
@@ -42,7 +43,7 @@ final case class AddCreepingShadow(
       time
     )
 
-  def isLegal(gameState: GameState): Option[String] = Option.empty
+  def isLegal(gameState: GameState)(using I18n): Option[String] = Option.empty
 
   def changeId(newId: GameAction.Id): GameAction = copy(id = newId)
 

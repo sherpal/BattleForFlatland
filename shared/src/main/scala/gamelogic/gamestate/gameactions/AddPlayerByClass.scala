@@ -8,6 +8,7 @@ import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import models.bff.outofgame.PlayerClasses
+import services.i18n.I18n
 
 final case class AddPlayerByClass(
     id: GameAction.Id,
@@ -102,8 +103,8 @@ final case class AddPlayerByClass(
         )
     }
 
-  def isLegal(gameState: GameState): Option[String] =
-    Option.when(gameState.players.isDefinedAt(entityId))("Player already exists")
+  def isLegal(gameState: GameState)(using i18n: I18n): Option[String] =
+    Option.when(gameState.players.isDefinedAt(entityId))(i18n.playerAlreadyExists)
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

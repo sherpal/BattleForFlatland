@@ -8,6 +8,7 @@ import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff, WithEntity}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
+import services.i18n.I18n
 
 final case class PutDamageZone(
     id: GameAction.Id,
@@ -25,7 +26,7 @@ final case class PutDamageZone(
     new WithEntity(zone, time) ++ new WithBuff(zone.buff(buffId))
   }
 
-  def isLegal(gameState: GameState): None.type = None
+  def isLegal(gameState: GameState)(using I18n): None.type = None
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

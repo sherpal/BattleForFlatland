@@ -9,6 +9,7 @@ import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.UpdateConstantHot
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 final case class HexagonHot(
     useId: Ability.UseId,
@@ -40,7 +41,7 @@ final case class HexagonHot(
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Option[String] =
+  def canBeCast(gameState: GameState, time: Long)(using I18n): Option[String] =
     canBeCastFriendlyOnly(gameState) orElse isInRangeAndInSight(gameState, time)
 
   def range: Distance = WithTargetAbility.healRange

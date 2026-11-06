@@ -9,6 +9,7 @@ import gamelogic.gamestate.gameactions.sirofvice.PutPurifiedDebuff
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 /** Puts a [[gamelogic.buffs.boss.sirofvice.Purified]] debuff on all enemies closer than `radius`
   * from `position`, and deals a certain amount of damage to each of them.
@@ -65,7 +66,7 @@ final case class SacredGround(
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): None.type = None
+  def canBeCast(gameState: GameState, time: Long)(using I18n): None.type = None
 }
 
 object SacredGround extends AbilityMetadata {

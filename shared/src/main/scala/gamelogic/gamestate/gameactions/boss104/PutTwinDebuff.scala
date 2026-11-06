@@ -3,6 +3,7 @@ package gamelogic.gamestate.gameactions.boss104
 import gamelogic.gamestate.GameAction
 import gamelogic.buffs.Buff
 import gamelogic.entities.Entity
+import services.i18n.I18n
 import utils.misc.RGBColour
 import gamelogic.physics.Complex
 import gamelogic.gamestate.GameState
@@ -39,6 +40,6 @@ final case class PutTwinDebuff(
       time
     )
 
-  override def isLegal(gameState: GameState): Option[String] = None
+  override def isLegal(gameState: GameState)(using I18n): Option[String] = None
 
 }

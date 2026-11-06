@@ -8,6 +8,7 @@ import gamelogic.entities.Resource.{Mana, ResourceAmount}
 import gamelogic.gamestate.gameactions.EntityGetsHealed
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 final case class FlashHeal(
     useId: Ability.UseId,
@@ -39,7 +40,7 @@ final case class FlashHeal(
 
   def range: Distance = WithTargetAbility.healRange
 
-  def canBeCast(gameState: GameState, time: Long): Option[String] =
+  def canBeCast(gameState: GameState, time: Long)(using I18n): Option[String] =
     canBeCastFriendlyOnly(gameState) orElse isInRangeAndInSight(gameState, time)
 }
 

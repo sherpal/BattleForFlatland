@@ -7,6 +7,7 @@ import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff, WithEntity}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
+import services.i18n.I18n
 
 /** Puts an instance of [[Punished]] debuff on the target, and stops it where it is.
   *
@@ -33,9 +34,9 @@ final case class PutPunishedDebuff(
       Punished(buffId, bearerId = bearerId, startingPos = position, appearanceTime = time)
     )
 
-  def isLegal(gameState: GameState): Option[String] =
+  def isLegal(gameState: GameState)(using i18n: I18n): Option[String] =
     gameState.movingBodyEntityById(bearerId) match {
-      case None => Some(s"Entity $bearerId does not exist, or is not a Moving Body")
+      case None => Some(i18n.entityIsNotMoving(bearerId))
       case Some(_) => None
     }
 

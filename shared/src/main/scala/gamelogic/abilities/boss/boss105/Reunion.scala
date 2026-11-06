@@ -9,6 +9,7 @@ import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.boss105.PutYearning
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 /** The boss calls its Shade: for a few seconds, the Shade rushes towards the boss, ignoring
   * everything else. The twins resonate as soon as they meet, and it takes the tank of the Shade to
@@ -32,13 +33,13 @@ final case class Reunion(useId: Ability.UseId, time: Long, casterId: Entity.Id)
     copy(time = newTime, useId = newId)
 
   /** There must be a Shade to call, and it must not already be on its way. */
-  def canBeCast(gameState: GameState, time: Long): Option[String] =
+  def canBeCast(gameState: GameState, time: Long)(using i18n: I18n): Option[String] =
     Option.unless(
       gameState
         .allTEntities[Shade]
         .keys
         .exists(shadeId => !gameState.hasBuffOfType[Yearning](shadeId))
-    )("There is no Shade to call")
+    )(i18n.noShadeToCall)
 }
 
 object Reunion extends AbilityMetadata {
