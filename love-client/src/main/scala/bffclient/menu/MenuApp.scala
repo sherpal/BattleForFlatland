@@ -101,6 +101,7 @@ final class MenuApp(
 
   def install(): Unit = {
     Keyboard.setKeyRepeat(true)
+    Keyboard.setTextInput(true)
     Love.draw = () => {
       Graphics.setBackgroundColor(Theme.background.r, Theme.background.g, Theme.background.b)
       gui.draw()

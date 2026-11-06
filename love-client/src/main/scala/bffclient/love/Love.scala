@@ -162,6 +162,9 @@ object Keyboard extends js.Object {
   def isScancodeDown(scancode: String): Boolean = js.native
   def setKeyRepeat(enable: Boolean): Unit       = js.native
 
+  /** LÖVE 12 has it disabled by default: without it, there is no `love.textinput` event. */
+  def setTextInput(enable: Boolean): Unit = js.native
+
   /** The key (in the keyboard's layout, e.g. "a") of a scancode (its place, e.g. "q" in AZERTY). */
   def getKeyFromScancode(scancode: String): String = js.native
 }
