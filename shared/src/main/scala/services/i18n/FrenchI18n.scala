@@ -344,6 +344,28 @@ object FrenchI18n extends I18n {
     val abilityKeys = controls.abilityKeys.take(4).map(key).mkString(", ")
     Seq(
       TextSection(
+        "L'histoire",
+        Seq(
+          "Flatland (tiré du roman d'Edwin A. Abbott) est un monde en deux dimensions, dont les " ++
+            "habitants sont des polygones.",
+          "Au bas de sa hiérarchie se trouvent les triangles isocèles. Génération après " ++
+            "génération, ils se rapprochent du triangle équilatéral. Ensuite, chaque génération " ++
+            "gagne un côté de plus, et monte d'un rang.",
+          "Tout en haut se trouvent les Cercles : des polygones aux côtés si nombreux que " ++
+            "personne ne peut les distinguer d'un cercle. Ce sont les Grands Prêtres.",
+          "Mais depuis peu, la gangrène s'est répandue parmi les Grands Prêtres. Ils ne sont " ++
+            "plus les bons bergers d'autrefois : ils abusent de leurs pouvoirs et oppriment le " ++
+            "peuple de Flatland.",
+          "Une bande de polygones plus modestes (Triangles, Carrés, Pentagones et Hexagones) " ++
+            "s'est soulevée contre eux. Vous êtes l'un de ces rebelles, et vous portez les " ++
+            "premiers coups !",
+          "Les Grands Prêtres sont pourtant incroyablement puissants : personne ne peut les " ++
+            "vaincre seul. Vous les affrontez avec vos compagnons, et chacun de vous a un rôle " ++
+            "à jouer.",
+          "Entrez dans la Battle for Flatland !"
+        )
+      ),
+      TextSection(
         "Bienvenue à Flatland",
         Seq(
           "Dans Battle for Flatland, une équipe de joueurs, chacun une forme géométrique, affronte " ++

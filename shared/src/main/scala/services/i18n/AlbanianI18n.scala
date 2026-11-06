@@ -327,6 +327,28 @@ object AlbanianI18n extends I18n {
     val abilityKeys = controls.abilityKeys.take(4).map(key).mkString(", ")
     Seq(
       TextSection(
+        "Historia",
+        Seq(
+          "Flatland (nga romani i Edwin A. Abbott) është një botë me dy përmasa, ku banorët " ++
+            "janë shumëkëndësha.",
+          "Në fund të hierarkisë së saj janë trekëndëshat dybrinjënjëshëm. Brez pas brezi, ata " ++
+            "i afrohen gjithnjë e më shumë trekëndëshit barabrinjës. Pastaj, çdo brez fiton " ++
+            "edhe një brinjë dhe ngjitet një shkallë më lart.",
+          "Në majë fare janë Rrathët: shumëkëndësha me aq shumë brinjë, sa askush nuk mund t'i " ++
+            "dallojë nga një rreth. Ata janë Kryepriftërinjtë.",
+          "Por kohët e fundit, një kalbëzim është përhapur mes Kryepriftërinjve. Ata nuk janë " ++
+            "më barinjtë e mirë që ishin dikur: abuzojnë me pushtetin e tyre dhe shtypin " ++
+            "popullin e Flatland-it.",
+          "Një grup shumëkëndëshash më të thjeshtë (Trekëndësha, Katrorë, Pesëkëndësha dhe " ++
+            "Gjashtëkëndësha) është ngritur kundër tyre. Ti je një nga këta rebelë, dhe ti " ++
+            "godet i pari!",
+          "Megjithatë, Kryepriftërinjtë janë tepër të fuqishëm: askush nuk mund t'i mposhtë i " ++
+            "vetëm. Ti lufton kundër tyre me shokët e tu, dhe secili prej jush ka një rol për " ++
+            "të luajtur.",
+          "Hyr në Battle for Flatland!"
+        )
+      ),
+      TextSection(
         "Mirë se erdhe në Flatland",
         Seq(
           "Në Battle for Flatland, një ekip lojtarësh, secili një formë gjeometrike, lufton së " ++

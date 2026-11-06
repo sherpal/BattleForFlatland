@@ -330,6 +330,27 @@ object DutchI18n extends I18n {
     val abilityKeys = controls.abilityKeys.take(4).map(key).mkString(", ")
     Seq(
       TextSection(
+        "Het verhaal",
+        Seq(
+          "Flatland (uit de roman van Edwin A. Abbott) is een wereld in twee dimensies, waarvan " ++
+            "de bewoners veelhoeken zijn.",
+          "Onderaan de rangorde staan de gelijkbenige driehoeken. Generatie na generatie komen " ++
+            "ze dichter bij de gelijkzijdige driehoek. Daarna krijgt elke generatie er een " ++
+            "zijde bij, en stijgt ze een rang hoger.",
+          "Helemaal bovenaan staan de Cirkels: veelhoeken met zoveel zijden dat niemand ze nog " ++
+            "van een cirkel kan onderscheiden. Zij zijn de Hogepriesters.",
+          "Maar sinds kort woekert er een rot onder de Hogepriesters. Ze zijn niet meer de " ++
+            "goede herders van vroeger: ze misbruiken hun macht en onderdrukken het volk van " ++
+            "Flatland.",
+          "Een groep eenvoudigere veelhoeken (Driehoeken, Vierkanten, Vijfhoeken en Zeshoeken) " ++
+            "is tegen hen in opstand gekomen. Jij bent een van die rebellen, en jij slaat als " ++
+            "eerste toe!",
+          "De Hogepriesters zijn echter ongelooflijk machtig: niemand kan ze alleen verslaan. " ++
+            "Je bevecht ze samen met je makkers, en ieder van jullie heeft een rol te spelen.",
+          "Betreed de Battle for Flatland!"
+        )
+      ),
+      TextSection(
         "Welkom in Flatland",
         Seq(
           "In Battle for Flatland vecht een team van spelers, elk een geometrische vorm, samen " ++

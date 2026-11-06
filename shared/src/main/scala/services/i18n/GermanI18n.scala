@@ -332,6 +332,27 @@ object GermanI18n extends I18n {
     val abilityKeys = controls.abilityKeys.take(4).map(key).mkString(", ")
     Seq(
       TextSection(
+        "Die Geschichte",
+        Seq(
+          "Flatland (aus dem Roman von Edwin A. Abbott) ist eine Welt in zwei Dimensionen, " ++
+            "deren Bewohner Vielecke sind.",
+          "Ganz unten in ihrer Rangordnung stehen die gleichschenkligen Dreiecke. Von " ++
+            "Generation zu Generation kommen sie dem gleichseitigen Dreieck näher. Danach " ++
+            "gewinnt jede Generation eine Seite hinzu und steigt einen Rang auf.",
+          "Ganz oben stehen die Kreise: Vielecke mit so vielen Seiten, dass niemand sie von " ++
+            "einem Kreis unterscheiden kann. Sie sind die Hohepriester.",
+          "Doch seit Kurzem breitet sich eine Fäulnis unter den Hohepriestern aus. Sie sind " ++
+            "nicht mehr die guten Hirten von einst: Sie missbrauchen ihre Macht und " ++
+            "unterdrücken das Volk von Flatland.",
+          "Eine Schar einfacherer Vielecke (Dreiecke, Quadrate, Fünfecke und Sechsecke) hat " ++
+            "sich gegen sie erhoben. Du bist einer dieser Rebellen, und du schlägst als Erster " ++
+            "zu!",
+          "Doch die Hohepriester sind unglaublich mächtig: Niemand kann sie allein besiegen. Du " ++
+            "bekämpfst sie mit deinen Gefährten, und jeder von euch hat eine Rolle zu spielen.",
+          "Tritt ein in die Battle for Flatland!"
+        )
+      ),
+      TextSection(
         "Willkommen in Flatland",
         Seq(
           "In Battle for Flatland kämpft ein Team von Spielern, jeder eine geometrische Form, " ++

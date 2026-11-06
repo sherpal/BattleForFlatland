@@ -1,14 +1,25 @@
 # Battle For Flatland
 
-## Game controls
+## The Story
 
-The following default controls are coded (you need an AZERTY keyboard).
+[Flatland](https://en.wikipedia.org/wiki/Flatland) (from Edwin A. Abbott's novel) is a world in two dimensions, where the inhabitants are polygons.
+At the bottom of its hierarchy are the isosceles triangles.
+Generation after generation, they grow closer to the equilateral triangle.
+From then on, each generation gains one more side, and climbs one rank higher.
 
-- zqsd for moving
-- keys 1, 2, 3,... for using ability, from left to right as their symbols appear at the bottom left of the game.
-- keys rfvtgb to put markers on target, and shift these to put fixed markers at the mouse position.
+At the very top are the *Circles*: polygons with so many sides that no one can tell them from a circle.
+They are the High Priests.
 
-You can easily change them in the "Settings" (a button in the list of games, and when you join a game), at which point they are saved in the client's `controls.json` (in LÖVE's save directory, e.g. `~/.local/share/love/battle-for-flatland/` on Linux), and remembered from then on.
+But lately, a rot has spread among the High Priests.
+No longer the good shepherds they used to be, they abuse their powers and oppress the people of Flatland.
+
+A band of humbler polygons (Triangles, Squares, Pentagons and Hexagons) has risen against them.
+You are one of these rebels, and you strike first!
+
+The High Priests are incredibly powerful, though: no one can defeat them alone.
+You fight them with your companions, and each of you has a role to play.
+
+Enter the *Battle for Flatland*!
 
 ## History was made on June, 3rd, 2020
 
