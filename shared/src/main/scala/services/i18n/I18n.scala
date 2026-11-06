@@ -276,6 +276,9 @@ trait I18n {
   def classRole(playerClass: PlayerClasses): String
   def classSummary(playerClass: PlayerClasses): String
 
+  /** The story of Flatland: on the overview's page, and on the landing page. */
+  def story: TextSection
+
   /** What a page says (with the player's keys, from their controls). */
   def overviewSections(controls: Controls): Seq[TextSection]
   def classSections(playerClass: PlayerClasses): Seq[TextSection]
@@ -317,4 +320,41 @@ trait I18n {
   def arenaHexagon: String
   def arenaLegendPositions: String
   def arenaLegendRange: String
+
+  // --- Landing page ---
+  // The website's page, to download the game (see the server's `LandingPage`)
+
+  /** The story in one line, under the title. */
+  def landingTagline: String
+
+  /** What the game is, in two sentences (also the page's description for search engines). */
+  def landingPitch: String
+  def landingDownload: String
+
+  /** E.g. "Download for Windows". */
+  def downloadFor(system: String): String
+  def landingLoveFile: String
+  def landingFreeAndOpen: String
+
+  /** That the packages are not signed, and how to run them anyway. */
+  def landingUnsigned: String
+
+  /** The alternative text of the animation of a fight. */
+  def landingAnimation: String
+
+  /** What the game offers to its players, as (title, text). */
+  def landingFeaturesTitle: String
+  def landingFeatures: Seq[(String, String)]
+  def landingClassesTitle: String
+  def landingScreenshotsTitle: String
+  def landingCaption(picture: LandingPicture): String
+
+  /** From the download to the first fight. */
+  def landingStepsTitle: String
+  def landingSteps: Seq[String]
+  def landingBetaTitle: String
+  def landingBetaText: String
+  def landingFeedback: String
+  def landingSourceCode: String
+  def landingFooter: String
 }

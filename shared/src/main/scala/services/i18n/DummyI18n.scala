@@ -475,4 +475,46 @@ object DummyI18n extends I18n {
   def youAreDead: String = ""
 
   def yourPseudo: String = ""
+
+  def story: services.i18n.TextSection = services.i18n.TextSection("", Seq.empty)
+
+  def landingTagline: String = ""
+
+  def landingPitch: String = ""
+
+  def landingDownload: String = ""
+
+  def downloadFor(system: String): String = ""
+
+  def landingLoveFile: String = ""
+
+  def landingFreeAndOpen: String = ""
+
+  def landingUnsigned: String = ""
+
+  def landingAnimation: String = ""
+
+  def landingFeaturesTitle: String = ""
+
+  def landingFeatures: Seq[(String, String)] = Seq.empty
+
+  def landingClassesTitle: String = ""
+
+  def landingScreenshotsTitle: String = ""
+
+  def landingCaption(picture: services.i18n.LandingPicture): String = ""
+
+  def landingStepsTitle: String = ""
+
+  def landingSteps: Seq[String] = Seq.empty
+
+  def landingBetaTitle: String = ""
+
+  def landingBetaText: String = ""
+
+  def landingFeedback: String = ""
+
+  def landingSourceCode: String = ""
+
+  def landingFooter: String = ""
 }

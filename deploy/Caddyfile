@@ -7,6 +7,16 @@
 	# would then look for a certificate of the address they reached, which on Oracle's VMs is a private
 	# one (the public address is translated to it). (Only kept when the site has a tls directive.)
 	default_sni {$BFF_SITE}
+
+	# Against the visitors who open connections and send their requests slowly, or never, to keep
+	# them open (a long download is fine: there is no limit on writing).
+	servers {
+		timeouts {
+			read_header 10s
+			read_body 30s
+			idle 2m
+		}
+	}
 }
 
 {$BFF_SITE} {
@@ -17,5 +27,12 @@
 			profile shortlived
 		}
 	}
+	# The menus' requests are small: no need to read big ones.
+	request_body {
+		max_size 1MB
+	}
+	# The pages and the JSON, compressed (Caddy leaves the pictures and the archives as they are).
+	encode zstd gzip
+	# Caddy gives the visitor's address to the menu server in X-Forwarded-For (see RequestLimits).
 	reverse_proxy 127.0.0.1:{$BFF_HTTP_PORT:9000}
 }

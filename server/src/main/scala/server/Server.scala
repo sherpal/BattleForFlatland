@@ -87,8 +87,16 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
       this,
       MenuGameRoutes(rendezvousPort, lobby),
       GameLaunchingRoutes(rendezvous, rendezvousPort, gameServerJar, gameServerRuntimes),
-      ClientPackageRoutes(clientPackages)
+      ClientPackageRoutes(clientPackages),
+      LandingRoutes()
     )
+  }
+
+  /** cask's, with the [[RequestLimits]] first. */
+  override def defaultHandler: io.undertow.server.handlers.BlockingHandler = {
+    val handler = super.defaultHandler
+    handler.setRootHandler(RequestLimits(handler.getHandler))
+    handler
   }
 
   override def port: Int = Option(java.lang.System.getProperty("port")).fold(9000)(_.toInt)

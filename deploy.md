@@ -100,7 +100,8 @@ ssh ubuntu@<ip> docker logs bff                 # ... rendezvous on UDP 0.0.0.0:
 ssh ubuntu@<ip> docker logs bff-caddy           # ... certificate obtained successfully
 ```
 
-Players then download the client from `https://<site>/api/bff/client/<windows|macos|linux>` (see
+Players then download the client from the landing page, `https://<site>/` (which goes to `/en`,
+`/fr`... in their language), or straight from `https://<site>/api/bff/client/<windows|macos|linux>` (see
 [the client's README](love-client/README.md#playing-with-friends)), or use theirs, and type `<site>` on
 the login screen. The hole punching is the real test: two players on different networks, in the same
 game, and the logs of the VM (`docker logs bff`) and of the clients (`client.log`).
@@ -118,6 +119,12 @@ game, and the logs of the VM (`docker logs bff`) and of the clients (`client.log
   the system's: a self-signed one would not do). The UDP datagrams are authenticated with the secrets
   of the games, not encrypted (see [game-hosting.md](game-hosting.md)). There are still no passwords:
   anyone with the address can log in with any pseudo.
+- **Floods**: the menu server limits what each IP address can ask (`server/RequestLimits.scala`: a
+  429 past that, mostly for the big downloads), and Caddy closes the connections that are too slow to
+  send their requests. That is against one computer that floods it, not a real DDoS from many
+  addresses, which only the network in front of the VM can absorb: Oracle's network has a basic
+  protection of its own, and a proxy like Cloudflare would hide the VM for the website, but not for the UDP of the
+  rendezvous, which needs its address.
 - **Certificates**: Let's Encrypt limits how many it gives for the same address (a few a week): the
   volume `bff-caddy-data` keeps them across the deploys, do not remove it.
 - **Not on Oracle**: on another provider, only the network rules of step 2 change (the provider's

@@ -321,28 +321,31 @@ object EnglishI18n extends I18n {
       "Keeps everyone alive, with a big but slowly regenerating pool of mana to manage."
   }
 
+  override def story: TextSection =
+    TextSection(
+      "The story",
+      Seq(
+        "Flatland (from Edwin A. Abbott's novel) is a world in two dimensions, where the " ++
+          "inhabitants are polygons.",
+        "At the bottom of its hierarchy are the isosceles triangles. Generation after " ++
+          "generation, they grow closer to the equilateral triangle. From then on, each " ++
+          "generation gains one more side, and climbs one rank higher.",
+        "At the very top are the Circles: polygons with so many sides that no one can tell " ++
+          "them from a circle. They are the High Priests.",
+        "But lately, a rot has spread among the High Priests. No longer the good shepherds " ++
+          "they used to be, they abuse their powers and oppress the people of Flatland.",
+        "A band of humbler polygons (Triangles, Squares, Pentagons and Hexagons) has risen " ++
+          "against them. You are one of these rebels, and you strike first!",
+        "The High Priests are incredibly powerful, though: no one can defeat them alone. You " ++
+          "fight them with your companions, and each of you has a role to play.",
+        "Enter the Battle for Flatland!"
+      )
+    )
+
   override def overviewSections(controls: Controls): Seq[TextSection] = {
     val abilityKeys = controls.abilityKeys.take(4).map(key).mkString(", ")
     Seq(
-      TextSection(
-        "The story",
-        Seq(
-          "Flatland (from Edwin A. Abbott's novel) is a world in two dimensions, where the " ++
-            "inhabitants are polygons.",
-          "At the bottom of its hierarchy are the isosceles triangles. Generation after " ++
-            "generation, they grow closer to the equilateral triangle. From then on, each " ++
-            "generation gains one more side, and climbs one rank higher.",
-          "At the very top are the Circles: polygons with so many sides that no one can tell " ++
-            "them from a circle. They are the High Priests.",
-          "But lately, a rot has spread among the High Priests. No longer the good shepherds " ++
-            "they used to be, they abuse their powers and oppress the people of Flatland.",
-          "A band of humbler polygons (Triangles, Squares, Pentagons and Hexagons) has risen " ++
-            "against them. You are one of these rebels, and you strike first!",
-          "The High Priests are incredibly powerful, though: no one can defeat them alone. You " ++
-            "fight them with your companions, and each of you has a role to play.",
-          "Enter the Battle for Flatland!"
-        )
-      ),
+      story,
       TextSection(
         "Welcome to Flatland",
         Seq(
@@ -680,4 +683,64 @@ object EnglishI18n extends I18n {
     "The tank turns the boss away from the others, who hit it from behind or from afar."
   override def arenaLegendRange: String =
     "Everyone stays within the healer's range (the team's frames fade outside of it)."
+
+  // --- Landing page ---
+  override def landingTagline: String = "Rise up against the High Priests of Flatland, together."
+  override def landingPitch: String =
+    "A cooperative boss fighting game: a tank, a healer and damage dealers against the tyrants " ++
+      "of Flatland. Learn their abilities, play your role, and bring them down in fights that " ++
+      "last minutes, not evenings."
+  override def landingDownload: String             = "Download"
+  override def downloadFor(system: String): String = s"Download for $system"
+  override def landingLoveFile: String             = "Already have LÖVE 12? Get the .love file"
+  override def landingFreeAndOpen: String          = "Free and open source, now in beta."
+  override def landingUnsigned: String =
+    "The game is not signed yet: Windows may warn you about it (\"More info\", then \"Run " ++
+      "anyway\"), and macOS asks you to allow it in System Settings, under Privacy & Security " ++
+      "(\"Open Anyway\")."
+  override def landingAnimation: String = "A fight against a boss in Battle for Flatland"
+
+  override def landingFeaturesTitle: String = "Raids, without the grind"
+  override def landingFeatures: Seq[(String, String)] = Seq(
+    "The feeling of a raid" ->
+      ("A tank who holds the boss, a healer who keeps everyone standing, damage dealers who " ++
+        "race against the clock, and a boss whose abilities you learn and counter together."),
+    "No farming, ever" ->
+      ("No gear to collect, no levels to grind: everyone starts on an equal footing, and all " ++
+        "that matters is how you play together."),
+    "Made for short sessions" ->
+      ("No long preparation: create a game, take your places, fight. A fight lasts minutes, " ++
+        "so it fits between two bedtime stories, and it's fine to stop when the kids call."),
+    "Never short of players" ->
+      ("No healer tonight? Fill the team with bots. And learn any class in the tutorial, with " ++
+        "a practice fight against the first boss.")
+  )
+  override def landingClassesTitle: String     = "Four classes, four roles"
+  override def landingScreenshotsTitle: String = "In the arena"
+  override def landingCaption(picture: LandingPicture): String = picture match {
+    case LandingPicture.Fight =>
+      "The whole team against a boss: the tank in front, the others behind, within the healer's " ++
+        "reach."
+    case LandingPicture.Boss => "Every boss has its own abilities, to learn and counter together."
+    case LandingPicture.Lobby =>
+      "Create a game, choose your class and the boss, and fill the empty spots with bots."
+    case LandingPicture.Tutorial =>
+      "The tutorial explains each class, then sets up a practice fight against bots."
+  }
+
+  override def landingStepsTitle: String = "From the download to the boss, in minutes"
+  override def landingSteps: Seq[String] = Seq(
+    "Download the game for your system, unpack it, and run it.",
+    "Choose a pseudo: no account, no password.",
+    "Read about your class in the tutorial, and practice it against Boss 101.",
+    "Create a game, let your friends join (or add bots), choose a boss, and fight!"
+  )
+  override def landingBetaTitle: String = "Join the beta testers"
+  override def landingBetaText: String =
+    "Battle for Flatland is in beta, and still growing. Download it, play a few fights with " ++
+      "friends, and tell us what you think: every bug report, idea and wish helps shape the game."
+  override def landingFeedback: String   = "Share your feedback"
+  override def landingSourceCode: String = "Source code on GitHub"
+  override def landingFooter: String =
+    "Battle for Flatland is free and open source, made with Scala and LÖVE."
 }

@@ -326,30 +326,33 @@ object DutchI18n extends I18n {
       "Houdt iedereen in leven en beheert een grote manavoorraad die maar traag aanvult."
   }
 
+  override def story: TextSection =
+    TextSection(
+      "Het verhaal",
+      Seq(
+        "Flatland (uit de roman van Edwin A. Abbott) is een wereld in twee dimensies, waarvan " ++
+          "de bewoners veelhoeken zijn.",
+        "Onderaan de rangorde staan de gelijkbenige driehoeken. Generatie na generatie komen " ++
+          "ze dichter bij de gelijkzijdige driehoek. Daarna krijgt elke generatie er een " ++
+          "zijde bij, en stijgt ze een rang hoger.",
+        "Helemaal bovenaan staan de Cirkels: veelhoeken met zoveel zijden dat niemand ze nog " ++
+          "van een cirkel kan onderscheiden. Zij zijn de Hogepriesters.",
+        "Maar sinds kort woekert er een rot onder de Hogepriesters. Ze zijn niet meer de " ++
+          "goede herders van vroeger: ze misbruiken hun macht en onderdrukken het volk van " ++
+          "Flatland.",
+        "Een groep eenvoudigere veelhoeken (Driehoeken, Vierkanten, Vijfhoeken en Zeshoeken) " ++
+          "is tegen hen in opstand gekomen. Jij bent een van die rebellen, en jij slaat als " ++
+          "eerste toe!",
+        "De Hogepriesters zijn echter ongelooflijk machtig: niemand kan ze alleen verslaan. " ++
+          "Je bevecht ze samen met je makkers, en ieder van jullie heeft een rol te spelen.",
+        "Betreed de Battle for Flatland!"
+      )
+    )
+
   override def overviewSections(controls: Controls): Seq[TextSection] = {
     val abilityKeys = controls.abilityKeys.take(4).map(key).mkString(", ")
     Seq(
-      TextSection(
-        "Het verhaal",
-        Seq(
-          "Flatland (uit de roman van Edwin A. Abbott) is een wereld in twee dimensies, waarvan " ++
-            "de bewoners veelhoeken zijn.",
-          "Onderaan de rangorde staan de gelijkbenige driehoeken. Generatie na generatie komen " ++
-            "ze dichter bij de gelijkzijdige driehoek. Daarna krijgt elke generatie er een " ++
-            "zijde bij, en stijgt ze een rang hoger.",
-          "Helemaal bovenaan staan de Cirkels: veelhoeken met zoveel zijden dat niemand ze nog " ++
-            "van een cirkel kan onderscheiden. Zij zijn de Hogepriesters.",
-          "Maar sinds kort woekert er een rot onder de Hogepriesters. Ze zijn niet meer de " ++
-            "goede herders van vroeger: ze misbruiken hun macht en onderdrukken het volk van " ++
-            "Flatland.",
-          "Een groep eenvoudigere veelhoeken (Driehoeken, Vierkanten, Vijfhoeken en Zeshoeken) " ++
-            "is tegen hen in opstand gekomen. Jij bent een van die rebellen, en jij slaat als " ++
-            "eerste toe!",
-          "De Hogepriesters zijn echter ongelooflijk machtig: niemand kan ze alleen verslaan. " ++
-            "Je bevecht ze samen met je makkers, en ieder van jullie heeft een rol te spelen.",
-          "Betreed de Battle for Flatland!"
-        )
-      ),
+      story,
       TextSection(
         "Welkom in Flatland",
         Seq(
@@ -696,4 +699,69 @@ object DutchI18n extends I18n {
     "De tank draait de boss weg van de anderen, die hem van achteren of van ver raken."
   override def arenaLegendRange: String =
     "Iedereen blijft binnen het bereik van de healer (de kaders van het team vervagen erbuiten)."
+
+  // --- Landing page ---
+  override def landingTagline: String =
+    "Kom samen in opstand tegen de Hogepriesters van Flatland."
+  override def landingPitch: String =
+    "Een coöperatief spel van boss fights: een tank, een healer en damage dealers tegen de " ++
+      "tirannen van Flatland. Leer hun vaardigheden, speel je rol, en versla ze in gevechten " ++
+      "die minuten duren, geen hele avonden."
+  override def landingDownload: String             = "Downloaden"
+  override def downloadFor(system: String): String = s"Download voor $system"
+  override def landingLoveFile: String             = "Heb je LÖVE 12 al? Neem dan het .love-bestand"
+  override def landingFreeAndOpen: String          = "Gratis en open source, nu in bèta."
+  override def landingUnsigned: String =
+    "Het spel is nog niet ondertekend: Windows kan je waarschuwen (\"Meer informatie\", dan " ++
+      "\"Toch uitvoeren\"), en macOS vraagt je het toe te staan in Systeeminstellingen, onder " ++
+      "Privacy en beveiliging (\"Open toch\")."
+  override def landingAnimation: String = "Een gevecht tegen een boss in Battle for Flatland"
+
+  override def landingFeaturesTitle: String = "Raids, zonder de grind"
+  override def landingFeatures: Seq[(String, String)] = Seq(
+    "Het gevoel van een raid" ->
+      ("Een tank die de boss vasthoudt, een healer die iedereen overeind houdt, damage dealers " ++
+        "die tegen de klok racen, en een boss wiens vaardigheden jullie samen leren en " ++
+        "counteren."),
+    "Nooit farmen" ->
+      ("Geen uitrusting te verzamelen, geen levels te grinden: iedereen begint gelijk, en het " ++
+        "enige wat telt is hoe jullie samen spelen."),
+    "Gemaakt voor korte sessies" ->
+      ("Geen lange voorbereiding: maak een spel, neem je plaats in, vecht. Een gevecht duurt " ++
+        "minuten, het past tussen twee verhaaltjes voor het slapengaan, en je kunt stoppen " ++
+        "wanneer de kinderen roepen."),
+    "Nooit te weinig spelers" ->
+      ("Vanavond geen healer? Vul het team aan met bots. En leer elke klasse in de tutorial, " ++
+        "met een oefengevecht tegen de eerste boss.")
+  )
+  override def landingClassesTitle: String     = "Vier klassen, vier rollen"
+  override def landingScreenshotsTitle: String = "In de arena"
+  override def landingCaption(picture: LandingPicture): String = picture match {
+    case LandingPicture.Fight =>
+      "Het hele team tegen een boss: de tank vooraan, de anderen erachter, binnen bereik van de " ++
+        "healer."
+    case LandingPicture.Boss =>
+      "Elke boss heeft zijn eigen vaardigheden, om samen te leren en te counteren."
+    case LandingPicture.Lobby =>
+      "Maak een spel, kies je klasse en de boss, en vul de lege plaatsen aan met bots."
+    case LandingPicture.Tutorial =>
+      "De tutorial legt elke klasse uit, en zet dan een oefengevecht tegen bots op."
+  }
+
+  override def landingStepsTitle: String = "Van de download tot de boss, in enkele minuten"
+  override def landingSteps: Seq[String] = Seq(
+    "Download het spel voor je systeem, pak het uit, en start het.",
+    "Kies een spelersnaam: geen account, geen wachtwoord.",
+    "Lees over je klasse in de tutorial, en oefen ermee tegen Boss 101.",
+    "Maak een spel, laat je vrienden meedoen (of voeg bots toe), kies een boss, en vecht!"
+  )
+  override def landingBetaTitle: String = "Word bètatester"
+  override def landingBetaText: String =
+    "Battle for Flatland is in bèta, en groeit nog. Download het, speel een paar gevechten met " ++
+      "vrienden, en laat ons weten wat je ervan vindt: elke bugmelding, elk idee en elke wens " ++
+      "helpt het spel vorm te geven."
+  override def landingFeedback: String   = "Geef je mening"
+  override def landingSourceCode: String = "Broncode op GitHub"
+  override def landingFooter: String =
+    "Battle for Flatland is gratis en open source, gemaakt met Scala en LÖVE."
 }

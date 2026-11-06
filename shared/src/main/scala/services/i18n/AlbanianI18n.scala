@@ -323,31 +323,34 @@ object AlbanianI18n extends I18n {
       "Mban të gjithë gjallë, me një rezervë të madhe mane që rigjenerohet ngadalë dhe duhet menaxhuar."
   }
 
+  override def story: TextSection =
+    TextSection(
+      "Historia",
+      Seq(
+        "Flatland (nga romani i Edwin A. Abbott) është një botë me dy përmasa, ku banorët " ++
+          "janë shumëkëndësha.",
+        "Në fund të hierarkisë së saj janë trekëndëshat dybrinjënjëshëm. Brez pas brezi, ata " ++
+          "i afrohen gjithnjë e më shumë trekëndëshit barabrinjës. Pastaj, çdo brez fiton " ++
+          "edhe një brinjë dhe ngjitet një shkallë më lart.",
+        "Në majë fare janë Rrathët: shumëkëndësha me aq shumë brinjë, sa askush nuk mund t'i " ++
+          "dallojë nga një rreth. Ata janë Kryepriftërinjtë.",
+        "Por kohët e fundit, një kalbëzim është përhapur mes Kryepriftërinjve. Ata nuk janë " ++
+          "më barinjtë e mirë që ishin dikur: abuzojnë me pushtetin e tyre dhe shtypin " ++
+          "popullin e Flatland-it.",
+        "Një grup shumëkëndëshash më të thjeshtë (Trekëndësha, Katrorë, Pesëkëndësha dhe " ++
+          "Gjashtëkëndësha) është ngritur kundër tyre. Ti je një nga këta rebelë, dhe ti " ++
+          "godet i pari!",
+        "Megjithatë, Kryepriftërinjtë janë tepër të fuqishëm: askush nuk mund t'i mposhtë i " ++
+          "vetëm. Ti lufton kundër tyre me shokët e tu, dhe secili prej jush ka një rol për " ++
+          "të luajtur.",
+        "Hyr në Battle for Flatland!"
+      )
+    )
+
   override def overviewSections(controls: Controls): Seq[TextSection] = {
     val abilityKeys = controls.abilityKeys.take(4).map(key).mkString(", ")
     Seq(
-      TextSection(
-        "Historia",
-        Seq(
-          "Flatland (nga romani i Edwin A. Abbott) është një botë me dy përmasa, ku banorët " ++
-            "janë shumëkëndësha.",
-          "Në fund të hierarkisë së saj janë trekëndëshat dybrinjënjëshëm. Brez pas brezi, ata " ++
-            "i afrohen gjithnjë e më shumë trekëndëshit barabrinjës. Pastaj, çdo brez fiton " ++
-            "edhe një brinjë dhe ngjitet një shkallë më lart.",
-          "Në majë fare janë Rrathët: shumëkëndësha me aq shumë brinjë, sa askush nuk mund t'i " ++
-            "dallojë nga një rreth. Ata janë Kryepriftërinjtë.",
-          "Por kohët e fundit, një kalbëzim është përhapur mes Kryepriftërinjve. Ata nuk janë " ++
-            "më barinjtë e mirë që ishin dikur: abuzojnë me pushtetin e tyre dhe shtypin " ++
-            "popullin e Flatland-it.",
-          "Një grup shumëkëndëshash më të thjeshtë (Trekëndësha, Katrorë, Pesëkëndësha dhe " ++
-            "Gjashtëkëndësha) është ngritur kundër tyre. Ti je një nga këta rebelë, dhe ti " ++
-            "godet i pari!",
-          "Megjithatë, Kryepriftërinjtë janë tepër të fuqishëm: askush nuk mund t'i mposhtë i " ++
-            "vetëm. Ti lufton kundër tyre me shokët e tu, dhe secili prej jush ka një rol për " ++
-            "të luajtur.",
-          "Hyr në Battle for Flatland!"
-        )
-      ),
+      story,
       TextSection(
         "Mirë se erdhe në Flatland",
         Seq(
@@ -691,4 +694,69 @@ object AlbanianI18n extends I18n {
     "Tanku e kthen bossin larg të tjerëve, që e godasin nga pas ose nga larg."
   override def arenaLegendRange: String =
     "Të gjithë qëndrojnë brenda rrezes së shëruesit (kornizat e ekipit zbehen jashtë saj)."
+
+  // --- Landing page ---
+  override def landingTagline: String =
+    "Ngrihu kundër Kryepriftërinjve të Flatland-it, së bashku."
+  override def landingPitch: String =
+    "Një lojë bashkëpunimi me beteja kundër bossëve: një tank, një shërues dhe sulmues kundër " ++
+      "tiranëve të Flatland-it. Mëso aftësitë e tyre, luaj rolin tënd dhe mposhti në beteja " ++
+      "që zgjasin minuta, jo mbrëmje të tëra."
+  override def landingDownload: String             = "Shkarko"
+  override def downloadFor(system: String): String = s"Shkarko për $system"
+  override def landingLoveFile: String             = "E ke tashmë LÖVE 12? Merr skedarin .love"
+  override def landingFreeAndOpen: String          = "Falas dhe me burim të hapur, tani në beta."
+  override def landingUnsigned: String =
+    "Loja nuk është ende e nënshkruar: Windows mund të të paralajmërojë (\"More info\", pastaj " ++
+      "\"Run anyway\"), dhe macOS të kërkon ta lejosh te System Settings, nën Privacy & " ++
+      "Security (\"Open Anyway\")."
+  override def landingAnimation: String = "Një betejë kundër një bossi në Battle for Flatland"
+
+  override def landingFeaturesTitle: String = "Raide, pa grind"
+  override def landingFeatures: Seq[(String, String)] = Seq(
+    "Ndjesia e një raidi" ->
+      ("Një tank që mban bossin, një shërues që i mban të gjithë në këmbë, sulmues që garojnë " ++
+        "me kohën, dhe një boss, aftësitë e të cilit i mësoni dhe i kundërshtoni së bashku."),
+    "Pa farmim, kurrë" ->
+      ("Asnjë pajisje për të mbledhur, asnjë nivel për të ngjitur: të gjithë nisin njësoj, dhe " ++
+        "ka rëndësi vetëm si luani së bashku."),
+    "Bërë për seanca të shkurtra" ->
+      ("Pa përgatitje të gjata: krijo një lojë, zini vendet, luftoni. Një betejë zgjat disa " ++
+        "minuta, futet mes dy përrallave para gjumit, dhe mund të ndalosh kur thërrasin " ++
+        "fëmijët."),
+    "Kurrë pa lojtarë" ->
+      ("S'ka shërues sonte? Plotëso ekipin me lojtarë AI. Dhe mëso çdo klasë në tutorial, me " ++
+        "një betejë stërvitore kundër bossit të parë.")
+  )
+  override def landingClassesTitle: String     = "Katër klasa, katër role"
+  override def landingScreenshotsTitle: String = "Në arenë"
+  override def landingCaption(picture: LandingPicture): String = picture match {
+    case LandingPicture.Fight =>
+      "I gjithë ekipi kundër një bossi: tanku përpara, të tjerët prapa, brenda rrezes së " ++
+        "shëruesit."
+    case LandingPicture.Boss =>
+      "Çdo boss ka aftësitë e veta, për t'i mësuar dhe kundërshtuar së bashku."
+    case LandingPicture.Lobby =>
+      "Krijo një lojë, zgjidh klasën tënde dhe bossin, dhe plotëso vendet bosh me lojtarë AI."
+    case LandingPicture.Tutorial =>
+      "Tutoriali shpjegon çdo klasë, pastaj përgatit një betejë stërvitore kundër lojtarëve AI."
+  }
+
+  override def landingStepsTitle: String = "Nga shkarkimi te bossi, në pak minuta"
+  override def landingSteps: Seq[String] = Seq(
+    "Shkarko lojën për sistemin tënd, hape arkivin dhe nise.",
+    "Zgjidh një pseudonim: pa llogari, pa fjalëkalim.",
+    "Lexo për klasën tënde në tutorial dhe stërvitu kundër Boss 101.",
+    "Krijo një lojë, lër miqtë e tu të bashkohen (ose shto lojtarë AI), zgjidh një boss dhe " ++
+      "lufto!"
+  )
+  override def landingBetaTitle: String = "Bëhu beta-testues"
+  override def landingBetaText: String =
+    "Battle for Flatland është në beta dhe vazhdon të rritet. Shkarkoje, luaj disa beteja me " ++
+      "miqtë dhe na thuaj çfarë mendon: çdo raportim gabimi, ide dhe dëshirë ndihmon në " ++
+      "formimin e lojës."
+  override def landingFeedback: String   = "Jep mendimin tënd"
+  override def landingSourceCode: String = "Kodi burim në GitHub"
+  override def landingFooter: String =
+    "Battle for Flatland është falas dhe me burim të hapur, bërë me Scala dhe LÖVE."
 }
