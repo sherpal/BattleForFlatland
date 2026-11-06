@@ -1,14 +1,11 @@
 package services.i18n
 
-import gamelogic.entities.Resource
+import gamelogic.abilities.Ability
+import gamelogic.buffs.Buff
+import gamelogic.entities.{Entity, Resource}
 import models.bff.ingame.Controls
 import models.bff.ingame.Controls.InputCode
 import models.bff.outofgame.PlayerClasses
-
-/** A part of a page (e.g. of the tutorial): a heading, then paragraphs (a line starting with "- "
-  * is an item of a list).
-  */
-final case class TextSection(heading: String, paragraphs: Seq[String])
 
 /** The texts of the UI, in one language (one implementation per language).
   *
@@ -188,8 +185,49 @@ trait I18n {
   def youAreDead: String
   def noTarget: String
   def noAbilityOnKey(number: Int): String
-  def abilityNotSupported(ability: String): String
-  def abilityNotPlacedWithMouse(ability: String): String
+  def abilityNotSupported(ability: Ability.AbilityId): String
+  def abilityNotPlacedWithMouse(ability: Ability.AbilityId): String
+
+  // Why an ability cannot be cast (shown to the player)
+  def alreadyCasting: String
+  def abilityNotOwned: String
+  def abilityOnCooldown: String
+  def notEnough(resource: Resource): String
+  def silenced: String
+  def notInRange: String
+  def notInSight: String
+  def positionNotInSight: String
+  def notAnAlly: String
+  def notAnEnemy: String
+  def cannotGuardYourself: String
+  def needShieldStack: String
+  def targetCannotBeStunned: String
+  def targetDoesNotCast: String
+  def targetAbilityCannotBeCut: String
+
+  // Why a boss' ability cannot be cast
+  def noBombToExplode: String
+  def creepingShadowNotThere: String
+  def bossNotThere: String
+  def creepingShadowDoesNotCollideBoss: String
+  def noDeathMarkTriangle: String
+  def noShadeToCall: String
+  def targetNotThere: String
+  def twinsFarEnough: String
+
+  // Why an action is not legal (rather for the logs, these should not happen in a game)
+  def gameAlreadyStarted: String
+  def gameAlreadyEnded: String
+  def playerAlreadyExists: String
+  def bossDoesNotExist(bossName: String): String
+  def entityDoesNotExist(entityId: Entity.Id): String
+  def entitiesDoNotExist(entityId: Entity.Id, otherId: Entity.Id): String
+  def entityIsNotLiving(entityId: Entity.Id): String
+  def entityIsNotMoving(entityId: Entity.Id): String
+  def entityHasNoAbilities(entityId: Entity.Id): String
+  def entityHasNoTarget(entityId: Entity.Id): String
+  def entityWouldCollide(entityId: Entity.Id): String
+  def buffDoesNotExist(buffId: Buff.Id, bearerId: Entity.Id): String
 
   // Connection to the game server
   def gameServerDoesNotAnswer: String

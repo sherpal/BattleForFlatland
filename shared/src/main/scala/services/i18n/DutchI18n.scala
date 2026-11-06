@@ -1,8 +1,10 @@
 package services.i18n
 
+import gamelogic.abilities.Ability
 import gamelogic.abilities.boss.boss101.{BigDot, BigHit}
+import gamelogic.buffs.Buff
 import gamelogic.buffs.abilities.classes.BraceShield
-import gamelogic.entities.Resource
+import gamelogic.entities.{Entity, Resource}
 import gamelogic.entities.boss.Boss101
 import gamelogic.entities.classes.{Hexagon, Pentagon, Square, Triangle}
 import models.bff.ingame.Controls
@@ -197,10 +199,59 @@ object DutchI18n extends I18n {
   override def youAreDead: String                  = "Je bent dood"
   override def noTarget: String                    = "Geen doelwit"
   override def noAbilityOnKey(number: Int): String = s"Geen vaardigheid op toets $number"
-  override def abilityNotSupported(ability: String): String =
+  override def abilityNotSupported(ability: Ability.AbilityId): String =
     s"Vaardigheid $ability wordt nog niet ondersteund"
-  override def abilityNotPlacedWithMouse(ability: String): String =
+  override def abilityNotPlacedWithMouse(ability: Ability.AbilityId): String =
     s"Vaardigheid $ability wordt niet met de muis geplaatst"
+
+  // Why an ability cannot be cast (shown to the player)
+  override def alreadyCasting: String                = "Je bent al aan het casten"
+  override def abilityNotOwned: String               = "Je hebt die vaardigheid niet"
+  override def abilityOnCooldown: String             = "Vaardigheid in cooldown"
+  override def notEnough(resource: Resource): String = s"Niet genoeg ${resourceName(resource)}"
+  override def silenced: String                      = "Je bent tot zwijgen gebracht"
+  override def notInRange: String                    = "Buiten bereik"
+  override def notInSight: String                    = "Niet in zicht"
+  override def positionNotInSight: String            = "Positie niet in zicht"
+  override def notAnAlly: String                     = "Geen bondgenoot"
+  override def notAnEnemy: String                    = "Geen vijand"
+  override def cannotGuardYourself: String           = "Je kunt jezelf niet beschermen"
+  override def needShieldStack: String               = "Je hebt een stack van je schild nodig"
+  override def targetCannotBeStunned: String         = "Het doelwit kan niet gestund worden"
+  override def targetDoesNotCast: String             = "Het doelwit cast niets"
+  override def targetAbilityCannotBeCut: String =
+    "De vaardigheid van het doelwit kan niet onderbroken worden"
+
+  // Why a boss' ability cannot be cast
+  override def noBombToExplode: String                  = "Je hebt geen enkele bom!"
+  override def creepingShadowNotThere: String           = "Creeping Shadow is er niet"
+  override def bossNotThere: String                     = "De boss is er niet"
+  override def creepingShadowDoesNotCollideBoss: String = "Creeping Shadow raakt de boss niet"
+  override def noDeathMarkTriangle: String              = "Er is geen doodsmerkdriehoek"
+  override def noShadeToCall: String                    = "Er is geen Shade om te roepen"
+  override def targetNotThere: String                   = "Het doelwit is er niet"
+  override def twinsFarEnough: String = "De tweelingen staan ver genoeg uit elkaar"
+
+  // Why an action is not legal (rather for the logs)
+  override def gameAlreadyStarted: String                      = "Het spel is al begonnen"
+  override def gameAlreadyEnded: String                        = "Het spel is al afgelopen"
+  override def playerAlreadyExists: String                     = "De speler bestaat al"
+  override def bossDoesNotExist(bossName: String): String      = s"Boss $bossName bestaat niet"
+  override def entityDoesNotExist(entityId: Entity.Id): String = s"Entiteit $entityId bestaat niet"
+  override def entitiesDoNotExist(entityId: Entity.Id, otherId: Entity.Id): String =
+    s"Entiteit $entityId of $otherId bestaat niet"
+  override def entityIsNotLiving(entityId: Entity.Id): String =
+    s"Entiteit $entityId bestaat niet, of is niet levend"
+  override def entityIsNotMoving(entityId: Entity.Id): String =
+    s"Entiteit $entityId bestaat niet, of kan niet bewegen"
+  override def entityHasNoAbilities(entityId: Entity.Id): String =
+    s"Entiteit $entityId bestaat niet, of heeft geen vaardigheden"
+  override def entityHasNoTarget(entityId: Entity.Id): String =
+    s"Entiteit $entityId bestaat niet, of heeft geen doelwit"
+  override def entityWouldCollide(entityId: Entity.Id): String =
+    s"Entiteit $entityId zou tegen een obstakel botsen"
+  override def buffDoesNotExist(buffId: Buff.Id, bearerId: Entity.Id): String =
+    s"Buff $buffId bestaat niet op entiteit $bearerId"
 
   // Connection to the game server
   override def gameServerDoesNotAnswer: String = "de spelserver antwoordt niet"

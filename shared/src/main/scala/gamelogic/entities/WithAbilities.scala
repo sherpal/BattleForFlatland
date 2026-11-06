@@ -4,6 +4,7 @@ import gamelogic.abilities.Ability
 import gamelogic.buffs.SilencingBuff
 import gamelogic.entities.Resource.ResourceAmount
 import gamelogic.gamestate.GameState
+import services.i18n.{DummyI18n, I18n}
 
 /** A [[WithAbilities]] [[Entity]] have a position because we need to check that they don't move
   * while casting. Of course, something casting but without actual position could "fake" one.
@@ -60,16 +61,18 @@ trait WithAbilities extends WithPosition {
     * @param now
     *   game time now
     */
-  final def canUseAbility(ability: Ability, now: Long, gameState: GameState): Option[String] =
+  final def canUseAbility(ability: Ability, now: Long, gameState: GameState)(using
+      i18n: I18n
+  ): Option[String] =
     Option
-      .unless(hasAbility(ability.abilityId))("You don't have that ability")
-      .orElse(Option.when(abilityOnCooldown(ability.abilityId, now))("Ability on cooldown"))
+      .unless(hasAbility(ability.abilityId))(i18n.abilityNotOwned)
+      .orElse(Option.when(abilityOnCooldown(ability.abilityId, now))(i18n.abilityOnCooldown))
       .orElse(
-        Option.unless(resourceAmount >= ability.cost)(s"Not enough ${ability.cost.resourceType}")
+        Option.unless(resourceAmount >= ability.cost)(i18n.notEnough(ability.cost.resourceType))
       )
-      .orElse(Option.when(gameState.hasBuffOfType[SilencingBuff](id))("Entity is silenced"))
+      .orElse(Option.when(gameState.hasBuffOfType[SilencingBuff](id))(i18n.silenced))
 
   final def canUseAbilityBoolean(ability: Ability, now: Long, gameState: GameState): Boolean =
-    canUseAbility(ability, now, gameState).isEmpty
+    canUseAbility(ability, now, gameState)(using DummyI18n).isEmpty
 
 }

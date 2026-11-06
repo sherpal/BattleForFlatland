@@ -6,6 +6,7 @@ import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.GameAction.EntityCreatorAction
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
 import gamelogic.physics.Complex
+import services.i18n.I18n
 
 case class AddBigGuyDeathMark(id: GameAction.Id, time: Long, entityId: Entity.Id, position: Complex)
     extends GameAction
@@ -15,7 +16,7 @@ case class AddBigGuyDeathMark(id: GameAction.Id, time: Long, entityId: Entity.Id
     time
   )
 
-  override def isLegal(gameState: GameState): Option[String] = None
+  override def isLegal(gameState: GameState)(using I18n): Option[String] = None
 
   override def changeId(newId: GameAction.Id): GameAction = copy(id = newId)
 }

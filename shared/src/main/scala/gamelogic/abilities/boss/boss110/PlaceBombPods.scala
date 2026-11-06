@@ -12,6 +12,7 @@ import gamelogic.physics.Complex
 import scala.util.Random
 import gamelogic.entities.boss.boss110.BombPod
 import scala.annotation.tailrec
+import services.i18n.I18n
 
 /** Puts on the board one [[gamelogic.entities.boss.boss110.BombPod]] for each of the specified
   * positions. It also make the caster "use" the ability that exploses the bombs, so that it will
@@ -50,7 +51,7 @@ final case class PlaceBombPods(
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): Ability =
     copy(useId = newId, time = newTime)
 
-  def canBeCast(gameState: GameState, time: Long): Option[String] = Option.empty
+  def canBeCast(gameState: GameState, time: Long)(using I18n): Option[String] = Option.empty
 
 }
 

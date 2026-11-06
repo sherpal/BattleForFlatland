@@ -1,14 +1,16 @@
 package services.i18n
 
+import gamelogic.abilities.Ability
 import gamelogic.abilities.boss.boss101.{BigDot, BigHit}
+import gamelogic.buffs.Buff
 import gamelogic.buffs.abilities.classes.BraceShield
-import gamelogic.entities.Resource
+import gamelogic.entities.{Entity, Resource}
 import gamelogic.entities.boss.Boss101
 import gamelogic.entities.classes.{Hexagon, Pentagon, Square, Triangle}
 import models.bff.ingame.Controls
 import models.bff.outofgame.PlayerClasses
 
-object AlbaneseI18n extends I18n {
+object AlbanianI18n extends I18n {
 
   // --- Common ---
 
@@ -197,10 +199,59 @@ object AlbaneseI18n extends I18n {
   override def youAreDead: String                  = "Ke vdekur"
   override def noTarget: String                    = "Asnjë objektiv"
   override def noAbilityOnKey(number: Int): String = s"Asnjë aftësi në tastin $number"
-  override def abilityNotSupported(ability: String): String =
+  override def abilityNotSupported(ability: Ability.AbilityId): String =
     s"Aftësia $ability nuk mbështetet ende"
-  override def abilityNotPlacedWithMouse(ability: String): String =
+  override def abilityNotPlacedWithMouse(ability: Ability.AbilityId): String =
     s"Aftësia $ability nuk vendoset me miun"
+
+  // Why an ability cannot be cast (shown to the player)
+  override def alreadyCasting: String    = "Je duke hedhur tashmë"
+  override def abilityNotOwned: String   = "Nuk e ke këtë aftësi"
+  override def abilityOnCooldown: String = "Aftësia është në rikthim"
+  override def notEnough(resource: Resource): String =
+    s"Nuk ke mjaftueshëm ${resourceName(resource)}"
+  override def silenced: String                 = "Je i heshtur"
+  override def notInRange: String               = "Jashtë rrezes"
+  override def notInSight: String               = "Jashtë fushëpamjes"
+  override def positionNotInSight: String       = "Pozicioni është jashtë fushëpamjes"
+  override def notAnAlly: String                = "Nuk është aleat"
+  override def notAnEnemy: String               = "Nuk është armik"
+  override def cannotGuardYourself: String      = "Nuk mund të mbrosh veten"
+  override def needShieldStack: String          = "Të duhet një shtresë e mburojës sate"
+  override def targetCannotBeStunned: String    = "Objektivi nuk mund të shtangohet"
+  override def targetDoesNotCast: String        = "Objektivi nuk po hedh asgjë"
+  override def targetAbilityCannotBeCut: String = "Aftësia e objektivit nuk mund të ndërpritet"
+
+  // Why a boss' ability cannot be cast
+  override def noBombToExplode: String                  = "Nuk ke asnjë bombë!"
+  override def creepingShadowNotThere: String           = "Creeping Shadow nuk është aty"
+  override def bossNotThere: String                     = "Bossi nuk është aty"
+  override def creepingShadowDoesNotCollideBoss: String = "Creeping Shadow nuk e prek bossin"
+  override def noDeathMarkTriangle: String              = "Nuk ka trekëndësh të shenjës së vdekjes"
+  override def noShadeToCall: String                    = "Nuk ka asnjë Shade për të thirrur"
+  override def targetNotThere: String                   = "Objektivi nuk është aty"
+  override def twinsFarEnough: String                   = "Binjakët janë mjaft larg njëri-tjetrit"
+
+  // Why an action is not legal (rather for the logs)
+  override def gameAlreadyStarted: String                      = "Loja ka filluar tashmë"
+  override def gameAlreadyEnded: String                        = "Loja ka përfunduar tashmë"
+  override def playerAlreadyExists: String                     = "Lojtari ekziston tashmë"
+  override def bossDoesNotExist(bossName: String): String      = s"Bossi $bossName nuk ekziston"
+  override def entityDoesNotExist(entityId: Entity.Id): String = s"Entiteti $entityId nuk ekziston"
+  override def entitiesDoNotExist(entityId: Entity.Id, otherId: Entity.Id): String =
+    s"Entiteti $entityId ose $otherId nuk ekziston"
+  override def entityIsNotLiving(entityId: Entity.Id): String =
+    s"Entiteti $entityId nuk ekziston, ose nuk është i gjallë"
+  override def entityIsNotMoving(entityId: Entity.Id): String =
+    s"Entiteti $entityId nuk ekziston, ose nuk lëviz"
+  override def entityHasNoAbilities(entityId: Entity.Id): String =
+    s"Entiteti $entityId nuk ekziston, ose nuk ka aftësi"
+  override def entityHasNoTarget(entityId: Entity.Id): String =
+    s"Entiteti $entityId nuk ekziston, ose nuk ka objektiv"
+  override def entityWouldCollide(entityId: Entity.Id): String =
+    s"Entiteti $entityId do të përplasej me një pengesë"
+  override def buffDoesNotExist(buffId: Buff.Id, bearerId: Entity.Id): String =
+    s"Efekti $buffId nuk ekziston te entiteti $bearerId"
 
   // Connection to the game server
   override def gameServerDoesNotAnswer: String = "serveri i lojës nuk përgjigjet"

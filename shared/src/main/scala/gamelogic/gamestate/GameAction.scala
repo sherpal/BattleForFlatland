@@ -6,6 +6,7 @@ import gamelogic.gamestate.gameactions.*
 import gamelogic.gamestate.statetransformers.GameStateTransformer
 import gamelogic.utils.IdGeneratorContainer
 import io.circe.{Codec, Decoder, Encoder, Json}
+import services.i18n.{DummyI18n, I18n}
 
 trait GameAction extends Ordered[GameAction] {
 
@@ -40,7 +41,10 @@ trait GameAction extends Ordered[GameAction] {
     * [[gamelogic.gamestate.GameState]]. If the action is not legal, it returns an error message
     * saying why.
     */
-  def isLegal(gameState: GameState): Option[String]
+  def isLegal(gameState: GameState)(using I18n): Option[String]
+
+  final def isLegalBoolean(gameState: GameState): Boolean =
+    isLegal(gameState)(using DummyI18n).isEmpty
 
   /** We compare ids if the time are the same so that there never is ambiguity. */
   final def compare(that: GameAction): Int = this.time compare that.time match {

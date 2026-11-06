@@ -7,6 +7,7 @@ import gamelogic.gamestate.gameactions.EntityStartsCasting
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.{IdGeneratorContainer, IdsProducer, OpaqueIntCompanion, OpaqueLongCompanion}
 import io.circe.{Decoder, Encoder, Json}
+import services.i18n.{DummyI18n, I18n}
 import utils.misc.RGBColour
 
 /** A [[gamelogic.abilities.Ability]] represents an action that an entity can take besides moving.
@@ -72,7 +73,7 @@ trait Ability extends IdsProducer {
     * @return
     *   Some error message when the ability can't be cast at that time, with that [[GameState]].
     */
-  def canBeCast(gameState: GameState, time: Long): Option[String]
+  def canBeCast(gameState: GameState, time: Long)(using I18n): Option[String]
 
   protected def canBeCastAll(gameState: GameState, time: Long)(
       checks: (GameState, Long) => Option[String]*
@@ -82,7 +83,7 @@ trait Ability extends IdsProducer {
   /** Returns whether this ability can be cast at that time with this [[GameState]].
     */
   final def canBeCastBoolean(gameState: GameState, time: Long): Boolean =
-    canBeCast(gameState, time).isEmpty
+    canBeCast(gameState, time)(using /* Does not matter which one here. */ DummyI18n).isEmpty
 
   final def toStartCasting(time: Long): EntityStartsCasting =
     EntityStartsCasting(GameAction.Id.dummy, time, castingTime, this)

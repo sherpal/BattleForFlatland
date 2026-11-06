@@ -13,6 +13,7 @@ import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff, Wi
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import models.syntax.Pointed
+import services.i18n.I18n
 
 /** Spawns a [[BigGuy]], together with the two buffs it needs to behave:
   *   - `DamageThreatAware`, without which it would never build a threat table and hence never pick
@@ -57,7 +58,7 @@ final case class AddBigGuy(
     BigGuyCurse(curseBuffId, entityId, entityId, time)
   )
 
-  override def isLegal(gameState: GameState): Option[String] = None
+  override def isLegal(gameState: GameState)(using I18n): Option[String] = None
 
   override def changeId(newId: Id): GameAction = copy(id = newId)
 }

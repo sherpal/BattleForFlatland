@@ -6,6 +6,7 @@ import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
 import gamelogic.gamestate.{GameAction, GameState}
+import services.i18n.I18n
 
 /** Adds or updates a [[gamelogic.buffs.HoT]] with constant healing to the given entity.
   */
@@ -36,10 +37,11 @@ final case class UpdateConstantHot(
     )
   )
 
-  def isLegal(gameState: GameState): Option[String] = gameState.livingEntityById(targetId) match {
-    case None => Some(s"Entity $targetId does not exist, or is not a living entity")
-    case _ => None
-  }
+  def isLegal(gameState: GameState)(using i18n: I18n): Option[String] =
+    gameState.livingEntityById(targetId) match {
+      case None => Some(i18n.entityIsNotLiving(targetId))
+      case _ => None
+    }
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

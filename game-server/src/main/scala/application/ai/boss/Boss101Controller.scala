@@ -15,6 +15,7 @@ import gamelogic.abilities.boss.boss101.BigDot
 import scala.util.Random
 import gamelogic.abilities.boss.boss101.SmallHit
 import gamelogic.abilities.Ability
+import services.i18n.DummyI18n
 
 object Boss101Controller extends AIController[Boss101, SpawnBoss] {
 
@@ -43,7 +44,7 @@ object Boss101Controller extends AIController[Boss101, SpawnBoss] {
           Option
             .when(
               me.canUseAbilityBoolean(bigHit, startTime, currentGameState) && bigHit
-                .isInRangeAndInSight(currentGameState, startTime)
+                .isInRangeAndInSight(currentGameState, startTime)(using DummyI18n)
                 .isEmpty
             ) {
               Vector(

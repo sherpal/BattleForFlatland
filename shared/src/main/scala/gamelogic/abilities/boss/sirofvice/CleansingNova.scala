@@ -7,6 +7,7 @@ import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 /** Deals a deadly amount of damage to every player in sight of the boss.
   *
@@ -30,7 +31,7 @@ final case class CleansingNova(useId: Ability.UseId, time: Long, casterId: Entit
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): CleansingNova =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): None.type = None
+  def canBeCast(gameState: GameState, time: Long)(using I18n): None.type = None
 }
 
 object CleansingNova extends AbilityMetadata {

@@ -8,6 +8,7 @@ import gamelogic.gamestate.gameactions.EntityCastingInterrupted
 import gamelogic.gamestate.gameactions.sirofvice.PutPunishedDebuff
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 /** Interrupts all players, and puts on them the [[gamelogic.buffs.boss.sirofvice.Punished]] debuff,
   * keeping them from doing anything until they take damage.
@@ -37,7 +38,7 @@ final case class Punishment(useId: Ability.UseId, time: Long, casterId: Entity.I
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Punishment =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): None.type = None
+  def canBeCast(gameState: GameState, time: Long)(using I18n): None.type = None
 }
 
 object Punishment extends AbilityMetadata {

@@ -7,6 +7,7 @@ import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.{EntityGetsHealed, EntityTakesDamage}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 /** The Shade drains its target, and gives what it takes to the boss. Can be interrupted (with the
   * Triangle's Cut, for example).
@@ -32,7 +33,7 @@ final case class Siphon(useId: Ability.UseId, time: Long, casterId: Entity.Id, t
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Siphon =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Option[String] =
+  def canBeCast(gameState: GameState, time: Long)(using I18n): Option[String] =
     canBeCastEnemyOnly(gameState) orElse isInRangeAndInSight(gameState, time)
 
   def range: Distance = Siphon.range

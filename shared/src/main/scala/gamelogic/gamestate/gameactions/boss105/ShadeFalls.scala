@@ -8,6 +8,7 @@ import gamelogic.gamestate.GameAction.{EntityCreatorAction, Id}
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff, WithEntity}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
+import services.i18n.I18n
 
 /** What happens to the boss when its Shade falls: it starts [[Mourning]], and the place where the
   * Shade will come back is marked on the ground.
@@ -26,7 +27,7 @@ final case class ShadeFalls(
     WithEntity(ReformationPoint(entityId, time, position), time) ++
       WithBuff(Mourning(mourningBuffId, bossId, time, entityId, position))
 
-  def isLegal(gameState: GameState): None.type = None
+  def isLegal(gameState: GameState)(using I18n): None.type = None
 
   def changeId(newId: Id): ShadeFalls = copy(id = newId)
 }

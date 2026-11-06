@@ -9,6 +9,7 @@ import gamelogic.gamestate.gameactions.{EntityTakesDamage, RemoveEntity}
 import gamelogic.gamestate.gameactions.boss104.DeathMarkTriangleNextStage
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 /** Boss104's two-stage finisher, available only while a
   * [[gamelogic.entities.boss.boss104.DeathMarkTriangle]] stands in the room.
@@ -41,9 +42,9 @@ final case class DeathMarkTriangleAttack(
   /** Unlike Boss104's other abilities, this one is not simply gated on its cooldown: it only exists
     * while the death mark triangle does.
     */
-  override def canBeCast(gameState: GameState, time: Long): Option[String] =
+  override def canBeCast(gameState: GameState, time: Long)(using i18n: I18n): Option[String] =
     Option.unless(gameState.allTEntities[DeathMarkTriangle].nonEmpty)(
-      "There is no death mark triangle"
+      i18n.noDeathMarkTriangle
     )
 
   override def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =

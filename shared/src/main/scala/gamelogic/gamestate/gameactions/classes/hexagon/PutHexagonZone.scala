@@ -4,6 +4,7 @@ import gamelogic.gamestate.GameAction
 import gamelogic.entities.Entity
 import gamelogic.physics.Complex
 import gamelogic.entities.WithPosition.Angle
+import services.i18n.I18n
 import utils.misc.RGBAColour
 import gamelogic.buffs.Buff
 import gamelogic.gamestate.GameState
@@ -30,7 +31,7 @@ final case class PutHexagonZone(
     WithEntity(zone, time) ++ WithBuff(buff)
   }
 
-  def isLegal(gameState: GameState): Option[String] = None
+  def isLegal(gameState: GameState)(using I18n): Option[String] = None
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

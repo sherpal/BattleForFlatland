@@ -7,6 +7,7 @@ import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.PosInt
+import services.i18n.I18n
 
 /** Puts the [[StackedBuffs]] with the specified [[StackedBuffIdentifier]] and number of stacks.
   *
@@ -30,10 +31,11 @@ final case class PutStackedBuff(
       WithBuff(newBuff)
     }
 
-  def isLegal(gameState: GameState): Option[String] = gameState.entityById(bearerId) match {
-    case None => Some(s"Entity $bearerId does not exist")
-    case _ => None
-  }
+  def isLegal(gameState: GameState)(using i18n: I18n): Option[String] =
+    gameState.entityById(bearerId) match {
+      case None => Some(i18n.entityDoesNotExist(bearerId))
+      case _ => None
+    }
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

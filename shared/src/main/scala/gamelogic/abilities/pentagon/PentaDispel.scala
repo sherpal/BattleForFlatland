@@ -7,6 +7,7 @@ import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.RemoveBuff
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 /** Removes all dispel-able buffs from the friendly target.
   *
@@ -45,7 +46,7 @@ final case class PentaDispel(
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): PentaDispel =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Option[String] =
+  def canBeCast(gameState: GameState, time: Long)(using I18n): Option[String] =
     canBeCastFriendlyOnly(gameState) orElse isInRangeAndInSight(gameState, time)
 }
 

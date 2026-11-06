@@ -52,7 +52,7 @@ final case class GameState(
       nextAction(currentGameState)
   }
 
-  def isLegalAction(action: GameAction): Boolean = action.isLegal(gameState = this).isEmpty
+  def isLegalAction(action: GameAction): Boolean = action.isLegalBoolean(gameState = this)
 
   def entityIsCasting(entityId: Entity.Id): Boolean = entityIsCasting(entityId, 0L)
   def entityIsCasting(entityId: Entity.Id, delay: Long): Boolean =

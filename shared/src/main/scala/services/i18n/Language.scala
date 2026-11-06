@@ -8,7 +8,7 @@ enum Language(val code: String, val nativeName: String, val i18n: I18n) {
   case French extends Language("fr", "Français", FrenchI18n)
   case Dutch extends Language("nl", "Nederlands", DutchI18n)
   case German extends Language("de", "Deutsch", GermanI18n)
-  case Albanian extends Language("sq", "Shqip", AlbaneseI18n)
+  case Albanian extends Language("sq", "Shqip", AlbanianI18n)
 }
 
 object Language {

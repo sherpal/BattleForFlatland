@@ -6,6 +6,7 @@ import gamelogic.buffs.boss.sirofvice.Purified
 import gamelogic.entities.Entity
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, RemoveBuffTransformer, WithBuff}
 import gamelogic.gamestate.{GameAction, GameState}
+import services.i18n.I18n
 
 /** Puts an instance of [[Purified]] buff on the target. */
 final case class PutPurifiedDebuff(
@@ -34,7 +35,7 @@ final case class PutPurifiedDebuff(
       )
     )
 
-  def isLegal(gameState: GameState): None.type = None
+  def isLegal(gameState: GameState)(using I18n): None.type = None
 
   def changeId(newId: GameAction.Id): PutPurifiedDebuff = copy(id = newId)
 }

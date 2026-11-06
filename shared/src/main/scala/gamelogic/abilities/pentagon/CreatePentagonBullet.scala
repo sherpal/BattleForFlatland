@@ -9,6 +9,7 @@ import gamelogic.gamestate.gameactions.NewPentagonBullet
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 /** Spawn a [[gamelogic.entities.movingstuff.PentagonBullet]] at the player's position, in the given
   * direction.
@@ -51,7 +52,7 @@ case class CreatePentagonBullet(
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): None.type = None
+  def canBeCast(gameState: GameState, time: Long)(using I18n): None.type = None
 }
 
 object CreatePentagonBullet {

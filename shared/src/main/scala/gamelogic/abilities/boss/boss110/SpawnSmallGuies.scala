@@ -8,6 +8,7 @@ import gamelogic.gamestate.gameactions.boss110.AddSmallGuy
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 final case class SpawnSmallGuies(useId: Ability.UseId, time: Long, casterId: Entity.Id)
     extends Ability
@@ -30,7 +31,7 @@ final case class SpawnSmallGuies(useId: Ability.UseId, time: Long, casterId: Ent
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): SpawnSmallGuies =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Option[String] = Option.empty
+  def canBeCast(gameState: GameState, time: Long)(using I18n): Option[String] = Option.empty
 
 }
 

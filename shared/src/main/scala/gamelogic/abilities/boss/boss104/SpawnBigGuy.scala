@@ -9,6 +9,7 @@ import gamelogic.gamestate.gameactions.boss104.AddBigGuy
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 final case class SpawnBigGuy(useId: Ability.UseId, time: Long, casterId: Entity.Id)
     extends Ability {
@@ -38,7 +39,7 @@ final case class SpawnBigGuy(useId: Ability.UseId, time: Long, casterId: Entity.
   override def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
     copy(time = newTime, useId = newId)
 
-  override def canBeCast(gameState: GameState, time: Long): Option[String] = None
+  override def canBeCast(gameState: GameState, time: Long)(using I18n): Option[String] = None
 }
 
 object SpawnBigGuy {

@@ -6,6 +6,7 @@ import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{EntityStartsCastingTransformer, GameStateTransformer}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
+import services.i18n.I18n
 
 /** An entity starts casting now. */
 final case class EntityStartsCasting(
@@ -20,31 +21,29 @@ final case class EntityStartsCasting(
     *
     * If the ability is not legal, then returns Some the error message. Otherwise, returns None.
     */
-  def isLegal(gameState: GameState): Option[String] =
+  def isLegal(gameState: GameState)(using i18n: I18n): Option[String] =
     Option
-      .when(gameState.entityIsCasting(ability.casterId))("Already casting")
+      .when(gameState.entityIsCasting(ability.casterId))(i18n.alreadyCasting)
       .orElse(
         (for {
           caster <- gameState
             .withAbilityEntitiesById(ability.casterId)
-            .toRight(s"Entity ${ability.abilityId} does not exist")
+            .toRight(i18n.entityDoesNotExist(ability.casterId))
           _ <- caster.canUseAbility(ability, time, gameState).toLeft(())
         } yield ()).swap.toOption
       )
       .orElse(ability.canBeCast(gameState, time))
 
-  def isLegalBoolean(gameState: GameState): Boolean = isLegal(gameState).isEmpty
-
   /** Checks whether the caster will be authorized to cast this ability in `delay` milliseconds.
     */
-  def isLegalDelay(gameState: GameState, delay: Long): Option[String] =
+  def isLegalDelay(gameState: GameState, delay: Long)(using i18n: I18n): Option[String] =
     Option
-      .when(gameState.entityIsCasting(ability.casterId, delay))("Already casting")
+      .when(gameState.entityIsCasting(ability.casterId, delay))(i18n.alreadyCasting)
       .orElse(
         (for {
           caster <- gameState
             .withAbilityEntitiesById(ability.casterId)
-            .toRight(s"Entity ${ability.abilityId} does not exist")
+            .toRight(i18n.entityDoesNotExist(ability.casterId))
           _ <- caster.canUseAbility(ability, time + delay, gameState).toLeft(())
         } yield ()).swap.toOption
       )

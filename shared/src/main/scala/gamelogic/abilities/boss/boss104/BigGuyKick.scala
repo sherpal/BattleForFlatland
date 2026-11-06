@@ -11,6 +11,7 @@ import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 case class BigGuyKick(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
     extends WithTargetAbility {
@@ -30,9 +31,9 @@ case class BigGuyKick(useId: Ability.UseId, time: Long, casterId: Entity.Id, tar
   override def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
     copy(time = newTime, useId = newId)
 
-  override def canBeCast(gameState: GameState, time: Long): Option[String] =
+  override def canBeCast(gameState: GameState, time: Long)(using i18n: I18n): Option[String] =
     isInRangeAndInSight(gameState, time).orElse {
-      Option.when(gameState.hasBuffOfType[Silenced](casterId))("Entity is silenced")
+      Option.when(gameState.hasBuffOfType[Silenced](casterId))(i18n.silenced)
     }
 
   override def range: Distance = BigGuyKick.range

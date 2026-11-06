@@ -22,13 +22,14 @@ final class SquareShieldSlamSpecs extends StoryTeller {
   )
   private val squareId: Entity.Id = addingSquare.entityId
 
-  private val addingHound         = addHound(2)
+  private val addingHound        = addHound(2)
   private val houndId: Entity.Id = addingHound.entityId
 
-  private val addingHexagon         = addHexagon(2)
+  private val addingHexagon        = addHexagon(2)
   private val hexagonId: Entity.Id = addingHexagon.entityId
 
-  /** A square next to a hound and a hexagon, which has braced `braces` times (at times 10, 20...). */
+  /** A square next to a hound and a hexagon, which has braced `braces` times (at times 10, 20...).
+    */
   private def situation(braces: Int): GameState =
     (1 to braces).foldLeft(
       ActionComposer.empty >> start >> addingSquare >> addingHound >> addingHexagon
@@ -52,7 +53,7 @@ final class SquareShieldSlamSpecs extends StoryTeller {
   }
 
   test("Shield Slam can only target enemies") {
-    assertEquals(slam(100, hexagonId).canBeCast(situation(2), 100), Some("Not an ennemy"))
+    assertEquals(slam(100, hexagonId).canBeCast(situation(2), 100), Some("Not an enemy"))
   }
 
   test("Shield Slam hits the target") {

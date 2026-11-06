@@ -5,6 +5,7 @@ import gamelogic.entities.boss.boss104.DeathMarkTriangle
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
 import gamelogic.gamestate.{GameAction, GameState}
+import services.i18n.I18n
 
 /** Moves the [[DeathMarkTriangle]] to its next stage, flipping which side of it is deadly.
   *
@@ -25,7 +26,7 @@ final case class DeathMarkTriangleNextStage(
         WithEntity(triangle.nextStage, time)
       )
 
-  override def isLegal(gameState: GameState): Option[String] = None
+  override def isLegal(gameState: GameState)(using I18n): Option[String] = None
 
   override def changeId(newId: Id): GameAction = copy(id = newId)
 }

@@ -7,6 +7,7 @@ import gamelogic.gamestate.GameAction.{EntityCreatorAction, Id}
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
+import services.i18n.I18n
 
 final case class AddBossHound(id: GameAction.Id, time: Long, entityId: Entity.Id, position: Complex)
     extends GameAction
@@ -28,7 +29,7 @@ final case class AddBossHound(id: GameAction.Id, time: Long, entityId: Entity.Id
     time
   )
 
-  def isLegal(gameState: GameState): None.type = None
+  def isLegal(gameState: GameState)(using I18n): None.type = None
 
   def changeId(newId: Id): GameAction = copy(id = newId)
 }

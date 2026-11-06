@@ -6,6 +6,7 @@ import gamelogic.entities.Resource.Energy
 import gamelogic.gamestate.gameactions.{EntityResourceChanges, EntityTakesDamage}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 /** Gives back some energy to the caster, while dealing small damages to the target.
   *
@@ -42,7 +43,7 @@ final case class EnergyKick(
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): Ability =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Option[String] =
+  def canBeCast(gameState: GameState, time: Long)(using I18n): Option[String] =
     canBeCastEnemyOnly(gameState) orElse isInRangeAndInSight(gameState, time)
 
   def range: WithTargetAbility.Distance = WithTargetAbility.meleeRange

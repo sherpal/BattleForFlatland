@@ -28,6 +28,7 @@ enum CastRequest {
   */
 final class AbilityCaster(myId: Entity.Id, i18n: I18n) {
   import CastRequest.*
+  private given I18n = i18n
 
   /** The ability on key `index + 1` (abilities in the same order as the frontend's action bar). */
   def castByIndex(
@@ -122,7 +123,7 @@ final class AbilityCaster(myId: Entity.Id, i18n: I18n) {
       case Ability.createPentagonZoneId | Ability.hexagonHexagonZoneId =>
         ChoosePosition(abilityId)
       case other =>
-        Error(i18n.abilityNotSupported(other.toString))
+        Error(i18n.abilityNotSupported(other))
     }
   }
 
@@ -167,7 +168,7 @@ final class AbilityCaster(myId: Entity.Id, i18n: I18n) {
               now
             )
           case other =>
-            Error(i18n.abilityNotPlacedWithMouse(other.toString))
+            Error(i18n.abilityNotPlacedWithMouse(other))
         }
     }
 

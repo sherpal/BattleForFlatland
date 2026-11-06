@@ -10,6 +10,7 @@ import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.gameactions.boss104.PutTwinDebuff
 import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 import utils.misc.RGBColour
 
 import scala.util.Random
@@ -35,7 +36,7 @@ final case class TwinDebuffs(
   /** Boss abilities delegate legality to their controller (which checks cooldown, silence, etc. via
     * `canUseAbilityBoolean`), so there is nothing else to veto here.
     */
-  override def canBeCast(gameState: GameState, time: Long): None.type = None
+  override def canBeCast(gameState: GameState, time: Long)(using I18n): None.type = None
 
   /** This method is called exactly once, by the game master, when the cast completes; its resulting
     * actions are then broadcast as-is to every client and AI. It is therefore the *only* place

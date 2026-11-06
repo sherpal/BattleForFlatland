@@ -7,6 +7,7 @@ import gamelogic.entities.boss.boss110.CreepingShadow
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 /** Cast by the (normaly) unique instance of [[CreepingShadow]] when it collides the boss. It deals
   * damages to every player.
@@ -30,16 +31,16 @@ final case class CreepingShadowTick(useId: Ability.UseId, time: Long, casterId: 
     copy(time = newTime, useId = newId)
 
   /** [[CreepingShadow]] only casts this if it collides the boss. */
-  def canBeCast(gameState: GameState, time: Long): Option[String] =
+  def canBeCast(gameState: GameState, time: Long)(using i18n: I18n): Option[String] =
     (for {
       creepingShadow <- CreepingShadow
         .extractCreepingShadow(gameState, casterId)
-        .toRight("CreepingShadow is not there")
-      boss <- gameState.bosses.get(creepingShadow.sourceId).toRight("Boss is not there")
+        .toRight(i18n.creepingShadowNotThere)
+      boss <- gameState.bosses.get(creepingShadow.sourceId).toRight(i18n.bossNotThere)
       _ <- Either.cond(
         creepingShadow.collides(boss, time),
         (),
-        "Creeping Shadow does not collide the boss"
+        i18n.creepingShadowDoesNotCollideBoss
       )
     } yield ()).swap.toOption
 

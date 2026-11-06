@@ -5,39 +5,40 @@ import gamelogic.entities.Entity
 import gamelogic.entities.boss.Boss101
 import gamelogic.entities.classes.Constants
 import gamelogic.gamestate.GameState
+import services.i18n.I18n
 
 trait WithTargetAbility extends Ability {
 
   def range: Distance
   def targetId: Entity.Id
 
-  final def isInRange(gameState: GameState, time: Long): Option[String] =
+  final def isInRange(gameState: GameState, time: Long)(using i18n: I18n): Option[String] =
     Option.unless((for {
       caster <- gameState.withPositionEntityById(casterId)
       target <- gameState.withPositionEntityById(targetId)
       casterPosition = caster.currentPosition(time)
       targetPosition = target.currentPosition(time)
       distance       = (casterPosition - targetPosition).modulus
-    } yield distance <= range).getOrElse(false))("Not in range")
+    } yield distance <= range).getOrElse(false))(i18n.notInRange)
 
-  final def isInSight(gameState: GameState, time: Long): Option[String] =
+  final def isInSight(gameState: GameState, time: Long)(using i18n: I18n): Option[String] =
     gameState.areTheyInSight(casterId, targetId, time) match {
-      case Some(inSight) => Option.unless(inSight)(s"Not in sight")
-      case None => Some(s"One of two entities $casterId and $targetId does not exist")
+      case Some(inSight) => Option.unless(inSight)(i18n.notInSight)
+      case None => Some(i18n.entitiesDoNotExist(casterId, targetId))
     }
 
-  final def isInRangeAndInSight(gameState: GameState, time: Long): Option[String] =
+  final def isInRangeAndInSight(gameState: GameState, time: Long)(using I18n): Option[String] =
     isInRange(gameState, time) orElse isInSight(gameState, time)
 
-  final def canBeCastFriendlyOnly(gameState: GameState): Option[String] =
+  final def canBeCastFriendlyOnly(gameState: GameState)(using i18n: I18n): Option[String] =
     gameState.areTheyFromSameTeam(casterId, targetId) match {
-      case Some(sameTeam) => Option.unless(sameTeam)(s"Not an ally")
-      case None => Some(s"One or both of entities $casterId, $targetId does not exist")
+      case Some(sameTeam) => Option.unless(sameTeam)(i18n.notAnAlly)
+      case None => Some(i18n.entitiesDoNotExist(casterId, targetId))
     }
 
-  final def canBeCastEnemyOnly(gameState: GameState): Option[String] =
+  final def canBeCastEnemyOnly(gameState: GameState)(using i18n: I18n): Option[String] =
     canBeCastFriendlyOnly(gameState) match {
-      case None => Some(s"Not an ennemy")
+      case None => Some(i18n.notAnEnemy)
       case _ => None
     }
 

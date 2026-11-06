@@ -1,8 +1,10 @@
 package services.i18n
 
+import gamelogic.abilities.Ability
 import gamelogic.abilities.boss.boss101.{BigDot, BigHit}
+import gamelogic.buffs.Buff
 import gamelogic.buffs.abilities.classes.BraceShield
-import gamelogic.entities.Resource
+import gamelogic.entities.{Entity, Resource}
 import gamelogic.entities.boss.Boss101
 import gamelogic.entities.classes.{Hexagon, Pentagon, Square, Triangle}
 import models.bff.ingame.Controls
@@ -201,10 +203,62 @@ object FrenchI18n extends I18n {
   override def youAreDead: String                  = "Vous êtes mort"
   override def noTarget: String                    = "Aucune cible"
   override def noAbilityOnKey(number: Int): String = s"Aucune capacité sur la touche $number"
-  override def abilityNotSupported(ability: String): String =
+  override def abilityNotSupported(ability: Ability.AbilityId): String =
     s"La capacité $ability n'est pas encore prise en charge"
-  override def abilityNotPlacedWithMouse(ability: String): String =
+  override def abilityNotPlacedWithMouse(ability: Ability.AbilityId): String =
     s"La capacité $ability ne se place pas avec la souris"
+
+  // Why an ability cannot be cast (shown to the player)
+  override def alreadyCasting: String    = "Déjà en train d'incanter"
+  override def abilityNotOwned: String   = "Vous n'avez pas cette capacité"
+  override def abilityOnCooldown: String = "Capacité en recharge"
+  override def notEnough(resource: Resource): String = resource match {
+    case Resource.Energy => "Pas assez d'énergie"
+    case _ => s"Pas assez de ${resourceName(resource)}"
+  }
+  override def silenced: String              = "Vous êtes réduit au silence"
+  override def notInRange: String            = "Hors de portée"
+  override def notInSight: String            = "Hors de vue"
+  override def positionNotInSight: String    = "Position hors de vue"
+  override def notAnAlly: String             = "Pas un allié"
+  override def notAnEnemy: String            = "Pas un ennemi"
+  override def cannotGuardYourself: String   = "Vous ne pouvez pas vous protéger vous-même"
+  override def needShieldStack: String       = "Il vous faut une charge de votre bouclier"
+  override def targetCannotBeStunned: String = "La cible ne peut pas être étourdie"
+  override def targetDoesNotCast: String     = "La cible n'incante rien"
+  override def targetAbilityCannotBeCut: String =
+    "La capacité de la cible ne peut pas être interrompue"
+
+  // Why a boss' ability cannot be cast
+  override def noBombToExplode: String                  = "Vous n'avez aucune bombe !"
+  override def creepingShadowNotThere: String           = "Creeping Shadow n'est pas là"
+  override def bossNotThere: String                     = "Le boss n'est pas là"
+  override def creepingShadowDoesNotCollideBoss: String = "Creeping Shadow ne touche pas le boss"
+  override def noDeathMarkTriangle: String = "Il n'y a pas de triangle de marque de mort"
+  override def noShadeToCall: String       = "Il n'y a aucune Shade à appeler"
+  override def targetNotThere: String      = "La cible n'est pas là"
+  override def twinsFarEnough: String      = "Les jumeaux sont assez loin l'un de l'autre"
+
+  // Why an action is not legal (rather for the logs)
+  override def gameAlreadyStarted: String                      = "La partie a déjà commencé"
+  override def gameAlreadyEnded: String                        = "La partie est déjà terminée"
+  override def playerAlreadyExists: String                     = "Le joueur existe déjà"
+  override def bossDoesNotExist(bossName: String): String      = s"Le boss $bossName n'existe pas"
+  override def entityDoesNotExist(entityId: Entity.Id): String = s"L'entité $entityId n'existe pas"
+  override def entitiesDoNotExist(entityId: Entity.Id, otherId: Entity.Id): String =
+    s"L'entité $entityId ou $otherId n'existe pas"
+  override def entityIsNotLiving(entityId: Entity.Id): String =
+    s"L'entité $entityId n'existe pas, ou n'est pas vivante"
+  override def entityIsNotMoving(entityId: Entity.Id): String =
+    s"L'entité $entityId n'existe pas, ou ne se déplace pas"
+  override def entityHasNoAbilities(entityId: Entity.Id): String =
+    s"L'entité $entityId n'existe pas, ou n'a pas de capacités"
+  override def entityHasNoTarget(entityId: Entity.Id): String =
+    s"L'entité $entityId n'existe pas, ou n'a pas de cible"
+  override def entityWouldCollide(entityId: Entity.Id): String =
+    s"L'entité $entityId heurterait un obstacle"
+  override def buffDoesNotExist(buffId: Buff.Id, bearerId: Entity.Id): String =
+    s"L'effet $buffId n'existe pas sur l'entité $bearerId"
 
   // Connection to the game server
   override def gameServerDoesNotAnswer: String = "le serveur de jeu ne répond pas"

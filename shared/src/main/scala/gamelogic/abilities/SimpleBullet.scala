@@ -8,6 +8,7 @@ import gamelogic.gamestate.gameactions.NewSimpleBullet
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 final case class SimpleBullet(
     useId: Ability.UseId,
@@ -38,7 +39,7 @@ final case class SimpleBullet(
 
   val cost: ResourceAmount = ResourceAmount(0.0, NoResource)
 
-  def canBeCast(gameState: GameState, time: Long): None.type = None
+  def canBeCast(gameState: GameState, time: Long)(using I18n): None.type = None
 }
 
 object SimpleBullet {

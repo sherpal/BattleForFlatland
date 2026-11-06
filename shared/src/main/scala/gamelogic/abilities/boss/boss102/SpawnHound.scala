@@ -8,6 +8,7 @@ import gamelogic.gamestate.gameactions.boss102.AddBossHound
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 final case class SpawnHound(
     useId: Ability.UseId,
@@ -35,7 +36,7 @@ final case class SpawnHound(
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): None.type = None
+  def canBeCast(gameState: GameState, time: Long)(using I18n): None.type = None
 }
 
 object SpawnHound extends AbilityMetadata {

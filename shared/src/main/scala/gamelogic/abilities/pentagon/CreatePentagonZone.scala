@@ -9,6 +9,7 @@ import gamelogic.gamestate.gameactions.classes.pentagon.PutPentagonZone
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 import utils.misc.RGBAColour
 
 case class CreatePentagonZone(
@@ -46,17 +47,17 @@ case class CreatePentagonZone(
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Option[String] =
+  def canBeCast(gameState: GameState, time: Long)(using i18n: I18n): Option[String] =
     (for {
       player <- gameState.players
         .get(casterId)
-        .toRight(s"Player $casterId does not exist (probably dead)")
+        .toRight(i18n.youAreDead)
       _ <- Option
-        .unless((player.pos - position).modulus < CreatePentagonZone.range)("Not in range")
+        .unless((player.pos - position).modulus < CreatePentagonZone.range)(i18n.notInRange)
         .toLeft(())
       _ <- Option
         .unless(gameState.isPositionInSight(player, position, time))(
-          "Position is not in sight"
+          i18n.positionNotInSight
         )
         .toLeft(())
     } yield ()).swap.toOption

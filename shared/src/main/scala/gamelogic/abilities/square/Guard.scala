@@ -8,6 +8,7 @@ import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.classes.square.PutGuarding
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
+import services.i18n.I18n
 
 /** Protects an ally: for a while, a share of the damage that it takes is taken by the caster
   * instead (see [[gamelogic.buffs.abilities.classes.Guarding]]), and the ally has a
@@ -36,9 +37,9 @@ final case class Guard(
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
     copy(time = newTime, useId = newId)
 
-  def canBeCast(gameState: GameState, time: Long): Option[String] =
+  def canBeCast(gameState: GameState, time: Long)(using i18n: I18n): Option[String] =
     canBeCastFriendlyOnly(gameState)
-      .orElse(Option.when(targetId == casterId)("You can't guard yourself"))
+      .orElse(Option.when(targetId == casterId)(i18n.cannotGuardYourself))
       .orElse(isInRangeAndInSight(gameState, time))
 
 }
