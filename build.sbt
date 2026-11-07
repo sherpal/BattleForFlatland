@@ -113,6 +113,10 @@ lazy val `lua-linker` = project
     libraryDependencies += "org.scala-js" %% "scalajs-linker" % scalaJSVersion
   )
 
+val packagedMenuServer = settingKey[String](
+  "The menu server of the packaged clients, which do not ask for it: `host`, `host:port`, possibly with http:// (otherwise HTTPS). BFF_MENU_SERVER's, or battle-for-flatland.eu"
+)
+
 /** The game's client, with LÖVE: Scala.js code linked to Lua by `lua-linker` (`love-client/luaLink`
   * writes the program in love-client/target/lua, `love-client/luaRun` runs it, and
   * `love-client/luaPackage` packages it with LÖVE for Windows, macOS and Linux, in
@@ -124,12 +128,14 @@ lazy val `love-client` = project
   .settings(
     LuaSettings(`lua-linker`),
     LuaSettings.luaPackageTitle := "Battle for Flatland",
-    // read by `bffclient.lua.BuildConfig`: in dev, the menu server runs locally, in plain HTTP
-    LuaSettings.luaConfig := Map("menuServer" -> "127.0.0.1", "menuServerScheme" -> "http"),
-    // the packages talk HTTPS (to the menu server behind Caddy, see deploy.md) unless the player
-    // types http://...; the address shown by default is BFF_MENU_SERVER's, if set when packaging
+    packagedMenuServer := sys.env.get("BFF_MENU_SERVER").filter(_.nonEmpty).getOrElse("battle-for-flatland.eu"),
+    // read by `bffclient.lua.BuildConfig`: in dev, the player types the menu server's address (it
+    // runs locally, in plain HTTP)
+    LuaSettings.luaConfig := Map("menuServerScheme" -> "http"),
+    // the packages connect to packagedMenuServer, in HTTPS (behind Caddy, see deploy.md) unless it
+    // says http://...
     LuaSettings.luaPackage / LuaSettings.luaConfig :=
-      Map("menuServerScheme" -> "https") ++ sys.env.get("BFF_MENU_SERVER").map("menuServer" -> _),
+      Map("menuServer" -> packagedMenuServer.value, "menuServerScheme" -> "https"),
     // there is also `bffclient.lua.UdpSelfTest`, linked by tools/love-udp-test.sh
     Compile / mainClass := Some("bffclient.Main"),
     scalaJSUseMainModuleInitializer := true

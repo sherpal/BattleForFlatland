@@ -94,7 +94,7 @@ There are two programs that must be ran in dev mode:
 ### Playing with friends
 
 `sbt love-client/luaPackage` packages the client for Windows, macOS and Linux (in `love-client/target/dist`), with LÖVE inside, so that your friends do not need to install anything.
-They then type the address of your backend on the login screen.
+The packages connect to the menu server given when packaging (`battle-for-flatland.eu` by default; `BFF_MENU_SERVER=<your address> sbt love-client/luaPackage` for yours): their login screen does not ask for it.
 See [the client's README](love-client/README.md#playing-with-friends) for the details (and how to host the game at home).
 
 To package the backend itself (only its API: the client is the LÖVE one), `sbt packageApplication` writes the fat jar `dist/app.jar`.
@@ -107,9 +107,9 @@ To (re)create the setup:
 
 1. In the Oracle console, give the VM a **reserved public IPv4**, so that the address survives the VM being recreated (the `A` record below depends on it).
 2. In the OVH DNS zone, a single `A` record for the apex (empty subdomain) with the VM's IP. Delete the records that OVH pre-fills to its own hosting (an `A` for `213.186.33.5`, `AAAA`, `www`...): DNS answers with all of them in turn, so visitors (and Let's Encrypt) would land on OVH half of the time. The `ftp`, `smtp`, `imap`, `pop3` defaults are harmless. Check with `dig +short battle-for-flatland.eu @1.1.1.1`.
-3. Deploy with the domain as the site, so that Caddy gets a Let's Encrypt certificate for it, and the packaged clients show it on their login screen:
+3. Deploy with the domain as the site, so that Caddy gets a Let's Encrypt certificate for it (the packaged clients connect to `battle-for-flatland.eu` by default):
    ```
-   BFF_MENU_SERVER=battle-for-flatland.eu sbt "deploy ubuntu@<ip> linux/amd64 --key <private key> --site battle-for-flatland.eu"
+   sbt "deploy ubuntu@<ip> linux/amd64 --key <private key> --site battle-for-flatland.eu"
    ```
 4. Check with `curl https://battle-for-flatland.eu/api` (`Hello World!`). The certificate lasts six days and Caddy renews it by itself.
 

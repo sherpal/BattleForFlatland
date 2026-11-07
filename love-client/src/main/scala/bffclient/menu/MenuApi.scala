@@ -114,6 +114,11 @@ final class MenuApi(val scheme: String, val host: String, val port: Int)(using E
       HostFailedFormData(gameId, reason)
     )
 
+  /** The version of the packaged clients that the menu server serves, if it has them (see
+    * `BuildConfig.version`).
+    */
+  def clientVersion: Future[Option[String]] = http.get[Option[String]]("/api/bff/client-version")
+
   /** The version of the game server's jar: its SHA-256 and size. */
   def gameServerVersion: Future[GameServerFile] =
     http.get[GameServerFile]("/api/bff/game-server/version")

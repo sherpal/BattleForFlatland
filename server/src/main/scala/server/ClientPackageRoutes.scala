@@ -1,9 +1,11 @@
 package server
 
+import io.circe.syntax.*
+
 /** The packages of the LÖVE client (`sbt love-client/luaPackage`), to download them from the menu
   * server: `api/bff/client/<system>`, with `<system>` one of `windows`, `macos`, `linux` (the
   * archives), or `love` (the game alone, for those who have LÖVE). The [[LandingPage]] links to
-  * them.
+  * them. Their version is `api/bff/client-version`.
   *
   * @param clientPackages
   *   where `luaPackage` puts them (`love-client/target/dist`)
@@ -33,6 +35,20 @@ class ClientPackageRoutes(clientPackages: os.Path) extends cask.Routes {
           "Content-Disposition" -> s"attachment; filename=\"$fileName\""
         )
       )
+  }
+
+  /** The version of the packages (the `version` file that `luaPackage` writes next to them), or
+    * `null` without one. The packaged clients compare it to theirs: when it differs, the player
+    * must download the game again.
+    */
+  @cask.get("api/bff/client-version")
+  def clientVersion(): cask.Response.Raw = {
+    val file    = clientPackages / "version"
+    val version = Option.when(os.exists(file))(os.read(file).trim).filter(_.nonEmpty)
+    cask.Response[cask.Response.Data](
+      version.asJson.noSpaces,
+      headers = Seq("Content-Type" -> "application/json")
+    )
   }
 
   initialize()

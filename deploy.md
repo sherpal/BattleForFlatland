@@ -69,7 +69,7 @@ From the repository, on your computer (Linux, macOS or Windows: it only needs `s
 and `scp` in the `PATH`, which Windows 10 and later have for the last two):
 
 ```
-BFF_MENU_SERVER=<ip> sbt "deploy ubuntu@<ip> linux/amd64 --key ~/.ssh/oracle.key"
+BFF_MENU_SERVER=<site> sbt "deploy ubuntu@<ip> linux/amd64 --key ~/.ssh/oracle.key"
 ```
 
 - the platform is the VM's processor: `linux/amd64` (the default) or `linux/arm64` (`uname -m` on the VM
@@ -80,7 +80,13 @@ BFF_MENU_SERVER=<ip> sbt "deploy ubuntu@<ip> linux/amd64 --key ~/.ssh/oracle.key
 - `--site` is what the players type, which the certificate is for: the VM's IP address (the default,
   when the target is one), or a domain name that points to it (better: the IP address of a VM may
   change; see [the README](README.md#the-domain-name) for the one of the game).
-- `BFF_MENU_SERVER` (optional) is the address that the packaged clients show on their login screen.
+- `BFF_MENU_SERVER` is the menu server that the packaged clients connect to (they do not ask for it):
+  `battle-for-flatland.eu` by default, so it is only needed for another site. It is the build's
+  `love-client/packagedMenuServer` setting, which can also be changed in sbt, e.g. `set
+  love-client/packagedMenuServer := "81.12.34.56"`.
+- Each package has a version (a hash of the game, which the menu server gives at
+  `/api/bff/client-version`): when the players' one is not the deployed one, their login screen tells them
+  to download the game again, with a button to the landing page.
 - LÖVE 12's builds, which the clients are packaged with, need a GitHub token the first time (see
   [the client's README](love-client/README.md#playing-with-friends)): `GITHUB_TOKEN=...`.
 
@@ -102,8 +108,7 @@ ssh ubuntu@<ip> docker logs bff-caddy           # ... certificate obtained succe
 
 Players then download the client from the landing page, `https://<site>/` (which goes to `/en`,
 `/fr`... in their language), or straight from `https://<site>/api/bff/client/<windows|macos|linux>` (see
-[the client's README](love-client/README.md#playing-with-friends)), or use theirs, and type `<site>` on
-the login screen. The hole punching is the real test: two players on different networks, in the same
+[the client's README](love-client/README.md#playing-with-friends)), which connect to `<site>`. The hole punching is the real test: two players on different networks, in the same
 game, and the logs of the VM (`docker logs bff`) and of the clients (`client.log`).
 
 ## Good to know

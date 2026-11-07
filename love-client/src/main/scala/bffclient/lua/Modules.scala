@@ -155,11 +155,18 @@ object Jit extends js.Object {
 @js.native @JSImport("bff_config", JSImport.Namespace)
 object BuildConfig extends js.Object {
 
-  /** The menu server's address that the login screen shows when there is no other. */
+  /** The menu server of the packages (`packagedMenuServer` in the build), which the login screen
+    * then does not ask for. Null in dev.
+    */
   val menuServer: String = js.native
 
   /** The scheme of the addresses typed without one: `https` for the packages, `http` otherwise. */
   val menuServerScheme: js.UndefOr[String] = js.native
+
+  /** The version of the packages (see `LuaSettings.programVersion`), which the menu server tells
+    * when it has another one. Undefined in dev.
+    */
+  val version: js.UndefOr[String] = js.native
 }
 
 @js.native @JSGlobal("os")

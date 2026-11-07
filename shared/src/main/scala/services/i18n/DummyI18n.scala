@@ -238,6 +238,10 @@ object DummyI18n extends I18n {
 
   def invalidAddress(address: String): String = ""
 
+  def outdatedVersion: String = ""
+
+  def downloadTheNewVersion: String = ""
+
   def invalidPort(port: String): String = ""
 
   def join: String = ""

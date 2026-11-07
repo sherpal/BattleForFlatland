@@ -53,15 +53,41 @@ object LuaSettings {
       scala.sys.process.Process(Seq(love, dir.getAbsolutePath), None, "APPIMAGE_EXTRACT_AND_RUN" -> "1").!
     },
     luaPackageTitle := name.value,
-    // LÖVE's builds are downloaded once, in the root's target directory
-    luaPackage := LovePackage(
-      link(linker, luaPackage / luaMode, luaPackage / luaConfig, luaPackage / luaOutput).value,
-      luaPackageTitle.value,
-      (LocalRootProject / target).value / s"love-${LovePackage.loveVersion}",
-      target.value / "dist",
-      streams.value.log
-    )
+    luaPackage := {
+      val game =
+        link(linker, luaPackage / luaMode, luaPackage / luaConfig, luaPackage / luaOutput, versioned = true).value
+      val out = target.value / "dist"
+      // LÖVE's builds are downloaded once, in the root's target directory
+      val packages = LovePackage(
+        game,
+        luaPackageTitle.value,
+        (LocalRootProject / target).value / s"love-${LovePackage.loveVersion}",
+        out,
+        streams.value.log
+      )
+      // what the menu server tells the clients, for them to know when theirs is outdated
+      IO.write(out / versionFile, programVersion(game))
+      packages
+    }
   )
+
+  /** The file of the packages' directory (target/dist) with their version (see [[programVersion]]),
+    * which the menu server gives to the clients.
+    */
+  val versionFile = "version"
+
+  /** The version of the linked program in `dir`: the start of the SHA-256 of its files (all but the
+    * `configModule`, where it is written), so that any change of the game changes it.
+    */
+  def programVersion(dir: File): String = {
+    val digest = java.security.MessageDigest.getInstance("SHA-256")
+    for ((file, path) <- Path.allSubpaths(dir).toSeq.sortBy(_._2) if file.isFile && path != s"$configModule.lua") {
+      digest.update(path.getBytes("UTF-8"))
+      digest.update(0: Byte)
+      digest.update(IO.readBytes(file))
+    }
+    digest.digest().take(6).map("%02x".format(_)).mkString
+  }
 
   /** What runs LÖVE (12): `LOVE` if set, on Linux x64 LÖVE's AppImage (downloaded once, see
     * [[LovePackage]]), otherwise the `love` command.
@@ -74,13 +100,15 @@ object LuaSettings {
     }
 
   /** Links the program in `mode` to `output`, with the project's Lua modules (src/main/lua) and the
-    * generated `configModule`.
+    * generated `configModule` (with the program's `version` too when `versioned`, see
+    * [[programVersion]]).
     */
   private def link(
       linker: Project,
       mode: SettingKey[LuaMode],
       config: SettingKey[Map[String, String]],
-      output: SettingKey[File]
+      output: SettingKey[File],
+      versioned: Boolean = false
   ): Def.Initialize[Task[File]] = Def.taskDyn {
     val cp      = classpath.value
     val out     = output.value
@@ -94,7 +122,8 @@ object LuaSettings {
       // Lua modules of the project (src/main/lua) are copied next to main.lua
       val luaSources = (Compile / sourceDirectory).value / "lua"
       if (luaSources.exists()) IO.copyDirectory(luaSources, out, overwrite = true)
-      IO.write(out / s"$configModule.lua", configLua(values))
+      val version = if (versioned) Map("version" -> programVersion(out)) else Map.empty[String, String]
+      IO.write(out / s"$configModule.lua", configLua(values ++ version))
       out
     }
   }

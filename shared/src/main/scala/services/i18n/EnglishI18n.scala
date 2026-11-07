@@ -80,6 +80,9 @@ object EnglishI18n extends I18n {
   override def invalidPort(port: String): String = s"Invalid port: $port"
   override def invalidAddress(address: String): String =
     s"Invalid address: $address (expected host or host:port)"
+  override def outdatedVersion: String =
+    "A new version of Battle for Flatland is out! Download it again from the website to keep playing."
+  override def downloadTheNewVersion: String = "Download the new version"
 
   // Games
   override def welcomePlayer(playerName: String): String   = s"Welcome, $playerName"

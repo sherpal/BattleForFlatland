@@ -241,4 +241,7 @@ object LoveSystem extends js.Object {
 
   def getClipboardText(): String           = js.native
   def setClipboardText(text: String): Unit = js.native
+
+  /** Opens the URL in the user's web browser (false if it could not). */
+  def openURL(url: String): Boolean = js.native
 }

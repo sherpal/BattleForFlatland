@@ -32,8 +32,8 @@ object Main {
   private def env(name: String, default: String): String =
     Option(Os.getenv(name)).getOrElse(default)
 
-  /** In a window, starts with the menus' UI, where the player types the menu server's address
-    * (BFF_MENU_URL, e.g. http://127.0.0.1:9000, fills it in). Headless, plays the menus with a
+  /** In a window, starts with the menus' UI, with the build's menu server (in dev, the player types
+    * its address), or BFF_MENU_URL's (e.g. http://127.0.0.1:9000). Headless, plays the menus with a
     * script (BFF_MENU_URL, BFF_USER, BFF_CLASS, BFF_BOSS). With BFF_HOST (or headless without
     * BFF_MENU_URL), connects directly to a game server (BFF_HOST, BFF_PORT, BFF_SECRET,
     * BFF_GAME_ID).

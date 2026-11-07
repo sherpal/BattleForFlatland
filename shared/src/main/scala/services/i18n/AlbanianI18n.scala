@@ -81,6 +81,9 @@ object AlbanianI18n extends I18n {
   override def invalidPort(port: String): String = s"Port i pavlefshëm: $port"
   override def invalidAddress(address: String): String =
     s"Adresë e pavlefshme: $address (pritej host ose host:port)"
+  override def outdatedVersion: String =
+    "Ka dalë një version i ri i Battle for Flatland! Shkarkoje përsëri nga faqja për të vazhduar lojën."
+  override def downloadTheNewVersion: String = "Shkarko versionin e ri"
 
   // Games
   override def welcomePlayer(playerName: String): String   = s"Mirë se erdhe, $playerName"

@@ -14,10 +14,10 @@ LÖVE 12 has no release yet: `luaRun` runs it with `LOVE` if set, on Linux x64 w
 of the builds that the packages are made with (see "Playing with friends", which tells how to get
 them), otherwise with the `love` command (which must be LÖVE 12).
 
-To play, the menu server must run (see the main README). On the login screen, type the menu
-server's address (`127.0.0.1` locally, which `luaLink` fills in; `host` or `host:port`, possibly
-with `http://` or `https://`). Without a scheme, it is `http` (port 9000) in dev and `https` (port
-443) in the packages.
+To play, the menu server must run (see the main README). In dev, type its address on the login
+screen (`127.0.0.1` locally, filled in; `host` or `host:port`, possibly with `http://` or
+`https://`; without a scheme, it is `http`, port 9000). The packages connect to the build's
+(`packagedMenuServer`, see below), in `https` (port 443) unless it says `http://`.
 
 ### Dev and prod builds
 
@@ -27,10 +27,17 @@ fastLink and fullLink). In the code, `scala.scalajs.LinkingInfo.productionMode` 
 
 Values set by the build (`LuaSettings.luaConfig` in `build.sbt`, scoped to `luaPackage` for the
 packages) are written to a generated Lua module, `bff_config.lua`, and read through the
-`bffclient.lua.BuildConfig` facade (a value that the build does not set is null): the menu server's
-address that the login screen shows by default (`127.0.0.1` in dev; in the packages, the
-`BFF_MENU_SERVER` environment variable's when packaging, if set), and the scheme of the addresses
-typed without one (`http` in dev, `https` in the packages).
+`bffclient.lua.BuildConfig` facade (a value that the build does not set is null):
+
+* `menuServer`, in the packages only: the menu server they connect to, without asking for it (the
+  `packagedMenuServer` setting: `BFF_MENU_SERVER`'s when packaging, otherwise
+  `battle-for-flatland.eu`; `BFF_MENU_URL`, when set when running the game, is used instead);
+* `menuServerScheme`: the scheme of the addresses without one (`http` in dev, `https` in the
+  packages);
+* `version`, in the packages only: the start of the SHA-256 of the linked game
+  (`LuaSettings.programVersion`), also written to `target/dist/version`. The menu server gives the
+  version of the packages it serves (`api/bff/client-version`): when it is another one, the login
+  screen tells the player to download the game again, with a button to the website.
 
 ## Code organisation
 
@@ -83,7 +90,7 @@ when they stop saying hello, and kicks them a while later.
 
 The screens (package `menu`, one file per screen) are:
 
-* **login**: type the menu server's address and choose a pseudo (validated with
+* **login**: choose a pseudo (and type the menu server's address, in dev) (validated with
   `LoginUser.validator`);
 * **games**: the games that did not start, refreshed live from the lobby; create one, or
   join one (or join back the one you are in), or "Learn to play" for the tutorial (until it was
@@ -366,9 +373,10 @@ The packages talk HTTPS to the menu server: on a VM, it runs behind Caddy, which
 [deploy.md](../deploy.md)). To host it at home without TLS, run it as usual (`server/reStart` listens
 on all interfaces; not with `-DisProd=false`, which only listens on 127.0.0.1), and forward the port
 **9000**, in **TCP** (menu server) and in **UDP** (rendezvous and lobby), of the router to that machine
-(and open them in its firewall, if any). Players then type `http://` and the router's public address
-on the login screen, e.g. `http://81.12.34.56` (without `http://`, the packages try HTTPS). When the
-address changes, they type the new one (or use a dynamic DNS name: host names work too). There are no
+(and open them in its firewall, if any). Package the client for `http://` and the router's public
+address, e.g. `BFF_MENU_SERVER=http://81.12.34.56 sbt love-client/luaPackage` (without `http://`, the
+packages try HTTPS). When the address changes, package it again (or use a dynamic DNS name: host
+names work too). There are no
 passwords: anyone with the address can log in, with any pseudo.
 
 The menu server also serves the packages that `sbt love-client/luaPackage` made:

@@ -33,8 +33,8 @@ final class LoadingScreen(app: MenuApp, message: String) extends Screen {
   * until the game server credentials arrive and `startGame` takes over. The game comes back to the
   * menus with the function it is given.
   *
-  * The menu server is the one typed on the login screen (`server` fills it in, otherwise the last
-  * one used, otherwise the build's default, `BuildConfig.menuServer`).
+  * The menu server is `server` if given, otherwise the build's (`BuildConfig.menuServer`, in the
+  * packages), otherwise the one typed on the login screen (see [[LoginScreen]]).
   *
   * The texts are in the language of the settings ([[ClientSettings]]). Until one is chosen, the
   * menus start with the choice of the language ([[LanguageScreen]]).

@@ -87,6 +87,10 @@ trait I18n {
   def invalidPort(port: String): String
   def invalidAddress(address: String): String
 
+  /** When the menu server has another version of the game than the player's. */
+  def outdatedVersion: String
+  def downloadTheNewVersion: String
+
   // Games
   def welcomePlayer(playerName: String): String
   def learnToPlay: String

@@ -81,6 +81,9 @@ object DutchI18n extends I18n {
   override def invalidPort(port: String): String = s"Ongeldige poort: $port"
   override def invalidAddress(address: String): String =
     s"Ongeldig adres: $address (verwacht: host of host:poort)"
+  override def outdatedVersion: String =
+    "Er is een nieuwe versie van Battle for Flatland! Download ze opnieuw van de website om verder te spelen."
+  override def downloadTheNewVersion: String = "Download de nieuwe versie"
 
   // Games
   override def welcomePlayer(playerName: String): String   = s"Welkom, $playerName"
