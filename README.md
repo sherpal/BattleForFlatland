@@ -99,6 +99,28 @@ See [the client's README](love-client/README.md#playing-with-friends) for the de
 
 To package the backend itself (only its API: the client is the LÖVE one), `sbt packageApplication` writes the fat jar `dist/app.jar`.
 
+### The domain name
+
+The game's public address is `battle-for-flatland.eu` (registered at OVHcloud: a `.eu` name needs an owner established in the EU/EEA), which points to the Oracle VM described in [deploy.md](deploy.md). Oracle is not the registrar, so the DNS is managed at OVH (*Web Cloud → Domain names → the domain → DNS zone*), with OVH's own nameservers.
+
+To (re)create the setup:
+
+1. In the Oracle console, give the VM a **reserved public IPv4**, so that the address survives the VM being recreated (the `A` record below depends on it).
+2. In the OVH DNS zone, a single `A` record for the apex (empty subdomain) with the VM's IP. Delete the records that OVH pre-fills to its own hosting (an `A` for `213.186.33.5`, `AAAA`, `www`...): DNS answers with all of them in turn, so visitors (and Let's Encrypt) would land on OVH half of the time. The `ftp`, `smtp`, `imap`, `pop3` defaults are harmless. Check with `dig +short battle-for-flatland.eu @1.1.1.1`.
+3. Deploy with the domain as the site, so that Caddy gets a Let's Encrypt certificate for it, and the packaged clients show it on their login screen:
+   ```
+   BFF_MENU_SERVER=battle-for-flatland.eu sbt "deploy ubuntu@<ip> linux/amd64 --key <private key> --site battle-for-flatland.eu"
+   ```
+4. Check with `curl https://battle-for-flatland.eu/api` (`Hello World!`). The certificate lasts six days and Caddy renews it by itself.
+
+The UDP traffic of the game (port 9000, hole punching) goes to the same name: the DNS must not go through a proxy (no Cloudflare "orange cloud").
+
+If it does not work:
+
+- **Both TCP 80 and 443 time out, and Caddy's logs (`docker logs bff-caddy`) say "Timeout during connect"**: the address in the `A` record is not the VM's (compare it with the IP of the `ssh` target and of the Oracle console: a mistyped digit looks exactly like a firewall problem), or the ingress rules of the subnet's *security list* (and of its *network security group*, if any) are missing: TCP 80, TCP 443 and UDP 9000, with the port as the **destination** port.
+- **The DNS is right but Caddy still fails**: it waits up to 30 minutes between attempts. `docker restart bff-caddy` makes it try again at once.
+- **`www.battle-for-flatland.eu`** is not served (it would need a site block in [deploy/Caddyfile](deploy/Caddyfile) and a `CNAME` for `www`).
+
 ## Contribute (in construction)
 
 Below, we try to describe how you can contribute in parts of the developments.

@@ -79,7 +79,7 @@ BFF_MENU_SERVER=<ip> sbt "deploy ubuntu@<ip> linux/amd64 --key ~/.ssh/oracle.key
   of your `~/.ssh/config`, so `sbt "deploy oracle --site <ip>"` works with a `Host oracle` entry there.
 - `--site` is what the players type, which the certificate is for: the VM's IP address (the default,
   when the target is one), or a domain name that points to it (better: the IP address of a VM may
-  change).
+  change; see [the README](README.md#the-domain-name) for the one of the game).
 - `BFF_MENU_SERVER` (optional) is the address that the packaged clients show on their login screen.
 - LÖVE 12's builds, which the clients are packaged with, need a GitHub token the first time (see
   [the client's README](love-client/README.md#playing-with-friends)): `GITHUB_TOKEN=...`.
