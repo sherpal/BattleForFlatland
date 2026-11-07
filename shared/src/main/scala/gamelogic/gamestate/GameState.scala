@@ -74,7 +74,7 @@ final case class GameState(
     )
 
   /** All the passive buffs, in the order in which they transform actions. */
-  private def orderedActionChangers: List[PassiveBuff] =
+  private lazy val orderedActionChangers: List[PassiveBuff] =
     passiveBuffs.valuesIterator.flatMap(_.valuesIterator).toList.sortBy(_.transformerOrder)
 
   /** See other overloaded methods. */

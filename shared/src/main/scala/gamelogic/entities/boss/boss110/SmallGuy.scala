@@ -98,7 +98,7 @@ final case class SmallGuy(
 
 object SmallGuy {
 
-  def maxLife: Double   = 700.0
+  def maxLife: Double   = 500.0
   val fullSpeed: Double = Constants.playerSpeed
   val damageOnTick      = 2.0
   val tickRate          = 2000L

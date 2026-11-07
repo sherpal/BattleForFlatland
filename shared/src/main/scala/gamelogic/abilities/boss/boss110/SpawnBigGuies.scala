@@ -8,7 +8,7 @@ import gamelogic.utils.IdGeneratorContainer
 import gamelogic.docs.{AbilityInfoFromMetadata, AbilityMetadata}
 import gamelogic.physics.Complex
 import gamelogic.entities.boss.dawnoftime.Boss110
-import gamelogic.gamestate.gameactions.boss110.AddBigGuies
+import gamelogic.gamestate.gameactions.boss110.AddBigGuy
 import services.i18n.I18n
 
 final case class SpawnBigGuies(useId: Ability.UseId, time: Long, casterId: Entity.Id)
@@ -19,13 +19,10 @@ final case class SpawnBigGuies(useId: Ability.UseId, time: Long, casterId: Entit
 
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(0.0, Resource.NoResource)
 
-  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] = Vector(
-    AddBigGuies(
-      genActionId(),
-      time,
-      SpawnBigGuies.bigGuiesPositions.map(genEntityId() -> _)
-    )
-  )
+  def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
+    SpawnBigGuies.bigGuiesPositions.map { position =>
+      AddBigGuy(genActionId(), time, genEntityId(), genBuffId(), position)
+    }
 
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): SpawnBigGuies =
     copy(time = newTime, useId = newId)
@@ -46,7 +43,8 @@ object SpawnBigGuies extends AbilityMetadata {
 
   import Complex.DoubleWithI
 
-  private val bigGuiesPositions: Vector[Complex] =
+  /** One big guy above the other, on the right side of the room. */
+  val bigGuiesPositions: Vector[Complex] =
     Vector(
       -1,
       0,

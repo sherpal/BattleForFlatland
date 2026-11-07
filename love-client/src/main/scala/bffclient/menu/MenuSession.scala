@@ -4,6 +4,7 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 
 import bffclient.game.GameAccess
 import bffclient.hosting.HostingAgent
+import gamelogic.docs.BossMetadata
 import menus.data.*
 import models.bff.outofgame.PlayerClasses
 import models.bff.outofgame.gameconfig.*
@@ -11,15 +12,17 @@ import services.i18n.EnglishI18n
 import utils.misc.RGBColour
 
 /** Plays the menus against the menu server like the frontend does, without a UI (for headless
-  * runs): logs in, creates a game, chooses a class and gets ready, picks the boss, starts the game
-  * (running the game server if chosen to) and waits for the game server credentials (from the
-  * lobby, see [[Lobby]]).
+  * runs): logs in, creates a game, chooses a class and gets ready, picks the boss (and fills the
+  * game with AIs, if asked), starts the game (running the game server if chosen to) and waits for
+  * the game server credentials (from the lobby, see [[Lobby]]).
   */
 final class MenuSession(
     api: MenuApi,
     userName: String,
     playerClass: PlayerClasses,
-    bossName: String
+    bossName: String,
+    /** Fills the game with AIs, like the lobby's "Fill with AIs" button. */
+    fillWithAIs: Boolean = false
 )(using ExecutionContext) {
 
   private val credentials = Promise[GameAccess]()
@@ -52,6 +55,15 @@ final class MenuSession(
     _ = info(
       s"Boss: ${config.game.gameConfiguration.bossName}, configuration valid: ${config.game.gameConfigurationIsValid}"
     )
+    ais = Option
+      .when(fillWithAIs)(BossMetadata.maybeMetadataByName(bossName))
+      .flatten
+      .flatMap(_.fillWithAI(Vector(playerClass)))
+      .fold(0)(_.size)
+    _ <- (1 to ais).foldLeft(Future.unit)((previous, _) =>
+      previous.flatMap(_ => api.addAI(game.id).map(_ => ()))
+    )
+    _ = if fillWithAIs then info(s"Added $ais AIs")
     started <- api.startGame(game.id)
     _ = info(s"Start game: $started, waiting for the game server...")
     access <- credentials.future

@@ -6,6 +6,8 @@ import gamelogic.entities.Resource
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 import gamelogic.docs.{AbilityInfoFromMetadata, AbilityMetadata}
+import gamelogic.entities.boss.dawnoftime.Boss110
+import gamelogic.entities.classes.Constants
 import gamelogic.gamestate.gameactions.UseAbility
 import gamelogic.gamestate.gameactions.boss110.AddBombPods
 import gamelogic.physics.Complex
@@ -14,15 +16,14 @@ import gamelogic.entities.boss.boss110.BombPod
 import scala.annotation.tailrec
 import services.i18n.I18n
 
-/** Puts on the board one [[gamelogic.entities.boss.boss110.BombPod]] for each of the specified
-  * positions. It also make the caster "use" the ability that exploses the bombs, so that it will
-  * trigger the actual explosion the given time after that.
+/** Puts [[PlaceBombPods.numberOfBombs]] [[gamelogic.entities.boss.boss110.BombPod]]s at random
+  * positions on the board. It also make the caster "use" the ability that explodes the bombs, so
+  * that it will trigger the actual explosion [[ExplodeBombs.cooldown]] after that.
   */
 final case class PlaceBombPods(
     useId: Ability.UseId,
     time: Long,
-    casterId: Entity.Id,
-    positions: List[Complex]
+    casterId: Entity.Id
 ) extends Ability
     with AbilityInfoFromMetadata[PlaceBombPods.type] {
 
@@ -43,7 +44,13 @@ final case class PlaceBombPods(
       AddBombPods(
         genActionId(),
         time,
-        positions.map(genEntityId() -> _),
+        PlaceBombPods
+          .randomPositionsInSquare(
+            PlaceBombPods.bombsAreaCenter,
+            PlaceBombPods.bombsAreaRadius,
+            PlaceBombPods.numberOfBombs
+          )
+          .map(genEntityId() -> _),
         casterId
       )
     )
@@ -67,8 +74,19 @@ object PlaceBombPods extends AbilityMetadata {
 
   val numberOfBombs: Int = 4
 
+  /** The bombs are placed in a square between the small guys and the middle of the room. */
+  def bombsAreaCenter: Complex = Complex(-Boss110.halfWidth * 9.0 / 20, 0)
+  def bombsAreaRadius: Double  = Boss110.halfHeight * 9.0 / 20
+
+  /** A player covers a bomb when they are less than `BombPod.shape.radius + playerRadius` apart.
+    * With bombs further apart than twice that, nobody can cover two bombs at once. We take some
+    * margin, so that a player standing next to their bomb does not brush against another one.
+    */
+  def minimumDistanceBetweenBombs: Double =
+    3 * (BombPod.shape.radius + Constants.playerRadius)
+
   /** Returns random position in a square of given center and L-Infinity radius, that are apart each
-    * other with a distance at least twice the radius of [[BombPod]]s.
+    * other with a distance at least [[minimumDistanceBetweenBombs]].
     *
     * While finding random position, we will need to make retries. We limit to 500 retries, so that
     * we can't end up in an infinite loop (for example, if you want to generate to much positions
@@ -101,7 +119,9 @@ object PlaceBombPods extends AbilityMetadata {
       else {
         val newRandomPosition = center + Complex(randomInRange(), randomInRange())
 
-        if (currentPositions.forall(_.distanceTo(newRandomPosition) > BombPod.shape.radius * 2))
+        if (
+          currentPositions.forall(_.distanceTo(newRandomPosition) > minimumDistanceBetweenBombs)
+        )
           positionsAccumulator(
             newRandomPosition +: currentPositions,
             remainingToFind - 1,

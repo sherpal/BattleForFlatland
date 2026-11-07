@@ -85,7 +85,7 @@ object BFFPicklers {
     .addConcreteType[boss105.ShadeFalls]
     .addConcreteType[boss105.PutVolatileCharge]
     .addConcreteType[boss105.PutYearning]
-    .addConcreteType[boss110.AddBigGuies]
+    .addConcreteType[boss110.AddBigGuy]
     .addConcreteType[boss110.AddBombPods]
     .addConcreteType[boss110.AddSmallGuy]
     .addConcreteType[boss110.AddCreepingShadow]

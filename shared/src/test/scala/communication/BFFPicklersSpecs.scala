@@ -9,6 +9,13 @@ import gamelogic.abilities.boss.boss104.{
   TwinDebuffs
 }
 import gamelogic.abilities.boss.boss105.{Resonance, Reunion, Siphon, Skewer, VolatileMark}
+import gamelogic.abilities.boss.boss110.{
+  ExplodeBombs,
+  PlaceBombPods,
+  SpawnBigGuies,
+  SpawnSmallGuies
+}
+import gamelogic.abilities.boss.boss110.addsabilities.{CreepingShadowTick, PutBrokenArmor}
 import gamelogic.abilities.boss.sirofvice.{
   CleansingNova,
   HolyFlame,
@@ -31,6 +38,12 @@ import gamelogic.gamestate.gameactions.boss105.{
   PutVolatileCharge,
   PutYearning,
   ShadeFalls
+}
+import gamelogic.gamestate.gameactions.boss110.{
+  AddBombPods,
+  AddCreepingShadow,
+  AddSmallGuy,
+  AddBigGuy as Boss110AddBigGuy
 }
 import gamelogic.gamestate.gameactions.sirofvice.{
   PutHolyWrathChain,
@@ -110,6 +123,22 @@ final class BFFPicklersSpecs extends munit.FunSuite {
     roundTripAction(ShadeFalls(actionId, 1L, entityId, buffId, entityId, somewhere))
     roundTripAction(PutVolatileCharge(actionId, 1L, buffId, entityId, entityId))
     roundTripAction(PutYearning(actionId, 1L, buffId, entityId, entityId))
+  }
+
+  test("Boss110 abilities survive a boopickle round trip") {
+    roundTripAbility(SpawnBigGuies(useId, 1L, entityId))
+    roundTripAbility(SpawnSmallGuies(useId, 1L, entityId))
+    roundTripAbility(PlaceBombPods(useId, 1L, entityId))
+    roundTripAbility(ExplodeBombs(useId, 1L, entityId))
+    roundTripAbility(PutBrokenArmor(useId, 1L, entityId, entityId))
+    roundTripAbility(CreepingShadowTick(useId, 1L, entityId))
+  }
+
+  test("Boss110 actions survive a boopickle round trip") {
+    roundTripAction(Boss110AddBigGuy(actionId, 1L, entityId, buffId, somewhere))
+    roundTripAction(AddSmallGuy(actionId, 1L, entityId, buffId, somewhere))
+    roundTripAction(AddBombPods(actionId, 1L, List(entityId -> somewhere), entityId))
+    roundTripAction(AddCreepingShadow(actionId, 1L, entityId, entityId))
   }
 
   test("The pentagon's abilities and actions survive a boopickle round trip") {

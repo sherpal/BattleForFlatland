@@ -15,6 +15,20 @@ final case class AddAndRemoveActions(
     this.oldestTimeToRemove min that.oldestTimeToRemove,
     this.idsOfActionsToRemove ++ that.idsOfActionsToRemove
   )
+
+  /** The same update, without the actions that it adds only to remove them right away (those that
+    * the game master refused). Receivers drop them anyway, but bots propose many, and this saves
+    * sending and decoding them.
+    */
+  def withoutRefusedActions: AddAndRemoveActions = {
+    val idsToRemove = idsOfActionsToRemove.toSet
+    val addedIds    = actionsToAdd.map(_.id).toSet
+    AddAndRemoveActions(
+      actionsToAdd.filterNot(action => idsToRemove.contains(action.id)),
+      oldestTimeToRemove,
+      idsOfActionsToRemove.filterNot(addedIds.contains)
+    )
+  }
 }
 
 object AddAndRemoveActions {

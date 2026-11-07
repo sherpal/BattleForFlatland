@@ -10,6 +10,7 @@ import gamelogic.physics.pathfinding.Graph
 import application.ai.utils.findTarget
 
 import gamelogic.abilities.Ability
+import gamelogic.buffs.ActionPreventerBuff
 
 /** The AIController trait contains all the boilerplate that you need for implementing an AI.
   *
@@ -71,7 +72,7 @@ trait AIController[
               timeSinceLastFrame,
               findTarget(me, gameState),
               graph
-            )
+            ).filterNot(isPointless(gameState, me, _))
             lastTimeStamp = startTime
             result
           case None =>
@@ -80,6 +81,30 @@ trait AIController[
         }
       }
     else Vector.empty
+
+  /** Actions that would change nothing, but still be sent to every client: moves that leave `me` as
+    * it is, and actions that a buff of `me` prevents (e.g., a stunned add would keep trying to move
+    * and attack).
+    */
+  private def isPointless(gameState: GameState, me: EntityType, action: GameAction): Boolean =
+    gameState.allBuffsOfEntity(me.id).exists {
+      case preventer: ActionPreventerBuff => preventer.isActionPrevented(action)
+      case _ => false
+    } || (action match {
+      case move: MovingBodyMoves => move.entityId == me.id && changesNothing(me, move)
+      case _ => false
+    })
+
+  /** Whether `move` would leave `me` as it is (up to a degree or so, so that chasing a moving
+    * target does not turn a little at every frame). AIs run at 60 fps, and every move they send
+    * goes to every client: there is no need to send the same one again and again.
+    */
+  private def changesNothing(me: EntityType, move: MovingBodyMoves): Boolean = {
+    def sameAngle(a: WithPosition.Angle, b: WithPosition.Angle) =
+      Complex.rotation(a).distanceTo(Complex.rotation(b)) < 0.02
+    move.moving == me.moving && sameAngle(move.rotation, me.rotation) &&
+    (!move.moving || (move.speed == me.speed && sameAngle(move.direction, me.direction)))
+  }
 
   /** Utility method usable by sub classes which will (maybe) determine what action(s) need to be
     * performed.

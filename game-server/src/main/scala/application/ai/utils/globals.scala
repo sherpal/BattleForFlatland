@@ -188,6 +188,12 @@ def findTarget(me: WithThreat & WithPosition, currentGameState: GameState): Opti
 def changeTarget(me: WithTarget, targetId: Entity.Id, time: Long): Option[ChangeTarget] =
   Option.unless(targetId == me.targetId)(ChangeTarget(GameAction.Id.zero, time, me.id, targetId))
 
+/** The `ability`, if `me` can start casting it now.
+  *
+  * Like [[gamelogic.gamestate.gameactions.EntityStartsCasting.isLegal]], nothing can be cast while
+  * casting: proposing it anyway would only be refused by the server, after being sent to every
+  * client.
+  */
 def maybeAbilityUsage[T <: Ability](
     me: WithAbilities,
     ability: T,
@@ -195,10 +201,9 @@ def maybeAbilityUsage[T <: Ability](
 ): Option[T] =
   Option
     .when(
-      me.canUseAbilityBoolean(ability, ability.time, gameState) && ability.canBeCastBoolean(
-        gameState,
-        ability.time
-      )
+      !gameState.entityIsCasting(me.id) &&
+        me.canUseAbilityBoolean(ability, ability.time, gameState) &&
+        ability.canBeCastBoolean(gameState, ability.time)
     )(
       ability
     )

@@ -262,7 +262,7 @@ class GameMaster(
             output.createdActions,
             output.oldestTimeToRemove,
             output.idsOfIdsToRemove
-          )
+          ).withoutRefusedActions
         )
       }
       val endTime = now

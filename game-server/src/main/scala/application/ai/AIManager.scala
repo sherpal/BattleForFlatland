@@ -9,7 +9,7 @@ import scala.collection.mutable
 import gamelogic.gamestate.AddAndRemoveActions
 import gamelogic.gamestate.gameactions.*
 import gamelogic.entities.classes.Constants
-import gamelogic.entities.boss.boss110.BigGuy as Boss110BigGuy
+import gamelogic.entities.boss.boss110.{BigGuy as Boss110BigGuy, SmallGuy}
 import gamelogic.entities.boss.boss104.BigGuy as Boss104BigGuy
 import gamelogic.entities.boss.boss105.Shade
 import gamelogic.entities.boss.*
@@ -22,6 +22,7 @@ import application.TimeManager
 import gamelogic.gamestate.gameactions.boss102.AddBossHound
 import gamelogic.gamestate.gameactions.boss104.AddBigGuy
 import gamelogic.gamestate.gameactions.boss105.AddShade
+import gamelogic.gamestate.gameactions.boss110.{AddCreepingShadow, AddSmallGuy}
 
 class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTranslator)(using
     ExecutionContext
@@ -59,7 +60,9 @@ class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTran
     Vector(
       math.round(Constants.playerRadius).toInt,
       math.round(Constants.bossRadius).toInt,
+      math.round(Boss110.shape.radius).toInt,
       math.round(Boss110BigGuy.shape.radius).toInt,
+      math.round(SmallGuy.shape.radius).toInt,
       math.round(Boss104BigGuy.shape.radius).toInt,
       math.round(Shade.shape.radius).toInt
     )
@@ -89,6 +92,12 @@ class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTran
         aiControllers.addOne(action.entityId -> boss.boss104units.BigGuyController())
       case action: AddShade =>
         aiControllers.addOne(action.entityId -> boss.boss105units.ShadeController())
+      case action: gamelogic.gamestate.gameactions.boss110.AddBigGuy =>
+        aiControllers.addOne(action.entityId -> boss.boss110units.BigGuyController())
+      case action: AddSmallGuy =>
+        aiControllers.addOne(action.entityId -> boss.boss110units.SmallGuyController())
+      case action: AddCreepingShadow =>
+        aiControllers.addOne(action.entityId -> boss.boss110units.CreepingShadowController())
       // todo
       case action: SpawnBoss if action.bossName == Boss101.name =>
         aiControllers.addOne(action.entityId -> boss.Boss101Controller)
@@ -101,7 +110,7 @@ class AIManager(gameStateProvider: () => GameState, actionTranslator: ActionTran
       case action: SpawnBoss if action.bossName == Boss105.name =>
         aiControllers.addOne(action.entityId -> boss.Boss105Controller)
       case action: SpawnBoss if action.bossName == Boss110.name =>
-        ??? // make boss 110 controller
+        aiControllers.addOne(action.entityId -> boss.Boss110Controller)
       case _ =>
       // ignoring other actions
     }

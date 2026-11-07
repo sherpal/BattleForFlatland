@@ -55,11 +55,9 @@ trait BossVisuals {
 
 object BossVisuals {
 
-  /** By boss name, like the frontend's `drawerMapping`. Boss 101 has no visuals, and Boss 110's are
-    * not done (it is broken).
-    */
+  /** By boss name, like the frontend's `drawerMapping`. Boss 101 has no visuals. */
   private val byBossName: Map[String, BossVisuals] =
-    Seq(Boss102Visuals, Boss104Visuals, Boss105Visuals, SirOfViceVisuals)
+    Seq(Boss102Visuals, Boss104Visuals, Boss105Visuals, Boss110Visuals, SirOfViceVisuals)
       .map(v => v.bossName -> v)
       .toMap
 

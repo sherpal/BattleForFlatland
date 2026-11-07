@@ -5,6 +5,8 @@
 #   --window                    plays in a window, with the menus' UI
 #   --screenshot FRAMES EVENTS  runs the window through tools/screenshot (see there), e.g.
 #                               --screenshot 30,90 "text@10:alice,return@20"
+# BFF_BOSS picks the boss, and BFF_FILL_AIS fills the game with AIs. With --window, BFF_SCRIPTED=1 plays the scripted menus and game in the
+# window (to see it drawn, e.g. to measure the frame rate), instead of showing the menus' UI.
 # BFF_CLIENT runs another client than love-client/target/lua (headless or --window), e.g. the Linux
 # package of `sbt love-client/luaPackage`: BFF_CLIENT=path/to/BattleForFlatland/BattleForFlatland
 #

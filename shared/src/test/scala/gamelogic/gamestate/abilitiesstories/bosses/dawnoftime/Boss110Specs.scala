@@ -1,13 +1,21 @@
 package gamelogic.gamestate.abilitiesstories.bosses.dawnoftime
 
+import gamelogic.abilities.Ability
+import gamelogic.abilities.boss.boss110.{ExplodeBombs, PlaceBombPods}
 import gamelogic.gamestate.abilitiesstories.StoryTeller
 import gamelogic.entities.Entity
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.gamestate.GameState
 import gamelogic.physics.Complex
 import testutils.ActionComposer
-import gamelogic.gamestate.gameactions.boss110.AddCreepingShadow
-import gamelogic.gamestate.gameactions.EntityRadiusChange
+import gamelogic.gamestate.gameactions.boss110.{AddBombPods, AddCreepingShadow}
+import gamelogic.gamestate.gameactions.{
+  AddPlayerByClass,
+  EntityRadiusChange,
+  EntityTakesDamage,
+  RemoveEntity
+}
+import models.bff.outofgame.PlayerClasses
 import gamelogic.entities.boss.boss110.CreepingShadow
 
 final class Boss110Specs extends StoryTeller {
@@ -79,6 +87,71 @@ final class Boss110Specs extends StoryTeller {
     assertCorrectRadius(gs, addCreepingShadow.entityId, changeRadius.radius)
     assertEquals(creepingShadow.pos, moving.position)
 
+  }
+
+  /** Bombs tests
+    */
+  val bombPositions: Vector[Complex] = Vector(Complex(-300, 0), Complex(-200, 0))
+
+  def addPlayerAt(time: Long, position: Complex): AddPlayerByClass =
+    AddPlayerByClass(
+      genActionId(),
+      time,
+      genEntityId(),
+      position,
+      PlayerClasses.Pentagon,
+      0,
+      "Bomb Squad"
+    )
+
+  /** The game state with a player at each of the given positions, and the bombs down. */
+  def withBombsAndPlayersAt(playerPositions: Complex*): GameState =
+    initialGameState.applyActions(
+      Vector(start) ++ playerPositions.map(addPlayerAt(2, _)) :+ AddBombPods(
+        genActionId(),
+        3,
+        bombPositions.map(genEntityId() -> _).toList,
+        bossId
+      )
+    )
+
+  def explosionDamage(gs: GameState): Vector[EntityTakesDamage] =
+    ExplodeBombs(Ability.UseId.zero, 10, bossId).createActions(gs).collect {
+      case damage: EntityTakesDamage => damage
+    }
+
+  test("Bombs covered by exactly one player each do not explode") {
+    val gs      = withBombsAndPlayersAt(bombPositions*)
+    val actions = ExplodeBombs(Ability.UseId.zero, 10, bossId).createActions(gs)
+    assertEquals(explosionDamage(gs), Vector.empty)
+    assertEquals(actions.collect { case remove: RemoveEntity => remove }.length, 2)
+  }
+
+  test("An uncovered bomb hurts everybody") {
+    val gs = withBombsAndPlayersAt(bombPositions.head, Complex(0, 200))
+    assertEquals(explosionDamage(gs).map(_.entityId).toSet, gs.players.keySet)
+    assert(explosionDamage(gs).forall(_.amount == ExplodeBombs.damage))
+  }
+
+  test("A bomb covered by two players hurts everybody") {
+    val gs = withBombsAndPlayersAt(bombPositions.head, bombPositions.head + 3, bombPositions.last)
+    assertEquals(explosionDamage(gs).map(_.entityId).toSet, gs.players.keySet)
+  }
+
+  test("Nobody can cover two bombs at once") {
+    (1 to 100).foreach { _ =>
+      val positions = PlaceBombPods.randomPositionsInSquare(
+        PlaceBombPods.bombsAreaCenter,
+        PlaceBombPods.bombsAreaRadius,
+        PlaceBombPods.numberOfBombs
+      )
+      assertEquals(positions.length, PlaceBombPods.numberOfBombs)
+      for {
+        (z, i) <- positions.zipWithIndex
+        (w, j) <- positions.zipWithIndex
+        if i < j
+      } assert(z.distanceTo(w) > PlaceBombPods.minimumDistanceBetweenBombs)
+    }
   }
 
 }

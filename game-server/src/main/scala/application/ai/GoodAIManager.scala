@@ -22,6 +22,7 @@ import application.ai.goodais.bosses.boss101.*
 import application.ai.goodais.bosses.boss102.*
 import application.ai.goodais.bosses.boss104.Boss104Container
 import application.ai.goodais.bosses.boss105.Boss105Container
+import application.ai.goodais.bosses.boss110.Boss110Container
 import application.ai.goodais.bosses.sirofvice.SirOfViceContainer
 import gamelogic.entities.boss.firstraid.SirOfVice
 import application.ai.goodais.classes.{
@@ -140,6 +141,7 @@ object GoodAIManager {
     Boss102   -> Boss102Container(),
     Boss104   -> Boss104Container(),
     Boss105   -> Boss105Container(),
+    Boss110   -> Boss110Container(),
     SirOfVice -> SirOfViceContainer()
   )
 

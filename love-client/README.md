@@ -245,8 +245,9 @@ The abilities have effects (`Effects.scala`): damage and heal numbers, the squar
 swing of the triangle's direct hit. What is specific to each boss is drawn by its `BossVisuals`
 (package `render.bosses`), chosen by boss name: Boss 102's hounds and damage zones; Boss 104's big
 guys, death marks, debuff circles and the finisher's triangle; Boss 105's Shade, the twins' auras and
-bond, the Skewer's beam, the volatile charges, the reformation points, Siphon and Reunion; Sir of
-Vice's Sacred Ground, Cleansing Nova and Holy Wrath. A `BossVisuals` can also tint the players'
+bond, the Skewer's beam, the volatile charges, the reformation points, Siphon and Reunion; Boss
+110's creeping shadow, bombs (green when covered by exactly one player) and big and small guys; Sir
+of Vice's Sacred Ground, Cleansing Nova and Holy Wrath. A `BossVisuals` can also tint the players'
 frames (e.g. Boss 104's twin debuffs) and add a line to the HUD (Boss 102's hounds).
 
 **HUD.** The frames of the team on the left (faded when out of healing range), our frame and our

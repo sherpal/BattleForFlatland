@@ -32,18 +32,25 @@ object Main {
   private def env(name: String, default: String): String =
     Option(Os.getenv(name)).getOrElse(default)
 
+  /** Headless, or BFF_SCRIPTED: the menus and the game play by themselves. */
+  private def scripted: Boolean =
+    Os.getenv("BFF_HEADLESS") != null || Os.getenv("BFF_SCRIPTED") != null
+
   /** In a window, starts with the menus' UI, with the build's menu server (in dev, the player types
     * its address), or BFF_MENU_URL's (e.g. http://127.0.0.1:9000). Headless, plays the menus with a
-    * script (BFF_MENU_URL, BFF_USER, BFF_CLASS, BFF_BOSS). With BFF_HOST (or headless without
-    * BFF_MENU_URL), connects directly to a game server (BFF_HOST, BFF_PORT, BFF_SECRET,
-    * BFF_GAME_ID).
+    * script (BFF_MENU_URL, BFF_USER, BFF_CLASS, BFF_BOSS, and BFF_FILL_AIS to fill the game with
+    * AIs). With BFF_HOST (or headless without BFF_MENU_URL), connects directly to a game server
+    * (BFF_HOST, BFF_PORT, BFF_SECRET, BFF_GAME_ID).
+    *
+    * BFF_SCRIPTED plays like headless (the menus, and the game, with a script), but in a window, to
+    * see the game drawn (e.g. to measure the frame rate).
     */
   def main(args: Array[String]): Unit = {
     val user     = env("BFF_USER", "alice")
     val headless = Os.getenv("BFF_HEADLESS") != null
     val menuUrl  = Option(Os.getenv("BFF_MENU_URL"))
     menuUrl match {
-      case Some(url) if headless =>
+      case Some(url) if scripted =>
         val (scheme, host, port) =
           MenuApi
             .parseAddress(url, i18n)
@@ -52,7 +59,13 @@ object Main {
         val playerClass = PlayerClasses
           .playerClassByName(env("BFF_CLASS", "Triangle"))
           .getOrElse(PlayerClasses.Triangle)
-        val menu = MenuSession(api, user, playerClass, env("BFF_BOSS", "Boss 101"))
+        val menu = MenuSession(
+          api,
+          user,
+          playerClass,
+          env("BFF_BOSS", "Boss 101"),
+          fillWithAIs = Os.getenv("BFF_FILL_AIS") != null
+        )
         menu.run().onComplete {
           case Success(access) => startGame(access, headless)
           case Failure(error) =>
@@ -141,7 +154,7 @@ object Main {
       val client = new GameClient(
         link,
         access.userName,
-        headless,
+        scripted,
         controls,
         controlsInfo,
         i18n,

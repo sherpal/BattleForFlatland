@@ -1,23 +1,30 @@
 package gamelogic.gamestate.gameactions.boss110
 
 import gamelogic.physics.Complex
+import gamelogic.buffs.Buff
+import gamelogic.buffs.ai.DamageThreatAware
 import gamelogic.entities.boss.boss110.SmallGuy
 import gamelogic.gamestate.GameAction
 import gamelogic.entities.Entity
 import gamelogic.entities.WithPosition.Angle
-import gamelogic.gamestate.statetransformers.WithEntity
-import gamelogic.gamestate.statetransformers.GameStateTransformer
+import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithBuff, WithEntity}
 import gamelogic.gamestate.GameState
 import services.i18n.I18n
 
-/** Adds an instance of a [[SmallGuy]] in the game.
+/** Adds an instance of a [[SmallGuy]] in the game, with the `DamageThreatAware` buff that lets it
+  * build its threat table.
   */
-final case class AddSmallGuy(id: GameAction.Id, time: Long, entityId: Entity.Id, position: Complex)
-    extends GameAction
+final case class AddSmallGuy(
+    id: GameAction.Id,
+    time: Long,
+    entityId: Entity.Id,
+    threatAwareBuffId: Buff.Id,
+    position: Complex
+) extends GameAction
     with GameAction.EntityCreatorAction {
 
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
-    new WithEntity(
+    WithEntity(
       SmallGuy(
         entityId,
         time,
@@ -32,7 +39,7 @@ final case class AddSmallGuy(id: GameAction.Id, time: Long, entityId: Entity.Id,
         Map.empty
       ),
       time
-    )
+    ) ++ WithBuff(DamageThreatAware(threatAwareBuffId, entityId, entityId, time))
 
   def isLegal(gameState: GameState)(using I18n): Option[String] = Option.empty
 

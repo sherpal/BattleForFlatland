@@ -257,8 +257,16 @@ final class GameClient(
   /** The game state from the server only. */
   def serverGameState: GameState = gatherer.currentGameState
 
-  private def project(): Unit =
-    projectedState = gatherer.currentGameState.applyActions(predictedMovement.toVector)
+  /** What [[projectedState]] was computed from (it is computed again only when one changes). */
+  private var projectedFrom: (GameState, Option[MovingBodyMoves]) = (GameState.empty, None)
+
+  private def project(): Unit = {
+    val base = gatherer.currentGameState
+    if !(projectedFrom._1 eq base) || !(projectedFrom._2 eq predictedMovement) then {
+      projectedState = base.applyActions(predictedMovement.toVector)
+      projectedFrom = (base, predictedMovement)
+    }
+  }
 
   /** Smoothed positions of the entities moved by the server, for drawing. */
   val smoothing = new Smoothing

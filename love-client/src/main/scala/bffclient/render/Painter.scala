@@ -147,14 +147,21 @@ final class Painter(
   }
 
   /** The buffs of the entity that have an icon, the oldest first (like the frontend's buff
-    * containers).
+    * containers). Both the world (above the players) and the HUD (their frames) show them: they are
+    * computed once per frame.
     */
   def iconBuffs(entityId: Entity.Id): Seq[(Buff, Sprite)] =
-    gameState
-      .allBuffsOfEntity(entityId)
-      .toSeq
-      .sortBy(_.appearanceTime)
-      .flatMap(buff => Sprites.buffIcons.get(buff.resourceIdentifier).map(buff -> _))
+    iconBuffsByEntity.getOrElseUpdate(
+      entityId,
+      gameState
+        .allBuffsOfEntity(entityId)
+        .toSeq
+        .sortBy(_.appearanceTime)
+        .flatMap(buff => Sprites.buffIcons.get(buff.resourceIdentifier).map(buff -> _))
+    )
+
+  private val iconBuffsByEntity =
+    scala.collection.mutable.HashMap.empty[Entity.Id, Seq[(Buff, Sprite)]]
 
   /** A row of the entity's buff icons above its life bar. Like the frontend, the icons of the buffs
     * that end are darkened from the top, by the part of their duration that remains.

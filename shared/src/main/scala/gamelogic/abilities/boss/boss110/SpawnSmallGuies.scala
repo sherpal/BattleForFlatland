@@ -20,12 +20,7 @@ final case class SpawnSmallGuies(useId: Ability.UseId, time: Long, casterId: Ent
 
   def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
     SpawnSmallGuies.startingPositions.map { position =>
-      AddSmallGuy(
-        genActionId(),
-        time,
-        genEntityId(),
-        position
-      )
+      AddSmallGuy(genActionId(), time, genEntityId(), genBuffId(), position)
     }
 
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): SpawnSmallGuies =
@@ -47,6 +42,7 @@ object SpawnSmallGuies extends AbilityMetadata {
 
   import Complex.i
 
+  /** Two small guys next to each other, on the left side of the room. */
   val startingPositions: Vector[Complex] =
     Vector(-i, i).map(_ * 50).map(_ - Boss110.halfWidth * 4 / 5)
 

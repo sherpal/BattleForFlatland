@@ -12,12 +12,11 @@ import gamelogic.abilities.{Ability, AutoAttack}
 import gamelogic.abilities.boss.boss110.addsabilities.{CreepingShadowTick, PutBrokenArmor}
 import gamelogic.buffs.boss.boss110.BrokenArmor
 import gamelogic.docs.{formatNumber, formatPeriod, formatSeconds, AbilityDoc, BossMetadata}
-import gamelogic.entities.boss.boss110.SmallGuy
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.Resource.{NoResource, ResourceAmount}
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
-import gamelogic.entities.boss.boss110.{BigGuy, BombPod}
+import gamelogic.entities.boss.boss110.{BigGuy, BombPod, CreepingShadow, SmallGuy}
 import gamelogic.entities.boss.{BossEntity, BossFactory}
 import gamelogic.entities.staticstuff.Obstacle
 import gamelogic.entities.{Entity, Resource}
@@ -134,7 +133,7 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
 
   final val shape: Circle = new Circle(30.0)
 
-  final val maxLife: Double = 50_000
+  final val maxLife: Double = 40_000
 
   val intendedFor = 10 // players
 
@@ -162,6 +161,9 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
 
   @inline final def fullSpeed: Double = 300.0
 
+  /** The boss as it is at the very beginning of the game, with fake past usages of its abilities
+    * so that each of them comes off cooldown `timeToFirstAbility` after the pull.
+    */
   def initialBoss(
       entityId: gamelogic.entities.Entity.Id,
       time: Long
@@ -176,11 +178,8 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
         SpawnBigGuies.abilityId -> Pointed[SpawnBigGuies].unit.copy(
           time = SpawnBigGuies.setBeginningOfGameAbilityUse(time)
         ),
-        Ability.boss110PlaceBombPods -> Pointed[PlaceBombPods].unit.copy(
-          time = time - PlaceBombPods.cooldown + PlaceBombPods.timeToFirstAbility
-        ),
-        Ability.boss110SpawnSmallGuies -> Pointed[SpawnSmallGuies].unit.copy(
-          time = time - SpawnSmallGuies.cooldown + SpawnSmallGuies.timeToFirstAbility
+        PlaceBombPods.abilityId -> Pointed[PlaceBombPods].unit.copy(
+          time = PlaceBombPods.setBeginningOfGameAbilityUse(time)
         ),
         SpawnSmallGuies.abilityId -> Pointed[SpawnSmallGuies].unit.copy(
           time = SpawnSmallGuies.setBeginningOfGameAbilityUse(time)
@@ -225,6 +224,7 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
   ): Vector[gamelogic.gamestate.GameAction] =
     gameBoundariesActions(time)
 
+  /** Everything the boss brought in the room leaves with it, so that nobody dies after the win. */
   def whenBossDiesActions(
       gameState: gamelogic.gamestate.GameState,
       time: Long
@@ -232,7 +232,9 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
     gameState.entities.values
       .collect {
         case bigGuy: BigGuy => bigGuy
+        case smallGuy: SmallGuy => smallGuy
         case bomb: BombPod => bomb
+        case shadow: CreepingShadow => shadow
       }
       .map(entity => RemoveEntity(genActionId(), time, entity.id))
       .toVector
@@ -247,7 +249,7 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
     )
 
   def description: String =
-    s"A fight for ${intendedFor} players. The boss summons big guys on one side of the room, " ++
+    s"A fight for $intendedFor players. The boss summons big guys on one side of the room, " ++
       "breaking the armour of whoever they attack, and small guys on the other side. A creeping " ++
       "shadow follows the small guys around: if it reaches the boss, everybody suffers. And " ++
       "every now and then, bombs must be covered, one player per bomb."
@@ -272,14 +274,21 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
     ),
     AbilityDoc.fromMetadata(
       PlaceBombPods,
-      s"Places ${PlaceBombPods.numberOfBombs} bombs in the room, that explode " ++
+      s"Places ${PlaceBombPods.numberOfBombs} bombs in the left half of the room, that explode " ++
         s"${formatSeconds(ExplodeBombs.cooldown + ExplodeBombs.castingTime)} later."
     ),
     AbilityDoc.fromMetadata(
       ExplodeBombs,
       "Each bomb must be covered by exactly one player when they explode. Otherwise, everybody " ++
-        "dies."
+        s"takes ${formatNumber(ExplodeBombs.damage)} damage."
     ),
+    AbilityDoc(
+      Ability.autoAttackId,
+      "Auto Attack",
+      s"Melee attack dealing ${formatNumber(BigGuy.damageOnTick)} damage to its target.",
+      BigGuy.tickRate,
+      0L
+    ).castBy("Big Guy"),
     AbilityDoc
       .fromMetadata(
         PutBrokenArmor,
@@ -287,6 +296,13 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
           "Stacks, so the tanks should take turns."
       )
       .castBy("Big Guy"),
+    AbilityDoc(
+      Ability.autoAttackId,
+      "Auto Attack",
+      s"Melee attack dealing ${formatNumber(SmallGuy.damageOnTick)} damage to its target.",
+      SmallGuy.tickRate,
+      0L
+    ).castBy("Small Guy"),
     AbilityDoc
       .fromMetadata(
         CreepingShadowTick,

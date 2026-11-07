@@ -91,8 +91,7 @@ object Sprites {
   lazy val smallLock: Option[Sprite] = load("misc/small-lock.png")
 
   /** The icons of the buffs, like the frontend's `Asset.buffAssetMap`, without the permanent buffs
-    * of the classes (the resource fillers), which every player of the class has, and without Boss
-    * 110's.
+    * of the classes (the resource fillers), which every player of the class has.
     */
   lazy val buffIcons: Map[Buff.ResourceIdentifier, Sprite] = Seq(
     Buff.hexagonHotIdentifier     -> "abilities/hexagon-hot",
@@ -113,7 +112,8 @@ object Sprites {
     Buff.boss105VolatileCharge    -> "boss/dawn-of-time/boss105/volatile-charge",
     Buff.boss105TwinBond          -> "boss/dawn-of-time/boss105/twin-bond",
     Buff.boss105Mourning          -> "boss/dawn-of-time/boss105/mourning",
-    Buff.boss105Yearning          -> "boss/dawn-of-time/boss105/yearning"
+    Buff.boss105Yearning          -> "boss/dawn-of-time/boss105/yearning",
+    Buff.boss110BrokenArmor       -> "boss/dawn-of-time/boss110/broken-armor"
   ).flatMap((id, icon) => load(s"$icon.png").map(id -> _)).toMap
 
   /** The icons of the abilities, like the frontend's `Asset.abilityAssetMap`. */

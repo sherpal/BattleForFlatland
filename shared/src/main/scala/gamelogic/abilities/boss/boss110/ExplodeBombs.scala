@@ -10,7 +10,7 @@ import gamelogic.utils.IdGeneratorContainer
 import services.i18n.I18n
 
 /** Check that each bomb pod touches exactly one player. If not, they explode and they kill
-  * everybody (dealing them 1000 damage). Otherwise, they do nothing.
+  * everybody (dealing them [[ExplodeBombs.damage]]). Otherwise, they do nothing.
   */
 final case class ExplodeBombs(useId: Ability.UseId, time: Long, casterId: Entity.Id)
     extends Ability
@@ -25,13 +25,13 @@ final case class ExplodeBombs(useId: Ability.UseId, time: Long, casterId: Entity
       case bomb: BombPod if bomb.powderMonkeyId == casterId => bomb
     }.toVector
 
-    val players = gameState.players.values
-
     bombs
-      .find(bomb => players.count(_.collides(bomb, time)) != 1)
+      .find(!ExplodeBombs.isCovered(gameState, _, time))
       .toVector
       .flatMap(_ =>
-        players.map(player => EntityTakesDamage(genActionId(), time, player.id, 1000, casterId))
+        gameState.players.values.map(player =>
+          EntityTakesDamage(genActionId(), time, player.id, ExplodeBombs.damage, casterId)
+        )
       ) ++ bombs.map(bomb => RemoveEntity(genActionId(), time, bomb.id))
   }
 
@@ -60,5 +60,14 @@ object ExplodeBombs extends AbilityMetadata {
   def timeToFirstAbility: Long = 0L
 
   def abilityId: Ability.AbilityId = Ability.boss110ExplodeBombs
+
+  /** Enough to kill anybody. */
+  inline def damage: Double = 1000.0
+
+  /** Whether the bomb is covered by exactly one player, which is what it takes for it not to
+    * explode.
+    */
+  def isCovered(gameState: GameState, bomb: BombPod, time: Long): Boolean =
+    gameState.players.values.count(_.collides(bomb, time)) == 1
 
 }
