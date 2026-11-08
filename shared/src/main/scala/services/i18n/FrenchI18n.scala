@@ -163,6 +163,9 @@ object FrenchI18n extends I18n {
   override def markerTriangle: String                 = "Triangle"
   override def markerOnTarget(marker: String): String = s"$marker sur la cible"
   override def markerOnGround(marker: String): String = s"$marker au sol"
+  override def actionBar: String                      = "Barre d'action"
+  override def actionBarHelp: String =
+    "Glissez une capacité sur un emplacement de la barre pour l'y placer : la capacité qui s'y trouvait prend sa place. Les touches des emplacements se choisissent dans les commandes."
   override def bindingsHelp: String =
     "Cliquez sur un raccourci, puis appuyez sur une touche (éventuellement avec Maj) ou un bouton de la souris. Les changements s'appliquent à la partie suivante."
   override def mouseOver: String = "Ciblage au survol"

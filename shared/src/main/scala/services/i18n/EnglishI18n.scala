@@ -158,6 +158,9 @@ object EnglishI18n extends I18n {
   override def markerTriangle: String                 = "Triangle"
   override def markerOnTarget(marker: String): String = s"$marker on target"
   override def markerOnGround(marker: String): String = s"$marker on ground"
+  override def actionBar: String                      = "Action bar"
+  override def actionBarHelp: String =
+    "Drag an ability onto a slot of the bar to put it there: the ability that was there takes its place. The keys of the slots are chosen in the controls."
   override def bindingsHelp: String =
     "Click a binding, then press a key (possibly with Shift) or a mouse button. Changes apply to the next game."
   override def mouseOver: String = "Mouse over"

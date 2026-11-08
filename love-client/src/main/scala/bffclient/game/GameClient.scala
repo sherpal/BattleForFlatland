@@ -1,5 +1,6 @@
 package bffclient.game
 
+import bffclient.controls.ClientSettings
 import bffclient.hud.HudClient
 import bffclient.love.{Event, LoveInput}
 import bffclient.render.{Effects, Smoothing}
@@ -140,7 +141,8 @@ final class GameClient(
         id <- myId
         me <- gameState.players.get(id)
       do
-        abilityInput.abilityId(me) match {
+        // in the order the player chose in the settings
+        ClientSettings.current.abilityOrder(me.cls).lift(abilityInput.abilityIndex) match {
           case Some(abilityId) =>
             request(
               c.cast(

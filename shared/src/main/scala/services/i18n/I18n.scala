@@ -154,6 +154,8 @@ trait I18n {
   def markerTriangle: String
   def markerOnTarget(marker: String): String
   def markerOnGround(marker: String): String
+  def actionBar: String
+  def actionBarHelp: String
   def bindingsHelp: String
   def mouseOver: String
   def mouseOverHelp: String

@@ -159,6 +159,9 @@ object AlbanianI18n extends I18n {
   override def markerTriangle: String                 = "Trekëndësh"
   override def markerOnTarget(marker: String): String = s"$marker mbi objektivin"
   override def markerOnGround(marker: String): String = s"$marker në tokë"
+  override def actionBar: String                      = "Shiriti i veprimeve"
+  override def actionBarHelp: String =
+    "Tërhiq një aftësi mbi një vend të shiritit për ta vendosur atje: aftësia që ishte atje merr vendin e saj. Tastet e vendeve zgjidhen te kontrollet."
   override def bindingsHelp: String =
     "Kliko një caktim, pastaj shtyp një tast (me ose pa Shift) ose një buton të miut. Ndryshimet vlejnë nga loja e ardhshme."
   override def mouseOver: String = "Nën miun"
