@@ -61,14 +61,20 @@ object DummyI18n extends I18n {
 
   def bossFacts(life: Int, intendedFor: Int): String = ""
 
+  def bossLifeLeft(bossName: String, percent: Int): String = ""
+
   def bossNotThere: String = ""
 
   def boundToSeveralActions(key: String): String = ""
+
+  def braceStacks(stacks: Int): String = ""
 
   def buffDoesNotExist(
       buffId: gamelogic.buffs.Buff.Id,
       bearerId: gamelogic.entities.Entity.Id
   ): String = ""
+
+  def bulletsHit(count: Int): String = ""
 
   def cannotConnectToGameServer(error: String): String = ""
 
@@ -135,13 +141,23 @@ object DummyI18n extends I18n {
 
   def damage: String = ""
 
+  def damageDone: String = ""
+
+  def damagePreventedByBrace(amount: String): String = ""
+
+  def damageTaken: String = ""
+
   def damageTo(name: String): String = ""
 
   def dead: String = ""
 
+  def deaths: String = ""
+
   def defaultGameName(playerName: String): String = ""
 
   def defeat: String = ""
+
+  def diedAt(minutes: Int, seconds: Int, killedBy: String): String = ""
 
   def done: String = ""
 
@@ -173,6 +189,10 @@ object DummyI18n extends I18n {
   def everyoneReady: String = ""
 
   def faceTheTarget: String = ""
+
+  def facetsWasted(count: Int, percent: Int): String = ""
+
+  def fightSummary: String = ""
 
   def fightLasted(minutes: Int, seconds: Int): String = ""
 
@@ -226,6 +246,8 @@ object DummyI18n extends I18n {
 
   def goUp: String = ""
 
+  def healing: String = ""
+
   def hostGameServers: String = ""
 
   def hostGameServersHelp: String = ""
@@ -237,6 +259,18 @@ object DummyI18n extends I18n {
   def hudScaleHelp: String = ""
 
   def invalidAddress(address: String): String = ""
+
+  def lastMoments: String = ""
+
+  def lastSecondsOf(name: String, seconds: Int, died: Boolean): String = ""
+
+  def life: String = ""
+
+  def nobodyDied: String = ""
+
+  def noClassStatistics: String = ""
+
+  def nothingInLastSeconds: String = ""
 
   def outdatedVersion: String = ""
 
@@ -379,6 +413,8 @@ object DummyI18n extends I18n {
 
   def notReady: String = ""
 
+  def overheal(percent: Int): String = ""
+
   def overview: String = ""
 
   def overviewRole: String = ""
@@ -388,7 +424,11 @@ object DummyI18n extends I18n {
 
   def overviewSummary: String = ""
 
+  def pentagramsCast(count: Int): String = ""
+
   def placeYourselves: String = ""
+
+  def player: String = ""
 
   def playerAlreadyExists: String = ""
 
@@ -451,6 +491,8 @@ object DummyI18n extends I18n {
   def thingsPreventingStart: String = ""
 
   def threat: String = ""
+
+  def timeWithBraceStacks: String = ""
 
   def tutorialHint: String = ""
 

@@ -14,6 +14,7 @@ import gamelogic.entities.{
   MovingBody,
   Resource,
   WithAbilities,
+  WithName,
   WithTarget,
   WithThreat
 }
@@ -48,7 +49,10 @@ final case class Shade(
     with LivingEntity
     with WithThreat
     with WithTarget
-    with WithAbilities {
+    with WithAbilities
+    with WithName {
+
+  def name: String = Shade.name
 
   override def move(
       time: Long,
@@ -113,6 +117,9 @@ final case class Shade(
 }
 
 object Shade {
+
+  /** The name of the shades (they all have the same). */
+  inline def name: String = "Shade"
 
   inline def maxLife: Double = 6000.0
 

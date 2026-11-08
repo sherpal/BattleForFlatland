@@ -30,7 +30,14 @@ final case class ExplodeBombs(useId: Ability.UseId, time: Long, casterId: Entity
       .toVector
       .flatMap(_ =>
         gameState.players.values.map(player =>
-          EntityTakesDamage(genActionId(), time, player.id, ExplodeBombs.damage, casterId)
+          EntityTakesDamage(
+            genActionId(),
+            time,
+            player.id,
+            ExplodeBombs.damage,
+            casterId,
+            abilityId
+          )
         )
       ) ++ bombs.map(bomb => RemoveEntity(genActionId(), time, bomb.id))
   }

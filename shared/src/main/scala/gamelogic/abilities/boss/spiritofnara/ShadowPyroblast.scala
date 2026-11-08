@@ -23,7 +23,14 @@ final case class ShadowPyroblast(useId: Ability.UseId, time: Long, casterId: Ent
     gameState.players.keys.toVector
       .sortBy(_.value)
       .map(playerId =>
-        EntityTakesDamage(genActionId(), time, playerId, ShadowPyroblast.damage, casterId)
+        EntityTakesDamage(
+          genActionId(),
+          time,
+          playerId,
+          ShadowPyroblast.damage,
+          casterId,
+          abilityId
+        )
       )
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): ShadowPyroblast =

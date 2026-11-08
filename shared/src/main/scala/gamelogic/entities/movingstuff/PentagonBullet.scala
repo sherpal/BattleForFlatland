@@ -1,5 +1,6 @@
 package gamelogic.entities.movingstuff
 
+import gamelogic.abilities.Ability
 import gamelogic.entities.Entity.TeamId
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.{Entity, LivingEntity, MovingBody}
@@ -39,6 +40,10 @@ final case class PentagonBullet(
     copy(time = time, pos = position, direction = direction, speed = speed)
 
   def shape: Circle = if fractures then PentagonBullet.fractureShape else PentagonBullet.shape
+
+  /** The ability that shot it. */
+  def abilityId: Ability.AbilityId =
+    if fractures then Ability.pentagonFractureId else Ability.pentagonPentagonBullet
 
   def rotation: Angle = Angle.zero
 

@@ -73,7 +73,14 @@ final class Boss105Specs extends StoryTeller {
       .toVector
 
   def damageToBoss(amount: Double, time: Long): EntityTakesDamage =
-    EntityTakesDamage(genActionId(), time, bossId, amount, Entity.Id.zero)
+    EntityTakesDamage(
+      genActionId(),
+      time,
+      bossId,
+      amount,
+      Entity.Id.zero,
+      Ability.triangleDirectHit
+    )
 
   def damagesByEntity(actions: Vector[GameAction]): Map[Entity.Id, Double] =
     actions.collect { case damage: EntityTakesDamage => damage.entityId -> damage.amount }.toMap

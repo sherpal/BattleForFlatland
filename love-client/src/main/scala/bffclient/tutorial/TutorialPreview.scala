@@ -174,7 +174,7 @@ final class HudPreview(parent: Frame, area: Region, topic: Topic, scene: Tutoria
     boss.update(p)
     cooldowns.update(p)
     threat.update(p, scene.currentTarget)
-    damage.update(p, scene.damageTracker, scene.currentTarget)
+    damage.update(p, scene.fightLog, scene.currentTarget)
     actionBar.update(p)
   }
 

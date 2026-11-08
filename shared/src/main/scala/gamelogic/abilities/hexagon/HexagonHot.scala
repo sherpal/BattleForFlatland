@@ -34,7 +34,8 @@ final case class HexagonHot(
       HexagonHot.healOnTick,
       casterId,
       time,
-      Buff.hexagonHotIdentifier
+      Buff.hexagonHotIdentifier,
+      abilityId
     )
   )
 

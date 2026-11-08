@@ -36,7 +36,7 @@ final case class ShieldSlam(
       BraceShield.stacksOn(gameState, casterId).flatMap(_.minus(1))
 
     Vector(
-      EntityTakesDamage(genActionId(), time, targetId, ShieldSlam.damage, casterId),
+      EntityTakesDamage(genActionId(), time, targetId, ShieldSlam.damage, casterId, abilityId),
       ThreatToEntityChange(
         genActionId(),
         time,

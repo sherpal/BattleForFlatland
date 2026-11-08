@@ -11,6 +11,7 @@ import gamelogic.entities.{
   MovingBody,
   Resource,
   WithAbilities,
+  WithName,
   WithTarget,
   WithThreat
 }
@@ -51,7 +52,11 @@ final case class BigGuy(
     with LivingEntity
     with WithThreat
     with WithTarget
-    with WithAbilities {
+    with WithAbilities
+    with WithName {
+
+  def name: String = BigGuy.name
+
   override def move(
       time: Long,
       position: Complex,
@@ -117,6 +122,10 @@ final case class BigGuy(
 }
 
 object BigGuy {
+
+  /** The name of the big guys (they all have the same). */
+  inline def name: String = "Big Guy"
+
   // The three numbers that really characterise an add: how much life it has, how big it is, and
   // (through `abilities` above) what it can do. Everything else is boilerplate.
   inline def maxLife: Double = 800.0

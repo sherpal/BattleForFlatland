@@ -1,5 +1,6 @@
 package gamelogic.buffs.entities.classes.pentagon
 
+import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.buffs.{Buff, TickerBuff}
 import gamelogic.entities.Entity
@@ -29,7 +30,8 @@ final case class PentagonZoneTick(
             time,
             entity.id,
             zone.damage,
-            zone.sourceId
+            zone.sourceId,
+            Ability.createPentagonZoneId
           )
         )
         .toVector

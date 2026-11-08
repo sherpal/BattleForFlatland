@@ -1,5 +1,6 @@
 package gamelogic.gamestate.gameactions
 
+import gamelogic.abilities.Ability
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
@@ -17,13 +18,17 @@ import services.i18n.I18n
   *   positive amount to add to the current life
   * @param sourceId
   *   id of the entity responsible for the heal (used only by possible action transformers).
+  * @param abilityId
+  *   the ability responsible for that heal, directly or through what it created (a buff, a
+  *   zone...), for the statistics of the fight
   */
 final case class EntityGetsHealed(
     id: GameAction.Id,
     time: Long,
     entityId: Entity.Id,
     amount: Double,
-    sourceId: Entity.Id
+    sourceId: Entity.Id,
+    abilityId: Ability.AbilityId
 ) extends GameAction {
 
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =

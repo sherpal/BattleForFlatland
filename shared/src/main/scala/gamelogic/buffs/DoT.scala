@@ -1,5 +1,6 @@
 package gamelogic.buffs
 
+import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions.EntityTakesDamage
@@ -10,6 +11,9 @@ trait DoT extends TickerBuff {
 
   /** Entity responsible for putting the DoT on the target */
   val sourceId: Entity.Id
+
+  /** Ability responsible for putting the DoT on the target */
+  def abilityId: Ability.AbilityId
 
   /** Function specifying the damage that will be dealt after the `timeSinceBeginning`. We allow for
     * a function so that we can be a little bit more general than a constant damage. This can for
@@ -30,7 +34,8 @@ trait DoT extends TickerBuff {
         damagePerTick(
           time - appearanceTime
         ),
-        sourceId
+        sourceId,
+        abilityId
       )
     )
 
@@ -47,11 +52,14 @@ object DoT {
       damageOnTick: Double,
       _sourceId: Entity.Id,
       _appearanceTime: Long,
-      _resourceIdentifier: ResourceIdentifier
+      _resourceIdentifier: ResourceIdentifier,
+      _abilityId: Ability.AbilityId
   ): DoT = new DoT {
     val buffId: Buff.Id = _buffId
 
     val sourceId: Entity.Id = _sourceId
+
+    val abilityId: Ability.AbilityId = _abilityId
 
     def damagePerTick(timeSinceBeginning: Long): Double = damageOnTick
 
@@ -71,7 +79,8 @@ object DoT {
       damageOnTick,
       _sourceId,
       _appearanceTime,
-      _resourceIdentifier
+      _resourceIdentifier,
+      _abilityId
     )
 
     def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using

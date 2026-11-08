@@ -33,7 +33,8 @@ final case class BigDot(useId: Ability.UseId, time: Long, casterId: Entity.Id, t
         BigDot.duration,
         BigDot.tickRate,
         genBuffId(),
-        Buff.boss101BigDotIdentifier
+        Buff.boss101BigDotIdentifier,
+        abilityId
       )
     )
 

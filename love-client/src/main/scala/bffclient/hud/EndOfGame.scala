@@ -2,10 +2,12 @@ package bffclient.hud
 
 import bffclient.game.GameClient
 import bffclient.gui.*
+import bffclient.hud.FightReport.Tab
 import bffclient.ui.{ButtonStyle, Theme}
 
-/** Shown over the game once it ended, or when the connection to the game server is lost: back to
-  * the menus (when the game was joined through them, also with Enter) or quit (also with Escape).
+/** Shown over the game once it ended, or when the connection to the game server is lost: the
+  * statistics of the fight (see [[FightReport]]), and back to the menus (when the game was joined
+  * through them, also with Enter) or quit (also with Escape).
   */
 final class EndOfGame(parent: Frame, client: GameClient, backToMenus: Option[() => Unit]) {
   val frame: Frame = Frame(parent)
@@ -29,6 +31,51 @@ final class EndOfGame(parent: Frame, client: GameClient, backToMenus: Option[() 
   private val subtitle = box.createFontString(colour = Theme.muted)
   subtitle.setPoint(Point.Center, box, Point.Top, 0, 93)
 
+  // The statistics, once the fight started
+  private val tabs = Segmented[Tab](box, _.label(client.i18n))
+  tabs.setPoint(Point.TopLeft, box, Point.TopLeft, 24, 120)
+  tabs.setPoint(Point.TopRight, box, Point.TopRight, -24, 120)
+  tabs.setHeight(32)
+  tabs.setScript(tabs.OnValueChanged)(show)
+  tabs.hide()
+  private val scroll = ScrollFrame(box)
+  scroll.setPoint(Point.TopLeft, box, Point.TopLeft, 24, 166)
+  scroll.setPoint(Point.BottomRight, box, Point.BottomRight, -24, -90)
+  scroll.setFitsContents(true)
+  scroll.hide()
+
+  private var report   = Option.empty[FightReport]
+  private var contents = Option.empty[Frame]
+
+  private def show(tab: Tab): Unit = for r <- report do {
+    contents.foreach(_.remove())
+    val view = Frame(scroll.scrollChild)
+    view.setPoint(Point.TopLeft, scroll.scrollChild, Point.TopLeft)
+    val width = box.width - 48 - 16 // room for the scroll's thumb
+    view.setWidth(width)
+    view.setHeight(r.render(tab, view, width, () => show(tab)))
+    contents = Some(view)
+    scroll.setVerticalScroll(0)
+  }
+
+  /** Once the game is over, the statistics of the fight (if it started), in a larger box (as large
+    * as the window allows).
+    */
+  private def showReport(): Unit = {
+    val gameState = client.gameState
+    if gameState.started then {
+      val r = FightReport(client.fightLog, gameState, client.myId, client.i18n)
+      report = Some(r)
+      box.setSize(math.min(900.0, frame.width - 32), math.min(680.0, frame.height - 32))
+      title.setPoint(Point.Center, box, Point.Top, 0, 42)
+      subtitle.setPoint(Point.Center, box, Point.Top, 0, 86)
+      tabs.show()
+      scroll.show()
+      tabs.setOptions(Tab.values.toSeq, Some(r.firstTab))
+      show(r.firstTab)
+    }
+  }
+
   backToMenus match {
     case Some(back) =>
       val backButton = Button(box, client.i18n.backToMenus, ButtonStyle.Primary)
@@ -51,6 +98,7 @@ final class EndOfGame(parent: Frame, client: GameClient, backToMenus: Option[() 
   def update(): Unit = {
     frame.setShown(client.finished)
     if frame.isShown then {
+      if report.isEmpty then showReport()
       val gameState = client.gameState
       val (text, colour) =
         if !gameState.ended then (client.i18n.connectionLost, Theme.negative.lighter(0.3))

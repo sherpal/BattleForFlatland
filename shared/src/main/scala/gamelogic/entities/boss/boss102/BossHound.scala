@@ -28,7 +28,10 @@ final case class BossHound(
     with LivingEntity
     with WithThreat
     with WithTarget
-    with WithAbilities {
+    with WithAbilities
+    with WithName {
+
+  def name: String = BossHound.name
 
   def teamId: Entity.TeamId = Entity.teams.mobTeam
 
@@ -106,6 +109,7 @@ object BossHound {
 
   final val shape = Shape.regularPolygon(3, Constants.playerRadius)
 
-  inline def name: String = "Boss Hound 102"
+  /** The name of the hounds (they all have the same). */
+  inline def name: String = "Hound"
 
 }

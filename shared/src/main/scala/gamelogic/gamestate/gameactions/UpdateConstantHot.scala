@@ -1,5 +1,6 @@
 package gamelogic.gamestate.gameactions
 
+import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.buffs.{Buff, HoT}
 import gamelogic.entities.Entity
@@ -20,7 +21,8 @@ final case class UpdateConstantHot(
     healOnTick: Double,
     _sourceId: Entity.Id,
     _appearanceTime: Long,
-    resourceIdentifier: ResourceIdentifier
+    resourceIdentifier: ResourceIdentifier,
+    abilityId: Ability.AbilityId
 ) extends GameAction {
 
   def createGameStateTransformer(gameState: GameState): GameStateTransformer = new WithBuff(
@@ -33,7 +35,8 @@ final case class UpdateConstantHot(
       healOnTick,
       _sourceId,
       _appearanceTime,
-      resourceIdentifier
+      resourceIdentifier,
+      abilityId
     )
   )
 

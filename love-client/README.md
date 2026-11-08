@@ -49,7 +49,8 @@ The code (`src/main/scala/bffclient`) is organised by package:
   plays the sounds of the abilities (`Sounds`), with
   the bosses' visuals in `render.bosses` (one `BossVisuals` per boss);
 * `hud` holds the HUD's frames (`Hud`, `UnitFrame`, `BossFrames`, `ActionBar`, built from
-  `HudWidgets` in the style of `HudStyle`) and the overlays (`GameMenu`, `EndOfGame`);
+  `HudWidgets` in the style of `HudStyle`) and the overlays (`GameMenu`, `EndOfGame`, with the
+  statistics of the fight of `FightReport`);
 * `controls` loads, saves and edits the controls and the client's settings;
 * `menu` holds the menus' screens and the menu server's API, and `tutorial` the tutorial's;
 * `hosting` runs the game server on this computer, when the menu server chooses us to;

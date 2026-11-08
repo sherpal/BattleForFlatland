@@ -25,7 +25,7 @@ final case class CreepingShadowTick(useId: Ability.UseId, time: Long, casterId: 
   def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
     gameState.players.values.toVector
       .map(_.id)
-      .map(EntityTakesDamage(genActionId(), time, _, metadata.damageOnTick, casterId))
+      .map(EntityTakesDamage(genActionId(), time, _, metadata.damageOnTick, casterId, abilityId))
 
   def copyWithNewTimeAndId(newTime: Long, newId: Ability.UseId): CreepingShadowTick =
     copy(time = newTime, useId = newId)

@@ -259,6 +259,6 @@ object Boss102 extends BossFactory[Boss102] with BossMetadata {
       s"Melee attack dealing ${formatNumber(BossHound.damageOnTick)} damage to its target.",
       BossHound.tickRate,
       0L
-    ).castBy("Hound")
+    ).castBy(BossHound.name)
   )
 }

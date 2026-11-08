@@ -1,5 +1,6 @@
 package gamelogic.gamestate.abilitiesstories
 
+import gamelogic.abilities.Ability
 import gamelogic.abilities.hexagon.FlashHeal
 import gamelogic.abilities.triangle.Stun
 import gamelogic.buffs.abilities.classes.TriangleStunDebuff
@@ -64,7 +65,14 @@ final class TriangleStunSpecs extends StoryTeller {
     val stunUse = useAbilityFromAbility(ability)
 
     val houndTakesDamage =
-      EntityTakesDamage(genActionId(), 4, addingHound.entityId, 10, addingPlayer.entityId)
+      EntityTakesDamage(
+        genActionId(),
+        4,
+        addingHound.entityId,
+        10,
+        addingPlayer.entityId,
+        Ability.triangleDirectHit
+      )
 
     ActionComposer.empty >>
       start >>

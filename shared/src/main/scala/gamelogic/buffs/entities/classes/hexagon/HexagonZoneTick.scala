@@ -1,5 +1,6 @@
 package gamelogic.buffs.entities.classes.hexagon
 
+import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff
 import gamelogic.entities.Entity
 import gamelogic.buffs.TickerBuff
@@ -23,7 +24,16 @@ final case class HexagonZoneTick(
       gameState.allLivingEntities
         .filter(_.teamId == zone.teamId)
         .filter(_.collides(zone, time))
-        .map(entity => EntityGetsHealed(genActionId(), time, entity.id, zone.heal, zone.sourceId))
+        .map(entity =>
+          EntityGetsHealed(
+            genActionId(),
+            time,
+            entity.id,
+            zone.heal,
+            zone.sourceId,
+            Ability.hexagonHexagonZoneId
+          )
+        )
         .toVector
     }
 

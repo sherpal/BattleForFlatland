@@ -23,7 +23,7 @@ final case class Fireball(
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(Fireball.manaCost, Resource.Mana)
 
   def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
-    Vector(EntityTakesDamage(genActionId(), time, targetId, Fireball.damage, casterId))
+    Vector(EntityTakesDamage(genActionId(), time, targetId, Fireball.damage, casterId, abilityId))
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Fireball =
     copy(time = newTime, useId = newId)

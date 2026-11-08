@@ -259,7 +259,7 @@ object Boss104 extends BossFactory[Boss104] with BossMetadata {
       s"Melee attack dealing ${formatNumber(BigGuy.damageOnTick)} damage to its target.",
       BigGuy.tickRate,
       0L
-    ).castBy("Big Guy"),
+    ).castBy(BigGuy.name),
     AbilityDoc(
       Ability.boss104BigGuyKick,
       "Kick",
@@ -267,6 +267,6 @@ object Boss104 extends BossFactory[Boss104] with BossMetadata {
         "(with the Triangle's Cut, for example).",
       BigGuyKick.cooldown,
       BigGuyKick.castingTime
-    ).castBy("Big Guy")
+    ).castBy(BigGuy.name)
   )
 }

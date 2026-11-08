@@ -28,7 +28,7 @@ final case class Waterbolt(
   def cost: Resource.ResourceAmount = ResourceAmount(0, NoResource)
 
   def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
-    Vector(EntityTakesDamage(genActionId(), time, targetId, Waterbolt.damage, casterId))
+    Vector(EntityTakesDamage(genActionId(), time, targetId, Waterbolt.damage, casterId, abilityId))
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Waterbolt =
     copy(time = newTime, useId = newId)

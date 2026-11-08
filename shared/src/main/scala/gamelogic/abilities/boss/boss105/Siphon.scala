@@ -25,9 +25,16 @@ final case class Siphon(useId: Ability.UseId, time: Long, casterId: Entity.Id, t
   override def canBeCut: Boolean = true
 
   def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
-    EntityTakesDamage(genActionId(), time, targetId, Siphon.damage, casterId) +:
+    EntityTakesDamage(genActionId(), time, targetId, Siphon.damage, casterId, abilityId) +:
       gameState.bosses.values.toVector.map(boss =>
-        EntityGetsHealed(genActionId(), time, boss.id, boss.maxLife * Siphon.healFraction, casterId)
+        EntityGetsHealed(
+          genActionId(),
+          time,
+          boss.id,
+          boss.maxLife * Siphon.healFraction,
+          casterId,
+          abilityId
+        )
       )
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Siphon =

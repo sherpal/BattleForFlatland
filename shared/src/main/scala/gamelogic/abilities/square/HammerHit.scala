@@ -26,7 +26,7 @@ final case class HammerHit(
 
   def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
     Vector(
-      EntityTakesDamage(genActionId(), time, targetId, HammerHit.damage, casterId)
+      EntityTakesDamage(genActionId(), time, targetId, HammerHit.damage, casterId, abilityId)
     )
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =

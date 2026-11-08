@@ -285,6 +285,36 @@ object AlbanianI18n extends I18n {
     f"Beteja zgjati $minutes%d:$seconds%02d"
   override def gameServerClosedConnection: String = "Serveri i lojës e mbylli lidhjen"
 
+  // Statistikat e luftës, në fund të lojës
+  override def fightSummary: String = "Përmbledhje"
+  override def damageDone: String   = "Dëmi i shkaktuar"
+  override def healing: String      = "Shërimi"
+  override def damageTaken: String  = "Dëmi i marrë"
+  override def lastMoments: String  = "Çastet e fundit"
+  override def player: String       = "Lojtari"
+  override def deaths: String       = "Vdekjet"
+  override def bossLifeLeft(bossName: String, percent: Int): String =
+    s"$bossName kishte ende $percent% të jetës"
+  override def nobodyDied: String = "Askush nuk vdiq"
+  override def diedAt(minutes: Int, seconds: Int, killedBy: String): String =
+    f"Vdiq në $minutes%d:$seconds%02d ($killedBy)"
+  override def lastSecondsOf(name: String, seconds: Int, died: Boolean): String =
+    if died then s"$seconds sekondat e fundit të $name para vdekjes"
+    else s"$seconds sekondat e fundit të $name"
+  override def nothingInLastSeconds: String =
+    "Asgjë nuk e goditi as e shëroi gjatë këtyre sekondave"
+  override def life: String                   = "Jeta"
+  override def overheal(percent: Int): String = s"$percent% shërim i tepërt"
+  override def bulletsHit(count: Int): String = s"Plumba që goditën: $count"
+  override def facetsWasted(count: Int, percent: Int): String =
+    s"Të humbur, me të gjitha faqet të ndezura: $count ($percent%)"
+  override def pentagramsCast(count: Int): String = s"Pentagrame: $count"
+  override def braceStacks(stacks: Int): String   = s"$stacks shtresa"
+  override def timeWithBraceStacks: String        = "Koha me çdo numër shtresash të Brace, gjallë"
+  override def damagePreventedByBrace(amount: String): String =
+    s"Dëmi i shmangur nga Brace: $amount"
+  override def noClassStatistics: String = "Asnjë statistikë për klasat e këtij ekipi"
+
   // --- Tutorial ---
 
   override def tutorialIntro: String =

@@ -1,5 +1,6 @@
 package gamelogic.gamestate.abilitiesstories
 
+import gamelogic.abilities.Ability
 import gamelogic.abilities.square.Brace
 import gamelogic.buffs.resourcebuffs.{RageFiller, RageTrickle}
 import gamelogic.entities.Resource.Rage
@@ -44,7 +45,7 @@ final class SquareRageSpecs extends StoryTeller {
     }(initialGameState)
 
   private def hit(amount: Double) =
-    EntityTakesDamage(genActionId(), 100, squareId, amount, genEntityId())
+    EntityTakesDamage(genActionId(), 100, squareId, amount, genEntityId(), Ability.autoAttackId)
 
   test("The square starts with all its rage") {
     assertEqualsDouble(rageOf(squareWithItsBuffs(initialGameState)), 100.0, 1e-9)

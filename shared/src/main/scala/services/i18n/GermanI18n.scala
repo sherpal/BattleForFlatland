@@ -290,6 +290,38 @@ object GermanI18n extends I18n {
     f"Der Kampf dauerte $minutes%d:$seconds%02d"
   override def gameServerClosedConnection: String = "Der Spielserver hat die Verbindung getrennt"
 
+  // Statistiken des Kampfes, am Ende des Spiels
+  override def fightSummary: String = "Übersicht"
+  override def damageDone: String   = "Schaden"
+  override def healing: String      = "Heilung"
+  override def damageTaken: String  = "Erlitten"
+  override def lastMoments: String  = "Letzte Momente"
+  override def player: String       = "Spieler"
+  override def deaths: String       = "Tode"
+  override def bossLifeLeft(bossName: String, percent: Int): String =
+    s"$bossName hatte noch $percent % seines Lebens"
+  override def nobodyDied: String = "Niemand ist gestorben"
+  override def diedAt(minutes: Int, seconds: Int, killedBy: String): String =
+    f"Gestorben bei $minutes%d:$seconds%02d ($killedBy)"
+  override def lastSecondsOf(name: String, seconds: Int, died: Boolean): String =
+    if died then s"Die letzten $seconds Sekunden von $name vor dem Tod"
+    else s"Die letzten $seconds Sekunden von $name"
+  override def nothingInLastSeconds: String =
+    "In diesen Sekunden wurde die Figur weder getroffen noch geheilt"
+  override def life: String                   = "Leben"
+  override def overheal(percent: Int): String = s"$percent % Überheilung"
+  override def bulletsHit(count: Int): String = s"Treffende Geschosse: $count"
+  override def facetsWasted(count: Int, percent: Int): String =
+    s"Verschwendet, da alle Facetten leuchteten: $count ($percent %)"
+  override def pentagramsCast(count: Int): String = s"Pentagramme: $count"
+  override def braceStacks(stacks: Int): String =
+    if stacks == 1 then "1 Stapel" else s"$stacks Stapel"
+  override def timeWithBraceStacks: String =
+    "Zeit mit jeder Anzahl an Stapeln von Brace, am Leben"
+  override def damagePreventedByBrace(amount: String): String =
+    s"Durch Brace verhinderter Schaden: $amount"
+  override def noClassStatistics: String = "Keine Statistiken für die Klassen dieses Teams"
+
   // --- Tutorial ---
 
   override def tutorialIntro: String =

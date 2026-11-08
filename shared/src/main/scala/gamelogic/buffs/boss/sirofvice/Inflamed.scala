@@ -1,5 +1,6 @@
 package gamelogic.buffs.boss.sirofvice
 
+import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.buffs.{Buff, TickerBuff}
 import gamelogic.entities.Entity
@@ -24,7 +25,8 @@ final case class Inflamed(
         time = time,
         entityId = bearerId,
         amount = Inflamed.baseDamage * math.round((time - appearanceTime).toDouble / tickRate),
-        sourceId = sourceId
+        sourceId = sourceId,
+        abilityId = Ability.sirOfViceHolyFlame
       )
     )
 

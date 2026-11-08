@@ -30,7 +30,7 @@ final case class EnergyKick(
   def cost: Resource.ResourceAmount = Resource.ResourceAmount(0.0, Energy)
 
   def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] = Vector(
-    EntityTakesDamage(genActionId(), time, targetId, EnergyKick.damage, casterId),
+    EntityTakesDamage(genActionId(), time, targetId, EnergyKick.damage, casterId, abilityId),
     EntityResourceChanges(
       genActionId(),
       time,

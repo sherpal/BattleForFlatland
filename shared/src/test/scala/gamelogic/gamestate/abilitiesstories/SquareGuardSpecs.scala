@@ -1,5 +1,6 @@
 package gamelogic.gamestate.abilitiesstories
 
+import gamelogic.abilities.Ability
 import gamelogic.abilities.square.{Brace, Guard}
 import gamelogic.buffs.abilities.classes.{Guarded, Guarding}
 import gamelogic.entities.Entity
@@ -62,7 +63,7 @@ final class SquareGuardSpecs extends StoryTeller {
   }
 
   private def hit(time: Long, targetId: Entity.Id, amount: Double) =
-    EntityTakesDamage(genActionId(), time, targetId, amount, houndId)
+    EntityTakesDamage(genActionId(), time, targetId, amount, houndId, Ability.autoAttackId)
 
   private def lifeOf(gameState: GameState, id: Entity.Id): Double =
     gameState.livingEntityById(id).get.life

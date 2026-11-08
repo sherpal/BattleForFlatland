@@ -405,7 +405,7 @@ object SpiritOfNara extends BossFactory[SpiritOfNara] with BossMetadata {
         s"Hits a random player for ${formatNumber(Waterbolt.damage)} damage. Can be cut. The " ++
           s"Water Elementals ($formatElementalLife life) can also be stunned."
       )
-      .castBy("Water Elemental"),
+      .castBy(WaterElemental.name),
     AbilityDoc.fromMetadata(
       ShadowPyroblast,
       s"After ${formatSeconds(ShadowPyroblast.timeToFirstAbility)}, the boss goes berserk and " ++

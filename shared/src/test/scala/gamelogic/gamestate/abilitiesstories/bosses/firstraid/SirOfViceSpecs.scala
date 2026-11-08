@@ -128,7 +128,16 @@ final class SirOfViceSpecs extends StoryTeller {
         assert(!playerOf(gs).moving)
         assert(playerOf(gs).pos.distanceTo(Complex(-300 + speed, 0)) < 1e-6)
       } >>> throughBuffs(
-        Vector(EntityTakesDamage(genActionId(), 4000, player.entityId, 1, boss.entityId))
+        Vector(
+          EntityTakesDamage(
+            genActionId(),
+            4000,
+            player.entityId,
+            1,
+            boss.entityId,
+            Ability.autoAttackId
+          )
+        )
       ) >>>> { gs =>
         assert(!gs.hasBuffOfType[Punished](player.entityId))
       }

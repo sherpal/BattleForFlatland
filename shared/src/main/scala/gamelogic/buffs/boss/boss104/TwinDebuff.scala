@@ -1,5 +1,6 @@
 package gamelogic.buffs.boss.boss104
 
+import gamelogic.abilities.Ability
 import gamelogic.buffs.TickerBuff
 import gamelogic.buffs.Buff
 import gamelogic.entities.Entity
@@ -53,14 +54,22 @@ final case class TwinDebuff(
       time,
       dispelledById,
       TwinDebuff.wrongDispelDamage,
-      bossId
+      bossId,
+      Ability.boss104TwinDebuffs
     )).toVector ++
       debuffCircles.map(circle => RemoveEntity(genActionId(), time, circle.id))
 
   override def tickEffect(gameState: GameState, time: Long)(using
       IdGeneratorContainer
   ): Vector[GameAction] = Vector(
-    EntityTakesDamage(genActionId(), time, bearerId, TwinDebuff.damageOnTick, bossId)
+    EntityTakesDamage(
+      genActionId(),
+      time,
+      bearerId,
+      TwinDebuff.damageOnTick,
+      bossId,
+      Ability.boss104TwinDebuffs
+    )
   )
 
 }

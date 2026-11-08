@@ -37,7 +37,10 @@ final case class CreepingShadow(
 ) extends MovingBody
     with WithChangingRadius
     with WithThreat
-    with WithAbilities {
+    with WithAbilities
+    with WithName {
+
+  def name: String = CreepingShadow.name
 
   def abilities: Set[Ability.AbilityId] = Set(Ability.boss110CreepingShadowTick)
 
@@ -85,6 +88,9 @@ final case class CreepingShadow(
 }
 
 object CreepingShadow {
+
+  /** The name of the creeping shadows (they all have the same). */
+  inline def name: String = "Creeping Shadow"
 
   def extractCreepingShadow(gameState: GameState, entityId: Entity.Id): Option[CreepingShadow] =
     gameState.entityByIdAs[CreepingShadow](entityId)

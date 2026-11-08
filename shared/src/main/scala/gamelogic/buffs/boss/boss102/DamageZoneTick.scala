@@ -1,5 +1,6 @@
 package gamelogic.buffs.boss.boss102
 
+import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.buffs.{Buff, TickerBuff}
 import gamelogic.entities.Entity
@@ -30,7 +31,8 @@ final case class DamageZoneTick(
               time,
               player.id,
               DamageZoneTick.damageOnTick,
-              zone.sourceId
+              zone.sourceId,
+              Ability.boss102PutDamageZones
             )
           }
           .toVector

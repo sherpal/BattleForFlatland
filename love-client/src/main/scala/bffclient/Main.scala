@@ -188,6 +188,8 @@ object Main {
           client.clicked(renderer.toWorld(x, y))
       Love.mousereleased = (x, y, button, _, _) =>
         if !gui.mouseReleased(x, y, button) && button != 1 then client.mouseButtonReleased(button)
+      // e.g. to scroll the statistics at the end of the game (instead of the menus, behind)
+      Love.wheelmoved = (_, dy) => gui.wheelMoved(dy)
     }
   }
 }

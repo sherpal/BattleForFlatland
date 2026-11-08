@@ -1,5 +1,6 @@
 package gamelogic.buffs
 
+import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions.EntityGetsHealed
@@ -10,6 +11,9 @@ trait HoT extends TickerBuff {
 
   /** Entity responsible for putting the HoT on the target */
   val sourceId: Entity.Id
+
+  /** Ability responsible for putting the HoT on the target */
+  def abilityId: Ability.AbilityId
 
   /** Function specifying the heal that will be done after the `timeSinceBeginning`.
     */
@@ -24,7 +28,8 @@ trait HoT extends TickerBuff {
       time,
       bearerId,
       healPerTick(time - appearanceTime),
-      sourceId
+      sourceId,
+      abilityId
     )
   )
 
@@ -41,11 +46,14 @@ object HoT {
       healOnTick: Double,
       _sourceId: Entity.Id,
       _appearanceTime: Long,
-      _resourceIdentifier: ResourceIdentifier
+      _resourceIdentifier: ResourceIdentifier,
+      _abilityId: Ability.AbilityId
   ): HoT = new HoT {
     val buffId: Buff.Id = _buffId
 
     val sourceId: Entity.Id = _sourceId
+
+    val abilityId: Ability.AbilityId = _abilityId
 
     def healPerTick(timeSinceBeginning: Long): Double = healOnTick
 
@@ -65,7 +73,8 @@ object HoT {
       healOnTick,
       _sourceId,
       _appearanceTime,
-      _resourceIdentifier
+      _resourceIdentifier,
+      _abilityId
     )
 
     def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using

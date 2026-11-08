@@ -25,7 +25,9 @@ final case class Resonance(useId: Ability.UseId, time: Long, casterId: Entity.Id
 
   def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
     gameState.players.valuesIterator
-      .map(player => EntityTakesDamage(genActionId(), time, player.id, Resonance.damage, casterId))
+      .map(player =>
+        EntityTakesDamage(genActionId(), time, player.id, Resonance.damage, casterId, abilityId)
+      )
       .toVector
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Resonance =

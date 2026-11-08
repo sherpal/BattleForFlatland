@@ -1,5 +1,6 @@
 package gamelogic.gamestate.gameactions
 
+import gamelogic.abilities.Ability
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction.Id
 import gamelogic.gamestate.statetransformers.{GameStateTransformer, WithEntity}
@@ -18,13 +19,17 @@ import services.i18n.I18n
   * @param sourceId
   *   id of the entity responsible for dealing that damage (used only by possible action
   *   transformers). (for example, a buff could transform any damage dealt by an entity into heal)
+  * @param abilityId
+  *   the ability responsible for that damage, directly or through what it created (a buff, a zone,
+  *   a bullet...), for the statistics of the fight
   */
 final case class EntityTakesDamage(
     id: GameAction.Id,
     time: Long,
     entityId: Entity.Id,
     amount: Double,
-    sourceId: Entity.Id
+    sourceId: Entity.Id,
+    abilityId: Ability.AbilityId
 ) extends GameAction {
 
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =

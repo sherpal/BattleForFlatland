@@ -29,7 +29,8 @@ final case class Enrage(useId: Ability.UseId, time: Long, casterId: Entity.Id) e
         Enrage.duration,
         Enrage.tickRate,
         genBuffId(),
-        Buff.squareEnrage
+        Buff.squareEnrage,
+        abilityId
       )
     )
 

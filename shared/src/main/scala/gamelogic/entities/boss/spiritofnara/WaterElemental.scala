@@ -13,6 +13,7 @@ import gamelogic.entities.{
   MovingBody,
   Resource,
   WithAbilities,
+  WithName,
   WithTarget,
   WithThreat
 }
@@ -39,7 +40,10 @@ final case class WaterElemental(
     with LivingEntity
     with WithThreat
     with WithTarget
-    with WithAbilities {
+    with WithAbilities
+    with WithName {
+
+  def name: String = WaterElemental.name
 
   def direction: Angle = Angle.zero
   def speed: Double    = 0.0
@@ -87,6 +91,9 @@ final case class WaterElemental(
 }
 
 object WaterElemental {
+
+  /** The name of the water elementals (they all have the same). */
+  inline def name: String = "Water Elemental"
 
   inline def maxLife: Double = 1200.0
 

@@ -284,7 +284,7 @@ object Boss105 extends BossFactory[Boss105] with BossMetadata {
       s"Melee attack dealing ${formatNumber(Shade.autoAttackDamage)} damage to its target.",
       Shade.autoAttackTickRate,
       0L
-    ).castBy("Shade"),
+    ).castBy(Shade.name),
     AbilityDoc(
       Ability.boss105ShadeSiphon,
       "Siphon",
@@ -294,6 +294,6 @@ object Boss105 extends BossFactory[Boss105] with BossMetadata {
         "(with the Triangle's Cut, for example).",
       Siphon.cooldown,
       Siphon.castingTime
-    ).castBy("Shade")
+    ).castBy(Shade.name)
   )
 }

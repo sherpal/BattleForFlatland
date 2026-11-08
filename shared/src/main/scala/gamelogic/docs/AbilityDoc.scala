@@ -2,7 +2,9 @@ package gamelogic.docs
 
 import gamelogic.abilities.Ability
 import gamelogic.entities.Resource
+import gamelogic.entities.boss.BossFactory
 import gamelogic.entities.Resource.ResourceAmount
+import models.bff.outofgame.PlayerClasses
 
 /** Player-facing description of an ability, displayed in the lobby so that players know what their
   * class and the boss they are about to fight can do.
@@ -50,6 +52,17 @@ final case class AbilityDoc(
 }
 
 object AbilityDoc {
+
+  /** The names of all the documented abilities: the ones of the classes, of the bosses and of their
+    * adds.
+    */
+  lazy val names: Map[Ability.AbilityId, String] =
+    (PlayerClasses.allChoices.flatMap(_.builder.abilitiesDoc) ++
+      BossFactory.factoriesByBossName.values
+        .collect { case boss: BossMetadata => boss }
+        .flatMap(_.abilitiesDoc))
+      .map(doc => doc.abilityId -> doc.name)
+      .toMap
 
   /** Creates the [[AbilityDoc]] of a boss ability documented with an [[AbilityMetadata]]. */
   def fromMetadata(metadata: AbilityMetadata, description: String): AbilityDoc =

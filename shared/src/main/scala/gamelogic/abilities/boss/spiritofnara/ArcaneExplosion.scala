@@ -30,7 +30,14 @@ final case class ArcaneExplosion(useId: Ability.UseId, time: Long, casterId: Ent
           .sortBy(_.id.value)
           .filter(_.currentPosition(time).distanceTo(centre) < ArcaneExplosion.radius)
           .map(player =>
-            EntityTakesDamage(genActionId(), time, player.id, ArcaneExplosion.damage, casterId)
+            EntityTakesDamage(
+              genActionId(),
+              time,
+              player.id,
+              ArcaneExplosion.damage,
+              casterId,
+              abilityId
+            )
           )
       }
 
