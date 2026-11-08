@@ -12,12 +12,14 @@ only on the loopback, behind [Caddy](https://caddyserver.com) (in a container of
 [Let's Encrypt](https://letsencrypt.org), for the VM's IP address (Let's Encrypt gives some since
 January 2026: they last six days, and Caddy renews them) or for a domain name that points to it, and
 renews it by itself. The image only copies files that are built on your computer, which the `deploy`
-task of sbt does for you.
+task of sbt does for you. It goes to the VM through a Docker registry there (in a third container,
+`bff-registry`, only on the VM's loopback, which sbt reaches through an SSH tunnel), which keeps the
+layers of the previous deploy: only the changed ones are uploaded.
 
 | | |
 |---|---|
 | `deploy/oracle-vm-setup.sh` | runs **on the VM**, once: installs Docker, opens ports 80 and 443 (TCP) and 9000 (UDP) in its firewall |
-| `sbt deploy` (`project/Deploy.scala`) | runs **on your computer**, on any system: builds, uploads the image and the Caddyfile to the VM, (re)starts the server and Caddy |
+| `sbt deploy` (`project/Deploy.scala`) | runs **on your computer**, on any system: builds, pushes the image's new layers to the VM's registry and uploads the Caddyfile, (re)starts the server and Caddy |
 
 ## 1. Create the VM
 
@@ -90,9 +92,12 @@ BFF_MENU_SERVER=<site> sbt "deploy ubuntu@<ip> linux/amd64 --key ~/.ssh/oracle.k
 - LÖVE 12's builds, which the clients are packaged with, need a GitHub token the first time (see
   [the client's README](love-client/README.md#playing-with-friends)): `GITHUB_TOKEN=...`.
 
-It runs the build (jars, Java runtimes, clients), builds the image for that processor, saves it
-(compressed: about 370 MB) and uploads it with `scp`, and starts it on the VM with Caddy in front of it,
-both restarting automatically after a reboot. Caddy gets the certificate within a minute (`docker logs
+It runs the build (jars, Java runtimes, clients), builds the image for that processor, pushes it to the
+registry of the VM (which it starts the first time) through an SSH tunnel, and starts it on the VM with
+Caddy in front of it, both restarting automatically after a reboot. The first deploy uploads the whole
+image (about 370 MB); the next ones only its layers that changed: the Dockerfile puts the Java runtimes
+(140 MB, which only change with the JDK or the game server's modules) first, then the clients, the
+game server's jar and the menu server's (about 130 MB when they all changed). Caddy gets the certificate within a minute (`docker logs
 bff-caddy`); it keeps it in a Docker volume, which outlives the deploys.
 
 Do it again to deploy a new version.
@@ -135,4 +140,10 @@ game, and the logs of the VM (`docker logs bff`) and of the clients (`client.log
 - **Not on Oracle**: on another provider, only the network rules of step 2 change (the provider's
   firewall or security group: TCP 80 and 443, UDP 9000). On Fly.io, see [fly.toml](fly.toml): its UDP needs a
   paid dedicated IPv4.
+- **The registry** (`bff-registry`, with its layers in the volume `bff-registry`) listens on the
+  VM's loopback, port 5050, and the tunnel on the same port of your computer, which must be free. After
+  a deploy, the layers that the new image does not have are removed from it (its garbage collection).
+  The image that the deploys before this registry loaded (`battle-for-flatland`) can be removed once:
+  `docker rmi battle-for-flatland`. With Docker Desktop (macOS, Windows), whose daemon runs in a VM of
+  its own, the push to `localhost:5050` may not reach the tunnel: not tried.
 - **Not tested here**: these scripts were written without an Oracle VM to run them on.
