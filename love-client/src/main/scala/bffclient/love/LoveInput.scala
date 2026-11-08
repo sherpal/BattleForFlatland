@@ -68,6 +68,31 @@ object LoveInput {
 
   val codeToScancode: Map[String, String] = scancodeToCode.map(_.swap)
 
+  /** What to show for an input code: the character its key produces in the keyboard's current
+    * layout (the "Z" of the physical `KeyW` in AZERTY), read when it is shown so that a layout
+    * change is picked up. The digits stay digits (in AZERTY, the unshifted keys of the number row
+    * are symbols, but the keycaps show the digits), and the keys without a character (Tab,
+    * CapsLock, the arrows...) and the mouse buttons keep the name of their code.
+    */
+  def label(inputCode: InputCode): String = inputCode match {
+    case KeyCode(code) => keyName(code)
+    case ModifiedKeyCode(code, modifier) => s"${modifier.name} ${keyName(code)}"
+    case MouseCode(_) => inputCode.label
+  }
+
+  private def keyName(code: String): String =
+    if code.startsWith("Digit") then code
+    else
+      codeToScancode
+        .get(code)
+        .map(scancode => scancode -> Keyboard.getKeyFromScancode(scancode))
+        .collect {
+          // named keys ("tab", "kp1"...) come back as their own name, unmapped ones as "unknown"
+          case (scancode, key) if key != "unknown" && (key != scancode || scancode.length == 1) =>
+            key.toUpperCase
+        }
+        .getOrElse(code)
+
   def shiftDown: Boolean = Keyboard.isScancodeDown("lshift") || Keyboard.isScancodeDown("rshift")
 
   /** The input code of a key event, like the frontend's `KeyboardHandler.enrich`. */

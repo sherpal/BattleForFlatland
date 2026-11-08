@@ -5,6 +5,7 @@ import scala.collection.mutable
 import bffclient.gui.*
 import bffclient.hud.HudStyle.*
 import bffclient.hud.HudWidgets.*
+import bffclient.love.LoveInput
 import bffclient.render.{Painter, Sprites}
 import bffclient.ui.Colour as Paint
 import gamelogic.abilities.Ability
@@ -131,7 +132,7 @@ final class ActionBar(parent: Frame, client: HudClient) {
   }
 
   private def keyLabel(index: Int): Option[String] =
-    client.controls.abilityKeys.lift(index).map(_.label)
+    client.controls.abilityKeys.lift(index).map(LoveInput.label)
 
   def update(p: Painter): Unit = {
     val me = client.myId.flatMap(p.gameState.players.get)

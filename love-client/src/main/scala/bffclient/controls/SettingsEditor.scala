@@ -201,7 +201,7 @@ final class SettingsEditor(
         waiting = Some((column, i))
         render()
       }
-      button -> ((c: Controls) => column(c)(i).code.label)
+      button -> ((c: Controls) => LoveInput.label(column(c)(i).code))
     }
 
   private val toggleY   = 84 + 25 * markers(controls).size + 12
@@ -334,7 +334,7 @@ final class SettingsEditor(
     for (button, label) <- bindingButtons do button.setText(label(controls))
     mouseOver.setChecked(controls.mouseOverEnabled)
     boundTwice.setText(
-      controls.maybeMultipleKey.fold("")(key => i18n.boundToSeveralActions(key.label))
+      controls.maybeMultipleKey.fold("")(key => i18n.boundToSeveralActions(LoveInput.label(key)))
     )
 
     language.setOptions(Language.values.toSeq, settings.language)
