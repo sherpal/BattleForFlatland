@@ -356,9 +356,24 @@ trait I18n {
   /** From the download to the first fight. */
   def landingStepsTitle: String
   def landingSteps: Seq[String]
+
+  /** The short label next to the beta's, in the first screen. */
+  def landingOpenSourceBadge: String
+  def landingOpenSourceTitle: String
+  def landingOpenSourceText: String
+
+  /** What being open source gives, as (title, text): the code, hosting it, making a boss. */
+  def landingOpenSource: Seq[(String, String)]
+
+  /** The frequently asked questions, as (question, answer). */
+  def landingFaqTitle: String
+  def landingFaq: Seq[(String, String)]
   def landingBetaTitle: String
   def landingBetaText: String
   def landingFeedback: String
   def landingSourceCode: String
   def landingFooter: String
+
+  /** That World of Warcraft, which the page mentions, is not ours. */
+  def landingTrademark: String
 }

@@ -707,8 +707,8 @@ object DutchI18n extends I18n {
   override def landingTagline: String =
     "Kom samen in opstand tegen de Hogepriesters van Flatland."
   override def landingPitch: String =
-    "Een coöperatief spel van boss fights: een tank, een healer en damage dealers tegen de " ++
-      "tirannen van Flatland. Leer hun vaardigheden, speel je rol, en versla ze in gevechten " ++
+    "Een coöperatief spel van boss fights zoals in World of Warcraft: een tank, een healer en " ++
+      "damage dealers tegen de tirannen van Flatland. Leer hun vaardigheden, speel je rol, en versla ze in gevechten " ++
       "die minuten duren, geen hele avonden."
   override def landingDownload: String             = "Downloaden"
   override def downloadFor(system: String): String = s"Download voor $system"
@@ -720,7 +720,7 @@ object DutchI18n extends I18n {
       "Privacy en beveiliging (\"Open toch\")."
   override def landingAnimation: String = "Een gevecht tegen een boss in Battle for Flatland"
 
-  override def landingFeaturesTitle: String = "Raids, zonder de grind"
+  override def landingFeaturesTitle: String = "Raids zoals in WoW, zonder de grind"
   override def landingFeatures: Seq[(String, String)] = Seq(
     "Het gevoel van een raid" ->
       ("Een tank die de boss vasthoudt, een healer die iedereen overeind houdt, damage dealers " ++
@@ -758,6 +758,63 @@ object DutchI18n extends I18n {
     "Lees over je klasse in de tutorial, en oefen ermee tegen Boss 101.",
     "Maak een spel, laat je vrienden meedoen (of voeg bots toe), kies een boss, en vecht!"
   )
+  override def landingOpenSourceBadge: String = "Open source"
+  override def landingOpenSourceTitle: String = "Open source, door en door"
+  override def landingOpenSourceText: String =
+    "Battle for Flatland is open source, van de menu's tot de laatste boss: geen verborgen " ++
+      "code, en een spel dat evenveel van zijn spelers is als van zijn maker."
+  override def landingOpenSource: Seq[(String, String)] = Seq(
+    "Alle code, openlijk" ->
+      ("Elke regel van het spel staat op GitHub, van de menu's tot de vaardigheden van de " ++
+        "bosses: lees ze, leer ervan, verander ze."),
+    "Host het zelf" ->
+      ("De server komt met de instructies om hem op je eigen machine te draaien: niemand kan " ++
+        "je het spel afnemen."),
+    "Maak je eigen boss" ->
+      ("Een stapsgewijze gids legt uit hoe je een nieuwe boss implementeert. Stel de jouwe voor " ++
+        "op GitHub, en misschien komt hij in het spel!")
+  )
+
+  override def landingFaqTitle: String = "Veelgestelde vragen"
+  override def landingFaq: Seq[(String, String)] = Seq(
+    "Kan ik alleen spelen?" ->
+      ("Ja: elke boss komt met bots, die alle andere plaatsen in het team kunnen innemen. Zo " ++
+        "ontdek je een boss en oefen je hem in je eigen tempo. Maar het spel is gemaakt om " ++
+        "samen te spelen: met bots beleef je niet het beste ervan, namelijk een boss verslaan " ++
+        "met vrienden."),
+    "Moet ik World of Warcraft kennen?" ->
+      ("Helemaal niet. Als je in WoW geraid hebt, voel je je meteen thuis. Zo niet, dan legt " ++
+        "de tutorial elke rol uit, en kun je hem oefenen tegen een eerste boss."),
+    "Is het spel gemaakt voor een team van vijf?" ->
+      ("Ja en nee. De meeste bosses zijn ontworpen voor vijf spelers: een tank, een healer en " ++
+        "drie damage dealers. Maar sommige vragen een groter team: nu al tien spelers, en later " ++
+        "waarschijnlijk tot twintig."),
+    "Speel ik altijd dezelfde klasse?" ->
+      ("Absoluut niet! Elke boss vraagt zijn eigen teamsamenstelling, dus iedereen zal ook " ++
+        "andere klassen spelen. En omdat er geen progressie is, kun je van klasse wisselen " ++
+        "wanneer je wilt."),
+    "Hoe speel ik met mijn vrienden?" ->
+      ("Maak een spel in de menu's, en je vrienden doen mee via de lijst van spellen. Geen " ++
+        "server om op te zetten: wanneer het gevecht begint, host de computer van een van de " ++
+        "spelers het, vanzelf."),
+    "Heb ik een account nodig?" ->
+      ("Nee, voorlopig niet: kies gewoon een spelersnaam, waaraan de anderen je herkennen in " ++
+        "de menu's en in het spel. Accounts komen er later waarschijnlijk wel."),
+    "Op welke systemen draait het?" ->
+      ("Windows, macOS en Linux. En overal waar LÖVE 12 draait, met het .love-bestand."),
+    "Is het spel gratis, en blijft het dat?" ->
+      ("Vandaag is het gratis, gedownload van deze website. Over een jaar of twee zou het " ++
+        "spel naar een platform als Steam moeten verhuizen, waar het betalend wordt. Maar het " ++
+        "blijft open source, met de instructies om het zelf te hosten: als je wilt, kun je " ++
+        "altijd gratis spelen."),
+    "Komt het spel op Steam?" ->
+      "Dat is het doel, maar niet in de nabije toekomst: waarschijnlijk over een jaar of twee.",
+    "Kan ik mijn eigen boss maken?" ->
+      ("Ja, als je kunt programmeren: het spel is open source, en zijn repository heeft een " ++
+        "stapsgewijze gids om een nieuwe boss te implementeren. Stel hem voor op GitHub, en " ++
+        "misschien komt hij in het spel!")
+  )
+
   override def landingBetaTitle: String = "Word bètatester"
   override def landingBetaText: String =
     "Battle for Flatland is in bèta, en groeit nog. Download het, speel een paar gevechten met " ++
@@ -767,4 +824,7 @@ object DutchI18n extends I18n {
   override def landingSourceCode: String = "Broncode op GitHub"
   override def landingFooter: String =
     "Battle for Flatland is gratis en open source, gemaakt met Scala en LÖVE."
+  override def landingTrademark: String =
+    "World of Warcraft is een handelsmerk van Blizzard Entertainment, waarmee Battle for " ++
+      "Flatland niet verbonden is."
 }

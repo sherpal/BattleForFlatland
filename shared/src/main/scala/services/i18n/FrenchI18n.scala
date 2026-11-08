@@ -732,8 +732,8 @@ object FrenchI18n extends I18n {
   override def landingTagline: String =
     "Soulevez-vous contre les Grands Prêtres de Flatland, ensemble."
   override def landingPitch: String =
-    "Un jeu coopératif de combats de boss : un tank, un soigneur et des attaquants contre les " ++
-      "tyrans de Flatland. Apprenez leurs capacités, jouez votre rôle, et abattez-les en des " ++
+    "Un jeu coopératif de combats de boss à la World of Warcraft : un tank, un soigneur et des " ++
+      "attaquants contre les tyrans de Flatland. Apprenez leurs capacités, jouez votre rôle, et abattez-les en des " ++
       "combats qui durent quelques minutes, pas des soirées entières."
   override def landingDownload: String             = "Télécharger"
   override def downloadFor(system: String): String = s"Télécharger pour $system"
@@ -745,7 +745,7 @@ object FrenchI18n extends I18n {
       "dans Réglages Système, sous Confidentialité et sécurité (« Ouvrir quand même »)."
   override def landingAnimation: String = "Un combat contre un boss dans Battle for Flatland"
 
-  override def landingFeaturesTitle: String = "Des raids, sans le farm"
+  override def landingFeaturesTitle: String = "Des raids à la WoW, sans le farm"
   override def landingFeatures: Seq[(String, String)] = Seq(
     "Les sensations d'un raid" ->
       ("Un tank qui retient le boss, un soigneur qui garde tout le monde debout, des attaquants " ++
@@ -783,6 +783,64 @@ object FrenchI18n extends I18n {
     "Créez une partie, laissez vos amis la rejoindre (ou ajoutez des bots), choisissez un boss, " ++
       "et combattez !"
   )
+  override def landingOpenSourceBadge: String = "Open source"
+  override def landingOpenSourceTitle: String = "Open source, de bout en bout"
+  override def landingOpenSourceText: String =
+    "Battle for Flatland est open source, des menus jusqu'au dernier boss : aucun code caché, " ++
+      "et un jeu qui appartient à ses joueurs autant qu'à son auteur."
+  override def landingOpenSource: Seq[(String, String)] = Seq(
+    "Tout le code, au grand jour" ->
+      ("Chaque ligne du jeu est sur GitHub, des menus jusqu'aux capacités des boss : lisez-la, " ++
+        "apprenez-en, modifiez-la."),
+    "Hébergez-le vous-même" ->
+      ("Le serveur vient avec les instructions pour le faire tourner sur votre propre machine : " ++
+        "personne ne pourra vous retirer le jeu."),
+    "Créez votre propre boss" ->
+      ("Un guide pas à pas explique comment implémenter un nouveau boss. Proposez le vôtre sur " ++
+        "GitHub, et il pourrait rejoindre le jeu !")
+  )
+
+  override def landingFaqTitle: String = "Questions fréquentes"
+  override def landingFaq: Seq[(String, String)] = Seq(
+    "Puis-je jouer seul ?" ->
+      ("Oui : chaque boss vient avec ses bots, qui peuvent prendre toutes les autres places de " ++
+        "l'équipe. C'est une bonne façon de découvrir un boss et de s'y entraîner à son rythme. " ++
+        "Mais le jeu est fait pour être joué ensemble : les bots ne vous offriront pas la " ++
+        "meilleure expérience, qui est d'abattre un boss entre amis."),
+    "Faut-il connaître World of Warcraft ?" ->
+      ("Pas du tout. Si vous avez fait des raids dans WoW, vous serez tout de suite en terrain " ++
+        "connu. Sinon, le tutoriel explique chaque rôle, et vous permet de vous y entraîner " ++
+        "contre un premier boss."),
+    "Le jeu est-il fait pour une équipe de cinq ?" ->
+      ("Oui et non. La plupart des boss sont conçus pour cinq joueurs : un tank, un soigneur et " ++
+        "trois attaquants. Mais certains demandent une équipe plus grande : dix joueurs déjà, " ++
+        "et sans doute jusqu'à vingt plus tard."),
+    "Vais-je toujours jouer la même classe ?" ->
+      ("Absolument pas ! Chaque boss demande sa propre composition d'équipe, et chacun passera " ++
+        "donc par d'autres classes. Et comme il n'y a pas de progression, vous pouvez changer " ++
+        "de classe quand vous voulez."),
+    "Comment jouer avec mes amis ?" ->
+      ("Créez une partie dans les menus, et vos amis la rejoignent depuis la liste des " ++
+        "parties. Aucun serveur à installer : quand le combat commence, l'ordinateur d'un des " ++
+        "joueurs l'héberge, de lui-même."),
+    "Faut-il un compte ?" ->
+      ("Non, pas pour l'instant : choisissez simplement un pseudo, auquel les autres vous " ++
+        "reconnaissent dans les menus et dans le jeu. Les comptes viendront sans doute plus tard."),
+    "Sur quels systèmes le jeu tourne-t-il ?" ->
+      ("Windows, macOS et Linux. Et partout où LÖVE 12 tourne, avec le fichier .love."),
+    "Le jeu est-il gratuit, et le restera-t-il ?" ->
+      ("Il est gratuit aujourd'hui, téléchargé depuis ce site. D'ici un ou deux ans, le jeu " ++
+        "devrait passer sur une plateforme comme Steam, où il sera payant. Mais il restera open " ++
+        "source, avec les instructions pour l'héberger vous-même : si vous le voulez, vous " ++
+        "pourrez toujours jouer gratuitement."),
+    "Le jeu sera-t-il sur Steam ?" ->
+      "C'est l'objectif, mais pas dans l'immédiat : sans doute d'ici un ou deux ans.",
+    "Puis-je créer mon propre boss ?" ->
+      ("Oui, si vous savez programmer : le jeu est open source, et son dépôt contient un guide " ++
+        "pas à pas pour implémenter un nouveau boss. Proposez-le sur GitHub, et il pourrait " ++
+        "rejoindre le jeu !")
+  )
+
   override def landingBetaTitle: String = "Rejoignez les bêta-testeurs"
   override def landingBetaText: String =
     "Battle for Flatland est en bêta, et continue de grandir. Téléchargez-le, jouez quelques " ++
@@ -792,4 +850,7 @@ object FrenchI18n extends I18n {
   override def landingSourceCode: String = "Code source sur GitHub"
   override def landingFooter: String =
     "Battle for Flatland est gratuit et open source, fait avec Scala et LÖVE."
+  override def landingTrademark: String =
+    "World of Warcraft est une marque de Blizzard Entertainment, à laquelle Battle for " ++
+      "Flatland n'est pas affilié."
 }

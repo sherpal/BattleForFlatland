@@ -702,8 +702,8 @@ object AlbanianI18n extends I18n {
   override def landingTagline: String =
     "Ngrihu kundër Kryepriftërinjve të Flatland-it, së bashku."
   override def landingPitch: String =
-    "Një lojë bashkëpunimi me beteja kundër bossëve: një tank, një shërues dhe sulmues kundër " ++
-      "tiranëve të Flatland-it. Mëso aftësitë e tyre, luaj rolin tënd dhe mposhti në beteja " ++
+    "Një lojë bashkëpunimi me beteja kundër bossëve si në World of Warcraft: një tank, një " ++
+      "shërues dhe sulmues kundër tiranëve të Flatland-it. Mëso aftësitë e tyre, luaj rolin tënd dhe mposhti në beteja " ++
       "që zgjasin minuta, jo mbrëmje të tëra."
   override def landingDownload: String             = "Shkarko"
   override def downloadFor(system: String): String = s"Shkarko për $system"
@@ -715,7 +715,7 @@ object AlbanianI18n extends I18n {
       "Security (\"Open Anyway\")."
   override def landingAnimation: String = "Një betejë kundër një bossi në Battle for Flatland"
 
-  override def landingFeaturesTitle: String = "Raide, pa grind"
+  override def landingFeaturesTitle: String = "Raide si në WoW, pa grind"
   override def landingFeatures: Seq[(String, String)] = Seq(
     "Ndjesia e një raidi" ->
       ("Një tank që mban bossin, një shërues që i mban të gjithë në këmbë, sulmues që garojnë " ++
@@ -753,6 +753,62 @@ object AlbanianI18n extends I18n {
     "Krijo një lojë, lër miqtë e tu të bashkohen (ose shto lojtarë AI), zgjidh një boss dhe " ++
       "lufto!"
   )
+  override def landingOpenSourceBadge: String = "Burim i hapur"
+  override def landingOpenSourceTitle: String = "Me burim të hapur, nga fillimi deri në fund"
+  override def landingOpenSourceText: String =
+    "Battle for Flatland është me burim të hapur, nga menutë deri te bossi i fundit: asnjë kod " ++
+      "i fshehur, dhe një lojë që u përket lojtarëve të saj po aq sa autorit të saj."
+  override def landingOpenSource: Seq[(String, String)] = Seq(
+    "I gjithë kodi, haptas" ->
+      ("Çdo rresht i lojës është në GitHub, nga menutë deri te aftësitë e bossëve: lexoje, " ++
+        "mëso prej tij, ndryshoje."),
+    "Strehoje vetë" ->
+      ("Serveri vjen me udhëzimet për ta nisur në kompjuterin tënd: askush nuk mund të ta " ++
+        "marrë lojën."),
+    "Bëj bossin tënd" ->
+      ("Një udhëzues hap pas hapi shpjegon si të implementosh një boss të ri. Propozoje tëndin " ++
+        "në GitHub, dhe ndoshta do të hyjë në lojë!")
+  )
+
+  override def landingFaqTitle: String = "Pyetje të shpeshta"
+  override def landingFaq: Seq[(String, String)] = Seq(
+    "A mund të luaj vetëm?" ->
+      ("Po: çdo boss vjen me lojtarë AI, që mund të zënë të gjitha vendet e tjera të ekipit. " ++
+        "Është një mënyrë e mirë për të zbuluar një boss dhe për t'u stërvitur me ritmin tënd. " ++
+        "Por loja është bërë për t'u luajtur së bashku: lojtarët AI nuk të japin përvojën më " ++
+        "të mirë, që është të mposhtësh një boss me miqtë."),
+    "A duhet ta njoh World of Warcraft?" ->
+      ("Aspak. Nëse ke bërë raide në WoW, do të ndihesh menjëherë si në shtëpi. Nëse jo, " ++
+        "tutoriali shpjegon çdo rol dhe të lejon ta stërvitësh kundër një bossi të parë."),
+    "A është loja bërë për një ekip prej pesë vetash?" ->
+      ("Po dhe jo. Shumica e bossëve janë menduar për pesë lojtarë: një tank, një shërues dhe " ++
+        "tre sulmues. Por disa kërkojnë një ekip më të madh: tashmë dhjetë lojtarë, dhe me " ++
+        "gjasë deri në njëzet më vonë."),
+    "A do të luaj gjithmonë të njëjtën klasë?" ->
+      ("Aspak! Çdo boss kërkon përbërjen e vet të ekipit, ndaj secili do të luajë edhe klasa " ++
+        "të tjera. Dhe meqë nuk ka progresion, mund ta ndërrosh klasën kur të duash."),
+    "Si të luaj me miqtë e mi?" ->
+      ("Krijo një lojë në menu, dhe miqtë e tu i bashkohen nga lista e lojërave. Asnjë server " ++
+        "për të ngritur: kur fillon beteja, kompjuteri i njërit prej lojtarëve e strehon atë, " ++
+        "vetvetiu."),
+    "A më duhet një llogari?" ->
+      ("Jo, jo për momentin: thjesht zgjidh një pseudonim, me të cilin të njohin të tjerët në " ++
+        "menu dhe në lojë. Llogaritë me gjasë do të vijnë më vonë."),
+    "Në cilat sisteme punon?" ->
+      ("Windows, macOS dhe Linux. Dhe kudo ku punon LÖVE 12, me skedarin .love."),
+    "A është loja falas, dhe a do të mbetet e tillë?" ->
+      ("Sot është falas, e shkarkuar nga kjo faqe. Pas një ose dy vjetësh, loja duhet të " ++
+        "kalojë në një platformë si Steam, ku do të jetë me pagesë. Por do të mbetet me burim " ++
+        "të hapur, me udhëzimet për ta strehuar vetë: nëse do, do të mund të luash gjithmonë " ++
+        "falas."),
+    "A do të jetë loja në Steam?" ->
+      "Ky është qëllimi, por jo në të ardhmen e afërt: me gjasë pas një ose dy vjetësh.",
+    "A mund të bëj bossin tim?" ->
+      ("Po, nëse di të programosh: loja është me burim të hapur, dhe depoja e saj ka një " ++
+        "udhëzues hap pas hapi për të implementuar një boss të ri. Propozoje në GitHub, dhe " ++
+        "ndoshta do të hyjë në lojë!")
+  )
+
   override def landingBetaTitle: String = "Bëhu beta-testues"
   override def landingBetaText: String =
     "Battle for Flatland është në beta dhe vazhdon të rritet. Shkarkoje, luaj disa beteja me " ++
@@ -762,4 +818,7 @@ object AlbanianI18n extends I18n {
   override def landingSourceCode: String = "Kodi burim në GitHub"
   override def landingFooter: String =
     "Battle for Flatland është falas dhe me burim të hapur, bërë me Scala dhe LÖVE."
+  override def landingTrademark: String =
+    "World of Warcraft është markë tregtare e Blizzard Entertainment, me të cilën Battle for " ++
+      "Flatland nuk ka lidhje."
 }

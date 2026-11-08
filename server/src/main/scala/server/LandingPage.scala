@@ -8,8 +8,8 @@ import scalatags.Text.{svgAttrs, svgTags, tags2}
 import services.i18n.{I18n, LandingPicture, Language}
 
 /** The website's landing page, in each language of the game (its texts are the [[I18n]]'s): what
-  * the game is, its story, its classes and screenshots, and where to download it (see
-  * [[ClientPackageRoutes]]).
+  * the game is, its classes and screenshots, where to download it (see [[ClientPackageRoutes]]),
+  * that it is open source, its story, and the frequently asked questions.
   *
   * The pictures are the server's resources in `landing/` (see [[LandingAssets]]): one per
   * [[LandingPicture]] (e.g. `landing/fight.png`), and the animation of a fight,
@@ -23,6 +23,10 @@ object LandingPage {
 
   val gitHub: String       = "https://github.com/sherpal/BattleForFlatland"
   private val feedbackLink = s"$gitHub/issues"
+
+  /** Where to read about each card of the open source section, in its order. */
+  private val openSourceLinks =
+    List(gitHub, s"$gitHub/blob/main/deploy.md", s"$gitHub/blob/main/make-a-boss.md")
 
   /** The downloads that the page offers, as (system, label). */
   private val downloads = List("windows" -> "Windows", "macos" -> "macOS", "linux" -> "Linux")
@@ -165,10 +169,12 @@ object LandingPage {
         tag("main")(
           hero(i18n),
           features(i18n),
-          story(i18n),
           classes(i18n),
           screenshots(i18n),
           steps(i18n),
+          openSource(i18n),
+          story(i18n),
+          faq(i18n),
           beta(i18n)
         ),
         footer(language),
@@ -223,6 +229,8 @@ object LandingPage {
         ),
         p(cls := "small")(
           span(cls := "badge")("Beta"),
+          " ",
+          a(cls := "badge open", href := "#open-source")(i18n.landingOpenSourceBadge),
           " ",
           i18n.landingFreeAndOpen,
           " ",
@@ -343,6 +351,33 @@ object LandingPage {
     )
   )
 
+  private def openSource(i18n: I18n): Frag = tags2.section(id := "open-source", cls := "section")(
+    div(cls := "wrap")(
+      h2(i18n.landingOpenSourceTitle),
+      p(cls := "lead")(i18n.landingOpenSourceText),
+      div(cls := "grid three")(
+        for ((title, text), link) <- i18n.landingOpenSource.zip(openSourceLinks)
+        yield div(cls := "card")(
+          h3(a(href := link, rel := "noopener")(title)),
+          p(text)
+        )
+      ),
+      div(cls := "actions")(
+        a(cls := "button", href := gitHub, rel := "noopener")(i18n.landingSourceCode)
+      )
+    )
+  )
+
+  private def faq(i18n: I18n): Frag = tags2.section(id := "faq", cls := "section")(
+    div(cls := "wrap")(
+      h2(i18n.landingFaqTitle),
+      div(cls := "faq")(
+        for (question, answer) <- i18n.landingFaq
+        yield tag("details")(tag("summary")(question), p(answer))
+      )
+    )
+  )
+
   private def beta(i18n: I18n): Frag = tags2.section(cls := "section")(
     div(cls := "wrap")(
       div(cls := "beta")(
@@ -365,7 +400,8 @@ object LandingPage {
       p(cls := "footer-languages")(
         for other <- Language.values.toSeq
         yield a(href := s"/${other.code}", lang := other.code)(other.nativeName)
-      )
+      ),
+      p(cls := "trademark")(language.i18n.landingTrademark)
     )
   )
 
@@ -402,6 +438,7 @@ object LandingPage {
       |}
       |* { box-sizing: border-box; }
       |html { scroll-behavior: smooth; }
+      |[id] { scroll-margin-top: 72px; }
       |body {
       |  margin: 0; background: var(--background); color: var(--text);
       |  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -470,16 +507,23 @@ object LandingPage {
       |.badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.75rem;
       |  font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #1c1e28;
       |  background: var(--gold); vertical-align: 1px; }
+      |.badge.open { color: var(--gold); background: transparent; border: 1px solid var(--gold);
+      |  text-decoration: none; }
+      |.badge.open:hover { background: #ebbe4626; }
       |
       |/* Sections */
       |.section { padding: 48px 0; }
       |.grid { display: grid; gap: 20px; }
       |.grid.four { grid-template-columns: repeat(4, 1fr); }
+      |.grid.three { grid-template-columns: repeat(3, 1fr); }
       |.grid.two { grid-template-columns: repeat(2, 1fr); }
+      |.lead { color: #d4d5dc; max-width: 68ch; margin-bottom: 24px; }
       |.card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
       |  padding: 22px; }
       |.card svg { margin-bottom: 12px; }
       |.card p { color: #c9cad2; margin: 0; }
+      |.card h3 a { color: var(--text); text-decoration-color: var(--gold); text-underline-offset: 4px; }
+      |.card h3 a:hover { color: var(--gold); }
       |.card.class { border-top: 4px solid var(--class-colour); }
       |.card.class .role { color: var(--class-colour); font-weight: 600; margin-bottom: 8px; }
       |.story-grid { display: grid; grid-template-columns: 220px 1fr; gap: 40px; align-items: center;
@@ -498,6 +542,17 @@ object LandingPage {
       |.steps li::before { content: counter(step); display: flex; align-items: center;
       |  justify-content: center; width: 34px; height: 34px; border-radius: 50%; margin-bottom: 10px;
       |  background: #ebbe4626; color: var(--gold); font-weight: 700; }
+      |.faq { display: grid; gap: 10px; max-width: 860px; }
+      |.faq details { background: var(--panel); border: 1px solid var(--border);
+      |  border-radius: var(--radius); }
+      |.faq summary { cursor: pointer; list-style: none; padding: 16px 48px 16px 20px; font-weight: 600;
+      |  position: relative; }
+      |.faq summary::-webkit-details-marker { display: none; }
+      |.faq summary::after { content: "+"; position: absolute; right: 20px; top: 50%;
+      |  transform: translateY(-50%); color: var(--gold); font-size: 1.4rem; font-weight: 400; }
+      |.faq details[open] summary::after { content: "−"; }
+      |.faq summary:hover { color: var(--gold); }
+      |.faq details p { margin: 0; padding: 0 20px 18px; color: #c9cad2; max-width: 75ch; }
       |.beta { text-align: center; padding: 44px 24px; border-radius: var(--radius);
       |  border: 1px solid #ebbe4660; background: radial-gradient(circle at 50% 0%, #ebbe4622, var(--panel) 70%); }
       |.beta p { max-width: 60ch; margin: 0 auto; color: #d4d5dc; }
@@ -510,16 +565,18 @@ object LandingPage {
       |.bottom p { margin: 0; }
       |.footer-languages a { color: var(--muted); margin-left: 12px; }
       |.footer-languages a:first-child { margin-left: 0; }
+      |.bottom .trademark { flex-basis: 100%; font-size: 0.8rem; opacity: 0.8; }
       |
       |/* Narrower screens */
       |@media (max-width: 960px) {
       |  .grid.four, .steps { grid-template-columns: repeat(2, 1fr); }
+      |  .grid.three { grid-template-columns: 1fr; }
       |  .hero-grid { grid-template-columns: 1fr; gap: 32px; }
       |  .hero { padding-top: 40px; }
       |}
       |@media (max-width: 640px) {
       |  body { font-size: 16px; }
-      |  .grid.four, .grid.two, .steps { grid-template-columns: 1fr; }
+      |  .grid.four, .grid.three, .grid.two, .steps { grid-template-columns: 1fr; }
       |  .story-grid { grid-template-columns: 1fr; padding: 24px; gap: 16px; }
       |  .story-art { max-width: 120px; }
       |  .top-links > a { display: none; }

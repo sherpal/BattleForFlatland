@@ -512,6 +512,18 @@ object DummyI18n extends I18n {
 
   def landingSteps: Seq[String] = Seq.empty
 
+  def landingOpenSourceBadge: String = ""
+
+  def landingOpenSourceTitle: String = ""
+
+  def landingOpenSourceText: String = ""
+
+  def landingOpenSource: Seq[(String, String)] = Seq.empty
+
+  def landingFaqTitle: String = ""
+
+  def landingFaq: Seq[(String, String)] = Seq.empty
+
   def landingBetaTitle: String = ""
 
   def landingBetaText: String = ""
@@ -521,4 +533,6 @@ object DummyI18n extends I18n {
   def landingSourceCode: String = ""
 
   def landingFooter: String = ""
+
+  def landingTrademark: String = ""
 }

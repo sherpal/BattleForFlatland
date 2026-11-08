@@ -22,6 +22,8 @@ final class LandingPageTest extends munit.FunSuite {
       assert(page.startsWith("<!DOCTYPE html><html lang=\"" + language.code + "\""), language)
       assert(page.contains(language.i18n.landingTagline), language)
       assert(page.contains(language.i18n.story.heading), language)
+      assert(page.contains(language.i18n.landingFaqTitle), language)
+      for (title, _) <- language.i18n.landingOpenSource do assert(page.contains(title), title)
       for system <- Seq("windows", "macos", "linux", "love") do
         assert(page.contains(s"/api/bff/client/$system"), (language, system))
       for other <- Language.values do assert(page.contains(s"href=\"/${other.code}\""), other)
