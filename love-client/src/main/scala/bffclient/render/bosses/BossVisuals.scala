@@ -57,7 +57,14 @@ object BossVisuals {
 
   /** By boss name, like the frontend's `drawerMapping`. Boss 101 has no visuals. */
   private val byBossName: Map[String, BossVisuals] =
-    Seq(Boss102Visuals, Boss104Visuals, Boss105Visuals, Boss110Visuals, SirOfViceVisuals)
+    Seq(
+      Boss102Visuals,
+      Boss104Visuals,
+      Boss105Visuals,
+      Boss110Visuals,
+      SirOfViceVisuals,
+      SpiritOfNaraVisuals
+    )
       .map(v => v.bossName -> v)
       .toMap
 

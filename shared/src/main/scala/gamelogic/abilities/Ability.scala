@@ -1,9 +1,10 @@
 package gamelogic.abilities
 
 import gamelogic.abilities.Ability.AbilityColour
+import gamelogic.buffs.Buff
 import gamelogic.entities.Resource.ResourceAmount
 import gamelogic.entities.{Entity, Resource}
-import gamelogic.gamestate.gameactions.EntityStartsCasting
+import gamelogic.gamestate.gameactions.{EntityStartsCasting, PutSimpleBuff}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.{IdGeneratorContainer, IdsProducer, OpaqueIntCompanion, OpaqueLongCompanion}
 import io.circe.{Decoder, Encoder, Json}
@@ -53,6 +54,12 @@ trait Ability extends IdsProducer {
 
   /** Whether a Triangle can use its cut ability to interrupt casting */
   def canBeCut: Boolean = false
+
+  /** What happens to the caster (besides being interrupted) when a Triangle cuts this ability. By
+    * default, it is silenced.
+    */
+  def cutPenalty(time: Long, cutterId: Entity.Id)(using IdGeneratorContainer): Vector[GameAction] =
+    Vector(PutSimpleBuff(genActionId(), time, genBuffId(), casterId, cutterId, time, Buff.silence))
 
   /** Generates all actions that this ability generates when completed. These actions may depend on
     * the [[gamelogic.gamestate.GameState]] at the time the ability is completed.
@@ -153,6 +160,20 @@ object Ability {
   val boss105Reunion: AbilityId                 = nextAbilityId()
   val pentagonPentagramId: AbilityId            = nextAbilityId()
   val pentagonFractureId: AbilityId             = nextAbilityId()
+  val spiritOfNaraFireball: AbilityId           = nextAbilityId()
+  val spiritOfNaraFrostbolt: AbilityId          = nextAbilityId()
+  val spiritOfNaraArcaneMissiles: AbilityId     = nextAbilityId()
+  val spiritOfNaraCounterspell: AbilityId       = nextAbilityId()
+  val spiritOfNaraChainsOfIce: AbilityId        = nextAbilityId()
+  val spiritOfNaraMagneticPull: AbilityId       = nextAbilityId()
+  val spiritOfNaraArcaneExplosion: AbilityId    = nextAbilityId()
+  val spiritOfNaraFlameWreath: AbilityId        = nextAbilityId()
+  val spiritOfNaraBlizzard: AbilityId           = nextAbilityId()
+  val spiritOfNaraMassPolymorph: AbilityId      = nextAbilityId()
+  val spiritOfNaraPyroblast: AbilityId          = nextAbilityId()
+  val spiritOfNaraSummonElementals: AbilityId   = nextAbilityId()
+  val spiritOfNaraWaterbolt: AbilityId          = nextAbilityId()
+  val spiritOfNaraShadowPyroblast: AbilityId    = nextAbilityId()
 
   opaque type AbilityColour <: RGBColour = RGBColour
 

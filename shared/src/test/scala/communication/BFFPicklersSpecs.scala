@@ -23,13 +23,30 @@ import gamelogic.abilities.boss.sirofvice.{
   Punishment,
   SacredGround
 }
+import gamelogic.abilities.boss.spiritofnara.{
+  ArcaneExplosion,
+  ArcaneMissiles,
+  Blizzard,
+  ChainsOfIce,
+  Counterspell,
+  Fireball,
+  FlameWreath,
+  Frostbolt,
+  MagicSchool,
+  MagneticPull,
+  MassPolymorph,
+  Pyroblast,
+  ShadowPyroblast,
+  SummonWaterElementals,
+  Waterbolt
+}
 import gamelogic.abilities.pentagon.{Fracture, Pentagram}
 import gamelogic.abilities.square.{Brace, Guard, ShieldSlam}
 import gamelogic.buffs.Buff
 import gamelogic.entities.Entity
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.gamestate.GameAction
-import gamelogic.gamestate.gameactions.PutStackedBuff
+import gamelogic.gamestate.gameactions.{PutStackedBuff, RefreshMovementSpeed}
 import gamelogic.gamestate.gameactions.classes.pentagon.PutFractured
 import gamelogic.gamestate.gameactions.classes.square.PutGuarding
 import gamelogic.gamestate.gameactions.boss104.*
@@ -40,16 +57,28 @@ import gamelogic.gamestate.gameactions.boss105.{
   ShadeFalls
 }
 import gamelogic.gamestate.gameactions.boss110.{
+  AddBigGuy as Boss110AddBigGuy,
   AddBombPods,
   AddCreepingShadow,
-  AddSmallGuy,
-  AddBigGuy as Boss110AddBigGuy
+  AddSmallGuy
 }
 import gamelogic.gamestate.gameactions.sirofvice.{
   PutHolyWrathChain,
   PutInflamedDebuff,
   PutPunishedDebuff,
   PutPurifiedDebuff
+}
+import gamelogic.gamestate.gameactions.spiritofnara.{
+  AddBlizzard,
+  AddFlameWreath,
+  AddWaterElemental,
+  PullPlayer,
+  PutChained,
+  PutChilled,
+  PutCounterspelled,
+  PutDrinking,
+  PutPolymorph,
+  PutSchoolLockout
 }
 import gamelogic.physics.{Complex, PosInt}
 import utils.misc.RGBColour
@@ -167,6 +196,47 @@ final class BFFPicklersSpecs extends munit.FunSuite {
     roundTripAction(
       PutStackedBuff(actionId, 1L, buffId, entityId, entityId, 1L, Buff.squareBrace, PosInt.of(3))
     )
+  }
+
+  test("Spirit of Nara abilities survive a boopickle round trip") {
+    roundTripAbility(Fireball(useId, 1L, entityId, entityId))
+    roundTripAbility(Frostbolt(useId, 1L, entityId, entityId))
+    roundTripAbility(ArcaneMissiles(useId, 1L, entityId, entityId))
+    roundTripAbility(Counterspell(useId, 1L, entityId))
+    roundTripAbility(ChainsOfIce(useId, 1L, entityId, entityId))
+    roundTripAbility(MagneticPull(useId, 1L, entityId))
+    roundTripAbility(ArcaneExplosion(useId, 1L, entityId))
+    roundTripAbility(FlameWreath(useId, 1L, entityId))
+    roundTripAbility(Blizzard(useId, 1L, entityId))
+    roundTripAbility(MassPolymorph(useId, 1L, entityId))
+    roundTripAbility(Pyroblast(useId, 1L, entityId))
+    roundTripAbility(SummonWaterElementals(useId, 1L, entityId, 2))
+    roundTripAbility(Waterbolt(useId, 1L, entityId, entityId))
+    roundTripAbility(ShadowPyroblast(useId, 1L, entityId))
+  }
+
+  test("Spirit of Nara actions survive a boopickle round trip") {
+    roundTripAction(PutChilled(actionId, 1L, buffId, entityId))
+    roundTripAction(RefreshMovementSpeed(actionId, 1L, entityId))
+    roundTripAction(PullPlayer(actionId, 1L, entityId, somewhere, buffId, buffId))
+    roundTripAction(PutChained(actionId, 1L, buffId, entityId, somewhere))
+    roundTripAction(PutPolymorph(actionId, 1L, buffId, entityId, entityId, somewhere))
+    roundTripAction(PutCounterspelled(actionId, 1L, buffId, entityId))
+    roundTripAction(PutDrinking(actionId, 1L, buffId, entityId))
+    roundTripAction(PutSchoolLockout(actionId, 1L, buffId, entityId, MagicSchool.frost))
+    roundTripAction(
+      AddFlameWreath(
+        actionId,
+        1L,
+        buffId,
+        entityId,
+        Vector(entityId, entityId),
+        Vector[Complex](0, somewhere),
+        Vector(Vector(entityId), Vector.empty)
+      )
+    )
+    roundTripAction(AddBlizzard(actionId, 1L, entityId, Angle.Pi, buffId, entityId))
+    roundTripAction(AddWaterElemental(actionId, 1L, entityId, somewhere, buffId, buffId))
   }
 
 }

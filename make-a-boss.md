@@ -391,7 +391,9 @@ Notes:
 - Constants go in the companion, **unless** they depend on game state at cast time — then make them
   constructor args.
 - Ids inside `createActions` come from `IdsProducer`: `genActionId()`, `genEntityId()`, `genBuffId()`.
-- Set `canBeCut = true` if a Triangle should be able to interrupt it (see `BigGuyKick`).
+- Set `canBeCut = true` if a Triangle should be able to interrupt it (see `BigGuyKick`). The caster
+  is then silenced, unless the ability overrides `cutPenalty` (the Spirit of Nara is locked out of
+  the school of the spell instead, see `spiritofnara.NaraNuke`).
 - If the ability has a target, extend `WithTargetAbility` instead and implement `range` +
   `canBeCast = isInRangeAndInSight(gameState, time)`.
 
@@ -474,6 +476,11 @@ need more. `UseId.dummy` / `GameAction.Id.dummy` are placeholders; the game mast
 | `TickerBuff` | periodic effect (damage over time, heal over time). Implement `tickRate`, `tickEffect`, `changeLastTickTime`. |
 | `PassiveBuff` | a permanent marker or an action-rewriter. Implement `actionTransformer`. |
 | `SilencingBuff` / `ActionPreventerBuff` | disabling effects. |
+| `MovementSpeedModifier` (with `PassiveBuff`) | slows. `MovingBodyMoves` gives players the speed their buffs allow, whatever they claim. Emit a `RefreshMovementSpeed` right after putting the buff, and from its `endingAction`, so that a player moving in a straight line slows down (and speeds up again) at once. See `spiritofnara.Chilled`. |
+
+To root or teleport a player, do not just move it: its client computes its next position from where
+it was, and would move it back. Pin it with a `PassiveBuff` whose `actionTransformer` rewrites its
+`MovingBodyMoves` to the wanted position (`Punished`, `spiritofnara.Chained`, `spiritofnara.Pulled`).
 
 Every buff needs:
 - `resourceIdentifier` — a `Buff.nextId()` value from
