@@ -65,8 +65,8 @@ case class CreatePentagonZone(
 
 object CreatePentagonZone {
 
-  /** Much longer than the zone lasts: it has to be put where the enemies will stay. */
-  inline def cooldown: Long                = 30000L
+  /** Slightly longer than the zone lasts: it has to be put where the enemies will stay. */
+  inline def cooldown: Long                = 12000L
   inline def cost: Resource.ResourceAmount = Resource.ResourceAmount(10.0, Resource.Mana)
   inline def castingTime: Long             = 1500L
   inline def range: Double                 = WithTargetAbility.healRange
