@@ -14,10 +14,13 @@ FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-COPY dist/app.jar                    ./app.jar
-COPY game-server/target/game-server.jar ./game-server.jar
-COPY game-server/target/runtimes     ./runtimes
-COPY love-client/target/dist         ./clients
+# From what changes the least to what changes the most: a deploy (see project/Deploy.scala) only uploads
+# the layers that the VM does not have yet. --link makes a layer independent of the ones under it, so
+# that a new base image or a changed layer below does not change it.
+COPY --link game-server/target/runtimes        ./runtimes
+COPY --link love-client/target/dist            ./clients
+COPY --link game-server/target/game-server.jar ./game-server.jar
+COPY --link dist/app.jar                       ./app.jar
 
 # HTTP (TCP) and rendezvous (UDP, on the same port number unless RENDEZVOUS_PORT says otherwise)
 ENV PORT=9000
