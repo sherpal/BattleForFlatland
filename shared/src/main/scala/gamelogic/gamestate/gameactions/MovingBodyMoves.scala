@@ -1,6 +1,8 @@
 package gamelogic.gamestate.gameactions
 
+import gamelogic.buffs.MovementSpeedModifier
 import gamelogic.entities.Entity
+import gamelogic.entities.classes.PlayerClass
 import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.boss.BossEntity
 import gamelogic.gamestate.GameAction.Id
@@ -24,7 +26,15 @@ final case class MovingBodyMoves(
     gameState
       .movingBodyEntityById(entityId)
       .fold(GameStateTransformer.identityTransformer) { movingBody =>
-        new WithEntity(movingBody.move(time, position, direction, rotation, speed, moving), time)
+        // the speed of a player is decided by its buffs (slows), not by the player
+        val actualSpeed = movingBody match {
+          case player: PlayerClass => MovementSpeedModifier.playerSpeed(gameState, player)
+          case _ => speed
+        }
+        new WithEntity(
+          movingBody.move(time, position, direction, rotation, actualSpeed, moving),
+          time
+        )
       }
 
   def isLegal(gameState: GameState)(using i18n: I18n): Option[String] =

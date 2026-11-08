@@ -24,7 +24,8 @@ import application.ai.goodais.bosses.boss104.Boss104Container
 import application.ai.goodais.bosses.boss105.Boss105Container
 import application.ai.goodais.bosses.boss110.Boss110Container
 import application.ai.goodais.bosses.sirofvice.SirOfViceContainer
-import gamelogic.entities.boss.firstraid.SirOfVice
+import application.ai.goodais.bosses.spiritofnara.SpiritOfNaraContainer
+import gamelogic.entities.boss.firstraid.{SirOfVice, SpiritOfNara}
 import application.ai.goodais.classes.{
   HexagonAIController,
   PentagonAIController,
@@ -137,12 +138,13 @@ object GoodAIManager {
     * its companion for the lobby to let players add AIs at all.
     */
   private val bossAIContainers: Map[BossMetadata, BossAIContainer] = Map(
-    Boss101   -> Boss101Container(),
-    Boss102   -> Boss102Container(),
-    Boss104   -> Boss104Container(),
-    Boss105   -> Boss105Container(),
-    Boss110   -> Boss110Container(),
-    SirOfVice -> SirOfViceContainer()
+    Boss101      -> Boss101Container(),
+    Boss102      -> Boss102Container(),
+    Boss104      -> Boss104Container(),
+    Boss105      -> Boss105Container(),
+    Boss110      -> Boss110Container(),
+    SirOfVice    -> SirOfViceContainer(),
+    SpiritOfNara -> SpiritOfNaraContainer()
   )
 
 }

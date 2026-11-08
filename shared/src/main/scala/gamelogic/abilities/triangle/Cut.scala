@@ -28,10 +28,14 @@ case class Cut(
   override def cost: Resource.ResourceAmount = Resource.ResourceAmount(0.0, Energy)
 
   override def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
-    Vector(
-      EntityCastingInterrupted(genActionId(), time, targetId),
-      PutSimpleBuff(genActionId(), time, genBuffId(), targetId, casterId, time, Buff.silence)
-    )
+    EntityCastingInterrupted(genActionId(), time, targetId) +:
+      gameState.castingEntityInfo
+        .get(targetId)
+        .fold(
+          Vector(
+            PutSimpleBuff(genActionId(), time, genBuffId(), targetId, casterId, time, Buff.silence)
+          )
+        )(_.ability.cutPenalty(time, casterId))
 
   override def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
     copy(time = newTime, useId = newId)

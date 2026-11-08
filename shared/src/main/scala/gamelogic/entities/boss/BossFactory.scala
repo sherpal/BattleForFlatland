@@ -3,7 +3,7 @@ package gamelogic.entities.boss
 import gamelogic.buffs.Buff
 import gamelogic.entities.Entity
 import gamelogic.entities.boss.dawnoftime.Boss102
-import gamelogic.entities.boss.firstraid.SirOfVice
+import gamelogic.entities.boss.firstraid.{SirOfVice, SpiritOfNara}
 import gamelogic.gamestate.GameAction
 import gamelogic.gamestate.gameactions.PutSimpleBuff
 import gamelogic.physics.Complex
@@ -95,7 +95,8 @@ object BossFactory {
     Boss104,
     Boss105,
     Boss110,
-    SirOfVice
+    SirOfVice,
+    SpiritOfNara
   ).map(factory => factory.name -> factory).toMap
 
 }
