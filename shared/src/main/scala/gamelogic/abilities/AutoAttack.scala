@@ -23,7 +23,7 @@ final case class AutoAttack(
   def castingTime: Long = 0L
 
   def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
-    Vector(EntityTakesDamage(genActionId(), time, targetId, damage, casterId))
+    Vector(EntityTakesDamage(genActionId(), time, targetId, damage, casterId, abilityId))
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
     copy(time = newTime, useId = newId)

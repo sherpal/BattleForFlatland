@@ -28,7 +28,10 @@ final case class BigGuy(
     with LivingEntity
     with WithThreat
     with WithTarget
-    with WithAbilities {
+    with WithAbilities
+    with WithName {
+
+  def name: String = BigGuy.name
 
   def teamId: Entity.TeamId = Entity.teams.mobTeam
 
@@ -97,6 +100,9 @@ final case class BigGuy(
 }
 
 object BigGuy {
+
+  /** The name of the big guys (they all have the same). */
+  inline def name: String = "Big Guy"
 
   def maxLife: Double   = 1000.0
   val fullSpeed: Double = Constants.playerSpeed * 6 / 5

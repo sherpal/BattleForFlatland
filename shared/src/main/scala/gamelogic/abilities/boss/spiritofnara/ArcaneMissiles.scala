@@ -27,7 +27,14 @@ final case class ArcaneMissiles(
 
   def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
     Vector.fill(ArcaneMissiles.missiles)(
-      EntityTakesDamage(genActionId(), time, targetId, ArcaneMissiles.damagePerMissile, casterId)
+      EntityTakesDamage(
+        genActionId(),
+        time,
+        targetId,
+        ArcaneMissiles.damagePerMissile,
+        casterId,
+        abilityId
+      )
     )
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): ArcaneMissiles =

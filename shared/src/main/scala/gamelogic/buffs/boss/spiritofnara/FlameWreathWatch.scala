@@ -1,5 +1,6 @@
 package gamelogic.buffs.boss.spiritofnara
 
+import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.buffs.{Buff, TickerBuff}
 import gamelogic.entities.Entity
@@ -24,7 +25,14 @@ final case class FlameWreathWatch(
   def tickEffect(gameState: GameState, time: Long)(using IdGeneratorContainer): Vector[GameAction] =
     if FlameWreathWatch.someoneCrossed(gameState, time) then
       gameState.players.keys.toVector.sortBy(_.value).map { playerId =>
-        EntityTakesDamage(genActionId(), time, playerId, FlameWreathWatch.explosionDamage, bearerId)
+        EntityTakesDamage(
+          genActionId(),
+          time,
+          playerId,
+          FlameWreathWatch.explosionDamage,
+          bearerId,
+          Ability.spiritOfNaraFlameWreath
+        )
       } ++ removeRings(gameState, time) :+ RemoveBuff(genActionId(), time, bearerId, buffId)
     else Vector.empty
 

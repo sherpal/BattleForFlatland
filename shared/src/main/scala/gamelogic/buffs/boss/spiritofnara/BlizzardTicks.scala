@@ -1,5 +1,6 @@
 package gamelogic.buffs.boss.spiritofnara
 
+import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.buffs.{Buff, TickerBuff}
 import gamelogic.entities.Entity
@@ -31,7 +32,14 @@ final case class BlizzardTicks(
           .filter(player => cloud.covers(player.currentPosition(time), time))
           .flatMap { player =>
             Vector(
-              EntityTakesDamage(genActionId(), time, player.id, BlizzardTicks.damage, bearerId),
+              EntityTakesDamage(
+                genActionId(),
+                time,
+                player.id,
+                BlizzardTicks.damage,
+                bearerId,
+                Ability.spiritOfNaraBlizzard
+              ),
               PutChilled(genActionId(), time, genBuffId(), player.id),
               RefreshMovementSpeed(genActionId(), time, player.id)
             )

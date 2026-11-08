@@ -8,7 +8,7 @@ import bffclient.render.Painter
 import bffclient.ui.Colour as Paint
 import gamelogic.abilities.Ability
 import gamelogic.entities.{Entity, WithName, WithThreat}
-import gamelogic.gameextras.DamageTracker
+import gamelogic.gameextras.FightLog
 import services.i18n.I18n
 import utils.misc.RGBColour
 
@@ -156,7 +156,7 @@ final class DamageMeter(parent: Frame, below: Frame, i18n: I18n)
     extends BarsPanel(parent, i18n.damage) {
   frame.setPoint(Point.BottomRight, below, Point.TopRight, 0, -4)
 
-  def update(p: Painter, tracker: DamageTracker, target: Option[Entity.Id]): Unit = {
+  def update(p: Painter, tracker: FightLog, target: Option[Entity.Id]): Unit = {
     val gameState             = p.gameState
     val shown: Option[Entity] = target.flatMap(gameState.enemyByIdOrBoss[Entity])
     frame.setShown(shown.isDefined)

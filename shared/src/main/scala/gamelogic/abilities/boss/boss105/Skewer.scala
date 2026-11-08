@@ -42,7 +42,7 @@ final case class Skewer(
     } yield player
 
     victims.map(player =>
-      EntityTakesDamage(genActionId(), time, player.id, Skewer.damage, casterId)
+      EntityTakesDamage(genActionId(), time, player.id, Skewer.damage, casterId, abilityId)
     )
   }
 

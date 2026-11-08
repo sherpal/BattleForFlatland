@@ -34,7 +34,14 @@ final case class HolyWrath(
     val hitPlayers = HolyWrath.chain(gameState, targetId, time)
 
     val damages = hitPlayers.zipWithIndex.map { (player, jump) =>
-      EntityTakesDamage(genActionId(), time, player.id, HolyWrath.damageForJump(jump), casterId)
+      EntityTakesDamage(
+        genActionId(),
+        time,
+        player.id,
+        HolyWrath.damageForJump(jump),
+        casterId,
+        abilityId
+      )
     }
 
     val casterPosition = gameState.withPositionEntityById(casterId).map(_.currentPosition(time))

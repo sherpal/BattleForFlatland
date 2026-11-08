@@ -57,7 +57,8 @@ final case class DeathMarkTriangleAttack(
           time,
           player.id,
           triangle.damageAt(player.currentPosition(time)),
-          casterId
+          casterId,
+          abilityId
         )
       }
 

@@ -1,5 +1,6 @@
 package gamelogic.buffs.boss.boss105
 
+import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.buffs.{Buff, PassiveBuff}
 import gamelogic.entities.Entity
@@ -37,7 +38,14 @@ final case class VolatileCharge(
         gameState.players.valuesIterator
           .filter(_.currentPosition(time).distanceTo(centre) < VolatileCharge.radius)
           .map(player =>
-            EntityTakesDamage(genActionId(), time, player.id, VolatileCharge.damage, sourceId)
+            EntityTakesDamage(
+              genActionId(),
+              time,
+              player.id,
+              VolatileCharge.damage,
+              sourceId,
+              Ability.boss105VolatileMark
+            )
           )
           .toVector
       }

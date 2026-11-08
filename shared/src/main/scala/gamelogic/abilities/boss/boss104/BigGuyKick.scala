@@ -26,7 +26,7 @@ case class BigGuyKick(useId: Ability.UseId, time: Long, casterId: Entity.Id, tar
   override def canBeCut: Boolean = true
 
   override def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
-    Vector(EntityTakesDamage(genActionId(), time, targetId, BigGuyKick.damage, casterId))
+    Vector(EntityTakesDamage(genActionId(), time, targetId, BigGuyKick.damage, casterId, abilityId))
 
   override def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
     copy(time = newTime, useId = newId)

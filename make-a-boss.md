@@ -500,9 +500,15 @@ override def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Op
     dispellerId <- maybeDispelledBy
     dispeller   <- gameState.players.get(dispellerId)
     if !circles.exists(circle => dispeller.collides(circle, time))   // dispelled from the wrong place
-  } yield EntityTakesDamage(genActionId(), time, dispellerId, 90.0, bossId)).toVector ++
+  } yield EntityTakesDamage(genActionId(), time, dispellerId, 90.0, bossId, Ability.boss104TwinDebuffs))
+    .toVector ++
     circles.map(circle => RemoveEntity(genActionId(), time, circle.id))
 ```
+
+Every `EntityTakesDamage` and `EntityGetsHealed` names the ability responsible for it (its last
+argument): from a buff, a zone or a bullet, the ability that created it. The end of the game shows
+the damage and the heals by ability (`FightLog`), with the names of the `abilitiesDoc`
+(`AbilityDocSpecs` fails if an ability has none).
 
 - `canBeDispelled = true` if a Pentagon's `PentaDispel` should be able to remove it.
 - `bearerDiedAction` — defaults to `endingAction`; **override it** for death-triggered mechanics.

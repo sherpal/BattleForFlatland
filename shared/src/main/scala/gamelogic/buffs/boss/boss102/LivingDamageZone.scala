@@ -1,5 +1,6 @@
 package gamelogic.buffs.boss.boss102
 
+import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.buffs.{Buff, TickerBuff}
 import gamelogic.entities.Entity
@@ -25,7 +26,16 @@ final case class LivingDamageZone(
         .filter(_.teamId == bearer.teamId)
         .filterNot(_.id == bearer.id)
         .filter(ally => (ally.currentPosition(time) - bearer.pos).modulus < LivingDamageZone.range)
-        .map(ally => EntityTakesDamage(genActionId(), time, ally.id, damage, sourceId))
+        .map(ally =>
+          EntityTakesDamage(
+            genActionId(),
+            time,
+            ally.id,
+            damage,
+            sourceId,
+            Ability.putLivingDamageZoneId
+          )
+        )
         .toVector
     }
 

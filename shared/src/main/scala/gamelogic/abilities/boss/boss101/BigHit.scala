@@ -28,7 +28,8 @@ final case class BigHit(useId: Ability.UseId, time: Long, casterId: Entity.Id, t
         time,
         targetId,
         BigHit.damageAmount,
-        casterId
+        casterId,
+        abilityId
       )
     )
 

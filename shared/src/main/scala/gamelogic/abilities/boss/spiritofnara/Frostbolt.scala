@@ -27,7 +27,7 @@ final case class Frostbolt(
 
   def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
     Vector(
-      EntityTakesDamage(genActionId(), time, targetId, Frostbolt.damage, casterId),
+      EntityTakesDamage(genActionId(), time, targetId, Frostbolt.damage, casterId, abilityId),
       PutChilled(genActionId(), time, genBuffId(), targetId),
       RefreshMovementSpeed(genActionId(), time, targetId)
     )

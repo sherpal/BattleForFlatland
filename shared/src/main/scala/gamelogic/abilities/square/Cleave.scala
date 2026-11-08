@@ -32,7 +32,7 @@ final case class Cleave(
       .filter(_.teamId != Entity.teams.playerTeam)
       .filter(_.collidesShape(Cleave.cone, position, rotation, time))
       .map { entity =>
-        EntityTakesDamage(genActionId(), time, entity.id, Cleave.damage, casterId)
+        EntityTakesDamage(genActionId(), time, entity.id, Cleave.damage, casterId, abilityId)
       }
       .toVector
 

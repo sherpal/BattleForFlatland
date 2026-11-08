@@ -258,6 +258,29 @@ trait I18n {
   def fightLasted(minutes: Int, seconds: Int): String
   def gameServerClosedConnection: String
 
+  // Statistics of the fight, at the end of the game
+  def fightSummary: String
+  def damageDone: String
+  def healing: String
+  def damageTaken: String
+  def lastMoments: String
+  def player: String
+  def deaths: String
+  def bossLifeLeft(bossName: String, percent: Int): String
+  def nobodyDied: String
+  def diedAt(minutes: Int, seconds: Int, killedBy: String): String
+  def lastSecondsOf(name: String, seconds: Int, died: Boolean): String
+  def nothingInLastSeconds: String
+  def life: String
+  def overheal(percent: Int): String
+  def bulletsHit(count: Int): String
+  def facetsWasted(count: Int, percent: Int): String
+  def pentagramsCast(count: Int): String
+  def braceStacks(stacks: Int): String
+  def timeWithBraceStacks: String
+  def damagePreventedByBrace(amount: String): String
+  def noClassStatistics: String
+
   // --- Tutorial ---
 
   def tutorialIntro: String

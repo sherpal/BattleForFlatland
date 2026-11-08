@@ -36,7 +36,8 @@ final case class SmallHit(
       time,
       targetId,
       damage,
-      casterId
+      casterId,
+      abilityId
     )
   )
 

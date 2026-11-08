@@ -285,6 +285,37 @@ object DutchI18n extends I18n {
     f"Het gevecht duurde $minutes%d:$seconds%02d"
   override def gameServerClosedConnection: String = "De spelserver heeft de verbinding verbroken"
 
+  // Statistieken van het gevecht, aan het einde van het spel
+  override def fightSummary: String = "Samenvatting"
+  override def damageDone: String   = "Damage gedaan"
+  override def healing: String      = "Healing"
+  override def damageTaken: String  = "Ontvangen damage"
+  override def lastMoments: String  = "Laatste momenten"
+  override def player: String       = "Speler"
+  override def deaths: String       = "Doden"
+  override def bossLifeLeft(bossName: String, percent: Int): String =
+    s"$bossName had nog $percent% van zijn leven"
+  override def nobodyDied: String = "Niemand is gestorven"
+  override def diedAt(minutes: Int, seconds: Int, killedBy: String): String =
+    f"Gestorven op $minutes%d:$seconds%02d ($killedBy)"
+  override def lastSecondsOf(name: String, seconds: Int, died: Boolean): String =
+    if died then s"De laatste $seconds seconden van $name voor de dood"
+    else s"De laatste $seconds seconden van $name"
+  override def nothingInLastSeconds: String =
+    "Niets heeft hen in deze seconden geraakt of geheald"
+  override def life: String                   = "Leven"
+  override def overheal(percent: Int): String = s"$percent% overheal"
+  override def bulletsHit(count: Int): String = s"Kogels die raakten: $count"
+  override def facetsWasted(count: Int, percent: Int): String =
+    s"Verspild, met alle facetten verlicht: $count ($percent%)"
+  override def pentagramsCast(count: Int): String = s"Pentagrammen: $count"
+  override def braceStacks(stacks: Int): String =
+    if stacks == 1 then "1 stack" else s"$stacks stacks"
+  override def timeWithBraceStacks: String = "Tijd met elk aantal Brace-stacks, in leven"
+  override def damagePreventedByBrace(amount: String): String =
+    s"Door Brace voorkomen damage: $amount"
+  override def noClassStatistics: String = "Geen statistieken voor de klassen van dit team"
+
   // --- Tutorial ---
 
   override def tutorialIntro: String =

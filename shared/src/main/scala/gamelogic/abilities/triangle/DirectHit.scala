@@ -26,7 +26,7 @@ final case class DirectHit(
   def cost: Resource.ResourceAmount = DirectHit.cost
 
   def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] = Vector(
-    EntityTakesDamage(genActionId(), time, targetId, damage, casterId)
+    EntityTakesDamage(genActionId(), time, targetId, damage, casterId, abilityId)
   )
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =

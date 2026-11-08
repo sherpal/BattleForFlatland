@@ -1,5 +1,6 @@
 package gamelogic.gamestate.gameactions
 
+import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.buffs.{Buff, DoT}
 import gamelogic.entities.Entity
@@ -17,7 +18,8 @@ final case class PutConstantDot(
     duration: Long,
     tickRate: Long,
     buffId: Buff.Id,
-    resourceIdentifier: ResourceIdentifier
+    resourceIdentifier: ResourceIdentifier,
+    abilityId: Ability.AbilityId
 ) extends GameAction {
   def createGameStateTransformer(gameState: GameState): GameStateTransformer =
     gameState
@@ -33,7 +35,8 @@ final case class PutConstantDot(
             damageOnTick,
             sourceId,
             time,
-            resourceIdentifier
+            resourceIdentifier,
+            abilityId
           )
         )
       }

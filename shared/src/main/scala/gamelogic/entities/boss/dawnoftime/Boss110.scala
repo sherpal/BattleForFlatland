@@ -161,8 +161,8 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
 
   @inline final def fullSpeed: Double = 300.0
 
-  /** The boss as it is at the very beginning of the game, with fake past usages of its abilities
-    * so that each of them comes off cooldown `timeToFirstAbility` after the pull.
+  /** The boss as it is at the very beginning of the game, with fake past usages of its abilities so
+    * that each of them comes off cooldown `timeToFirstAbility` after the pull.
     */
   def initialBoss(
       entityId: gamelogic.entities.Entity.Id,
@@ -288,21 +288,21 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
       s"Melee attack dealing ${formatNumber(BigGuy.damageOnTick)} damage to its target.",
       BigGuy.tickRate,
       0L
-    ).castBy("Big Guy"),
+    ).castBy(BigGuy.name),
     AbilityDoc
       .fromMetadata(
         PutBrokenArmor,
         s"Doubles the damage its target takes for ${formatSeconds(BrokenArmor.duration)}. " ++
           "Stacks, so the tanks should take turns."
       )
-      .castBy("Big Guy"),
+      .castBy(BigGuy.name),
     AbilityDoc(
       Ability.autoAttackId,
       "Auto Attack",
       s"Melee attack dealing ${formatNumber(SmallGuy.damageOnTick)} damage to its target.",
       SmallGuy.tickRate,
       0L
-    ).castBy("Small Guy"),
+    ).castBy(SmallGuy.name),
     AbilityDoc
       .fromMetadata(
         CreepingShadowTick,
@@ -310,6 +310,6 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
           s"${formatNumber(CreepingShadowTick.damageOnTick)} damage every " ++
           s"${formatPeriod(CreepingShadowTick.cooldown)}: keep the small guys away from the boss!"
       )
-      .castBy("Creeping Shadow")
+      .castBy(CreepingShadow.name)
   )
 }

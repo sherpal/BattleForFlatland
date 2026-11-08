@@ -38,7 +38,8 @@ final case class Pentagram(
       time,
       targetId,
       Pentagram.damage * SteadyAim.damageMultiplier(gameState, casterId, time),
-      casterId
+      casterId,
+      abilityId
     ) +: Facets.setStacks(gameState, casterId, time, None)
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =

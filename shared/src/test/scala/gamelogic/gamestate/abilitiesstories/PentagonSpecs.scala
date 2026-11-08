@@ -1,5 +1,6 @@
 package gamelogic.gamestate.abilitiesstories
 
+import gamelogic.abilities.Ability
 import gamelogic.abilities.pentagon.{CreatePentagonBullet, Fracture, Pentagram}
 import gamelogic.buffs.abilities.classes.{Facets, Fractured}
 import gamelogic.entities.Entity
@@ -188,9 +189,13 @@ final class PentagonSpecs extends StoryTeller {
     val fractured  = bulletsHit(situation, 100, true)
     val lifeBefore = houndLife(fractured)
     val hitByPentagon =
-      EntityTakesDamage(genActionId(), 200, houndId, 100, pentagonId)(fractured)
+      EntityTakesDamage(genActionId(), 200, houndId, 100, pentagonId, Ability.triangleDirectHit)(
+        fractured
+      )
     val hitByHexagon =
-      EntityTakesDamage(genActionId(), 200, houndId, 100, hexagonId)(fractured)
+      EntityTakesDamage(genActionId(), 200, houndId, 100, hexagonId, Ability.triangleDirectHit)(
+        fractured
+      )
     assertEqualsDouble(
       lifeBefore - houndLife(hitByPentagon),
       100 * (1 + Fractured.damageIncrease),

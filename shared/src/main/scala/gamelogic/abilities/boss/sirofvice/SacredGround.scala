@@ -57,7 +57,8 @@ final case class SacredGround(
             time,
             player.id,
             damageToEachPlayer,
-            casterId
+            casterId,
+            abilityId
           )
         )
       )

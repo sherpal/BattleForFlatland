@@ -283,6 +283,36 @@ object EnglishI18n extends I18n {
     f"The fight lasted $minutes%d:$seconds%02d"
   override def gameServerClosedConnection: String = "The game server closed the connection"
 
+  // Statistics of the fight, at the end of the game
+  override def fightSummary: String = "Summary"
+  override def damageDone: String   = "Damage done"
+  override def healing: String      = "Healing"
+  override def damageTaken: String  = "Damage taken"
+  override def lastMoments: String  = "Last moments"
+  override def player: String       = "Player"
+  override def deaths: String       = "Deaths"
+  override def bossLifeLeft(bossName: String, percent: Int): String =
+    s"$bossName still had $percent% of its life"
+  override def nobodyDied: String = "Nobody died"
+  override def diedAt(minutes: Int, seconds: Int, killedBy: String): String =
+    f"Died at $minutes%d:$seconds%02d ($killedBy)"
+  override def lastSecondsOf(name: String, seconds: Int, died: Boolean): String =
+    if died then s"The last $seconds seconds of $name before their death"
+    else s"The last $seconds seconds of $name"
+  override def nothingInLastSeconds: String   = "Nothing hit or healed them during these seconds"
+  override def life: String                   = "Life"
+  override def overheal(percent: Int): String = s"$percent% overheal"
+  override def bulletsHit(count: Int): String = s"Bullets that hit: $count"
+  override def facetsWasted(count: Int, percent: Int): String =
+    s"Wasted, all facets being lit: $count ($percent%)"
+  override def pentagramsCast(count: Int): String = s"Pentagrams: $count"
+  override def braceStacks(stacks: Int): String =
+    if stacks == 1 then "1 stack" else s"$stacks stacks"
+  override def timeWithBraceStacks: String = "Time spent with each number of Brace stacks, alive"
+  override def damagePreventedByBrace(amount: String): String =
+    s"Damage prevented by Brace: $amount"
+  override def noClassStatistics: String = "No statistics for the classes of this team"
+
   // --- Tutorial ---
 
   override def tutorialIntro: String =

@@ -1,5 +1,6 @@
 package gamelogic.buffs.boss.spiritofnara
 
+import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff.ResourceIdentifier
 import gamelogic.buffs.{Buff, PassiveBuff}
 import gamelogic.entities.Entity
@@ -41,7 +42,16 @@ final case class Polymorphed(
   ): Vector[GameAction] =
     gameState.players
       .get(bearerId)
-      .map(player => EntityGetsHealed(genActionId(), time, bearerId, player.maxLife, sourceId))
+      .map(player =>
+        EntityGetsHealed(
+          genActionId(),
+          time,
+          bearerId,
+          player.maxLife,
+          sourceId,
+          Ability.spiritOfNaraMassPolymorph
+        )
+      )
       .toVector
 
   override def bearerDiedAction(gameState: GameState, time: Long)(using

@@ -15,7 +15,7 @@ import gamelogic.entities.WithPosition.Angle
 import gamelogic.entities.WithThreat.ThreatAmount
 import gamelogic.entities.boss.Boss101
 import gamelogic.entities.classes.pentagon.PentagonZone
-import gamelogic.gameextras.DamageTracker
+import gamelogic.gameextras.FightLog
 import gamelogic.gamestate.gameactions.*
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.{Complex, PosInt}
@@ -118,8 +118,8 @@ final class TutorialScene(
   )
   private val damageActions = damageDealt.flatMap((id, amount) =>
     Vector(
-      EntityTakesDamage(actionId(), start + 6000, bossId, amount / 2, id),
-      EntityTakesDamage(actionId(), now - 500, bossId, amount / 2, id)
+      EntityTakesDamage(actionId(), start + 6000, bossId, amount / 2, id, Ability.autoAttackId),
+      EntityTakesDamage(actionId(), now - 500, bossId, amount / 2, id, Ability.autoAttackId)
     )
   )
   act(damageActions*)
@@ -134,10 +134,17 @@ final class TutorialScene(
   use(BigHit(useId(), now - BigHit.cooldown + 1500, bossId, square))
   cast(SmallHit(useId(), now - 1200, bossId, square, SmallHit.damageAmount))
   act(
-    EntityTakesDamage(actionId(), now - 1000, square, 78, bossId),
-    EntityTakesDamage(actionId(), now - 1000, triangle, 14, bossId),
-    EntityTakesDamage(actionId(), now - 1000, pentagon2, 4 * BigDot.damageOnTick, bossId),
-    EntityTakesDamage(actionId(), now - 1000, hexagon, 6, bossId)
+    EntityTakesDamage(actionId(), now - 1000, square, 78, bossId, Ability.boss101SmallHitId),
+    EntityTakesDamage(actionId(), now - 1000, triangle, 14, bossId, Ability.boss101SmallHitId),
+    EntityTakesDamage(
+      actionId(),
+      now - 1000,
+      pentagon2,
+      4 * BigDot.damageOnTick,
+      bossId,
+      Ability.boss101BigDotId
+    ),
+    EntityTakesDamage(actionId(), now - 1000, hexagon, 6, bossId, Ability.boss101SmallHitId)
   )
 
   // What the players did lately
@@ -199,9 +206,9 @@ final class TutorialScene(
 
   val gameState: GameState = state.copy(time = now)
 
-  /** The damage meter's, from the damage dealt. */
-  val damageTracker: DamageTracker = DamageTracker()
-  damageTracker.received(damageActions, gameState)
+  /** The damage meter's, from the damage dealt (already in the game state). */
+  val fightLog: FightLog = FightLog()
+  fightLog.received(damageActions, gameState)
 
   /** The names of the team, sorted like the HUD's team frames. */
   def teamIds: Vector[Entity.Id] = team.sortBy(_.name).map(_.id)

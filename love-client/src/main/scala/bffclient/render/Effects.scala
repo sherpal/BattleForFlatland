@@ -153,7 +153,7 @@ final class Effects {
       gameState.entities.get(id).collect { case body: Body => body.shape.radius }.getOrElse(0.0)
     def amountText(amount: Double) = math.round(amount).toString
     action match {
-      case EntityTakesDamage(_, _, entityId, amount, sourceId)
+      case EntityTakesDamage(_, _, entityId, amount, sourceId, _)
           if isMe(entityId) && !isMe(sourceId) =>
         Some(
           FloatingText(
@@ -165,7 +165,7 @@ final class Effects {
             now
           )
         )
-      case EntityTakesDamage(_, _, entityId, amount, sourceId) if isMe(sourceId) =>
+      case EntityTakesDamage(_, _, entityId, amount, sourceId, _) if isMe(sourceId) =>
         Some(
           FloatingText(
             amountText(amount),
@@ -176,7 +176,7 @@ final class Effects {
             now
           )
         )
-      case EntityGetsHealed(_, _, entityId, amount, sourceId) if isMe(sourceId) =>
+      case EntityGetsHealed(_, _, entityId, amount, sourceId, _) if isMe(sourceId) =>
         Some(
           FloatingText(
             amountText(amount),

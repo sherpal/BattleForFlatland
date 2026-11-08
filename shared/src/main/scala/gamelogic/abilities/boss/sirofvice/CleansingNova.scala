@@ -24,7 +24,7 @@ final case class CleansingNova(useId: Ability.UseId, time: Long, casterId: Entit
     gameState.players.valuesIterator
       .filter(player => gameState.areTheyInSight(casterId, player.id, time).getOrElse(false))
       .map { player =>
-        EntityTakesDamage(genActionId(), time, player.id, CleansingNova.damage, casterId)
+        EntityTakesDamage(genActionId(), time, player.id, CleansingNova.damage, casterId, abilityId)
       }
       .toVector
 

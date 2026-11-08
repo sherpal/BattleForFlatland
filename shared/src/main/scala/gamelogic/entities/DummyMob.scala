@@ -15,7 +15,11 @@ final case class DummyMob(
     direction: Angle,
     rotation: Angle
 ) extends LivingEntity
-    with MovingBody {
+    with MovingBody
+    with WithName {
+
+  def name: String = DummyMob.name
+
   val life: Double    = 100.0
   val maxLife: Double = 100.0
 
@@ -39,6 +43,9 @@ final case class DummyMob(
 }
 
 object DummyMob {
+
+  /** The name of the dummy mobs (they all have the same). */
+  inline def name: String = "Dummy"
 
   val shape: ConvexPolygon = Shape.regularPolygon(3, 10)
 

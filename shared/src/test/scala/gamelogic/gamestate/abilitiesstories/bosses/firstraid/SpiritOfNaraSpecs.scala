@@ -215,7 +215,14 @@ final class SpiritOfNaraSpecs extends StoryTeller {
     val poly   = MassPolymorph(Ability.UseId.zero, 1000, boss.entityId)
 
     val composer = ActionComposer.empty >> start >> boss >> player >>
-      EntityTakesDamage(genActionId(), 500, player.entityId, 60, boss.entityId) >>>> { gs =>
+      EntityTakesDamage(
+        genActionId(),
+        500,
+        player.entityId,
+        60,
+        boss.entityId,
+        Ability.spiritOfNaraFireball
+      ) >>>> { gs =>
         assert(!bossOf(gs).pyroblastPending(gs))
       } >>
       useAbilityFromAbility(poly) >>> poly.createActions >>>> { gs =>

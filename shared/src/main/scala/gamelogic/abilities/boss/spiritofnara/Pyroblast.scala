@@ -20,7 +20,9 @@ final case class Pyroblast(useId: Ability.UseId, time: Long, casterId: Entity.Id
   def createActions(gameState: GameState)(using IdGeneratorContainer): Vector[GameAction] =
     gameState.players.keys.toVector
       .sortBy(_.value)
-      .map(playerId => EntityTakesDamage(genActionId(), time, playerId, Pyroblast.damage, casterId))
+      .map(playerId =>
+        EntityTakesDamage(genActionId(), time, playerId, Pyroblast.damage, casterId, abilityId)
+      )
 
   def copyWithNewTimeAndId(newTime: Long, newId: UseId): Pyroblast =
     copy(time = newTime, useId = newId)

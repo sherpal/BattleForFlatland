@@ -163,7 +163,7 @@ final class Hud(
     boss.update(p)
     cooldowns.update(p)
     threat.update(p, client.currentTarget)
-    damage.update(p, client.damageTracker, client.currentTarget)
+    damage.update(p, client.fightLog, client.currentTarget)
     actionBar.update(p)
 
     val casting = for

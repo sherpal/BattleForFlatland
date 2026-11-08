@@ -23,7 +23,14 @@ final class ManagePentagonBullets extends ServerAction {
 
     val hitActions = hits.flatMap { (entityId, bullet, enemy) =>
       Vector(
-        EntityTakesDamage(genActionId(), startTime, enemy.id, bullet.damage, bullet.ownerId),
+        EntityTakesDamage(
+          genActionId(),
+          startTime,
+          enemy.id,
+          bullet.damage,
+          bullet.ownerId,
+          bullet.abilityId
+        ),
         RemoveEntity(genActionId(), startTime, entityId)
       )
     }

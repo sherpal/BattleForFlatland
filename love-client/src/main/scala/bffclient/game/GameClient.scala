@@ -6,7 +6,7 @@ import bffclient.render.{Effects, Smoothing}
 import communication.udp.Connection.Delivery
 import gamelogic.abilities.Ability
 import gamelogic.entities.{Body, Entity, LivingEntity}
-import gamelogic.gameextras.{DamageTracker, GameMarker, GameMarkerInfo}
+import gamelogic.gameextras.{FightLog, GameMarker, GameMarkerInfo}
 import gamelogic.gamestate.gameactions.markers.{RemoveMarker, UpdateMarker}
 import gamelogic.gamestate.{ActionGatherer, GameAction, GameState, GreedyActionGatherer}
 import gamelogic.gamestate.gameactions.{EndGame, MovingBodyMoves}
@@ -274,8 +274,8 @@ final class GameClient(
   /** Visual effects of the actions (damage numbers, ...). */
   val effects = new Effects
 
-  /** The damage dealt by the players to each enemy (for the damage meter). */
-  val damageTracker = new DamageTracker
+  /** What happened during the fight (for the damage meter and the end of the game). */
+  val fightLog = new FightLog
 
   // Headless: the largest jumps and turns of the boss between two frames, actual and smoothed
   private var previousBoss: Option[(Complex, Complex, Double, Double)] = None
@@ -548,15 +548,16 @@ final class GameClient(
       println(s"<- StartingBossPosition($x, $y)")
       bossStartingPosition = Some(Complex(x, y))
       readyToStart()
-    case AddAndRemoveActions(toAdd, oldestTimeToRemove, idsToRemove) =>
+    case AddAndRemoveActions(toAdd, _, idsToRemove) =>
       actionsReceived += toAdd.length
-      gatherer = gatherer.slaveAddAndRemoveActions(toAdd, oldestTimeToRemove, idsToRemove)
+      // Like the greedy gatherer, but each action is recorded in the fight log as it is applied
+      val kept = toAdd.filterNot(action => idsToRemove.contains(action.id))
+      gatherer = GreedyActionGatherer(fightLog.received(kept, gatherer.currentGameState))
       if countdownStartedAt.isEmpty then
         countdownStartedAt = toAdd.collectFirst {
           case UpdateMarker(_, time, info) if isCountdownSignal(info) => time
         }
       effects.received(toAdd, gatherer.currentGameState, myId)
-      damageTracker.received(toAdd, gatherer.currentGameState)
     case RemoveActions(oldestTime, ids) =>
       gatherer = gatherer.slaveAddAndRemoveActions(Vector.empty, oldestTime, ids)
     case HeartBeat =>

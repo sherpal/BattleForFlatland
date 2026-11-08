@@ -29,7 +29,8 @@ final case class FlashHeal(
         time,
         targetId,
         FlashHeal.healAmount,
-        casterId
+        casterId,
+        abilityId
       )
     )
 

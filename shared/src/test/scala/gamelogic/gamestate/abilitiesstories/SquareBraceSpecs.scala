@@ -1,5 +1,6 @@
 package gamelogic.gamestate.abilitiesstories
 
+import gamelogic.abilities.Ability
 import gamelogic.abilities.square.Brace
 import gamelogic.buffs.Buff
 import gamelogic.buffs.abilities.classes.BraceShield
@@ -60,7 +61,8 @@ final class SquareBraceSpecs extends StoryTeller {
 
   test("Each stack reduces the damage taken") {
     val damage = 40.0
-    val hit    = EntityTakesDamage(genActionId(), 100, squareId, damage, genEntityId())
+    val hit =
+      EntityTakesDamage(genActionId(), 100, squareId, damage, genEntityId(), Ability.autoAttackId)
 
     def lifeLostAfterBraces(braces: Int): Double = {
       val before = bracesAt((1L to braces.toLong).map(_ * 10)*)
