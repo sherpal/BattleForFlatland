@@ -17,6 +17,10 @@ object DummyI18n extends I18n {
 
   def abilityOnCooldown: String = ""
 
+  def actionBar: String = ""
+
+  def actionBarHelp: String = ""
+
   def addAI: String = ""
 
   def ai(playerName: String): String = ""

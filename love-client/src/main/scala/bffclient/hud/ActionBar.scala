@@ -2,6 +2,7 @@ package bffclient.hud
 
 import scala.collection.mutable
 
+import bffclient.controls.ClientSettings
 import bffclient.gui.*
 import bffclient.hud.HudStyle.*
 import bffclient.hud.HudWidgets.*
@@ -13,10 +14,11 @@ import gamelogic.docs.AbilityDoc
 import gamelogic.entities.classes.PlayerClass
 import services.i18n.I18n
 
-/** Our abilities, as icons in frames (like the frontend's), centred at the bottom: pushed down just
-  * after it is used, darkened from the top during its cooldown with the remaining seconds, the key
-  * in a corner, and the colour of the ability as a line at the bottom. Hovering an ability shows
-  * what it does (`AbilityDoc`, like in the lobby's documentation) in a tooltip.
+/** Our abilities, as icons in frames (like the frontend's), centred at the bottom in the order
+  * chosen in the settings (`ClientSettings.abilityOrder`): pushed down just after it is used,
+  * darkened from the top during its cooldown with the remaining seconds, the key in a corner, and
+  * the colour of the ability as a line at the bottom. Hovering an ability shows what it does
+  * (`AbilityDoc`, like in the lobby's documentation) in a tooltip.
   */
 final class ActionBar(parent: Frame, client: HudClient) {
   import ActionBar.*
@@ -138,7 +140,7 @@ final class ActionBar(parent: Frame, client: HudClient) {
     val me = client.myId.flatMap(p.gameState.players.get)
     frame.setShown(me.isDefined)
     for player <- me do {
-      val abilities = player.abilities.toVector
+      val abilities = ClientSettings.current.abilityOrder(player.cls)
       frame.setWidth(abilities.length * (slotSize + gap) - gap)
       while slots.size < abilities.size do slots += Slot(slots.size)
       for (slot, i) <- slots.zipWithIndex do slot.update(player, abilities.lift(i), p.now)

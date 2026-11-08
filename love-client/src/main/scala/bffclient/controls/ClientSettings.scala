@@ -1,9 +1,11 @@
 package bffclient.controls
 
 import bffclient.love.Filesystem
-import io.circe.{Decoder, Encoder}
+import gamelogic.abilities.Ability
+import io.circe.{Decoder, Encoder, KeyDecoder, KeyEncoder}
 import io.circe.parser.decode
 import io.circe.syntax.*
+import models.bff.outofgame.PlayerClasses
 import services.i18n.{EnglishI18n, I18n, Language}
 
 /** The client's own settings (BFF's [[models.bff.ingame.Controls]] cannot hold them), stored as
@@ -19,16 +21,41 @@ import services.i18n.{EnglishI18n, I18n, Language}
   *   how loud the sounds are
   * @param language
   *   the language of the texts, once chosen (on the first launch, see `menu.LanguageScreen`)
+  * @param abilityOrders
+  *   the order of the abilities in the action bar (and thus their keys), for the classes whose
+  *   order the player changed (see [[abilityOrder]])
   */
 final case class ClientSettings(
     hudScale: Double,
     hostGameServers: Boolean,
     volumes: Volumes,
-    language: Option[Language]
+    language: Option[Language],
+    abilityOrders: Map[PlayerClasses, Vector[Ability.AbilityId]]
 ) {
 
   /** The texts, in English until a language is chosen. */
   def i18n: I18n = language.fold(EnglishI18n)(_.i18n)
+
+  // asked for every frame by the action bar: computed once
+  private lazy val orders: Map[PlayerClasses, Vector[Ability.AbilityId]] =
+    PlayerClasses.allChoices.map { cls =>
+      val abilities = cls.builder.abilities.toVector
+      val chosen    = abilityOrders.getOrElse(cls, Vector.empty).filter(abilities.contains).distinct
+      // the abilities not in the chosen order (e.g. added to the class since) at the end
+      cls -> (chosen ++ abilities.filterNot(chosen.contains))
+    }.toMap
+
+  /** All the abilities of the class, in the order of the action bar: the `n`-th one is on the key
+    * of "Ability n" in the controls.
+    */
+  def abilityOrder(cls: PlayerClasses): Vector[Ability.AbilityId] = orders(cls)
+
+  /** With the abilities of the class in that order (the default one for the default order). */
+  def withAbilityOrder(cls: PlayerClasses, order: Vector[Ability.AbilityId]): ClientSettings =
+    copy(abilityOrders =
+      if order == cls.builder.abilities.toVector then abilityOrders - cls
+      else abilityOrders.updated(cls, order)
+    )
 
   /** Writes the settings (the HUD scale is used by the next game). An error message if it failed.
     */
@@ -48,7 +75,8 @@ object ClientSettings {
     hudScale = 1.0,
     hostGameServers = true,
     volumes = Volumes.default,
-    language = None
+    language = None,
+    abilityOrders = Map.empty
   )
 
   /** From 0.5 to 2. */
@@ -59,6 +87,10 @@ object ClientSettings {
   given Decoder[Language] =
     Decoder.decodeString.emap(code => Language.byCode(code).toRight(s"Unknown language $code"))
 
+  // by its name
+  given KeyEncoder[PlayerClasses] = KeyEncoder.encodeKeyString.contramap(_.value)
+  given KeyDecoder[PlayerClasses] = KeyDecoder.instance(PlayerClasses.playerClassByName)
+
   given Encoder[ClientSettings] = io.circe.generic.semiauto.deriveEncoder
 
   // the settings written before one of them existed have its default
@@ -68,7 +100,10 @@ object ClientSettings {
       hostGameServers <- cursor.getOrElse[Boolean]("hostGameServers")(default.hostGameServers)
       volumes         <- cursor.getOrElse[Volumes]("volumes")(default.volumes)
       language = cursor.get[Language]("language").toOption
-    yield ClientSettings(hudScale, hostGameServers, volumes, language)
+      abilityOrders = cursor
+        .get[Map[PlayerClasses, Vector[Ability.AbilityId]]]("abilityOrders")
+        .getOrElse(default.abilityOrders)
+    yield ClientSettings(hudScale, hostGameServers, volumes, language, abilityOrders)
   )
 
   private var known = Option.empty[ClientSettings]

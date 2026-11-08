@@ -162,6 +162,9 @@ object GermanI18n extends I18n {
   override def markerTriangle: String                 = "Dreieck"
   override def markerOnTarget(marker: String): String = s"$marker auf Ziel"
   override def markerOnGround(marker: String): String = s"$marker auf Boden"
+  override def actionBar: String                      = "Aktionsleiste"
+  override def actionBarHelp: String =
+    "Ziehe eine Fähigkeit auf einen Platz der Leiste, um sie dorthin zu legen: Die Fähigkeit, die dort war, nimmt ihren Platz ein. Die Tasten der Plätze legst du in der Steuerung fest."
   override def bindingsHelp: String =
     "Klicke auf eine Belegung und drücke dann eine Taste (auch mit Shift) oder eine Maustaste. Änderungen gelten ab dem nächsten Spiel."
   override def mouseOver: String = "Mouseover"

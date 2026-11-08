@@ -159,6 +159,9 @@ object DutchI18n extends I18n {
   override def markerTriangle: String                 = "Driehoek"
   override def markerOnTarget(marker: String): String = s"$marker op doelwit"
   override def markerOnGround(marker: String): String = s"$marker op de grond"
+  override def actionBar: String                      = "Actiebalk"
+  override def actionBarHelp: String =
+    "Sleep een vaardigheid naar een vak van de balk om ze daar te zetten: de vaardigheid die er stond, neemt haar plaats in. De toetsen van de vakken kies je bij de besturing."
   override def bindingsHelp: String =
     "Klik op een toewijzing en druk dan op een toets (eventueel met Shift) of een muisknop. Wijzigingen gelden vanaf het volgende spel."
   override def mouseOver: String = "Mouse-over"
