@@ -38,7 +38,7 @@ final case class BlizzardTicks(
                 player.id,
                 BlizzardTicks.damage,
                 bearerId,
-                Ability.spiritOfNaraBlizzard
+                Ability.spiritOfNara.blizzardId
               ),
               PutChilled(genActionId(), time, genBuffId(), player.id),
               RefreshMovementSpeed(genActionId(), time, player.id)

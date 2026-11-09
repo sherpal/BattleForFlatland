@@ -47,5 +47,5 @@ object ShadowPyroblast extends AbilityMetadata {
 
   inline def damage: Double = 165.0
 
-  def abilityId: AbilityId = Ability.spiritOfNaraShadowPyroblast
+  def abilityId: AbilityId = Ability.spiritOfNara.shadowPyroblastId
 }

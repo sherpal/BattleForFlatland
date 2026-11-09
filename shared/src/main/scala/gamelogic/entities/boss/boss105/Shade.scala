@@ -85,7 +85,7 @@ final case class Shade(
 
   override def changeTarget(newTargetId: Id): Shade = copy(targetId = newTargetId)
 
-  override def abilities: Set[AbilityId] = Set(Ability.autoAttackId, Ability.boss105ShadeSiphon)
+  override def abilities: Set[AbilityId] = Set(Ability.autoAttackId, Ability.boss105.shadeSiphonId)
 
   override def useAbility(ability: Ability): Shade =
     copy(relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability))

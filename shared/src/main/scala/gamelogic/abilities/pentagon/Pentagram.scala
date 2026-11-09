@@ -24,7 +24,7 @@ final case class Pentagram(
 ) extends WithTargetAbility {
   def range: Distance = WithTargetAbility.healRange
 
-  def abilityId: AbilityId = Ability.pentagonPentagramId
+  def abilityId: AbilityId = Ability.pentagon.pentagramId
 
   def cooldown: Long = Ability.gcd
 

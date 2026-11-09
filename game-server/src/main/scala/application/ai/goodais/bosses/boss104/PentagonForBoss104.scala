@@ -61,7 +61,7 @@ case class PentagonForBoss104(index: Int, entityId: Entity.Id)
 
   def handleTwinCircle(me: Pentagon, gameState: GameState, time: Long): Option[Vector[GameAction]] =
     Option
-      .unless(me.abilityOnCooldown(Ability.pentagonDispelId, time)) {
+      .unless(me.abilityOnCooldown(Ability.pentagon.dispelId, time)) {
         val circles = gameState
           .allTEntities[DebuffCircle]
           .values

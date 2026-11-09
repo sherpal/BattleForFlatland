@@ -46,7 +46,7 @@ final case class AddShade(
         Map.empty,
         entityId,
         Map(
-          Ability.boss105ShadeSiphon -> Pointed[Siphon].unit.copy(
+          Ability.boss105.shadeSiphonId -> Pointed[Siphon].unit.copy(
             time = time - Siphon.cooldown + Siphon.timeToFirstUse
           )
         )

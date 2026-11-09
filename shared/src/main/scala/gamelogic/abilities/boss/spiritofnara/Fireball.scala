@@ -38,5 +38,5 @@ object Fireball extends AbilityMetadata {
   inline def damage: Double   = 33.0
   inline def manaCost: Double = 50.0
 
-  def abilityId: AbilityId = Ability.spiritOfNaraFireball
+  def abilityId: AbilityId = Ability.spiritOfNara.fireballId
 }

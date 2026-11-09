@@ -66,7 +66,7 @@ object ExplodeBombs extends AbilityMetadata {
 
   def timeToFirstAbility: Long = 0L
 
-  def abilityId: Ability.AbilityId = Ability.boss110ExplodeBombs
+  def abilityId: Ability.AbilityId = Ability.boss110.explodeBombsId
 
   /** Enough to kill anybody. */
   inline def damage: Double = 1000.0

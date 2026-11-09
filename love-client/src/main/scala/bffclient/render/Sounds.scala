@@ -13,13 +13,13 @@ object Sounds {
     if !Love.hasAudio then Map.empty
     else
       Map(
-        Ability.squareHammerHit    -> "hammer-hit",
-        Ability.squareTauntId      -> "taunt",
-        Ability.squareEnrageId     -> "enrage",
-        Ability.squareCleaveId     -> "cleave",
-        Ability.squareBraceId      -> "brace",
-        Ability.squareShieldSlamId -> "shield-slam",
-        Ability.squareGuardId      -> "guard"
+        Ability.square.hammerHitId  -> "hammer-hit",
+        Ability.square.tauntId      -> "taunt",
+        Ability.square.enrageId     -> "enrage",
+        Ability.square.cleaveId     -> "cleave",
+        Ability.square.braceId      -> "brace",
+        Ability.square.shieldSlamId -> "shield-slam",
+        Ability.square.guardId      -> "guard"
       ).flatMap((ability, name) => load(name).map(ability -> _))
 
   /** Plays the sound, even if it is already playing, at `volume` (between 0 and 1). */

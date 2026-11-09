@@ -43,7 +43,7 @@ final case class PentagonBullet(
 
   /** The ability that shot it. */
   def abilityId: Ability.AbilityId =
-    if fractures then Ability.pentagonFractureId else Ability.pentagonPentagonBullet
+    if fractures then Ability.pentagon.fractureId else Ability.pentagon.pentagonBulletId
 
   def rotation: Angle = Angle.zero
 

@@ -28,7 +28,7 @@ case class CreatePentagonBullet(
     direction: Angle,
     colour: Int
 ) extends Ability {
-  def abilityId: AbilityId = Ability.pentagonPentagonBullet
+  def abilityId: AbilityId = Ability.pentagon.pentagonBulletId
 
   def cooldown: Long = CreatePentagonBullet.cooldown
 

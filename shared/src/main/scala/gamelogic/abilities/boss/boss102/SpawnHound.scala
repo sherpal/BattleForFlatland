@@ -48,5 +48,5 @@ object SpawnHound extends AbilityMetadata {
 
   def name: String = "Spawn Hound"
 
-  def abilityId: Ability.AbilityId = Ability.boss102SpawnBossHound
+  def abilityId: Ability.AbilityId = Ability.boss102.spawnBossHoundId
 }

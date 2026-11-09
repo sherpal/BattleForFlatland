@@ -26,7 +26,7 @@ import services.i18n.I18n
   */
 final case class Stun(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
     extends WithTargetAbility {
-  def abilityId: AbilityId = Ability.triangleStun
+  def abilityId: AbilityId = Ability.triangle.stunId
   def cooldown: Long       = Stun.cooldown
   def castingTime: Long    = 0L
   def cost: ResourceAmount = Stun.cost

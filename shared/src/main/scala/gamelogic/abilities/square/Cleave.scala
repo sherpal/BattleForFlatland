@@ -19,7 +19,7 @@ final case class Cleave(
     position: Complex,
     rotation: Angle
 ) extends Ability {
-  def abilityId: AbilityId = Ability.squareCleaveId
+  def abilityId: AbilityId = Ability.square.cleaveId
 
   def cooldown: Long = Cleave.cooldown
 

@@ -25,7 +25,7 @@ final case class CreateHexagonZone(
     rotation: Angle,
     colour: RGBAColour
 ) extends Ability {
-  def abilityId: AbilityId = Ability.hexagonHexagonZoneId
+  def abilityId: AbilityId = Ability.hexagon.hexagonZoneId
 
   def cooldown: Long = CreateHexagonZone.cooldown
 

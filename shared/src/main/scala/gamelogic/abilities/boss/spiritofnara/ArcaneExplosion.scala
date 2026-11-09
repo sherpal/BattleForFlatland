@@ -56,5 +56,5 @@ object ArcaneExplosion extends AbilityMetadata {
   inline def radius: Double = 230.0
   inline def damage: Double = 275.0
 
-  def abilityId: AbilityId = Ability.spiritOfNaraArcaneExplosion
+  def abilityId: AbilityId = Ability.spiritOfNara.arcaneExplosionId
 }

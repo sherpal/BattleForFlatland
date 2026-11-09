@@ -51,5 +51,5 @@ object MassPolymorph extends AbilityMetadata {
   /** Below this fraction of its mana, the Spirit of Nara needs a drink. */
   inline def manaThreshold: Double = 0.2
 
-  def abilityId: AbilityId = Ability.spiritOfNaraMassPolymorph
+  def abilityId: AbilityId = Ability.spiritOfNara.massPolymorphId
 }

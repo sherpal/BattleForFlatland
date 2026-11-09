@@ -31,7 +31,7 @@ final case class PentagonZoneTick(
             entity.id,
             zone.damage,
             zone.sourceId,
-            Ability.createPentagonZoneId
+            Ability.pentagon.pentagonZoneId
           )
         )
         .toVector

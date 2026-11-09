@@ -21,7 +21,7 @@ final case class PentaDispel(
 ) extends WithTargetAbility {
   def range: Distance = WithTargetAbility.healRange
 
-  def abilityId: AbilityId = Ability.pentagonDispelId
+  def abilityId: AbilityId = Ability.pentagon.dispelId
 
   def cooldown: Long = PentaDispel.cooldown
 

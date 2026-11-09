@@ -20,7 +20,7 @@ final case class SmallHit(
 ) extends WithTargetAbility {
   def range: Distance = Boss101.meleeRange
 
-  def abilityId: AbilityId = Ability.boss101SmallHitId
+  def abilityId: AbilityId = Ability.boss101.smallHitId
 
   def cooldown: Long = SmallHit.cooldown
 

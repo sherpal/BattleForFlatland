@@ -19,7 +19,7 @@ case class Cut(
 ) extends WithTargetAbility {
   override def range: Distance = Cut.range
 
-  override def abilityId: AbilityId = Ability.triangleCut
+  override def abilityId: AbilityId = Ability.triangle.cutId
 
   override def cooldown: Long = Cut.cooldown
 

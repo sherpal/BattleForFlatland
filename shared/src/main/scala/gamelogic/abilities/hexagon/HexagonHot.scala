@@ -17,7 +17,7 @@ final case class HexagonHot(
     casterId: Entity.Id,
     targetId: Entity.Id
 ) extends WithTargetAbility {
-  val abilityId: AbilityId = Ability.hexagonHexagonHotId
+  val abilityId: AbilityId = Ability.hexagon.hexagonHotId
   val cooldown: Long       = HexagonHot.cooldown
   val castingTime: Long    = 0L
 

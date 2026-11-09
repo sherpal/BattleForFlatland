@@ -15,7 +15,7 @@ import services.i18n.I18n
 
 case class BigGuyKick(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
     extends WithTargetAbility {
-  override def abilityId: AbilityId = Ability.boss104BigGuyKick
+  override def abilityId: AbilityId = Ability.boss104.bigGuyKickId
 
   override def cooldown: Long = BigGuyKick.cooldown
 

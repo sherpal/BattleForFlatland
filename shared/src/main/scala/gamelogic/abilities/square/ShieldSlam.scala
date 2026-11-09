@@ -25,7 +25,7 @@ final case class ShieldSlam(
 ) extends WithTargetAbility {
   def range: Distance = WithTargetAbility.meleeRange
 
-  val abilityId: AbilityId = Ability.squareShieldSlamId
+  val abilityId: AbilityId = Ability.square.shieldSlamId
   val cooldown: Long       = ShieldSlam.cooldown
   val castingTime: Long    = 0L
 

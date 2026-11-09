@@ -134,17 +134,17 @@ final class TutorialScene(
   use(BigHit(useId(), now - BigHit.cooldown + 1500, bossId, square))
   cast(SmallHit(useId(), now - 1200, bossId, square, SmallHit.damageAmount))
   act(
-    EntityTakesDamage(actionId(), now - 1000, square, 78, bossId, Ability.boss101SmallHitId),
-    EntityTakesDamage(actionId(), now - 1000, triangle, 14, bossId, Ability.boss101SmallHitId),
+    EntityTakesDamage(actionId(), now - 1000, square, 78, bossId, Ability.boss101.smallHitId),
+    EntityTakesDamage(actionId(), now - 1000, triangle, 14, bossId, Ability.boss101.smallHitId),
     EntityTakesDamage(
       actionId(),
       now - 1000,
       pentagon2,
       4 * BigDot.damageOnTick,
       bossId,
-      Ability.boss101BigDotId
+      Ability.boss101.bigDotId
     ),
-    EntityTakesDamage(actionId(), now - 1000, hexagon, 6, bossId, Ability.boss101SmallHitId)
+    EntityTakesDamage(actionId(), now - 1000, hexagon, 6, bossId, Ability.boss101.smallHitId)
   )
 
   // What the players did lately

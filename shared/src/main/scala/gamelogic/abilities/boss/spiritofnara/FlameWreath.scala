@@ -60,5 +60,5 @@ object FlameWreath extends AbilityMetadata {
   inline def targets: Int     = 2
   inline def manaCost: Double = 40.0
 
-  def abilityId: AbilityId = Ability.spiritOfNaraFlameWreath
+  def abilityId: AbilityId = Ability.spiritOfNara.flameWreathId
 }

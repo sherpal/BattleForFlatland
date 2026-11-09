@@ -62,5 +62,5 @@ object MagneticPull extends AbilityMetadata {
   /** From the centre of the boss to the centre of the pulled players. */
   inline def distance: Double = Constants.bossRadius + Constants.playerRadius + 10
 
-  def abilityId: AbilityId = Ability.spiritOfNaraMagneticPull
+  def abilityId: AbilityId = Ability.spiritOfNara.magneticPullId
 }

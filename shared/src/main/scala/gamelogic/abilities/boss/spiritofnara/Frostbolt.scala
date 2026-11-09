@@ -45,5 +45,5 @@ object Frostbolt extends AbilityMetadata {
   inline def damage: Double   = 19.8
   inline def manaCost: Double = 40.0
 
-  def abilityId: AbilityId = Ability.spiritOfNaraFrostbolt
+  def abilityId: AbilityId = Ability.spiritOfNara.frostboltId
 }

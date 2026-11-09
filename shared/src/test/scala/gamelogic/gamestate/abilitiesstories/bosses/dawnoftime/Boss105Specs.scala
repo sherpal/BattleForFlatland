@@ -79,7 +79,7 @@ final class Boss105Specs extends StoryTeller {
       bossId,
       amount,
       Entity.Id.zero,
-      Ability.triangleDirectHit
+      Ability.triangle.directHitId
     )
 
   def damagesByEntity(actions: Vector[GameAction]): Map[Entity.Id, Double] =

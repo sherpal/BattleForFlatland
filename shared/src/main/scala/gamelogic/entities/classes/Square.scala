@@ -78,17 +78,10 @@ object Square extends PlayerClassBuilder {
 
   def initialResourceAmount: ResourceAmount = ResourceAmount(100, Rage)
 
-  // A ListSet, so that the order of the abilities (and thus their keys) is the one written here.
+  // A ListSet, so that the order of the abilities (and thus their keys) is the one of their group
+  // in `Ability`.
   final val abilities: Set[AbilityId] =
-    ListSet(
-      Ability.squareTauntId,
-      Ability.squareHammerHit,
-      Ability.squareEnrageId,
-      Ability.squareCleaveId,
-      Ability.squareBraceId,
-      Ability.squareShieldSlamId,
-      Ability.squareGuardId
-    )
+    ListSet.from(Ability.square.toList)
 
   final val initialMaxLife: Double = 200
 
@@ -101,7 +94,7 @@ object Square extends PlayerClassBuilder {
 
   def abilitiesDoc: Vector[AbilityDoc] = Vector(
     AbilityDoc(
-      Ability.squareHammerHit,
+      Ability.square.hammerHitId,
       "Hammer Hit",
       s"Strikes an enemy in melee range for ${formatNumber(HammerHit.damage)} damage.",
       Ability.gcd,
@@ -109,7 +102,7 @@ object Square extends PlayerClassBuilder {
       HammerHit.cost
     ),
     AbilityDoc(
-      Ability.squareTauntId,
+      Ability.square.tauntId,
       "Taunt",
       s"Generates ${formatNumber(Taunt.damageThreatAmount.value)} threat towards an enemy " ++
         s"(within ${formatNumber(WithTargetAbility.healRange)} units), so that it attacks you.",
@@ -118,7 +111,7 @@ object Square extends PlayerClassBuilder {
       Taunt.cost
     ),
     AbilityDoc(
-      Ability.squareCleaveId,
+      Ability.square.cleaveId,
       "Cleave",
       s"Strikes all enemies in a cone in front of you for ${formatNumber(Cleave.damage)} damage.",
       Cleave.cooldown,
@@ -126,7 +119,7 @@ object Square extends PlayerClassBuilder {
       Cleave.cost
     ),
     AbilityDoc(
-      Ability.squareBraceId,
+      Ability.square.braceId,
       "Brace",
       s"Adds a stack to your shield, up to ${BraceShield.maxStacks} stacks. Each stack reduces " ++
         s"all damage you take by ${formatNumber((1 - BraceShield.damageMultiplier) * 100)}%. " ++
@@ -137,7 +130,7 @@ object Square extends PlayerClassBuilder {
       Brace.cost
     ),
     AbilityDoc(
-      Ability.squareShieldSlamId,
+      Ability.square.shieldSlamId,
       "Shield Slam",
       s"Spends a stack of your shield to strike an enemy in melee range for " ++
         s"${formatNumber(ShieldSlam.damage)} damage, and generates an additional " ++
@@ -148,7 +141,7 @@ object Square extends PlayerClassBuilder {
       ShieldSlam.cost
     ),
     AbilityDoc(
-      Ability.squareGuardId,
+      Ability.square.guardId,
       "Guard",
       s"Protects an ally (within ${formatNumber(WithTargetAbility.healRange)} units) for " ++
         s"${formatSeconds(Guarding.duration)}: ${formatNumber(Guarding.redirectedShare * 100)}% of " ++
@@ -159,7 +152,7 @@ object Square extends PlayerClassBuilder {
       Guard.cost
     ),
     AbilityDoc(
-      Ability.squareEnrageId,
+      Ability.square.enrageId,
       "Enrage",
       s"Hurts yourself for ${formatNumber(Enrage.damageOnTick)} damage every " ++
         s"${formatPeriod(Enrage.tickRate)} for ${formatSeconds(Enrage.duration)}. Since taking " ++

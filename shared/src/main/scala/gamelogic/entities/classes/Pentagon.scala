@@ -97,15 +97,10 @@ object Pentagon extends PlayerClassBuilder {
       )
     )
 
-  // A ListSet, so that the order of the abilities (and thus their keys) is the one written here.
+  // A ListSet, so that the order of the abilities (and thus their keys) is the one of their group
+  // in `Ability`.
   final val abilities: Set[Ability.AbilityId] =
-    ListSet(
-      Ability.pentagonPentagonBullet,
-      Ability.createPentagonZoneId,
-      Ability.pentagonDispelId,
-      Ability.pentagonFractureId,
-      Ability.pentagonPentagramId
-    )
+    ListSet.from(Ability.pentagon.toList)
 
   final val shape: Polygon = Shape.regularPolygon(5, Constants.playerRadius)
 
@@ -122,7 +117,7 @@ object Pentagon extends PlayerClassBuilder {
 
   def abilitiesDoc: Vector[AbilityDoc] = Vector(
     AbilityDoc(
-      Ability.pentagonPentagonBullet,
+      Ability.pentagon.pentagonBulletId,
       "Pentagon Bullet",
       "Fires a bullet in the chosen direction. It travels up to " ++
         s"${formatNumber(PentagonBullet.defaultRange)} units and deals " ++
@@ -134,7 +129,7 @@ object Pentagon extends PlayerClassBuilder {
       CreatePentagonBullet.cost
     ),
     AbilityDoc(
-      Ability.createPentagonZoneId,
+      Ability.pentagon.pentagonZoneId,
       "Pentagon Zone",
       "Creates a damaging zone at the chosen location for " ++
         s"${formatSeconds(PentagonZone.duration)}. Every ${formatPeriod(PentagonZone.tickRate)}, " ++
@@ -144,7 +139,7 @@ object Pentagon extends PlayerClassBuilder {
       CreatePentagonZone.cost
     ),
     AbilityDoc(
-      Ability.pentagonFractureId,
+      Ability.pentagon.fractureId,
       "Fracture",
       "Fires a bullet like Pentagon Bullet, which deals " ++
         s"${formatNumber(Fracture.damage)} damage and fractures the enemy it hits for " ++
@@ -157,7 +152,7 @@ object Pentagon extends PlayerClassBuilder {
       Fracture.cost
     ),
     AbilityDoc(
-      Ability.pentagonPentagramId,
+      Ability.pentagon.pentagramId,
       "Pentagram",
       s"When your ${Facets.maxStacks} facets are lit, spends them all to deal " ++
         s"${formatNumber(Pentagram.damage)} damage to an enemy (within " ++
@@ -167,7 +162,7 @@ object Pentagon extends PlayerClassBuilder {
       Pentagram.cost
     ),
     AbilityDoc(
-      Ability.pentagonDispelId,
+      Ability.pentagon.dispelId,
       PentaDispel.name,
       "Removes all the effects that can be dispelled from an ally. Beware: this includes the " ++
         "beneficial ones!",

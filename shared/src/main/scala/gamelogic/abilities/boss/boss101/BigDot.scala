@@ -14,7 +14,7 @@ import services.i18n.I18n
 
 final case class BigDot(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
     extends WithTargetAbility {
-  def abilityId: AbilityId = Ability.boss101BigDotId
+  def abilityId: AbilityId = Ability.boss101.bigDotId
 
   def cooldown: Long = BigDot.cooldown
 

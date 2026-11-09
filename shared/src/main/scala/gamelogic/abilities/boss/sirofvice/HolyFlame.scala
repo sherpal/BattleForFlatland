@@ -54,5 +54,5 @@ object HolyFlame extends AbilityMetadata {
 
   def castingTime: Long = 0L
 
-  def abilityId: AbilityId = Ability.sirOfViceHolyFlame
+  def abilityId: AbilityId = Ability.sirOfVice.holyFlameId
 }

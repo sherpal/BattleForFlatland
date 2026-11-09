@@ -89,7 +89,7 @@ final case class BigGuy(
 
   override def changeTarget(newTargetId: Id): BigGuy = copy(targetId = newTargetId)
 
-  override def abilities: Set[AbilityId] = Set(Ability.autoAttackId, Ability.boss104BigGuyKick)
+  override def abilities: Set[AbilityId] = Set(Ability.autoAttackId, Ability.boss104.bigGuyKickId)
 
   override def useAbility(ability: Ability): BigGuy = copy(
     relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability)

@@ -125,18 +125,18 @@ final case class SpiritOfNara(
 
   /** The Magnetic Pull was used, and its Arcane Explosion has not been cast yet. */
   def arcaneExplosionPending: Boolean =
-    lastUse(Ability.spiritOfNaraMagneticPull) > lastUse(Ability.spiritOfNaraArcaneExplosion)
+    lastUse(Ability.spiritOfNara.magneticPullId) > lastUse(Ability.spiritOfNara.arcaneExplosionId)
 
   /** It drank since the last Pyroblast. */
   def pyroblastPending(gameState: GameState): Boolean =
-    lastUse(Ability.spiritOfNaraMassPolymorph) > lastUse(Ability.spiritOfNaraPyroblast) &&
+    lastUse(Ability.spiritOfNara.massPolymorphId) > lastUse(Ability.spiritOfNara.pyroblastId) &&
       !isDrinking(gameState)
 
   def isDrinking(gameState: GameState): Boolean = gameState.hasBuffOfType[Drinking](id)
 
   /** The wave of Water Elementals it should summon now, if any. */
   def dueElementalWave: Option[Int] = SummonWaterElementals.dueWave(
-    relevantUsedAbilities.get(Ability.spiritOfNaraSummonElementals).fold(0) {
+    relevantUsedAbilities.get(Ability.spiritOfNara.summonElementalsId).fold(0) {
       case summon: SummonWaterElementals => summon.wave
       case _ => 0
     },
@@ -179,26 +179,26 @@ object SpiritOfNara extends BossFactory[SpiritOfNara] with BossMetadata {
   inline def specialInterval: Long = 30000L
 
   val specialAbilities: Vector[AbilityId] = Vector(
-    Ability.spiritOfNaraMagneticPull,
-    Ability.spiritOfNaraFlameWreath,
-    Ability.spiritOfNaraBlizzard
+    Ability.spiritOfNara.magneticPullId,
+    Ability.spiritOfNara.flameWreathId,
+    Ability.spiritOfNara.blizzardId
   )
 
   val abilityNames: Map[AbilityId, String] = Map(
-    Ability.autoAttackId                 -> "Auto attack",
-    Ability.spiritOfNaraFireball         -> Fireball.name,
-    Ability.spiritOfNaraFrostbolt        -> Frostbolt.name,
-    Ability.spiritOfNaraArcaneMissiles   -> ArcaneMissiles.name,
-    Ability.spiritOfNaraCounterspell     -> Counterspell.name,
-    Ability.spiritOfNaraChainsOfIce      -> ChainsOfIce.name,
-    Ability.spiritOfNaraMagneticPull     -> MagneticPull.name,
-    Ability.spiritOfNaraArcaneExplosion  -> ArcaneExplosion.name,
-    Ability.spiritOfNaraFlameWreath      -> FlameWreath.name,
-    Ability.spiritOfNaraBlizzard         -> Blizzard.name,
-    Ability.spiritOfNaraMassPolymorph    -> MassPolymorph.name,
-    Ability.spiritOfNaraPyroblast        -> Pyroblast.name,
-    Ability.spiritOfNaraSummonElementals -> SummonWaterElementals.name,
-    Ability.spiritOfNaraShadowPyroblast  -> ShadowPyroblast.name
+    Ability.autoAttackId                    -> "Auto attack",
+    Ability.spiritOfNara.fireballId         -> Fireball.name,
+    Ability.spiritOfNara.frostboltId        -> Frostbolt.name,
+    Ability.spiritOfNara.arcaneMissilesId   -> ArcaneMissiles.name,
+    Ability.spiritOfNara.counterspellId     -> Counterspell.name,
+    Ability.spiritOfNara.chainsOfIceId      -> ChainsOfIce.name,
+    Ability.spiritOfNara.magneticPullId     -> MagneticPull.name,
+    Ability.spiritOfNara.arcaneExplosionId  -> ArcaneExplosion.name,
+    Ability.spiritOfNara.flameWreathId      -> FlameWreath.name,
+    Ability.spiritOfNara.blizzardId         -> Blizzard.name,
+    Ability.spiritOfNara.massPolymorphId    -> MassPolymorph.name,
+    Ability.spiritOfNara.pyroblastId        -> Pyroblast.name,
+    Ability.spiritOfNara.summonElementalsId -> SummonWaterElementals.name,
+    Ability.spiritOfNara.shadowPyroblastId  -> ShadowPyroblast.name
   )
 
   /** The boss starts with a full mana pool. */
@@ -210,45 +210,45 @@ object SpiritOfNara extends BossFactory[SpiritOfNara] with BossMetadata {
     maxLife = maxLife,
     life = maxLife,
     relevantUsedAbilities = Map(
-      Ability.spiritOfNaraFireball -> Pointed[Fireball].unit.copy(
+      Ability.spiritOfNara.fireballId -> Pointed[Fireball].unit.copy(
         time = Fireball.setBeginningOfGameAbilityUse(time)
       ),
-      Ability.spiritOfNaraFrostbolt -> Pointed[Frostbolt].unit.copy(
+      Ability.spiritOfNara.frostboltId -> Pointed[Frostbolt].unit.copy(
         time = Frostbolt.setBeginningOfGameAbilityUse(time)
       ),
-      Ability.spiritOfNaraArcaneMissiles -> Pointed[ArcaneMissiles].unit.copy(
+      Ability.spiritOfNara.arcaneMissilesId -> Pointed[ArcaneMissiles].unit.copy(
         time = ArcaneMissiles.setBeginningOfGameAbilityUse(time)
       ),
-      Ability.spiritOfNaraCounterspell -> Pointed[Counterspell].unit.copy(
+      Ability.spiritOfNara.counterspellId -> Pointed[Counterspell].unit.copy(
         time = Counterspell.setBeginningOfGameAbilityUse(time)
       ),
-      Ability.spiritOfNaraChainsOfIce -> Pointed[ChainsOfIce].unit.copy(
+      Ability.spiritOfNara.chainsOfIceId -> Pointed[ChainsOfIce].unit.copy(
         time = ChainsOfIce.setBeginningOfGameAbilityUse(time)
       ),
-      Ability.spiritOfNaraMagneticPull -> Pointed[MagneticPull].unit.copy(
+      Ability.spiritOfNara.magneticPullId -> Pointed[MagneticPull].unit.copy(
         time = MagneticPull.setBeginningOfGameAbilityUse(time)
       ),
-      Ability.spiritOfNaraFlameWreath -> Pointed[FlameWreath].unit.copy(
+      Ability.spiritOfNara.flameWreathId -> Pointed[FlameWreath].unit.copy(
         time = FlameWreath.setBeginningOfGameAbilityUse(time)
       ),
-      Ability.spiritOfNaraBlizzard -> Pointed[Blizzard].unit.copy(
+      Ability.spiritOfNara.blizzardId -> Pointed[Blizzard].unit.copy(
         time = Blizzard.setBeginningOfGameAbilityUse(time)
       ),
       // more recent than the pull: no explosion pending
-      Ability.spiritOfNaraArcaneExplosion -> Pointed[ArcaneExplosion].unit.copy(
+      Ability.spiritOfNara.arcaneExplosionId -> Pointed[ArcaneExplosion].unit.copy(
         time = ArcaneExplosion.setBeginningOfGameAbilityUse(time)
       ),
-      Ability.spiritOfNaraMassPolymorph -> Pointed[MassPolymorph].unit.copy(
+      Ability.spiritOfNara.massPolymorphId -> Pointed[MassPolymorph].unit.copy(
         time = MassPolymorph.setBeginningOfGameAbilityUse(time)
       ),
       // more recent than the polymorph: no pyroblast pending
-      Ability.spiritOfNaraPyroblast -> Pointed[Pyroblast].unit.copy(
+      Ability.spiritOfNara.pyroblastId -> Pointed[Pyroblast].unit.copy(
         time = Pyroblast.setBeginningOfGameAbilityUse(time)
       ),
-      Ability.spiritOfNaraSummonElementals -> Pointed[SummonWaterElementals].unit.copy(
+      Ability.spiritOfNara.summonElementalsId -> Pointed[SummonWaterElementals].unit.copy(
         time = SummonWaterElementals.setBeginningOfGameAbilityUse(time)
       ),
-      Ability.spiritOfNaraShadowPyroblast -> Pointed[ShadowPyroblast].unit.copy(
+      Ability.spiritOfNara.shadowPyroblastId -> Pointed[ShadowPyroblast].unit.copy(
         time = ShadowPyroblast.setBeginningOfGameAbilityUse(time)
       )
     )

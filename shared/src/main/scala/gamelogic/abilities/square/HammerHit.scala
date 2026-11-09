@@ -18,7 +18,7 @@ final case class HammerHit(
 ) extends WithTargetAbility {
   def range: Distance = WithTargetAbility.meleeRange
 
-  val abilityId: AbilityId = Ability.squareHammerHit
+  val abilityId: AbilityId = Ability.square.hammerHitId
   val cooldown: Long       = Ability.gcd
   val castingTime: Long    = 0L
 

@@ -55,7 +55,7 @@ final case class TwinDebuff(
       dispelledById,
       TwinDebuff.wrongDispelDamage,
       bossId,
-      Ability.boss104TwinDebuffs
+      Ability.boss104.twinDebuffsId
     )).toVector ++
       debuffCircles.map(circle => RemoveEntity(genActionId(), time, circle.id))
 
@@ -68,7 +68,7 @@ final case class TwinDebuff(
       bearerId,
       TwinDebuff.damageOnTick,
       bossId,
-      Ability.boss104TwinDebuffs
+      Ability.boss104.twinDebuffsId
     )
   )
 

@@ -32,7 +32,7 @@ final case class DamageZoneTick(
               player.id,
               DamageZoneTick.damageOnTick,
               zone.sourceId,
-              Ability.boss102PutDamageZones
+              Ability.boss102.putDamageZonesId
             )
           }
           .toVector

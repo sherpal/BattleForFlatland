@@ -63,6 +63,6 @@ object PutBrokenArmor extends AbilityMetadata {
 
   def timeToFirstAbility: Long = 0L
 
-  def abilityId: Ability.AbilityId = Ability.boss110BigGuyBrokenArmor
+  def abilityId: Ability.AbilityId = Ability.boss110.bigGuyBrokenArmorId
 
 }

@@ -54,6 +54,6 @@ object PutLivingDamageZoneOnTarget extends AbilityMetadata {
   @inline final def damage: Double           = 30.0
   @inline final def timeToFirstAbility: Long = 15000L
 
-  def abilityId: Ability.AbilityId = Ability.putLivingDamageZoneId
+  def abilityId: Ability.AbilityId = Ability.boss102.putLivingDamageZoneId
 
 }

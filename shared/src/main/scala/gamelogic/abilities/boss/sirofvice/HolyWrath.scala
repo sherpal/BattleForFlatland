@@ -68,7 +68,7 @@ object HolyWrath extends AbilityMetadata {
 
   def name: String = "Holy Wrath"
 
-  def abilityId: AbilityId = Ability.sirOfViceHolyWrath
+  def abilityId: AbilityId = Ability.sirOfVice.holyWrathId
 
   /** Maximum distance between two players for the wrath to jump from one to the other. */
   inline def jumpRange: Double = 100.0

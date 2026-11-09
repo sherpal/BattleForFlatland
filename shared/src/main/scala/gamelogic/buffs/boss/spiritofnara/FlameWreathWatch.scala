@@ -31,7 +31,7 @@ final case class FlameWreathWatch(
           playerId,
           FlameWreathWatch.explosionDamage,
           bearerId,
-          Ability.spiritOfNaraFlameWreath
+          Ability.spiritOfNara.flameWreathId
         )
       } ++ removeRings(gameState, time) :+ RemoveBuff(genActionId(), time, bearerId, buffId)
     else Vector.empty

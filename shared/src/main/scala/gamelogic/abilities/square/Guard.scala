@@ -25,7 +25,7 @@ final case class Guard(
 ) extends WithTargetAbility {
   def range: Distance = WithTargetAbility.healRange
 
-  val abilityId: AbilityId = Ability.squareGuardId
+  val abilityId: AbilityId = Ability.square.guardId
   val cooldown: Long       = Guard.cooldown
   val castingTime: Long    = 0L
 

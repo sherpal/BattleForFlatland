@@ -58,7 +58,7 @@ object CreepingShadowTick extends AbilityMetadata {
 
   def timeToFirstAbility: Long = 0L
 
-  def abilityId: Ability.AbilityId = Ability.boss110CreepingShadowTick
+  def abilityId: Ability.AbilityId = Ability.boss110.creepingShadowTickId
 
   def damageOnTick: Double = 10.0
 

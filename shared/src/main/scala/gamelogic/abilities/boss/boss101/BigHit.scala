@@ -13,7 +13,7 @@ import services.i18n.I18n
 final case class BigHit(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
     extends WithTargetAbility {
 
-  def abilityId: Ability.AbilityId = Ability.boss101BigHitId
+  def abilityId: Ability.AbilityId = Ability.boss101.bigHitId
 
   def cooldown: Long = BigHit.cooldown
 

@@ -64,11 +64,11 @@ final case class Boss105(
     this
 
   override def abilityNames: Map[AbilityId, String] = Map(
-    Ability.autoAttackId        -> "Auto Attack",
-    Ability.boss105Resonance    -> Resonance.name,
-    Ability.boss105Reunion      -> Reunion.name,
-    Ability.boss105Skewer       -> Skewer.name,
-    Ability.boss105VolatileMark -> VolatileMark.name
+    Ability.autoAttackId           -> "Auto Attack",
+    Ability.boss105.resonanceId    -> Resonance.name,
+    Ability.boss105.reunionId      -> Reunion.name,
+    Ability.boss105.skewerId       -> Skewer.name,
+    Ability.boss105.volatileMarkId -> VolatileMark.name
   )
 
   override def abilities: Set[AbilityId] = abilityNames.keySet
@@ -172,16 +172,16 @@ object Boss105 extends BossFactory[Boss105] with BossMetadata {
     life = maxLife,
     speed = fullSpeed,
     relevantUsedAbilities = Map(
-      Ability.boss105Resonance -> Pointed[Resonance].unit.copy(
+      Ability.boss105.resonanceId -> Pointed[Resonance].unit.copy(
         time = Resonance.setBeginningOfGameAbilityUse(time)
       ),
-      Ability.boss105Reunion -> Pointed[Reunion].unit.copy(
+      Ability.boss105.reunionId -> Pointed[Reunion].unit.copy(
         time = Reunion.setBeginningOfGameAbilityUse(time)
       ),
-      Ability.boss105Skewer -> Pointed[Skewer].unit.copy(
+      Ability.boss105.skewerId -> Pointed[Skewer].unit.copy(
         time = Skewer.setBeginningOfGameAbilityUse(time)
       ),
-      Ability.boss105VolatileMark -> Pointed[VolatileMark].unit.copy(
+      Ability.boss105.volatileMarkId -> Pointed[VolatileMark].unit.copy(
         time = VolatileMark.setBeginningOfGameAbilityUse(time)
       )
     )
@@ -286,7 +286,7 @@ object Boss105 extends BossFactory[Boss105] with BossMetadata {
       0L
     ).castBy(Shade.name),
     AbilityDoc(
-      Ability.boss105ShadeSiphon,
+      Ability.boss105.shadeSiphonId,
       "Siphon",
       s"Drains ${formatNumber(Siphon.damage)} life points from a player (other than its " ++
         "target, if possible), and heals the boss for " ++

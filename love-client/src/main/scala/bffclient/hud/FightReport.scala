@@ -335,12 +335,14 @@ final class FightReport(log: FightLog, gameState: GameState, myId: Option[Entity
           any = true
           rows.heading(player.name, colourOf(player))
           val bullets = damage
-            .filter(e => e.sourceId == player.id && e.abilityId == Ability.pentagonPentagonBullet)
+            .filter(e =>
+              e.sourceId == player.id && e.abilityId == Ability.pentagon.pentagonBulletId
+            )
             .map(_.totals.count)
             .sum
           val wasted = log.facetsWastedBy(player.id)
           val pentagrams = damage
-            .filter(e => e.sourceId == player.id && e.abilityId == Ability.pentagonPentagramId)
+            .filter(e => e.sourceId == player.id && e.abilityId == Ability.pentagon.pentagramId)
             .map(_.totals.count)
             .sum
           rows.text(i18n.bulletsHit(bullets), Theme.text)

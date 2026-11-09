@@ -46,7 +46,7 @@ object VolatileMark extends AbilityMetadata {
 
   def name: String = "Volatile Mark"
 
-  def abilityId: AbilityId = Ability.boss105VolatileMark
+  def abilityId: AbilityId = Ability.boss105.volatileMarkId
 
   inline def numberOfBearers: Int = 2
 }

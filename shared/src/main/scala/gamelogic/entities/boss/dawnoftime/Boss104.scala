@@ -66,16 +66,16 @@ final case class Boss104(
 
   override def abilities: Set[AbilityId] = Set(
     Ability.autoAttackId,
-    Ability.boss104TwinDebuffs,
-    Ability.boss104SpawnBigGuy,
-    Ability.boss104DeathMarkTriangleAttack
+    Ability.boss104.twinDebuffsId,
+    Ability.boss104.spawnBigGuyId,
+    Ability.boss104.deathMarkTriangleAttackId
   )
 
   override def abilityNames: Map[AbilityId, String] = Map(
-    Ability.autoAttackId                   -> "Auto Attack",
-    Ability.boss104TwinDebuffs             -> "Twin Debuffs",
-    Ability.boss104SpawnBigGuy             -> "Big Guy",
-    Ability.boss104DeathMarkTriangleAttack -> "Death Mark Triangle"
+    Ability.autoAttackId                      -> "Auto Attack",
+    Ability.boss104.twinDebuffsId             -> "Twin Debuffs",
+    Ability.boss104.spawnBigGuyId             -> "Big Guy",
+    Ability.boss104.deathMarkTriangleAttackId -> "Death Mark Triangle"
   )
 
   override def teamId: TeamId = Entity.teams.mobTeam
@@ -172,10 +172,10 @@ object Boss104 extends BossFactory[Boss104] with BossMetadata {
     life = maxLife,
     speed = Boss102.fullSpeed,
     relevantUsedAbilities = Map(
-      Ability.boss104TwinDebuffs -> Pointed[TwinDebuffs].unit.copy(
+      Ability.boss104.twinDebuffsId -> Pointed[TwinDebuffs].unit.copy(
         time = time - TwinDebuffs.cooldown + TwinDebuffs.timeToFirstUse
       ),
-      Ability.boss104SpawnBigGuy -> Pointed[SpawnBigGuy].unit.copy(
+      Ability.boss104.spawnBigGuyId -> Pointed[SpawnBigGuy].unit.copy(
         time = time - SpawnBigGuy.cooldown + SpawnBigGuy.timeToFirstUse
       )
     )
@@ -221,7 +221,7 @@ object Boss104 extends BossFactory[Boss104] with BossMetadata {
       0L
     ),
     AbilityDoc(
-      Ability.boss104TwinDebuffs,
+      Ability.boss104.twinDebuffsId,
       "Twin Debuffs",
       "Curses two random players with debuffs of two different colours, dealing " ++
         s"${formatNumber(TwinDebuff.damageOnTick)} damage every " ++
@@ -232,7 +232,7 @@ object Boss104 extends BossFactory[Boss104] with BossMetadata {
       TwinDebuffs.castingTime
     ),
     AbilityDoc(
-      Ability.boss104SpawnBigGuy,
+      Ability.boss104.spawnBigGuyId,
       "Big Guy",
       s"Summons a big guy with ${formatNumber(BigGuy.maxLife)} life points. When a big guy dies, " ++
         "it leaves a death mark on the ground. When three death marks are down, they form a " ++
@@ -241,7 +241,7 @@ object Boss104 extends BossFactory[Boss104] with BossMetadata {
       SpawnBigGuy.castingTime
     ),
     AbilityDoc(
-      Ability.boss104DeathMarkTriangleAttack,
+      Ability.boss104.deathMarkTriangleAttackId,
       "Death Mark Triangle",
       "Only cast while a Death Mark Triangle stands in the room, twice in a row. The first time, " ++
         s"players inside the triangle take ${formatNumber(DeathMarkTriangle.deadlyDamage)} " ++
@@ -261,7 +261,7 @@ object Boss104 extends BossFactory[Boss104] with BossMetadata {
       0L
     ).castBy(BigGuy.name),
     AbilityDoc(
-      Ability.boss104BigGuyKick,
+      Ability.boss104.bigGuyKickId,
       "Kick",
       s"Kicks its target for ${formatNumber(BigGuyKick.damage)} damage. Can be interrupted " ++
         "(with the Triangle's Cut, for example).",

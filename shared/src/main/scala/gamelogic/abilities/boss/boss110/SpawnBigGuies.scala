@@ -52,6 +52,6 @@ object SpawnBigGuies extends AbilityMetadata {
     ).map(_ * Boss110.halfHeight.toDouble.i * 3 / 5)
       .map(_ + Boss110.halfWidth * 4 / 5)
 
-  def abilityId: Ability.AbilityId = Ability.boss110SpawnBigGuies
+  def abilityId: Ability.AbilityId = Ability.boss110.spawnBigGuiesId
 
 }

@@ -73,7 +73,7 @@ final case class WaterElemental(
 
   def changeTarget(newTargetId: Id): WaterElemental = copy(targetId = newTargetId)
 
-  def abilities: Set[AbilityId] = Set(Ability.spiritOfNaraWaterbolt)
+  def abilities: Set[AbilityId] = Set(Ability.spiritOfNara.waterboltId)
 
   def useAbility(ability: Ability): WaterElemental =
     copy(relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability))

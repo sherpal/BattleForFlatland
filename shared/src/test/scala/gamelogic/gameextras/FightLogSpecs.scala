@@ -40,11 +40,11 @@ final class FightLogSpecs extends StoryTeller {
       target: Entity.Id,
       amount: Double,
       source: Entity.Id,
-      ability: Ability.AbilityId = Ability.squareHammerHit
+      ability: Ability.AbilityId = Ability.square.hammerHitId
   ) = EntityTakesDamage(genActionId(), time, target, amount, source, ability)
 
   private def heal(time: Long, target: Entity.Id, amount: Double, source: Entity.Id) =
-    EntityGetsHealed(genActionId(), time, target, amount, source, Ability.hexagonFlashHealId)
+    EntityGetsHealed(genActionId(), time, target, amount, source, Ability.hexagon.flashHealId)
 
   private def braceStacks(time: Long, square: Entity.Id, stacks: Int) =
     PutStackedBuff(
@@ -116,7 +116,7 @@ final class FightLogSpecs extends StoryTeller {
     log.received(
       Vector(
         hit(10, hound, 300, first),
-        hit(20, hound, 300, first, Ability.squareCleaveId),
+        hit(20, hound, 300, first, Ability.square.cleaveId),
         hit(30, hound, 300, first) // only 200 life left
       ),
       gameState
@@ -124,8 +124,8 @@ final class FightLogSpecs extends StoryTeller {
     assertEquals(
       log.damageEntries.map(e => e.key -> e.totals).toMap,
       Map(
-        Key(first, hound, Ability.squareHammerHit) -> Totals(2, 600, 500),
-        Key(first, hound, Ability.squareCleaveId)  -> Totals(1, 300, 300)
+        Key(first, hound, Ability.square.hammerHitId) -> Totals(2, 600, 500),
+        Key(first, hound, Ability.square.cleaveId)    -> Totals(1, 300, 300)
       )
     )
     assertEquals(log.nameOf(first), Some("First"))
@@ -137,7 +137,7 @@ final class FightLogSpecs extends StoryTeller {
     log.received(Vector(hit(10, first, 30, boss), heal(20, first, 50, second)), gameState)
     assertEquals(
       log.healEntries.map(e => e.key -> e.totals),
-      Vector(Key(second, first, Ability.hexagonFlashHealId) -> Totals(1, 50, 30))
+      Vector(Key(second, first, Ability.hexagon.flashHealId) -> Totals(1, 50, 30))
     )
   }
 
@@ -146,9 +146,9 @@ final class FightLogSpecs extends StoryTeller {
     log.received(
       Vector(
         hit(1000, first, 50, boss), // too long before the death
-        hit(7000, first, 100, boss, Ability.boss101BigHitId),
+        hit(7000, first, 100, boss, Ability.boss101.bigHitId),
         heal(8000, first, 20, second),
-        hit(9000, first, 100, boss, Ability.boss101SmallHitId),
+        hit(9000, first, 100, boss, Ability.boss101.smallHitId),
         RemoveEntity(genActionId(), 9000, first)
       ),
       gameState
@@ -158,9 +158,9 @@ final class FightLogSpecs extends StoryTeller {
     assertEquals(
       log.deaths.head.recap,
       Vector(
-        LifeChange(7000, boss, Ability.boss101BigHitId, 100, 100, false, maxLife - 150),
-        LifeChange(8000, second, Ability.hexagonFlashHealId, 20, 20, true, maxLife - 130),
-        LifeChange(9000, boss, Ability.boss101SmallHitId, 100, 70, false, 0)
+        LifeChange(7000, boss, Ability.boss101.bigHitId, 100, 100, false, maxLife - 150),
+        LifeChange(8000, second, Ability.hexagon.flashHealId, 20, 20, true, maxLife - 130),
+        LifeChange(9000, boss, Ability.boss101.smallHitId, 100, 70, false, 0)
       )
     )
     assertEquals(log.recapOf(first, 20000), log.deaths.head.recap)
@@ -174,7 +174,7 @@ final class FightLogSpecs extends StoryTeller {
 
   test("The bullets of a pentagon hitting while its facets are all lit are wasted") {
     val log                = new FightLog
-    def bullet(time: Long) = hit(time, boss, 10, pentagon, Ability.pentagonPentagonBullet)
+    def bullet(time: Long) = hit(time, boss, 10, pentagon, Ability.pentagon.pentagonBulletId)
     val withFourFacets =
       Facets
         .setStacks(gameState, pentagon, 5, Some(PosInt.of(4)))

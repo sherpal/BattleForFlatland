@@ -48,5 +48,5 @@ object Blizzard extends AbilityMetadata {
 
   inline def manaCost: Double = 40.0
 
-  def abilityId: AbilityId = Ability.spiritOfNaraBlizzard
+  def abilityId: AbilityId = Ability.spiritOfNara.blizzardId
 }

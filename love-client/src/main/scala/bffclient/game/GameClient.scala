@@ -505,7 +505,14 @@ final class GameClient(
       then {
         lastScriptedCast = elapsed
         request(
-          c.cast(Ability.triangleDirectHit, me, gameState, serverNow, currentTarget, Complex.zero)
+          c.cast(
+            Ability.triangle.directHitId,
+            me,
+            gameState,
+            serverNow,
+            currentTarget,
+            Complex.zero
+          )
         )
       }
 

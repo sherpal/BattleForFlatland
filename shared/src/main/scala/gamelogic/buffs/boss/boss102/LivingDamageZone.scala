@@ -33,7 +33,7 @@ final case class LivingDamageZone(
             ally.id,
             damage,
             sourceId,
-            Ability.putLivingDamageZoneId
+            Ability.boss102.putLivingDamageZoneId
           )
         )
         .toVector

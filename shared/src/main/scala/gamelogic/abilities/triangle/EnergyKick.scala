@@ -21,7 +21,7 @@ final case class EnergyKick(
     targetId: Entity.Id
 ) extends WithTargetAbility {
 
-  def abilityId: Ability.AbilityId = Ability.triangleEnergyKick
+  def abilityId: Ability.AbilityId = Ability.triangle.energyKickId
 
   def cooldown: Long = EnergyKick.cooldown
 

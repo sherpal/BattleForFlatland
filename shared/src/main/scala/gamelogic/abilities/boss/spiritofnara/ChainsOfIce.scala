@@ -46,5 +46,5 @@ object ChainsOfIce extends AbilityMetadata {
 
   inline def manaCost: Double = 15.0
 
-  def abilityId: AbilityId = Ability.spiritOfNaraChainsOfIce
+  def abilityId: AbilityId = Ability.spiritOfNara.chainsOfIceId
 }

@@ -11,6 +11,8 @@ import io.circe.{Decoder, Encoder, Json}
 import services.i18n.{DummyI18n, I18n}
 import utils.misc.RGBColour
 
+import scala.reflect.ClassTag
+
 /** A [[gamelogic.abilities.Ability]] represents an action that an entity can take besides moving.
   *
   * Each "class" has its own set of abilities that they can use. The abilities of a given class are
@@ -110,75 +112,115 @@ object Ability {
 
   def abilityIdCount: AbilityId = lastAbilityId
 
-  // Every ability in the game needs a unique id, obtained by appending a line at the END of this
-  // list (the order defines the ids, and `abilityColour` indexes into them).
-  val simpleBulletId: AbilityId                 = nextAbilityId()
-  val hexagonFlashHealId: AbilityId             = nextAbilityId()
-  val hexagonHexagonHotId: AbilityId            = nextAbilityId()
-  val hexagonHexagonZoneId: AbilityId           = nextAbilityId()
-  val squareTauntId: AbilityId                  = nextAbilityId()
-  val squareHammerHit: AbilityId                = nextAbilityId()
-  val boss101BigHitId: AbilityId                = nextAbilityId()
-  val boss101BigDotId: AbilityId                = nextAbilityId()
-  val triangleDirectHit: AbilityId              = nextAbilityId()
-  val triangleEnergyKick: AbilityId             = nextAbilityId()
-  val triangleUpgradeDirectHit: AbilityId       = nextAbilityId()
-  val triangleStun: AbilityId                   = nextAbilityId()
-  val triangleCut: AbilityId                    = nextAbilityId()
-  val pentagonPentagonBullet: AbilityId         = nextAbilityId()
-  val boss101SmallHitId: AbilityId              = nextAbilityId()
-  val squareEnrageId: AbilityId                 = nextAbilityId()
-  val squareBraceId: AbilityId                  = nextAbilityId()
-  val squareShieldSlamId: AbilityId             = nextAbilityId()
-  val squareGuardId: AbilityId                  = nextAbilityId()
-  val boss102PutDamageZones: AbilityId          = nextAbilityId()
-  val boss102SpawnBossHound: AbilityId          = nextAbilityId()
-  val autoAttackId: AbilityId                   = nextAbilityId()
-  val squareCleaveId: AbilityId                 = nextAbilityId()
-  val createPentagonZoneId: AbilityId           = nextAbilityId()
-  val putLivingDamageZoneId: AbilityId          = nextAbilityId()
-  val sirOfViceCleansingNova: AbilityId         = nextAbilityId()
-  val sirOfVicePunishment: AbilityId            = nextAbilityId()
-  val sirOfViceSacredGround: AbilityId          = nextAbilityId()
-  val sirOfViceHolyFlame: AbilityId             = nextAbilityId()
-  val pentagonDispelId: AbilityId               = nextAbilityId()
-  val boss110SpawnBigGuies: AbilityId           = nextAbilityId()
-  val boss110BigGuyBrokenArmor: AbilityId       = nextAbilityId()
-  val boss110PlaceBombPods: AbilityId           = nextAbilityId()
-  val boss110ExplodeBombs: AbilityId            = nextAbilityId()
-  val boss110SpawnSmallGuies: AbilityId         = nextAbilityId()
-  val boss110CreepingShadowTick: AbilityId      = nextAbilityId()
-  val boss104TwinDebuffs: AbilityId             = nextAbilityId()
-  val boss104SpawnBigGuy: AbilityId             = nextAbilityId()
-  val boss104BigGuyKick: AbilityId              = nextAbilityId()
-  val boss104DeathMarkTriangleAttack: AbilityId = nextAbilityId()
-  val sirOfViceHolyWrath: AbilityId             = nextAbilityId()
-  val boss105Resonance: AbilityId               = nextAbilityId()
-  val boss105Skewer: AbilityId                  = nextAbilityId()
-  val boss105VolatileMark: AbilityId            = nextAbilityId()
-  val boss105ShadeSiphon: AbilityId             = nextAbilityId()
-  val boss105Reunion: AbilityId                 = nextAbilityId()
-  val pentagonPentagramId: AbilityId            = nextAbilityId()
-  val pentagonFractureId: AbilityId             = nextAbilityId()
-  val spiritOfNaraFireball: AbilityId           = nextAbilityId()
-  val spiritOfNaraFrostbolt: AbilityId          = nextAbilityId()
-  val spiritOfNaraArcaneMissiles: AbilityId     = nextAbilityId()
-  val spiritOfNaraCounterspell: AbilityId       = nextAbilityId()
-  val spiritOfNaraChainsOfIce: AbilityId        = nextAbilityId()
-  val spiritOfNaraMagneticPull: AbilityId       = nextAbilityId()
-  val spiritOfNaraArcaneExplosion: AbilityId    = nextAbilityId()
-  val spiritOfNaraFlameWreath: AbilityId        = nextAbilityId()
-  val spiritOfNaraBlizzard: AbilityId           = nextAbilityId()
-  val spiritOfNaraMassPolymorph: AbilityId      = nextAbilityId()
-  val spiritOfNaraPyroblast: AbilityId          = nextAbilityId()
-  val spiritOfNaraSummonElementals: AbilityId   = nextAbilityId()
-  val spiritOfNaraWaterbolt: AbilityId          = nextAbilityId()
-  val spiritOfNaraShadowPyroblast: AbilityId    = nextAbilityId()
+  import scala.compiletime.ops.int.{-, >=}
+  private type TupleFill[T, N <: Int] <: Tuple = (N, N >= 0) match {
+    case (0, true) => EmptyTuple
+    case (_ <: Int, true) => N *: TupleFill[T, N - 1]
+  }
+  private def tupleFill[N <: Int, T](n: N)(elem: => T)(using ClassTag[T]): TupleFill[T, N] =
+    Tuple.fromArray(Array.fill(n)(elem)).asInstanceOf[TupleFill[T, N]]
+
+  private def make[Names <: Tuple](using
+      sizeValue: ValueOf[Tuple.Size[Names]]
+  ): NamedTuple.NamedTuple[Names, TupleFill[AbilityId, Tuple.Size[Names]]] = {
+    val size: Tuple.Size[Names] = sizeValue.value
+    tupleFill(size)(nextAbilityId())
+  }
+
+  // Every ability in the game needs a unique id, given by the order of the definitions below
+  // (`abilityColour` indexes into them). The abilities are grouped by class or boss, each group
+  // being a named tuple. For the classes, the order in the tuple is also the default order in the
+  // action bar. The types must be written explicitly: otherwise, the opaque `AbilityId` would be
+  // seen as an `Int` outside of this object.
+  val simpleBulletId: AbilityId = nextAbilityId()
+  val autoAttackId: AbilityId   = nextAbilityId()
+  val hexagon: (
+      flashHealId: AbilityId,
+      hexagonHotId: AbilityId,
+      hexagonZoneId: AbilityId
+  ) = make
+  val square: (
+      tauntId: AbilityId,
+      hammerHitId: AbilityId,
+      enrageId: AbilityId,
+      cleaveId: AbilityId,
+      braceId: AbilityId,
+      shieldSlamId: AbilityId,
+      guardId: AbilityId
+  ) = make
+  val triangle: (
+      energyKickId: AbilityId,
+      directHitId: AbilityId,
+      upgradeDirectHitId: AbilityId,
+      stunId: AbilityId,
+      cutId: AbilityId
+  ) = make
+  val pentagon: (
+      pentagonBulletId: AbilityId,
+      pentagonZoneId: AbilityId,
+      dispelId: AbilityId,
+      fractureId: AbilityId,
+      pentagramId: AbilityId
+  ) = make
+  val boss101: (
+      bigHitId: AbilityId,
+      bigDotId: AbilityId,
+      smallHitId: AbilityId
+  ) = make
+  val boss102: (
+      putDamageZonesId: AbilityId,
+      spawnBossHoundId: AbilityId,
+      putLivingDamageZoneId: AbilityId
+  ) = make
+  val boss104: (
+      twinDebuffsId: AbilityId,
+      spawnBigGuyId: AbilityId,
+      bigGuyKickId: AbilityId,
+      deathMarkTriangleAttackId: AbilityId
+  ) = make
+  val boss105: (
+      resonanceId: AbilityId,
+      skewerId: AbilityId,
+      volatileMarkId: AbilityId,
+      shadeSiphonId: AbilityId,
+      reunionId: AbilityId
+  ) = make
+  val boss110: (
+      spawnBigGuiesId: AbilityId,
+      bigGuyBrokenArmorId: AbilityId,
+      placeBombPodsId: AbilityId,
+      explodeBombsId: AbilityId,
+      spawnSmallGuiesId: AbilityId,
+      creepingShadowTickId: AbilityId
+  ) = make
+  val sirOfVice: (
+      cleansingNovaId: AbilityId,
+      punishmentId: AbilityId,
+      sacredGroundId: AbilityId,
+      holyFlameId: AbilityId,
+      holyWrathId: AbilityId
+  ) = make
+  val spiritOfNara: (
+      fireballId: AbilityId,
+      frostboltId: AbilityId,
+      arcaneMissilesId: AbilityId,
+      counterspellId: AbilityId,
+      chainsOfIceId: AbilityId,
+      magneticPullId: AbilityId,
+      arcaneExplosionId: AbilityId,
+      flameWreathId: AbilityId,
+      blizzardId: AbilityId,
+      massPolymorphId: AbilityId,
+      pyroblastId: AbilityId,
+      summonElementalsId: AbilityId,
+      waterboltId: AbilityId,
+      shadowPyroblastId: AbilityId
+  ) = make
 
   opaque type AbilityColour <: RGBColour = RGBColour
 
   private val _abilitiesColours: Array[AbilityColour] =
-    RGBColour.repeatedColours.zipWithIndex.takeWhile(_._2 < lastAbilityId).map(_._1).toArray
+    RGBColour.repeatedColours.zipWithIndex.takeWhile(_(1) < lastAbilityId).map(_(0)).toArray
 
   inline def abilityColour(abilityId: AbilityId): AbilityColour = _abilitiesColours(abilityId - 1)
 
@@ -206,21 +248,24 @@ object Ability {
     case x: boss.boss104.SpawnBigGuy => customEncode(x, "boss.boss104.SpawnBigGuy")
     case x: boss.boss104.TwinDebuffs => customEncode(x, "boss.boss104.TwinDebuffs")
     case x: boss.boss104.BigGuyKick => customEncode(x, "boss.boss104.BigGuyKick")
-    case x: hexagon.FlashHeal => customEncode(x, "hexagon.FlashHeal")
-    case x: hexagon.HexagonHot => customEncode(x, "hexagon.HexagonHot")
-    case x: pentagon.CreatePentagonBullet => customEncode(x, "pentagon.CreatePentagonBullet")
-    case x: pentagon.CreatePentagonZone => customEncode(x, "pentagon.CreatePentagonZone")
-    case x: pentagon.Fracture => customEncode(x, "pentagon.Fracture")
-    case x: pentagon.Pentagram => customEncode(x, "pentagon.Pentagram")
-    case x: square.Brace => customEncode(x, "square.Brace")
-    case x: square.Cleave => customEncode(x, "square.Cleave")
-    case x: square.Enrage => customEncode(x, "square.Enrage")
-    case x: square.Guard => customEncode(x, "square.Guard")
-    case x: square.HammerHit => customEncode(x, "square.HammerHit")
-    case x: square.ShieldSlam => customEncode(x, "square.ShieldSlam")
-    case x: square.Taunt => customEncode(x, "square.Taunt")
-    case x: triangle.DirectHit => customEncode(x, "triangle.DirectHit")
-    case x: triangle.UpgradeDirectHit => customEncode(x, "triangle.UpgradeDirectHit")
+    case x: gamelogic.abilities.hexagon.FlashHeal => customEncode(x, "hexagon.FlashHeal")
+    case x: gamelogic.abilities.hexagon.HexagonHot => customEncode(x, "hexagon.HexagonHot")
+    case x: gamelogic.abilities.pentagon.CreatePentagonBullet =>
+      customEncode(x, "pentagon.CreatePentagonBullet")
+    case x: gamelogic.abilities.pentagon.CreatePentagonZone =>
+      customEncode(x, "pentagon.CreatePentagonZone")
+    case x: gamelogic.abilities.pentagon.Fracture => customEncode(x, "pentagon.Fracture")
+    case x: gamelogic.abilities.pentagon.Pentagram => customEncode(x, "pentagon.Pentagram")
+    case x: gamelogic.abilities.square.Brace => customEncode(x, "square.Brace")
+    case x: gamelogic.abilities.square.Cleave => customEncode(x, "square.Cleave")
+    case x: gamelogic.abilities.square.Enrage => customEncode(x, "square.Enrage")
+    case x: gamelogic.abilities.square.Guard => customEncode(x, "square.Guard")
+    case x: gamelogic.abilities.square.HammerHit => customEncode(x, "square.HammerHit")
+    case x: gamelogic.abilities.square.ShieldSlam => customEncode(x, "square.ShieldSlam")
+    case x: gamelogic.abilities.square.Taunt => customEncode(x, "square.Taunt")
+    case x: gamelogic.abilities.triangle.DirectHit => customEncode(x, "triangle.DirectHit")
+    case x: gamelogic.abilities.triangle.UpgradeDirectHit =>
+      customEncode(x, "triangle.UpgradeDirectHit")
     case x: AutoAttack => customEncode(x, "AutoAttack")
     case x: SimpleBullet => customEncode(x, "SimpleBullet")
   }
@@ -242,21 +287,23 @@ object Ability {
     customDecoder[boss.boss104.BigGuyKick]("boss.boss104.BigGuyKick"),
     customDecoder[boss.boss104.TwinDebuffs]("boss.boss104.TwinDebuffs"),
     customDecoder[boss.boss104.SpawnBigGuy]("boss.boss104.SpawnBigGuy"),
-    customDecoder[hexagon.FlashHeal]("hexagon.FlashHeal"),
-    customDecoder[hexagon.HexagonHot]("hexagon.HexagonHot"),
-    customDecoder[pentagon.CreatePentagonBullet]("pentagon.CreatePentagonBullet"),
-    customDecoder[pentagon.CreatePentagonZone]("pentagon.CreatePentagonZone"),
-    customDecoder[pentagon.Fracture]("pentagon.Fracture"),
-    customDecoder[pentagon.Pentagram]("pentagon.Pentagram"),
-    customDecoder[square.Brace]("square.Brace"),
-    customDecoder[square.Cleave]("square.Cleave"),
-    customDecoder[square.Enrage]("square.Enrage"),
-    customDecoder[square.Guard]("square.Guard"),
-    customDecoder[square.HammerHit]("square.HammerHit"),
-    customDecoder[square.ShieldSlam]("square.ShieldSlam"),
-    customDecoder[square.Taunt]("square.Taunt"),
-    customDecoder[triangle.DirectHit]("triangle.DirectHit"),
-    customDecoder[triangle.UpgradeDirectHit]("triangle.UpgradeDirectHit"),
+    customDecoder[gamelogic.abilities.hexagon.FlashHeal]("hexagon.FlashHeal"),
+    customDecoder[gamelogic.abilities.hexagon.HexagonHot]("hexagon.HexagonHot"),
+    customDecoder[gamelogic.abilities.pentagon.CreatePentagonBullet](
+      "pentagon.CreatePentagonBullet"
+    ),
+    customDecoder[gamelogic.abilities.pentagon.CreatePentagonZone]("pentagon.CreatePentagonZone"),
+    customDecoder[gamelogic.abilities.pentagon.Fracture]("pentagon.Fracture"),
+    customDecoder[gamelogic.abilities.pentagon.Pentagram]("pentagon.Pentagram"),
+    customDecoder[gamelogic.abilities.square.Brace]("square.Brace"),
+    customDecoder[gamelogic.abilities.square.Cleave]("square.Cleave"),
+    customDecoder[gamelogic.abilities.square.Enrage]("square.Enrage"),
+    customDecoder[gamelogic.abilities.square.Guard]("square.Guard"),
+    customDecoder[gamelogic.abilities.square.HammerHit]("square.HammerHit"),
+    customDecoder[gamelogic.abilities.square.ShieldSlam]("square.ShieldSlam"),
+    customDecoder[gamelogic.abilities.square.Taunt]("square.Taunt"),
+    customDecoder[gamelogic.abilities.triangle.DirectHit]("triangle.DirectHit"),
+    customDecoder[gamelogic.abilities.triangle.UpgradeDirectHit]("triangle.UpgradeDirectHit"),
     customDecoder[AutoAttack]("AutoAttack"),
     customDecoder[SimpleBullet]("SimpleBullet")
   ).reduceLeft(_ or _)

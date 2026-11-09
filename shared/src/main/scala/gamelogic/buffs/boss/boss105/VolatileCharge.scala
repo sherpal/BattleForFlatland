@@ -44,7 +44,7 @@ final case class VolatileCharge(
               player.id,
               VolatileCharge.damage,
               sourceId,
-              Ability.boss105VolatileMark
+              Ability.boss105.volatileMarkId
             )
           )
           .toVector

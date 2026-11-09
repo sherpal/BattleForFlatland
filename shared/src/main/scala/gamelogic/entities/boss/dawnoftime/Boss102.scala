@@ -88,10 +88,10 @@ final case class Boss102(
   protected def patchResourceAmount(newResourceAmount: ResourceAmount): Boss102 = this
 
   def abilityNames: Map[AbilityId, String] = Map(
-    Ability.boss102PutDamageZones -> "Damage zones",
-    Ability.boss102SpawnBossHound -> "Spawn Hound",
-    Ability.putLivingDamageZoneId -> "Living damage zone",
-    Ability.autoAttackId          -> "Auto attack"
+    Ability.boss102.putDamageZonesId      -> "Damage zones",
+    Ability.boss102.spawnBossHoundId      -> "Spawn Hound",
+    Ability.boss102.putLivingDamageZoneId -> "Living damage zone",
+    Ability.autoAttackId                  -> "Auto attack"
   )
 
   def maybeAutoAttack(time: Long, gameState: GameState): Option[AutoAttack] =
@@ -145,13 +145,13 @@ object Boss102 extends BossFactory[Boss102] with BossMetadata {
         time = time,
         speed = fullSpeed,
         relevantUsedAbilities = Map(
-          Ability.boss102PutDamageZones -> Pointed[PutDamageZones].unit.copy(
+          Ability.boss102.putDamageZonesId -> Pointed[PutDamageZones].unit.copy(
             time = time - PutDamageZones.cooldown + PutDamageZones.timeToFirstAbility
           ),
-          Ability.boss102SpawnBossHound -> Pointed[SpawnHound].unit.copy(
+          Ability.boss102.spawnBossHoundId -> Pointed[SpawnHound].unit.copy(
             time = time - SpawnHound.cooldown + SpawnHound.timeToFirstAbility
           ),
-          Ability.putLivingDamageZoneId -> Pointed[PutLivingDamageZoneOnTarget].unit.copy(
+          Ability.boss102.putLivingDamageZoneId -> Pointed[PutLivingDamageZoneOnTarget].unit.copy(
             time =
               time - PutLivingDamageZoneOnTarget.cooldown + PutLivingDamageZoneOnTarget.timeToFirstAbility
           )
@@ -196,10 +196,10 @@ object Boss102 extends BossFactory[Boss102] with BossMetadata {
 
   final val abilities: Set[Ability.AbilityId] =
     Set(
-      Ability.boss102PutDamageZones,
-      Ability.boss102SpawnBossHound,
+      Ability.boss102.putDamageZonesId,
+      Ability.boss102.spawnBossHoundId,
       Ability.autoAttackId,
-      Ability.putLivingDamageZoneId
+      Ability.boss102.putLivingDamageZoneId
     )
 
   def whenBossDiesActions(

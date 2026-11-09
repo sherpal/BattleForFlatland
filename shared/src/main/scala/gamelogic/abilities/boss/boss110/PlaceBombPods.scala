@@ -119,9 +119,7 @@ object PlaceBombPods extends AbilityMetadata {
       else {
         val newRandomPosition = center + Complex(randomInRange(), randomInRange())
 
-        if (
-          currentPositions.forall(_.distanceTo(newRandomPosition) > minimumDistanceBetweenBombs)
-        )
+        if (currentPositions.forall(_.distanceTo(newRandomPosition) > minimumDistanceBetweenBombs))
           positionsAccumulator(
             newRandomPosition +: currentPositions,
             remainingToFind - 1,
@@ -133,6 +131,6 @@ object PlaceBombPods extends AbilityMetadata {
     positionsAccumulator(Nil, numberOfPositions, 500)
   }
 
-  def abilityId: Ability.AbilityId = Ability.boss110PlaceBombPods
+  def abilityId: Ability.AbilityId = Ability.boss110.placeBombPodsId
 
 }

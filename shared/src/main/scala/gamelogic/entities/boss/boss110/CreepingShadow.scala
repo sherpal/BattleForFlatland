@@ -42,7 +42,7 @@ final case class CreepingShadow(
 
   def name: String = CreepingShadow.name
 
-  def abilities: Set[Ability.AbilityId] = Set(Ability.boss110CreepingShadowTick)
+  def abilities: Set[Ability.AbilityId] = Set(Ability.boss110.creepingShadowTickId)
 
   def useAbility(ability: Ability): CreepingShadow = copy(
     relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability)

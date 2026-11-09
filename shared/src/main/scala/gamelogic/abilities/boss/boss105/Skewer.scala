@@ -62,7 +62,7 @@ object Skewer extends AbilityMetadata {
 
   def name: String = "Skewer"
 
-  def abilityId: AbilityId = Ability.boss105Skewer
+  def abilityId: AbilityId = Ability.boss105.skewerId
 
   inline def damage: Double = 40.0
 

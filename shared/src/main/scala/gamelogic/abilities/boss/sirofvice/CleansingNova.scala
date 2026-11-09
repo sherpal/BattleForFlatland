@@ -45,6 +45,6 @@ object CleansingNova extends AbilityMetadata {
 
   val timeToFirstAbility: Long = 30000L
 
-  def abilityId: Ability.AbilityId = Ability.sirOfViceCleansingNova
+  def abilityId: Ability.AbilityId = Ability.sirOfVice.cleansingNovaId
 
 }

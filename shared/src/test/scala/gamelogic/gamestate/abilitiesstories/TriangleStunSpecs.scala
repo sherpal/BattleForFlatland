@@ -71,7 +71,7 @@ final class TriangleStunSpecs extends StoryTeller {
         addingHound.entityId,
         10,
         addingPlayer.entityId,
-        Ability.triangleDirectHit
+        Ability.triangle.directHitId
       )
 
     ActionComposer.empty >>

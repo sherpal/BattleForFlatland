@@ -15,7 +15,7 @@ import services.i18n.I18n
   */
 final case class Taunt(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
     extends WithTargetAbility {
-  val abilityId: AbilityId = Ability.squareTauntId
+  val abilityId: AbilityId = Ability.square.tauntId
   val cooldown: Long       = Ability.gcd
   val castingTime: Long    = 0L
 

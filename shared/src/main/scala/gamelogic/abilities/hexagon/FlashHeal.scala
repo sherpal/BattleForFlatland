@@ -16,7 +16,7 @@ final case class FlashHeal(
     casterId: Entity.Id,
     targetId: Entity.Id
 ) extends WithTargetAbility {
-  val abilityId: AbilityId = Ability.hexagonFlashHealId
+  val abilityId: AbilityId = Ability.hexagon.flashHealId
   val cooldown: Long       = 0L
   val castingTime: Long    = FlashHeal.castingTime
 

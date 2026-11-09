@@ -28,7 +28,7 @@ final case class DeathMarkTriangleAttack(
     casterId: Entity.Id
 ) extends Ability {
 
-  override def abilityId: AbilityId = Ability.boss104DeathMarkTriangleAttack
+  override def abilityId: AbilityId = Ability.boss104.deathMarkTriangleAttackId
 
   override def cooldown: Long = 0L
 

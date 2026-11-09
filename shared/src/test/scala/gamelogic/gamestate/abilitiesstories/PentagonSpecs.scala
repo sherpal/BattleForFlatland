@@ -189,11 +189,11 @@ final class PentagonSpecs extends StoryTeller {
     val fractured  = bulletsHit(situation, 100, true)
     val lifeBefore = houndLife(fractured)
     val hitByPentagon =
-      EntityTakesDamage(genActionId(), 200, houndId, 100, pentagonId, Ability.triangleDirectHit)(
+      EntityTakesDamage(genActionId(), 200, houndId, 100, pentagonId, Ability.triangle.directHitId)(
         fractured
       )
     val hitByHexagon =
-      EntityTakesDamage(genActionId(), 200, houndId, 100, hexagonId, Ability.triangleDirectHit)(
+      EntityTakesDamage(genActionId(), 200, houndId, 100, hexagonId, Ability.triangle.directHitId)(
         fractured
       )
     assertEqualsDouble(

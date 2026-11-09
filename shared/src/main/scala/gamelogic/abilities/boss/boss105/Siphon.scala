@@ -14,7 +14,7 @@ import services.i18n.I18n
   */
 final case class Siphon(useId: Ability.UseId, time: Long, casterId: Entity.Id, targetId: Entity.Id)
     extends WithTargetAbility {
-  def abilityId: AbilityId = Ability.boss105ShadeSiphon
+  def abilityId: AbilityId = Ability.boss105.shadeSiphonId
 
   def cooldown: Long = Siphon.cooldown
 

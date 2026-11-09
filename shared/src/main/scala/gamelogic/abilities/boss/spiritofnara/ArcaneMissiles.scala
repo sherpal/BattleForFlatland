@@ -51,5 +51,5 @@ object ArcaneMissiles extends AbilityMetadata {
   inline def damagePerMissile: Double = 13.2
   inline def manaCost: Double         = 60.0
 
-  def abilityId: AbilityId = Ability.spiritOfNaraArcaneMissiles
+  def abilityId: AbilityId = Ability.spiritOfNara.arcaneMissilesId
 }

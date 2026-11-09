@@ -55,7 +55,7 @@ final case class Boss101(
   def shape: Circle = Boss101.shape
 
   def abilities: Set[AbilityId] =
-    Set(Ability.boss101BigDotId, Ability.boss101BigHitId, Ability.boss101SmallHitId)
+    Set(Ability.boss101.bigDotId, Ability.boss101.bigHitId, Ability.boss101.smallHitId)
 
   def useAbility(ability: Ability): Boss101 = copy(
     relevantUsedAbilities = relevantUsedAbilities + (ability.abilityId -> ability)
@@ -97,9 +97,9 @@ final case class Boss101(
   protected def patchResourceAmount(newResourceAmount: ResourceAmount): Boss101 = this
 
   def abilityNames: Map[AbilityId, String] = Map(
-    Ability.boss101BigHitId   -> BigHit.name,
-    Ability.boss101SmallHitId -> SmallHit.name,
-    Ability.boss101BigDotId   -> BigDot.name
+    Ability.boss101.bigHitId   -> BigHit.name,
+    Ability.boss101.smallHitId -> SmallHit.name,
+    Ability.boss101.bigDotId   -> BigDot.name
   )
 }
 
@@ -136,10 +136,10 @@ object Boss101 extends BossFactory[Boss101] with BossMetadata {
         time = time,
         speed = fullSpeed,
         relevantUsedAbilities = Map(
-          Ability.boss101BigDotId -> Pointed[BigDot].unit.copy(
+          Ability.boss101.bigDotId -> Pointed[BigDot].unit.copy(
             time = time - BigDot.cooldown + BigDot.timeToFirstBigDot
           ),
-          Ability.boss101BigHitId -> Pointed[BigHit].unit.copy(
+          Ability.boss101.bigHitId -> Pointed[BigHit].unit.copy(
             time = time - BigHit.cooldown + BigHit.timeToFirstBigHit
           )
         ),
@@ -182,14 +182,14 @@ object Boss101 extends BossFactory[Boss101] with BossMetadata {
 
   def abilitiesDoc: Vector[AbilityDoc] = Vector(
     AbilityDoc(
-      Ability.boss101SmallHitId,
+      Ability.boss101.smallHitId,
       "Small Hit",
       s"Melee attack dealing ${formatNumber(SmallHit.damageAmount)} damage to its target.",
       SmallHit.cooldown,
       0L
     ),
     AbilityDoc(
-      Ability.boss101BigHitId,
+      Ability.boss101.bigHitId,
       "Big Hit",
       s"Hits its target for ${formatNumber(BigHit.damageAmount)} damage. Only a tank can survive " ++
         "it.",
@@ -197,7 +197,7 @@ object Boss101 extends BossFactory[Boss101] with BossMetadata {
       BigHit.castingTime
     ),
     AbilityDoc(
-      Ability.boss101BigDotId,
+      Ability.boss101.bigDotId,
       "Big Dot",
       s"Deals ${formatNumber(BigDot.damageOnTick)} damage every ${formatPeriod(BigDot.tickRate)} " ++
         s"for ${formatSeconds(BigDot.duration)} to a random player other than its target.",

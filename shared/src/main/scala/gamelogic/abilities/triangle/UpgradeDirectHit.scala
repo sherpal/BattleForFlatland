@@ -14,7 +14,7 @@ import services.i18n.I18n
   */
 final case class UpgradeDirectHit(useId: Ability.UseId, time: Long, casterId: Entity.Id)
     extends Ability {
-  def abilityId: AbilityId = Ability.triangleUpgradeDirectHit
+  def abilityId: AbilityId = Ability.triangle.upgradeDirectHitId
 
   def cooldown: Long = 0L
 

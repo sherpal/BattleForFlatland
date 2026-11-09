@@ -60,12 +60,12 @@ final case class SirOfVice(
   def shape: Circle = SirOfVice.shape
 
   def abilityNames: Map[AbilityId, String] = Map(
-    Ability.autoAttackId           -> "Auto attack",
-    Ability.sirOfViceCleansingNova -> CleansingNova.name,
-    Ability.sirOfVicePunishment    -> Punishment.name,
-    Ability.sirOfViceSacredGround  -> "Sacred Ground",
-    Ability.sirOfViceHolyFlame     -> HolyFlame.name,
-    Ability.sirOfViceHolyWrath     -> HolyWrath.name
+    Ability.autoAttackId              -> "Auto attack",
+    Ability.sirOfVice.cleansingNovaId -> CleansingNova.name,
+    Ability.sirOfVice.punishmentId    -> Punishment.name,
+    Ability.sirOfVice.sacredGroundId  -> "Sacred Ground",
+    Ability.sirOfVice.holyFlameId     -> HolyFlame.name,
+    Ability.sirOfVice.holyWrathId     -> HolyWrath.name
   )
 
   def changeTarget(newTargetId: Entity.Id): SirOfVice = copy(targetId = newTargetId)
@@ -158,16 +158,16 @@ object SirOfVice extends BossFactory[SirOfVice] with BossMetadata {
     life = maxLife,
     speed = fullSpeed,
     relevantUsedAbilities = Map(
-      Ability.sirOfViceCleansingNova -> Pointed[CleansingNova].unit.copy(
+      Ability.sirOfVice.cleansingNovaId -> Pointed[CleansingNova].unit.copy(
         time = CleansingNova.setBeginningOfGameAbilityUse(time)
       ),
-      Ability.sirOfVicePunishment -> Pointed[Punishment].unit.copy(
+      Ability.sirOfVice.punishmentId -> Pointed[Punishment].unit.copy(
         time = Punishment.setBeginningOfGameAbilityUse(time)
       ),
-      Ability.sirOfViceHolyFlame -> Pointed[HolyFlame].unit.copy(
+      Ability.sirOfVice.holyFlameId -> Pointed[HolyFlame].unit.copy(
         time = HolyFlame.setBeginningOfGameAbilityUse(time)
       ),
-      Ability.sirOfViceHolyWrath -> Pointed[HolyWrath].unit.copy(
+      Ability.sirOfVice.holyWrathId -> Pointed[HolyWrath].unit.copy(
         time = HolyWrath.setBeginningOfGameAbilityUse(time)
       )
     )

@@ -31,7 +31,7 @@ final case class HexagonZoneTick(
             entity.id,
             zone.heal,
             zone.sourceId,
-            Ability.hexagonHexagonZoneId
+            Ability.hexagon.hexagonZoneId
           )
         )
         .toVector

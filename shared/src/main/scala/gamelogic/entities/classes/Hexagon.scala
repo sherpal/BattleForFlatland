@@ -19,6 +19,8 @@ import gamelogic.physics.shape.{Polygon, Shape}
 import gamelogic.utils.IdGeneratorContainer
 import models.bff.outofgame.PlayerClasses
 
+import scala.collection.immutable.ListSet
+
 /** The [[gamelogic.entities.classes.Hexagon]] is the healer class available to players.
   *
   * Obviously, it is represented as a Hexagon in the game.
@@ -92,8 +94,10 @@ object Hexagon extends PlayerClassBuilder {
     )
   )
 
+  // A ListSet, so that the order of the abilities (and thus their keys) is the one of their group
+  // in `Ability`.
   def abilities: Set[Ability.AbilityId] =
-    Set(Ability.hexagonFlashHealId, Ability.hexagonHexagonHotId, Ability.hexagonHexagonZoneId)
+    ListSet.from(Ability.hexagon.toList)
 
   def shape: Polygon = Shape.regularPolygon(6, Constants.playerRadius)
 
@@ -107,7 +111,7 @@ object Hexagon extends PlayerClassBuilder {
 
   def abilitiesDoc: Vector[AbilityDoc] = Vector(
     AbilityDoc(
-      Ability.hexagonFlashHealId,
+      Ability.hexagon.flashHealId,
       "Flash Heal",
       s"Heals an ally (within ${formatNumber(WithTargetAbility.healRange)} units) for " ++
         s"${formatNumber(FlashHeal.healAmount)} life points.",
@@ -116,7 +120,7 @@ object Hexagon extends PlayerClassBuilder {
       FlashHeal.cost
     ),
     AbilityDoc(
-      Ability.hexagonHexagonHotId,
+      Ability.hexagon.hexagonHotId,
       "Heal Over Time",
       s"Heals an ally for ${formatNumber(HexagonHot.healOnTick)} life points every " ++
         s"${formatPeriod(HexagonHot.tickRate)}, for ${formatSeconds(HexagonHot.duration)}. Can " ++
@@ -126,7 +130,7 @@ object Hexagon extends PlayerClassBuilder {
       HexagonHot.cost
     ),
     AbilityDoc(
-      Ability.hexagonHexagonZoneId,
+      Ability.hexagon.hexagonZoneId,
       "Hexagon Zone",
       "Creates a healing zone at the chosen location for " ++
         s"${formatSeconds(HexagonZone.duration)}. Every ${formatPeriod(HexagonZone.tickRate)}, " ++

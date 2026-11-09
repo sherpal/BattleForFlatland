@@ -121,7 +121,7 @@ final class FightLog {
 
   private def recordDamage(dealt: EntityTakesDamage, before: GameState, after: GameState): Unit = {
     val EntityTakesDamage(_, time, targetId, amount, sourceId, abilityId) = dealt
-    if abilityId == Ability.pentagonPentagonBullet then litFacet(sourceId, time, before)
+    if abilityId == Ability.pentagon.pentagonBulletId then litFacet(sourceId, time, before)
     for target <- before.livingEntityById(targetId) do {
       rememberName(before, sourceId)
       rememberName(before, targetId)

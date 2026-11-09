@@ -10,7 +10,7 @@ import gamelogic.utils.IdGeneratorContainer
 import services.i18n.I18n
 
 final case class Enrage(useId: Ability.UseId, time: Long, casterId: Entity.Id) extends Ability {
-  def abilityId: AbilityId = Ability.squareEnrageId
+  def abilityId: AbilityId = Ability.square.enrageId
 
   def cooldown: Long = Enrage.cooldown
 

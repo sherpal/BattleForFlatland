@@ -53,6 +53,6 @@ object PutDamageZones extends AbilityMetadata {
 
   inline def timeToFirstAbility: Long = 3000L
 
-  def abilityId: Ability.AbilityId = Ability.boss102PutDamageZones
+  def abilityId: Ability.AbilityId = Ability.boss102.putDamageZonesId
 
 }

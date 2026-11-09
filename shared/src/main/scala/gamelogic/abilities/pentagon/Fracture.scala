@@ -24,7 +24,7 @@ final case class Fracture(
     direction: Angle,
     colour: Int
 ) extends Ability {
-  def abilityId: AbilityId = Ability.pentagonFractureId
+  def abilityId: AbilityId = Ability.pentagon.fractureId
 
   def cooldown: Long = Fracture.cooldown
 

@@ -96,7 +96,7 @@ object Boss101Controller extends AIController[Boss101, SpawnBoss] {
         val shouldINotMove = maybeUseAnAbility.fold(false) { actions =>
           actions
             .collect { case a: EntityStartsCasting => a }
-            .exists(_.ability.abilityId == Ability.boss101BigHitId)
+            .exists(_.ability.abilityId == Ability.boss101.bigHitId)
         }
 
         /** Move to target */

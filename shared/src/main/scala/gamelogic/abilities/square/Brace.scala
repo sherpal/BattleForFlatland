@@ -13,7 +13,7 @@ import services.i18n.I18n
   * `BraceShield.maxStacks`. When the shield is already full, its remaining time is simply reset.
   */
 final case class Brace(useId: Ability.UseId, time: Long, casterId: Entity.Id) extends Ability {
-  def abilityId: AbilityId = Ability.squareBraceId
+  def abilityId: AbilityId = Ability.square.braceId
 
   def cooldown: Long = Brace.cooldown
 

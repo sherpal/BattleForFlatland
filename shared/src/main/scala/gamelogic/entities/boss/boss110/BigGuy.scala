@@ -68,7 +68,7 @@ final case class BigGuy(
 
   def changeTarget(newTargetId: Id): BigGuy = copy(targetId = newTargetId)
 
-  def abilities: Set[AbilityId] = Set(Ability.autoAttackId, Ability.boss110BigGuyBrokenArmor)
+  def abilities: Set[AbilityId] = Set(Ability.autoAttackId, Ability.boss110.bigGuyBrokenArmorId)
 
   def useAbility(ability: Ability): BigGuy =
     copy(

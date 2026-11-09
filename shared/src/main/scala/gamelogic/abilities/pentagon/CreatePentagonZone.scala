@@ -21,7 +21,7 @@ case class CreatePentagonZone(
     rotation: Angle,
     colour: RGBAColour
 ) extends Ability {
-  def abilityId: AbilityId = Ability.createPentagonZoneId
+  def abilityId: AbilityId = Ability.pentagon.pentagonZoneId
 
   def cooldown: Long = CreatePentagonZone.cooldown
 

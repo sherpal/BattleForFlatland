@@ -50,5 +50,5 @@ object Punishment extends AbilityMetadata {
 
   def name: String = "Punishment"
 
-  def abilityId: AbilityId = Ability.sirOfVicePunishment
+  def abilityId: AbilityId = Ability.sirOfVice.punishmentId
 }

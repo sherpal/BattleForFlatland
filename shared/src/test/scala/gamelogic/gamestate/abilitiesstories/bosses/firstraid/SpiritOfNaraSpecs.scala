@@ -221,7 +221,7 @@ final class SpiritOfNaraSpecs extends StoryTeller {
         player.entityId,
         60,
         boss.entityId,
-        Ability.spiritOfNaraFireball
+        Ability.spiritOfNara.fireballId
       ) >>>> { gs =>
         assert(!bossOf(gs).pyroblastPending(gs))
       } >>
@@ -263,7 +263,7 @@ final class SpiritOfNaraSpecs extends StoryTeller {
     def at(lifeRatio: Double, lastWave: Int) = boss.copy(
       life = boss.maxLife * lifeRatio,
       relevantUsedAbilities = boss.relevantUsedAbilities + (
-        Ability.spiritOfNaraSummonElementals ->
+        Ability.spiritOfNara.summonElementalsId ->
           SummonWaterElementals(Ability.UseId.zero, 0, boss.id, lastWave)
       )
     )

@@ -26,7 +26,7 @@ final case class Inflamed(
         entityId = bearerId,
         amount = Inflamed.baseDamage * math.round((time - appearanceTime).toDouble / tickRate),
         sourceId = sourceId,
-        abilityId = Ability.sirOfViceHolyFlame
+        abilityId = Ability.sirOfVice.holyFlameId
       )
     )
 

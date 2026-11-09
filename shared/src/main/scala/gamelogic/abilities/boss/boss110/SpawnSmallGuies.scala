@@ -46,6 +46,6 @@ object SpawnSmallGuies extends AbilityMetadata {
   val startingPositions: Vector[Complex] =
     Vector(-i, i).map(_ * 50).map(_ - Boss110.halfWidth * 4 / 5)
 
-  def abilityId: Ability.AbilityId = Ability.boss110SpawnSmallGuies
+  def abilityId: Ability.AbilityId = Ability.boss110.spawnSmallGuiesId
 
 }

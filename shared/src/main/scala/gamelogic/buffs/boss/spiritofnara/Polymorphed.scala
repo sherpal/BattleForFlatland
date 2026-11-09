@@ -49,7 +49,7 @@ final case class Polymorphed(
           bearerId,
           player.maxLife,
           sourceId,
-          Ability.spiritOfNaraMassPolymorph
+          Ability.spiritOfNara.massPolymorphId
         )
       )
       .toVector

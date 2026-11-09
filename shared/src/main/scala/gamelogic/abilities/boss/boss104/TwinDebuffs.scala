@@ -31,7 +31,7 @@ final case class TwinDebuffs(
   override def copyWithNewTimeAndId(newTime: Long, newId: UseId): Ability =
     copy(time = newTime, useId = newId)
 
-  override def abilityId: AbilityId = Ability.boss104TwinDebuffs
+  override def abilityId: AbilityId = Ability.boss104.twinDebuffsId
 
   /** Boss abilities delegate legality to their controller (which checks cooldown, silence, etc. via
     * `canUseAbilityBoolean`), so there is nothing else to veto here.

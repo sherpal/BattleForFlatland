@@ -46,11 +46,11 @@ final case class Boss110(
 ) extends BossEntity {
 
   def abilityNames: Map[gamelogic.abilities.Ability.AbilityId, String] = Map(
-    Ability.autoAttackId           -> "Auto attack",
-    Ability.boss110SpawnBigGuies   -> SpawnBigGuies.name,
-    Ability.boss110PlaceBombPods   -> PlaceBombPods.name,
-    Ability.boss110ExplodeBombs    -> ExplodeBombs.name,
-    Ability.boss110SpawnSmallGuies -> SpawnSmallGuies.name
+    Ability.autoAttackId              -> "Auto attack",
+    Ability.boss110.spawnBigGuiesId   -> SpawnBigGuies.name,
+    Ability.boss110.placeBombPodsId   -> PlaceBombPods.name,
+    Ability.boss110.explodeBombsId    -> ExplodeBombs.name,
+    Ability.boss110.spawnSmallGuiesId -> SpawnSmallGuies.name
   )
 
   def name: String = Boss110.name
@@ -242,10 +242,10 @@ object Boss110 extends BossFactory[Boss110] with BossMetadata {
   final val abilities: Set[Ability.AbilityId] =
     Set(
       Ability.autoAttackId,
-      Ability.boss110SpawnBigGuies,
-      Ability.boss110ExplodeBombs,
-      Ability.boss110PlaceBombPods,
-      Ability.boss110SpawnSmallGuies
+      Ability.boss110.spawnBigGuiesId,
+      Ability.boss110.explodeBombsId,
+      Ability.boss110.placeBombPodsId,
+      Ability.boss110.spawnSmallGuiesId
     )
 
   def description: String =

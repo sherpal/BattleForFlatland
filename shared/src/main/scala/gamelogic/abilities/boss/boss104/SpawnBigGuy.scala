@@ -13,7 +13,7 @@ import services.i18n.I18n
 
 final case class SpawnBigGuy(useId: Ability.UseId, time: Long, casterId: Entity.Id)
     extends Ability {
-  override def abilityId: AbilityId = Ability.boss104SpawnBigGuy
+  override def abilityId: AbilityId = Ability.boss104.spawnBigGuyId
 
   override def cooldown: Long = SpawnBigGuy.cooldown
 

@@ -83,5 +83,5 @@ object SacredGround extends AbilityMetadata {
 
   def timeToFirstAbility: Long = 0L
 
-  def abilityId: AbilityId = Ability.sirOfViceSacredGround
+  def abilityId: AbilityId = Ability.sirOfVice.sacredGroundId
 }

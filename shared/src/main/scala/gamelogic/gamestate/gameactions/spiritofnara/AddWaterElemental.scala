@@ -36,7 +36,7 @@ final case class AddWaterElemental(
         Map.empty,
         entityId,
         Map(
-          Ability.spiritOfNaraWaterbolt -> Pointed[Waterbolt].unit.copy(
+          Ability.spiritOfNara.waterboltId -> Pointed[Waterbolt].unit.copy(
             time = time - Waterbolt.cooldown + Waterbolt.timeToFirstAbility
           )
         )

@@ -44,5 +44,5 @@ object Waterbolt extends AbilityMetadata {
 
   inline def damage: Double = 11.0
 
-  def abilityId: AbilityId = Ability.spiritOfNaraWaterbolt
+  def abilityId: AbilityId = Ability.spiritOfNara.waterboltId
 }

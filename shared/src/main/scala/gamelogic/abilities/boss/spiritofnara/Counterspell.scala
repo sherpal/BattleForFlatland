@@ -44,7 +44,7 @@ object Counterspell extends AbilityMetadata {
 
   inline def radius: Double = 150.0
 
-  def abilityId: AbilityId = Ability.spiritOfNaraCounterspell
+  def abilityId: AbilityId = Ability.spiritOfNara.counterspellId
 
   /** The players close enough to the caster to be counterspelled. */
   def victims(gameState: GameState, casterId: Entity.Id, time: Long): Vector[Entity.Id] =

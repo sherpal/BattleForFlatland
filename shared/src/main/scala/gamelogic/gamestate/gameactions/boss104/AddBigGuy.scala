@@ -48,7 +48,7 @@ final case class AddBigGuy(
       // same "fake past usage" trick as Boss104.initialBoss: the kick becomes available
       // `timeToFirstUse` ms after the add is spawned
       Map(
-        Ability.boss104BigGuyKick -> Pointed[BigGuyKick].unit.copy(
+        Ability.boss104.bigGuyKickId -> Pointed[BigGuyKick].unit.copy(
           time = time - BigGuyKick.cooldown + BigGuyKick.timeToFirstUse
         )
       )

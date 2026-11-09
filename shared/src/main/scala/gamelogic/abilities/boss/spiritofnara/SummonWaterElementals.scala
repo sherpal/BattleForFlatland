@@ -58,7 +58,7 @@ object SummonWaterElementals extends AbilityMetadata {
     Complex.polar(330, Angle.Tau * Angle.fromDouble(index.toDouble / count) + Angle.Pi / 2)
   )
 
-  def abilityId: AbilityId = Ability.spiritOfNaraSummonElementals
+  def abilityId: AbilityId = Ability.spiritOfNara.summonElementalsId
 
   /** The wave to summon now, if the boss is under the threshold of the wave following the last one.
     *

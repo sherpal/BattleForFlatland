@@ -21,6 +21,8 @@ import gamelogic.physics.shape.{ConvexPolygon, Polygon, Shape}
 import gamelogic.utils.IdGeneratorContainer
 import models.bff.outofgame.PlayerClasses
 
+import scala.collection.immutable.ListSet
+
 /** The [[Triangle]] is the melee dps class in BFF. It attacks close its enemies.
   *
   * The [[Triangle]] has an energy bar that is replenish very often (10 seconds to replenish it
@@ -92,7 +94,7 @@ object Triangle extends PlayerClassBuilder {
 
   def abilitiesDoc: Vector[AbilityDoc] = Vector(
     AbilityDoc(
-      Ability.triangleDirectHit,
+      Ability.triangle.directHitId,
       "Direct Hit",
       s"Hits an enemy in melee range for ${formatNumber(DirectHit.directHitDamage)} damage.",
       Ability.gcd,
@@ -100,7 +102,7 @@ object Triangle extends PlayerClassBuilder {
       DirectHit.cost
     ),
     AbilityDoc(
-      Ability.triangleEnergyKick,
+      Ability.triangle.energyKickId,
       "Energy Kick",
       s"Kicks an enemy in melee range for ${formatNumber(EnergyKick.damage)} damage, and gives " ++
         s"you back ${formatNumber(EnergyKick.energyGain)} energy. Use it while waiting for energy.",
@@ -108,7 +110,7 @@ object Triangle extends PlayerClassBuilder {
       0L
     ),
     AbilityDoc(
-      Ability.triangleUpgradeDirectHit,
+      Ability.triangle.upgradeDirectHitId,
       "Upgrade Direct Hit",
       "Increases the damage of your Direct Hit by " ++
         s"${formatNumber((UpgradeDirectHitBuff.damageIncrease - 1) * 100)}% for " ++
@@ -118,7 +120,7 @@ object Triangle extends PlayerClassBuilder {
       UpgradeDirectHit.cost
     ),
     AbilityDoc(
-      Ability.triangleStun,
+      Ability.triangle.stunId,
       "Stun",
       s"Stuns an enemy (within ${formatNumber(Stun.range)} units) for up to " ++
         s"${formatSeconds(TriangleStunDebuff.duration)}, interrupting what it was casting. The " ++
@@ -129,7 +131,7 @@ object Triangle extends PlayerClassBuilder {
       Stun.cost
     ),
     AbilityDoc(
-      Ability.triangleCut,
+      Ability.triangle.cutId,
       "Cut",
       "Interrupts the spell an enemy is casting (if that spell can be interrupted), and " ++
         s"silences it for ${formatSeconds(Silenced.duration)}.",
@@ -138,13 +140,9 @@ object Triangle extends PlayerClassBuilder {
     )
   )
 
-  val abilities: Set[Ability.AbilityId] = Set(
-    Ability.triangleEnergyKick,
-    Ability.triangleDirectHit,
-    Ability.triangleUpgradeDirectHit,
-    Ability.triangleStun,
-    Ability.triangleCut
-  )
+  // A ListSet, so that the order of the abilities (and thus their keys) is the one of their group
+  // in `Ability`.
+  val abilities: Set[Ability.AbilityId] = ListSet.from(Ability.triangle.toList)
 
   def startingActions(
       time: Long,

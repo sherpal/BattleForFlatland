@@ -51,5 +51,5 @@ object Reunion extends AbilityMetadata {
 
   def name: String = "Reunion"
 
-  def abilityId: AbilityId = Ability.boss105Reunion
+  def abilityId: AbilityId = Ability.boss105.reunionId
 }

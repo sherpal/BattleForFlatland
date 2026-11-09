@@ -17,7 +17,7 @@ final case class DirectHit(
     targetId: Entity.Id,
     damage: Double
 ) extends WithTargetAbility {
-  def abilityId: AbilityId = Ability.triangleDirectHit
+  def abilityId: AbilityId = Ability.triangle.directHitId
 
   def cooldown: Long = Ability.gcd
 

@@ -48,7 +48,7 @@ object Resonance extends AbilityMetadata {
 
   def name: String = "Resonance"
 
-  def abilityId: AbilityId = Ability.boss105Resonance
+  def abilityId: AbilityId = Ability.boss105.resonanceId
 
   /** Distance between the centres of the twins below which they resonate. */
   inline def range: Double = 280.0

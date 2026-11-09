@@ -14,7 +14,7 @@ import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.gamestate.gameactions.EntityStartsCasting
 import gamelogic.physics.Complex
 import services.i18n.I18n
-import utils.misc.RGBColour
+import utils.misc.{RGBAColour, RGBColour}
 
 /** What to do after the player asked to use an ability. */
 enum CastRequest {
@@ -59,90 +59,12 @@ final class AbilityCaster(myId: Entity.Id, i18n: I18n) {
       target: Option[Entity.Id],
       mouse: Complex,
       mouseOver: => Option[Entity.Id] = None
-  ): CastRequest = {
-    def onTarget(ability: Entity.Id => Ability) =
-      withTarget(ability, target, mouseOver, gameState, now)
-    abilityId match {
-      case Ability.hexagonFlashHealId =>
-        onTarget(FlashHeal(Ability.UseId.zero, now, myId, _))
-      case Ability.hexagonHexagonHotId =>
-        onTarget(HexagonHot(Ability.UseId.zero, now, myId, _))
-      case Ability.squareTauntId =>
-        onTarget(Taunt(Ability.UseId.zero, now, myId, _))
-      case Ability.squareHammerHit =>
-        onTarget(HammerHit(Ability.UseId.zero, now, myId, _))
-      case Ability.squareCleaveId =>
-        val myPosition = player.currentPosition(now)
-        val direction  = mouse - myPosition
-        send(
-          Cleave(
-            Ability.UseId.zero,
-            now,
-            myId,
-            myPosition + player.shape.radius * direction.normalized,
-            direction.arg
-          ),
-          gameState,
-          now
-        )
-      case Ability.squareEnrageId =>
-        send(Enrage(Ability.UseId.zero, now, myId), gameState, now)
-      case Ability.squareGuardId =>
-        onTarget(Guard(Ability.UseId.zero, now, myId, _))
-      case Ability.squareShieldSlamId =>
-        onTarget(ShieldSlam(Ability.UseId.zero, now, myId, _))
-      case Ability.squareBraceId =>
-        send(Brace(Ability.UseId.zero, now, myId), gameState, now)
-      case Ability.triangleEnergyKick =>
-        onTarget(EnergyKick(Ability.UseId.zero, now, myId, _))
-      case Ability.triangleDirectHit =>
-        onTarget(DirectHit(Ability.UseId.zero, now, myId, _, DirectHit.directHitDamage))
-      case Ability.triangleUpgradeDirectHit =>
-        send(UpgradeDirectHit(Ability.UseId.zero, now, myId), gameState, now)
-      case Ability.triangleStun =>
-        onTarget(Stun(Ability.UseId.zero, now, myId, _))
-      case Ability.triangleCut =>
-        onTarget(Cut(Ability.UseId.zero, now, myId, _))
-      case Ability.pentagonPentagonBullet =>
-        val direction = Complex.rotation(player.rotation)
-        send(
-          CreatePentagonBullet(
-            Ability.UseId.zero,
-            now,
-            myId,
-            player.pos + player.shape.radius * direction,
-            CreatePentagonBullet.damage,
-            direction.arg,
-            player.colour
-          ),
-          gameState,
-          now
-        )
-      case Ability.pentagonFractureId =>
-        val direction = Complex.rotation(player.rotation)
-        send(
-          Fracture(
-            Ability.UseId.zero,
-            now,
-            myId,
-            player.pos + player.shape.radius * direction,
-            Fracture.damage,
-            direction.arg,
-            player.colour
-          ),
-          gameState,
-          now
-        )
-      case Ability.pentagonPentagramId =>
-        onTarget(Pentagram(Ability.UseId.zero, now, myId, _))
-      case Ability.pentagonDispelId =>
-        onTarget(PentaDispel(Ability.UseId.zero, now, myId, _))
-      case Ability.createPentagonZoneId | Ability.hexagonHexagonZoneId =>
-        ChoosePosition(abilityId)
-      case other =>
-        Error(i18n.abilityNotSupported(other))
+  ): CastRequest =
+    casts.get(abilityId) match {
+      case Some(cast) => cast(CastContext(player, gameState, now, target, mouse, mouseOver))
+      case None if placedCasts.contains(abilityId) => ChoosePosition(abilityId)
+      case None => Error(i18n.abilityNotSupported(abilityId))
     }
-  }
 
   /** Zones are placed where the player clicks. */
   def castAtPosition(
@@ -155,39 +77,125 @@ final class AbilityCaster(myId: Entity.Id, i18n: I18n) {
       case None => Error(i18n.youAreDead)
       case Some(player) =>
         val colour = RGBColour.fromIntColour(player.colour).withAlpha(0.5)
-        abilityId match {
-          case Ability.createPentagonZoneId =>
-            send(
-              CreatePentagonZone(
-                Ability.UseId.zero,
-                now,
-                myId,
-                position,
-                PentagonZone.damageOnTick,
-                Angle.zero,
-                colour
-              ),
-              gameState,
-              now
-            )
-          case Ability.hexagonHexagonZoneId =>
-            send(
-              CreateHexagonZone(
-                Ability.UseId.zero,
-                now,
-                myId,
-                position,
-                HexagonZone.healOnTick,
-                Angle.zero,
-                colour
-              ),
-              gameState,
-              now
-            )
-          case other =>
-            Error(i18n.abilityNotPlacedWithMouse(other))
+        placedCasts.get(abilityId) match {
+          case Some(ability) => send(ability(now, position, colour), gameState, now)
+          case None => Error(i18n.abilityNotPlacedWithMouse(abilityId))
         }
     }
+
+  /** What the abilities need to be built when the player asks to use them. */
+  private final class CastContext(
+      val player: PlayerClass,
+      gameState: GameState,
+      val now: Long,
+      target: Option[Entity.Id],
+      val mouse: Complex,
+      mouseOver: => Option[Entity.Id]
+  ) {
+    def onTarget(ability: Entity.Id => Ability): CastRequest =
+      withTarget(ability, target, mouseOver, gameState, now)
+
+    def send(ability: Ability): CastRequest = AbilityCaster.this.send(ability, gameState, now)
+  }
+
+  /** How to cast each ability that is not placed with the mouse. */
+  private val casts: Map[Ability.AbilityId, CastContext => CastRequest] = Map(
+    Ability.hexagon.flashHealId -> (c => c.onTarget(FlashHeal(Ability.UseId.zero, c.now, myId, _))),
+    Ability.hexagon.hexagonHotId -> (c =>
+      c.onTarget(HexagonHot(Ability.UseId.zero, c.now, myId, _))
+    ),
+    Ability.square.tauntId     -> (c => c.onTarget(Taunt(Ability.UseId.zero, c.now, myId, _))),
+    Ability.square.hammerHitId -> (c => c.onTarget(HammerHit(Ability.UseId.zero, c.now, myId, _))),
+    Ability.square.cleaveId -> { c =>
+      val myPosition = c.player.currentPosition(c.now)
+      val direction  = c.mouse - myPosition
+      c.send(
+        Cleave(
+          Ability.UseId.zero,
+          c.now,
+          myId,
+          myPosition + c.player.shape.radius * direction.normalized,
+          direction.arg
+        )
+      )
+    },
+    Ability.square.enrageId -> (c => c.send(Enrage(Ability.UseId.zero, c.now, myId))),
+    Ability.square.guardId  -> (c => c.onTarget(Guard(Ability.UseId.zero, c.now, myId, _))),
+    Ability.square.shieldSlamId -> (c =>
+      c.onTarget(ShieldSlam(Ability.UseId.zero, c.now, myId, _))
+    ),
+    Ability.square.braceId -> (c => c.send(Brace(Ability.UseId.zero, c.now, myId))),
+    Ability.triangle.energyKickId -> (c =>
+      c.onTarget(EnergyKick(Ability.UseId.zero, c.now, myId, _))
+    ),
+    Ability.triangle.directHitId -> (c =>
+      c.onTarget(DirectHit(Ability.UseId.zero, c.now, myId, _, DirectHit.directHitDamage))
+    ),
+    Ability.triangle.upgradeDirectHitId -> (c =>
+      c.send(UpgradeDirectHit(Ability.UseId.zero, c.now, myId))
+    ),
+    Ability.triangle.stunId -> (c => c.onTarget(Stun(Ability.UseId.zero, c.now, myId, _))),
+    Ability.triangle.cutId  -> (c => c.onTarget(Cut(Ability.UseId.zero, c.now, myId, _))),
+    Ability.pentagon.pentagonBulletId -> { c =>
+      val direction = Complex.rotation(c.player.rotation)
+      c.send(
+        CreatePentagonBullet(
+          Ability.UseId.zero,
+          c.now,
+          myId,
+          c.player.pos + c.player.shape.radius * direction,
+          CreatePentagonBullet.damage,
+          direction.arg,
+          c.player.colour
+        )
+      )
+    },
+    Ability.pentagon.fractureId -> { c =>
+      val direction = Complex.rotation(c.player.rotation)
+      c.send(
+        Fracture(
+          Ability.UseId.zero,
+          c.now,
+          myId,
+          c.player.pos + c.player.shape.radius * direction,
+          Fracture.damage,
+          direction.arg,
+          c.player.colour
+        )
+      )
+    },
+    Ability.pentagon.pentagramId -> (c =>
+      c.onTarget(Pentagram(Ability.UseId.zero, c.now, myId, _))
+    ),
+    Ability.pentagon.dispelId -> (c => c.onTarget(PentaDispel(Ability.UseId.zero, c.now, myId, _)))
+  )
+
+  /** The abilities placed with the mouse, from the time, the position and the colour of the zone.
+    */
+  private val placedCasts: Map[Ability.AbilityId, (Long, Complex, RGBAColour) => Ability] = Map(
+    Ability.pentagon.pentagonZoneId -> ((now, position, colour) =>
+      CreatePentagonZone(
+        Ability.UseId.zero,
+        now,
+        myId,
+        position,
+        PentagonZone.damageOnTick,
+        Angle.zero,
+        colour
+      )
+    ),
+    Ability.hexagon.hexagonZoneId -> ((now, position, colour) =>
+      CreateHexagonZone(
+        Ability.UseId.zero,
+        now,
+        myId,
+        position,
+        HexagonZone.healOnTick,
+        Angle.zero,
+        colour
+      )
+    )
+  )
 
   /** On the target, or (like the frontend's `sendCastAbilityWithTarget`) on the mouse over entity
     * when there is no target or the ability cannot be cast on it.
