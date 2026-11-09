@@ -861,7 +861,7 @@ object FrenchI18n extends I18n {
       ("Non, pas pour l'instant : choisissez simplement un pseudo, auquel les autres vous " ++
         "reconnaissent dans les menus et dans le jeu. Les comptes viendront sans doute plus tard."),
     "Sur quels systèmes le jeu tourne-t-il ?" ->
-      ("Windows, macOS et Linux. Et partout où LÖVE 12 tourne, avec le fichier .love."),
+      "Windows, macOS et Linux. Et partout où LÖVE 12 tourne, avec le fichier .love.",
     "Le jeu est-il gratuit, et le restera-t-il ?" ->
       ("Il est gratuit aujourd'hui, téléchargé depuis ce site. D'ici un ou deux ans, le jeu " ++
         "devrait passer sur une plateforme comme Steam, où il sera payant. Mais il restera open " ++

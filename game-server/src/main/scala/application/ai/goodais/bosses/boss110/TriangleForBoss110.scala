@@ -28,7 +28,11 @@ final case class TriangleForBoss110(index: Int, entityId: Entity.Id)
       case None => Complex(Boss110.halfWidth / 2, (index - 0.5) * Boss110.halfHeight) -> 10.0
     }
 
-  override def instantActions(gameState: GameState, me: Triangle, time: Long): Vector[GameAction] = {
+  override def instantActions(
+      gameState: GameState,
+      me: Triangle,
+      time: Long
+  ): Vector[GameAction] = {
     val maybeStun = Boss110Bot
       .bigGuyToStun(gameState, index)
       .filterNot(bigGuy => Boss110Bot.isStunnedBy(gameState, bigGuy.id, me.id))
@@ -36,9 +40,7 @@ final case class TriangleForBoss110(index: Int, entityId: Entity.Id)
 
     def maybeAttack = maybeTarget(gameState).flatMap { target =>
       defaultAggressiveAbility(gameState, me, time, target)
-        .filter(cast =>
-          me.resourceAmount.amount >= Stun.cost.amount + cast.ability.cost.amount
-        )
+        .filter(cast => me.resourceAmount.amount >= Stun.cost.amount + cast.ability.cost.amount)
         .orElse(maybeEnergyKickUsage(gameState, time, me, target))
     }
 

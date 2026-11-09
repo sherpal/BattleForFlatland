@@ -7,9 +7,9 @@ import gamelogic.entities.classes.{Hexagon, Square}
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.physics.Complex
 
-/** The Hexagons of Boss110 heal from the middle of the room, from where they reach both tanks.
-  * Mana is scarce, so each of them keeps a HoT on the tank of its side only (the first on the
-  * right, the second on the left), and they flash heal whoever is the most hurt.
+/** The Hexagons of Boss110 heal from the middle of the room, from where they reach both tanks. Mana
+  * is scarce, so each of them keeps a HoT on the tank of its side only (the first on the right, the
+  * second on the left), and they flash heal whoever is the most hurt.
   */
 final case class HexagonForBoss110(index: Int, entityId: Entity.Id)
     extends HexagonAIController(index)

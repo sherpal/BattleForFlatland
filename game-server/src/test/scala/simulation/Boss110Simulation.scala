@@ -180,21 +180,23 @@ final class Boss110Simulation extends munit.FunSuite with IdsProducer {
         val shadowGap = (for {
           b <- boss
           s <- shadow
-        } yield b.currentPosition(time).distanceTo(s.currentPosition(time)) - s.radius - b.shape.radius)
+        } yield b
+          .currentPosition(time)
+          .distanceTo(s.currentPosition(time)) - s.radius - b.shape.radius)
           .fold("-")(gap => f"$gap%.0f")
         println(
           s"${seconds(time)} boss ${boss.fold("dead")(b => f"${100 * b.life / b.maxLife}%.0f%%")} at ${boss
-              .map(_.currentPosition(time))
-              .map(p => f"(${p.re}%.0f,${p.im}%.0f)")} | big guys ${gameState
-              .allTEntities[BigGuy]
-              .size} | small guys ${gameState.allTEntities[SmallGuy].size} | shadow gap $shadowGap | " +
+            .map(_.currentPosition(time))
+            .map(p => f"(${p.re}%.0f,${p.im}%.0f)")} | big guys ${gameState
+            .allTEntities[BigGuy]
+            .size} | small guys ${gameState.allTEntities[SmallGuy].size} | shadow gap $shadowGap | " +
             gameState.players.values.toVector
               .sortBy(p => name(p.id))
               .map { p =>
                 val position = p.currentPosition(time)
                 f"${name(p.id)} ${p.life}%.0f/${p.maxLife}%.0f (${position.re}%.0f,${position.im}%.0f)${if p.resourceType == gamelogic.entities.Resource.Mana
-                  then f" m${p.resourceAmount.amount}%.0f"
-                  else ""}"
+                then f" m${p.resourceAmount.amount}%.0f"
+                else ""}"
               }
               .mkString(" | ")
         )

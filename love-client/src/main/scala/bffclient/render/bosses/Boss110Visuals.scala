@@ -40,7 +40,8 @@ object Boss110Visuals extends BossVisuals {
     }
 
     for bomb <- gameState.allTEntities[BombPod].values do {
-      val colour    = if ExplodeBombs.isCovered(gameState, bomb, now) then coveredColour else uncoveredColour
+      val colour =
+        if ExplodeBombs.isCovered(gameState, bomb, now) then coveredColour else uncoveredColour
       val remaining = 1.0 - (now - bomb.time).toDouble / timeBeforeExplosion
       val radius    = BombPod.shape.radius
       circle(bomb.pos, radius, Some(colour.withAlpha(0.6)), Some((2, colour)))
@@ -65,7 +66,10 @@ object Boss110Visuals extends BossVisuals {
   }
 
   /** The more broken armours, the more damage the player takes: the tint gets stronger. */
-  override def playerFrameTint(gameState: GameState, playerId: Entity.Id): Option[(Paint, Double)] = {
+  override def playerFrameTint(
+      gameState: GameState,
+      playerId: Entity.Id
+  ): Option[(Paint, Double)] = {
     val stacks = gameState.allBuffsOfEntity(playerId).count(_.isInstanceOf[BrokenArmor])
     Option.when(stacks > 0)((brokenArmorColour, math.min(0.75, 0.25 * stacks)))
   }

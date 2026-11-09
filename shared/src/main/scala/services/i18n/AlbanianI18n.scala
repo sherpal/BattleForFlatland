@@ -828,7 +828,7 @@ object AlbanianI18n extends I18n {
       ("Jo, jo për momentin: thjesht zgjidh një pseudonim, me të cilin të njohin të tjerët në " ++
         "menu dhe në lojë. Llogaritë me gjasë do të vijnë më vonë."),
     "Në cilat sisteme punon?" ->
-      ("Windows, macOS dhe Linux. Dhe kudo ku punon LÖVE 12, me skedarin .love."),
+      "Windows, macOS dhe Linux. Dhe kudo ku punon LÖVE 12, me skedarin .love.",
     "A është loja falas, dhe a do të mbetet e tillë?" ->
       ("Sot është falas, e shkarkuar nga kjo faqe. Pas një ose dy vjetësh, loja duhet të " ++
         "kalojë në një platformë si Steam, ku do të jetë me pagesë. Por do të mbetet me burim " ++

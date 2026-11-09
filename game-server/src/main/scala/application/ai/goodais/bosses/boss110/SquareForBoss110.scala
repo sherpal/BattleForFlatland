@@ -13,10 +13,10 @@ import gamelogic.physics.Complex
 
 /** The two tanks of Boss110.
   *
-  * The first one (index 0) stands on the right, where the big guys spawn. It tanks the boss and
-  * the big guys. The second one (index 1) stands on the left, where the small guys spawn, and keeps
-  * all of them on it: since the creeping shadow follows the small guys, that keeps the shadow away
-  * from the boss.
+  * The first one (index 0) stands on the right, where the big guys spawn. It tanks the boss and the
+  * big guys. The second one (index 1) stands on the left, where the small guys spawn, and keeps all
+  * of them on it: since the creeping shadow follows the small guys, that keeps the shadow away from
+  * the boss.
   */
 final case class SquareForBoss110(index: Int, entityId: Entity.Id)
     extends SquareAIController(index)
@@ -25,10 +25,8 @@ final case class SquareForBoss110(index: Int, entityId: Entity.Id)
   private def tanksTheBoss: Boolean = index == 0
 
   def restingPosition(gameState: GameState, me: Square, time: Long): (Complex, Double) =
-    if tanksTheBoss then
-      Complex(SpawnBigGuies.bigGuiesPositions.map(_.re).max - 80, 0) -> 10.0
-    else
-      (SpawnSmallGuies.startingPositions.sum / SpawnSmallGuies.startingPositions.length) -> 10.0
+    if tanksTheBoss then Complex(SpawnBigGuies.bigGuiesPositions.map(_.re).max - 80, 0)     -> 10.0
+    else (SpawnSmallGuies.startingPositions.sum / SpawnSmallGuies.startingPositions.length) -> 10.0
 
   def actionsInPlace(gameState: GameState, me: Square, time: Long): Vector[GameAction] =
     if tanksTheBoss then tankTheBossAndBigGuys(gameState, me, time)

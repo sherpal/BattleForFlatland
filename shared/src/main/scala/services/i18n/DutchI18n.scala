@@ -835,7 +835,7 @@ object DutchI18n extends I18n {
       ("Nee, voorlopig niet: kies gewoon een spelersnaam, waaraan de anderen je herkennen in " ++
         "de menu's en in het spel. Accounts komen er later waarschijnlijk wel."),
     "Op welke systemen draait het?" ->
-      ("Windows, macOS en Linux. En overal waar LÖVE 12 draait, met het .love-bestand."),
+      "Windows, macOS en Linux. En overal waar LÖVE 12 draait, met het .love-bestand.",
     "Is het spel gratis, en blijft het dat?" ->
       ("Vandaag is het gratis, gedownload van deze website. Over een jaar of twee zou het " ++
         "spel naar een platform als Steam moeten verhuizen, waar het betalend wordt. Maar het " ++

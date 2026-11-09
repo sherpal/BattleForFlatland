@@ -159,7 +159,8 @@ final class LoginScreen(app: MenuApp)(using ExecutionContext) extends Screen {
         val api = MenuApi(scheme, host, port)
         outdatedFor(api)
           .flatMap(isOutdated =>
-            if isOutdated then Future.successful(None) else api.login(pseudo).map(Some(_))
+            if isOutdated then Future.successful(None)
+            else api.login(pseudo).map(Some(_))
           )
           .onComplete {
             case Success(None) =>

@@ -814,7 +814,7 @@ object EnglishI18n extends I18n {
       ("No, not at the moment: just choose a nickname, by which the others recognize you in " ++
         "the menus and in the game. Accounts will probably come later on."),
     "On which systems does it run?" ->
-      ("Windows, macOS and Linux. And anywhere LÖVE 12 runs, with the .love file."),
+      "Windows, macOS and Linux. And anywhere LÖVE 12 runs, with the .love file.",
     "Is the game free, and will it stay free?" ->
       ("It's free today, downloaded from this website. In a year or two, the game should move " ++
         "to a platform like Steam, where it will be paid. But it will stay open source, with " ++

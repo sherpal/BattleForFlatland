@@ -59,8 +59,8 @@ trait Boss110Bot[EntityType <: PlayerClass] extends GoodAIController[EntityType]
     ) match {
       case None if fighting =>
         if instant.nonEmpty then instant else actionsInPlace(gameState, me, startTime)
-      case None            => Vector.empty
-      case Some(moves)     => moves ++ instant
+      case None => Vector.empty
+      case Some(moves) => moves ++ instant
     }
   }
 
@@ -77,7 +77,7 @@ object Boss110Bot {
     */
   def bigGuyToKill(gameState: GameState): Option[BigGuy] = bigGuys(gameState) match {
     case Vector(_, middle, _) => Some(middle)
-    case others               => others.headOption
+    case others => others.headOption
   }
 
   /** The big guy that the Triangle of the given index must keep stunned: the top one for the first,
@@ -93,7 +93,7 @@ object Boss110Bot {
   def isStunnedBy(gameState: GameState, entityId: Entity.Id, stunnerId: Entity.Id): Boolean =
     gameState.allBuffsOfEntity(entityId).exists {
       case stun: TriangleStunDebuff => stun.sourceId == stunnerId
-      case _                        => false
+      case _ => false
     }
 
   /** Where the Pentagon of the given index waits for the bombs, around the area where they fall. */

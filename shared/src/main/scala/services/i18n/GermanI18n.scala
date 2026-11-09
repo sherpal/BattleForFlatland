@@ -841,7 +841,7 @@ object GermanI18n extends I18n {
       ("Nein, im Moment nicht: Wähle einfach einen Spielernamen, an dem dich die anderen in " ++
         "den Menüs und im Spiel erkennen. Konten kommen wahrscheinlich später."),
     "Auf welchen Systemen läuft es?" ->
-      ("Windows, macOS und Linux. Und überall, wo LÖVE 12 läuft, mit der .love-Datei."),
+      "Windows, macOS und Linux. Und überall, wo LÖVE 12 läuft, mit der .love-Datei.",
     "Ist das Spiel kostenlos, und bleibt es das?" ->
       ("Heute ist es kostenlos, von dieser Website heruntergeladen. In ein oder zwei Jahren " ++
         "soll das Spiel auf eine Plattform wie Steam umziehen, wo es kostenpflichtig sein wird. " ++
