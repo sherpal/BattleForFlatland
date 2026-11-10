@@ -56,8 +56,7 @@ lazy val `shared` = crossProject(JSPlatform, JVMPlatform)
 lazy val `shared-backend` = project
   .in(file("./shared-backend"))
   .settings(
-    BackendSettings(),
-    testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
+    BackendSettings()
   )
   .dependsOn(shared.jvm)
 

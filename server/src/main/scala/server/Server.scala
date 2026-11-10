@@ -1,27 +1,14 @@
 package server
 
 import io.circe.parser.decode
-import cask.model.Request
-import cask.router.Result
-import zio.*
 import menus.data.User
 import cask.main.Routes
 import communication.udp.{JvmUDPSocket, Lobby}
+import services.crypto.Crypto
 
-object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] {
+object Server extends cask.MainRoutes with JsonEndpoints {
 
-  val layer = ZLayer.make[BackendEnv](
-    services.crypto.Crypto.live,
-    services.menugames.MenuGames.live,
-    services.localstorage.BLocalStorage.live,
-    services.events.Events.live,
-    services.hostelections.HostElections.live
-  )
-
-  val runtime: Runtime[BackendEnv] =
-    Unsafe.unsafe { implicit unsafe =>
-      Runtime.unsafe.fromLayer(layer)
-    }
+  given env: BackendEnv = BackendEnv.live()
 
   /** The UDP port of the rendezvous (see [[RendezvousServer]]), the same as the HTTP one by
     * default.
@@ -64,25 +51,14 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
   /** Of the rendezvous and of the lobby, which share it (see `communication.udp.Lobby`). */
   private val udpSocket = JvmUDPSocket()
 
-  val lobby: LobbyServer = LobbyServer(
-    udpSocket,
-    rendezvousPort,
-    effect => Unsafe.unsafe(implicit unsafe => runtime.unsafe.run(effect).getOrThrow())
-  )
+  val lobby: LobbyServer = LobbyServer(udpSocket, rendezvousPort, env.events)
 
   val rendezvous: RendezvousServer = RendezvousServer(
     Lobby.SharedSocket(udpSocket, lobby.received),
-    gameId =>
-      Unsafe.unsafe { implicit unsafe =>
-        runtime.unsafe
-          .run(services.menugames.gameCredentials(gameId))
-          .getOrThrow()
-          .map(_.allGameCredentials)
-      }
+    gameId => env.menuGames.gameCredentials(gameId).map(_.allGameCredentials)
   )
 
-  override def allRoutes: Seq[Routes] = {
-    given Runtime[BackendEnv] = runtime
+  override def allRoutes: Seq[Routes] =
     Vector(
       this,
       MenuGameRoutes(rendezvousPort, lobby),
@@ -90,7 +66,6 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
       ClientPackageRoutes(clientPackages),
       LandingRoutes()
     )
-  }
 
   /** cask's, with the [[RequestLimits]] first. */
   override def defaultHandler: io.undertow.server.handlers.BlockingHandler = {
@@ -112,33 +87,28 @@ object Server extends cask.MainRoutes with ziocask.WithZIOEndpoints[BackendEnv] 
       if isProd then "0.0.0.0" else "127.0.0.1"
     }
 
-  @caskz.getJ[Option[User]]("/api/users/me")
-  def me(request: cask.Request) =
-    ZIO.succeed(request.cookies.get("session").map(session => User(session.value)))
+  @getJ[Option[User]]("/api/users/me")
+  def me(request: cask.Request) = request.cookies.get("session").map(session => User(session.value))
 
-  @caskz.get[String]("/api/oupsy")
+  @cask.get("/api/oupsy")
   def oupsy() =
-    zio.ZIO
-      .succeed(throw new RuntimeException("bleh"))
-      .catchAllCause(cause => zio.ZIO.succeed(cask.Response(cause.squashTrace.getMessage())))
+    try throw new RuntimeException("bleh")
+    catch { case e: RuntimeException => cask.Response(e.getMessage()) }
 
-  @caskz.post[String]("/api/users/login")
-  def login(request: cask.Request) = for {
-    user <- ZIO.fromEither(decode[User](request.text()))
-  } yield cask.Response("", 200, Seq(), Seq(cask.Cookie("session", user.name, path = "/")))
+  @cask.post("/api/users/login")
+  def login(request: cask.Request) = {
+    val user = decode[User](request.text()).toTry.get
+    cask.Response("", 200, Seq(), Seq(cask.Cookie("session", user.name, path = "/")))
+  }
 
   @cask.get("/api")
   def hello() = "Hello World!"
 
-  @caskz.get[String]("/api/ping/:name")
-  def ping(name: String) = ZIO.succeed(cask.Response("PONG: " ++ name))
+  @cask.get("/api/ping/:name")
+  def ping(name: String) = cask.Response("PONG: " ++ name)
 
-  @caskz.post[String]("/api/do-thing")
-  def doThing(request: cask.Request) =
-    for {
-      body        <- ZIO.succeed(request.text())
-      encodedBody <- services.crypto.hashPassword(body)
-    } yield cask.Response(encodedBody.pw)
+  @cask.post("/api/do-thing")
+  def doThing(request: cask.Request) = cask.Response(Crypto.hashPassword(request.text()).pw)
 
   initialize()
 

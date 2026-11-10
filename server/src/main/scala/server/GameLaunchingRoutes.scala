@@ -1,10 +1,8 @@
 package server
 
-import ziocask.WithZIOEndpoints
 import menus.data.APIResponse
-import services.{events, hostelections, menugames}
-import zio.*
 import menus.data.{GameCredentialsWithGameInfo, GameServerAddress, GameServerFile}
+import services.events.Event
 import io.circe.syntax.*
 
 /** What the game servers (run by one of the players of their game, see [[programs.launchGame]])
@@ -21,46 +19,48 @@ class GameLaunchingRoutes(
     rendezvousPort: Int,
     gameServerJar: os.Path,
     gameServerRuntimes: os.Path
-)(using
-    val runtime: zio.Runtime[BackendEnv]
-) extends cask.Routes
-    with WithZIOEndpoints[BackendEnv] {
+)(using env: BackendEnv)
+    extends cask.Routes
+    with JsonEndpoints {
 
-  @caskz.getJ[APIResponse[GameCredentialsWithGameInfo]]("api/bff/internal/get-all-credentials")
-  def retrieveAllGameCredentials(gameId: String, secret: String) = (for {
-    _           <- Console.printLine(s"Request to provide credentials for $gameId").ignore
-    credentials <- menugames.retrieveAllGameCredentials(gameId, secret)
-  } yield credentials).map(APIResponse.fromEither)
+  @getJ[APIResponse[GameCredentialsWithGameInfo]]("api/bff/internal/get-all-credentials")
+  def retrieveAllGameCredentials(gameId: String, secret: String) = {
+    println(s"Request to provide credentials for $gameId")
+    APIResponse.fromEither(env.menuGames.retrieveAllGameCredentials(gameId, secret))
+  }
 
   /** The game server is ready, on UDP `port`, and on `addresses` (comma separated IP addresses) of
     * its local network. Its public address is the one the rendezvous sees it from, if it registered
     * there (or the one it told the rendezvous, when that one sees it on a private network).
     */
-  @caskz.getJ[APIResponse[Boolean]]("api/bff/internal/game-server-ready")
+  @getJ[APIResponse[Boolean]]("api/bff/internal/game-server-ready")
   def gameServerReady(
       ctx: cask.Request,
       gameId: String,
       secret: String,
       port: Int,
       addresses: String = ""
-  ) = (for {
-    gameInfo <- menugames.retrieveAllGameCredentials(gameId, secret).flatMap(ZIO.fromEither)
-    public = rendezvous
-      .gameServerAddresses(gameId)
-      .map(peer => GameServerAddress(peer.address, peer.port))
-    local = addresses.split(",").toVector.filter(_.nonEmpty).map(GameServerAddress(_, port))
-    _ <- Console.printLine(s"game server ready for $gameId, seen at ${public.mkString(", ")}").orDie
-    host <- hostelections.over(gameId)
-    _ <- events.dispatchEvent(
-      events.Event.GameCredentials(
-        gameInfo.allGameCredentials,
-        (public ++ local).distinct,
-        host,
-        port,
-        rendezvousPort
-      )
+  ) =
+    APIResponse.fromEither(
+      env.menuGames.retrieveAllGameCredentials(gameId, secret).map { gameInfo =>
+        val public = rendezvous
+          .gameServerAddresses(gameId)
+          .map(peer => GameServerAddress(peer.address, peer.port))
+        val local = addresses.split(",").toVector.filter(_.nonEmpty).map(GameServerAddress(_, port))
+        println(s"game server ready for $gameId, seen at ${public.mkString(", ")}")
+        val host = env.hostElections.over(gameId)
+        env.events.dispatchEvent(
+          Event.GameCredentials(
+            gameInfo.allGameCredentials,
+            (public ++ local).distinct,
+            host,
+            port,
+            rendezvousPort
+          )
+        )
+        true
+      }
     )
-  } yield true).either.map(APIResponse.fromEither)
 
   /** The version of the game server's jar (a [[GameServerFile]]): its SHA-256, so that the players
     * download it only when it changed, and check what they downloaded, and its size.

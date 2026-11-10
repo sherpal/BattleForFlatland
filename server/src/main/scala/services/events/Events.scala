@@ -1,23 +1,67 @@
 package services.events
 
-import zio.*
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.atomic.AtomicReference
+import scala.reflect.Typeable
 
-trait Events {
+/** Dispatches the events to the subscriptions, one event at a time, on its own thread. The
+  * subscriptions that are not alive anymore are dropped.
+  */
+final class Events {
 
-  def registerEvents(subscription: Subscription): ZIO[Any, Nothing, Unit]
+  println("Initializing Events service...")
 
-  def dispatchEvent(event: Event): ZIO[Any, Nothing, Unit]
+  private val subscriptionsRef = AtomicReference(Vector.empty[Subscription])
+  private val eventQueue       = LinkedBlockingQueue[Event](10000)
 
-}
+  def registerEvents(subscription: Subscription): Unit =
+    subscriptionsRef.updateAndGet(_ :+ subscription)
 
-object Events {
+  def registerEvents[InterestedIn <: Event](whileAlive: => Boolean)(using
+      Typeable[InterestedIn]
+  )(handler: InterestedIn => Unit): Unit =
+    registerEvents(
+      Subscription(
+        {
+          case event: InterestedIn => handler(event)
+          case _ => ()
+        },
+        () => whileAlive
+      )
+    )
 
-  val live = ZLayer.fromZIO(for {
-    _       <- Console.printLine("Initializing Events service...")
-    ref     <- Ref.make[Vector[Subscription]](Vector.empty)
-    queue   <- Queue.bounded[Event](10000)
-    runtime <- ZIO.runtime[Any]
-    bEvents <- ZIO.succeed(BEvents(ref, queue, runtime))
-  } yield (bEvents: Events))
+  /** Blocks while the queue of the events is full. */
+  def dispatchEvent(event: Event): Unit = eventQueue.put(event)
+
+  private def dispatch(event: Event): Unit = {
+    println(s"Dispatching $event...")
+    val currentSubscriptions         = subscriptionsRef.get
+    val numberOfCurrentSubscriptions = currentSubscriptions.length
+    val aliveSubscriptions = currentSubscriptions.filter(subscription =>
+      try subscription.alive()
+      catch { case _: Throwable => false }
+    )
+    aliveSubscriptions.foreach(subscription =>
+      try subscription.handler(event)
+      catch {
+        case e: Throwable =>
+          println("howza! handler failed")
+          e.printStackTrace()
+      }
+    )
+    subscriptionsRef.updateAndGet(subscriptionsNow =>
+      // we can't simply set, in case a subscription was registered in the meantime
+      aliveSubscriptions ++ subscriptionsNow.drop(numberOfCurrentSubscriptions)
+    )
+  }
+
+  private val dispatcher = Thread(
+    () => while true do dispatch(eventQueue.take()),
+    "event-dispatcher"
+  )
+  dispatcher.setDaemon(true)
+  dispatcher.start()
+
+  println("Events service initialized.")
 
 }

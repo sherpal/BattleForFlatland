@@ -11,6 +11,7 @@ import menus.data.{
   User
 }
 import models.bff.ingame.GameUserCredentials
+import services.events.Events
 
 import scala.collection.mutable
 
@@ -121,7 +122,7 @@ final class LobbyServerTest extends munit.FunSuite {
 
   private def fixture(): (FakeSocket, LobbyServer, LobbySubscription) = {
     val socket = FakeSocket()
-    val lobby  = LobbyServer(socket, 9000, _ => ()) // (no events)
+    val lobby  = LobbyServer(socket, 9000, Events())
     (socket, lobby, lobby.subscribe(alice, Some("g")))
   }
 

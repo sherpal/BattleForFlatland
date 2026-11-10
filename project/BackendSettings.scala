@@ -3,16 +3,6 @@ import sbt.Def.settings
 import sbt.Keys.libraryDependencies
 
 object BackendSettings {
-  val zioVersion = SharedSettings.zioVersion
-
-  def testsDeps(): Seq[Def.Setting[_]] = settings(
-    libraryDependencies ++= Seq(
-      "dev.zio" %% "zio-test"          % zioVersion % "test",
-      "dev.zio" %% "zio-test-sbt"      % zioVersion % "test",
-      "dev.zio" %% "zio-test-magnolia" % zioVersion % "test" // optional
-    )
-  )
-
   def apply(): Seq[Def.Setting[_]] = settings(
     libraryDependencies ++= Seq(
       "com.h2database" % "h2" % "1.4.199" % Test,

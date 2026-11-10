@@ -7,12 +7,9 @@ object SharedSettings {
 
   val circeVersion = "0.14.9"
   val catsVersion  = "2.1.2"
-  val zioVersion   = "2.1.7"
 
   def apply(): Seq[Def.Setting[_]] = settings(
     libraryDependencies ++= Seq(
-      "dev.zio"                      %%% "zio"             % zioVersion,
-      "dev.zio"                      %%% "zio-streams"     % zioVersion,
       "be.doeraene"                  %%% "url-dsl"         % "0.6.2",
       "io.github.cquiroz"            %%% "scala-java-time" % "2.6.0",
       "com.lihaoyi"                  %%% "scalatags"       % "0.13.1",
@@ -26,11 +23,7 @@ object SharedSettings {
       "io.circe" %%% "circe-core",
       "io.circe" %%% "circe-generic",
       "io.circe" %%% "circe-parser"
-    ).map(_ % circeVersion) ++ Seq(
-      "dev.zio" %%% "zio-test"          % zioVersion % "test",
-      "dev.zio" %%% "zio-test-sbt"      % zioVersion % "test",
-      "dev.zio" %%% "zio-test-magnolia" % zioVersion % "test" // optional
-    )
+    ).map(_ % circeVersion)
   )
 
   def jvmSettings: Seq[Def.Setting[_]] = settings(

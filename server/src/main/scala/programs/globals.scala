@@ -1,71 +1,84 @@
 package programs
 
-import zio.*
-import services.*
 import menus.data.User
-import services.events.Event.UserConnectedSocket
-import services.events.Event.UserSocketDisconnected
+import server.BackendEnv
+import services.events.Event
 
-val userConnectedWatcher = {
+import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.{Executors, TimeUnit}
+
+/** Runs `body` on its own (daemon) thread, so that it can block. */
+private[programs] def fork(name: String)(body: => Unit): Unit = {
+  val thread = Thread(
+    () =>
+      try body
+      catch { case e: Throwable => e.printStackTrace() },
+    name
+  )
+  thread.setDaemon(true)
+  thread.start()
+}
+
+/** Every 10 seconds, kicks the players of the games who are not connected anymore (they get a
+  * second chance first, see [[server.LobbyServer]] for how they are seen connected).
+  */
+def userConnectedWatcher(using env: BackendEnv): Unit = {
   case class UserData(user: User, gameId: String, howManyTimesWeSawThemDisconnected: Int = 0) {
     def isConnected: Boolean = howManyTimesWeSawThemDisconnected == 0
 
     def againSeenDisconnected: UserData =
       copy(howManyTimesWeSawThemDisconnected = howManyTimesWeSawThemDisconnected + 1)
   }
-  for {
-    connectedUserRef <- Ref.make(Map.empty[(User, String), UserData])
-    _ <- events.registerEvents[UserConnectedSocket](ZIO.succeed(true)) {
-      case UserConnectedSocket(user, gameId) =>
-        connectedUserRef.update(_ + ((user, gameId) -> UserData(user, gameId)))
+  val connectedUserRef = AtomicReference(Map.empty[(User, String), UserData])
+  env.events.registerEvents[Event.UserConnectedSocket](true) {
+    case Event.UserConnectedSocket(user, gameId) =>
+      connectedUserRef.updateAndGet(_ + ((user, gameId) -> UserData(user, gameId)))
+  }
+  env.events.registerEvents[Event.UserSocketDisconnected](true) {
+    case Event.UserSocketDisconnected(user, gameId) =>
+      connectedUserRef.updateAndGet(_.updatedWith((user, gameId)) {
+        case None => Some(UserData(user, gameId, 1))
+        case Some(userData) => Some(userData.againSeenDisconnected)
+      })
+  }
+  def connectionCheck(): Unit = {
+    val currentGames = env.menuGames.menuGames
+    // todo: what to do with started games?
+    val connectedUsers = connectedUserRef.get
+    connectedUsers.keys
+      .filterNot((user, _) => currentGames.exists(_.containsPlayer(user)))
+      .foreach(key => connectedUserRef.updateAndGet(_ - key))
+    for {
+      game   <- currentGames
+      player <- game.players
+    } connectedUsers.get((player, game.id)) match {
+      case None => env.events.dispatchEvent(Event.UserSocketDisconnected(player, game.id))
+      case Some(userData) =>
+        userData.howManyTimesWeSawThemDisconnected match {
+          case 0 => // user is connected, nothing to do
+          case 1 => // user was seen disconnected once, let's give them another chance
+            env.events.dispatchEvent(Event.UserSocketDisconnected(player, game.id))
+            println(s"${player.name} was seen disconnected once")
+          case _ => // seen too many times disconnected, let's remove them
+            if game.isGameCreator(player) then env.menuGames.deleteGame(game.id)
+            else env.menuGames.removePlayer(player, game.id)
+            env.events.dispatchEvent(Event.GameDataRefreshed(Some(game.id)))
+            connectedUserRef.updateAndGet(_ - ((player, game.id)))
+            println(s"${player.name} was disconnected too long and got kicked from ${game.id}")
+        }
     }
-    _ <- events.registerEvents[UserSocketDisconnected](ZIO.succeed(true)) {
-      case UserSocketDisconnected(user, gameId) =>
-        connectedUserRef.update(_.updatedWith((user, gameId)) {
-          case None => Some(UserData(user, gameId, 1))
-          case Some(userData) => Some(userData.againSeenDisconnected)
-        })
-    }
-    connectionCheck = for {
-      currentGames <- menugames.menuGames
-      // todo: what to do with started games?
-      connectedUsers <- connectedUserRef.get
-      _ <- ZIO.foreach(
-        connectedUsers.keys.filterNot((user, _) => currentGames.exists(_.containsPlayer(user)))
-      )(key => connectedUserRef.update(_ - key))
-      _ <- ZIO.foreach(currentGames)(game =>
-        for {
-          _ <- ZIO.foreach(game.players)(player =>
-            connectedUsers.get((player, game.id)) match {
-              case None => events.dispatchEvent(UserSocketDisconnected(player, game.id))
-              case Some(userData) =>
-                userData.howManyTimesWeSawThemDisconnected match {
-                  case 0 => // user is connected, nothing to do
-                    ZIO.unit
-                  case 1 => // user was seen disconnected once, let's give them another chance
-                    events.dispatchEvent(UserSocketDisconnected(player, game.id)) *> Console
-                      .printLine(s"${player.name} was seen disconnected once")
-                      .ignore
-                  case n => // seen too many times disconnected, let's remove them
-                    val removingPlayer =
-                      if game.isGameCreator(player) then menugames.deleteGame(game.id)
-                      else menugames.removePlayer(player, game.id)
-                    val dispatchingUpdate =
-                      events.dispatchEvent(events.Event.GameDataRefreshed(Some(game.id)))
-                    val removingUserFromTheList = connectedUserRef.update(_ - ((player, game.id)))
-
-                    removingPlayer *> dispatchingUpdate *> removingUserFromTheList *> Console
-                      .printLine(
-                        s"${player.name} was disconnected too long and got kicked from ${game.id}"
-                      )
-                      .ignore
-                }
-            }
-          )
-        } yield ()
-      )
-    } yield ()
-    _ <- Clock.sleep(10.seconds)
-    _ <- connectionCheck.repeat(Schedule.spaced(10.seconds))
-  } yield ()
+  }
+  val checker = Executors.newSingleThreadScheduledExecutor { runnable =>
+    val thread = Thread(runnable, "connection-check")
+    thread.setDaemon(true)
+    thread
+  }
+  checker.scheduleWithFixedDelay(
+    () =>
+      try connectionCheck()
+      catch { case e: Throwable => e.printStackTrace() },
+    10,
+    10,
+    TimeUnit.SECONDS
+  )
 }

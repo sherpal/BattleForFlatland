@@ -1,41 +1,37 @@
 package services.localstorage
 
 import services.localstorage.LocalStorage.Key
-import zio.*
 import io.circe.Decoder
 import io.circe.Encoder
 import java.nio.charset.StandardCharsets
 
-class BLocalStorage(fileUpdateSemaphore: Semaphore, folder: os.Path) extends LocalStorage {
+/** Stores each key in its own json file, in `folder`. */
+class BLocalStorage(folder: os.Path) extends LocalStorage {
+
+  os.makeDir.all(folder)
+
+  private val fileUpdateLock = new Object
 
   override protected def storeStoredItemAt[A](key: Key[A], storedItem: StoredItem[A])(using
       encoder: Encoder[A]
-  ): ZIO[Any, Throwable, Unit] = fileUpdateSemaphore.withPermit(ZIO.attemptBlockingIO {
+  ): Unit = fileUpdateLock.synchronized {
     val filePath = keyToPath(key)
     if os.exists(filePath) then os.remove(filePath)
 
     os.write(filePath, Encoder[StoredItem[A]].apply(storedItem).spaces2)
-  })
+  }
 
   override protected def retrieveStoredItemFrom[A](key: Key[A])(using
       decoder: Decoder[A]
-  ): ZIO[Any, Throwable, Option[StoredItem[A]]] = fileUpdateSemaphore
-    .withPermit(ZIO.attemptBlockingIO {
-      val filePath = keyToPath(key)
-      Option.when(os.exists(filePath)) {
-        val rawContent = os.read(filePath)
-        io.circe.parser.decode[StoredItem[A]](rawContent)
-      } match {
-        case None => Right(None)
-        case Some(Right(value)) => Right(Some(value))
-        case Some(Left(err)) => Left(err)
-      }
-    })
-    .absolve
+  ): Option[StoredItem[A]] = fileUpdateLock.synchronized {
+    val filePath = keyToPath(key)
+    Option.when(os.exists(filePath)) {
+      io.circe.parser.decode[StoredItem[A]](os.read(filePath)).toTry.get
+    }
+  }
 
-  override def clearKey[T](key: Key[T]): ZIO[Any, Throwable, Unit] = ZIO.attemptBlockingIO {
-    val path = keyToPath(key)
-    os.remove(path, checkExists = false)
+  override def clearKey[T](key: Key[T]): Unit = fileUpdateLock.synchronized {
+    os.remove(keyToPath(key), checkExists = false)
   }
 
   private def keyToPath[T](key: Key[T]): os.Path = {
@@ -47,11 +43,8 @@ class BLocalStorage(fileUpdateSemaphore: Semaphore, folder: os.Path) extends Loc
 }
 
 object BLocalStorage {
-  val live = ZLayer.fromZIO(for {
-    _                   <- Console.printLine("Initializing LocalStorage service...")
-    folder              <- ZIO.succeed(os.pwd / "target" / "db")
-    _                   <- ZIO.attemptBlockingIO(os.makeDir.all(folder)).orDie
-    fileUpdateSemaphore <- Semaphore.make(1L)
-    bLocalStorage       <- ZIO.succeed(BLocalStorage(fileUpdateSemaphore, folder))
-  } yield (bLocalStorage: LocalStorage))
+  def live(): BLocalStorage = {
+    println("Initializing LocalStorage service...")
+    BLocalStorage(os.pwd / "target" / "db")
+  }
 }

@@ -6,7 +6,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 /** Parent of all errors that are handled in both the frontend and the backend.
   *
-  * This ADT is meant to give more meaningful errors in ZIO error channel, by looking at smaller
+  * This ADT is meant to give more meaningful errors in the Left of an Either, by looking at smaller
   * smallest parent class when resolving errors.
   */
 sealed trait ErrorADT extends Throwable {

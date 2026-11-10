@@ -2,31 +2,27 @@ package gamelogic.gamestate.statetransformers
 
 import gamelogic.gamestate.gameactions.{EndGame, GameStart}
 import gamelogic.gamestate.GameState
-import zio.test.ZIOSpecDefault
-import zio.test.*
 import gamelogic.utils.IdGeneratorContainer
 
-object GameStateTransformerSpecs extends ZIOSpecDefault {
+final class GameStateTransformerSpecs extends munit.FunSuite {
 
   val idGen = IdGeneratorContainer.initialIdGeneratorContainer
 
-  def spec = suite("Game state transformers")(
-    test("Starting and ending game at once should give same result") {
-      val gameState = GameState.empty
-      val gameStart = GameStart(idGen.actionId(), 1)
-      val endGame   = EndGame(idGen.actionId(), 2)
+  test("Starting and ending game at once should give same result") {
+    val gameState = GameState.empty
+    val gameStart = GameStart(idGen.actionId(), 1)
+    val endGame   = EndGame(idGen.actionId(), 2)
 
-      assertTrue(
-        gameState.applyActions(Vector(gameStart, endGame)).endTime ==
-          Vector(gameStart, endGame)
-            .map(_.createGameStateTransformer(gameState))
-            .foldLeft(
-              GameStateTransformer.identityTransformer
-            )(_ ++ _)(gameState)
-            .endTime
-      )
+    assertEquals(
+      gameState.applyActions(Vector(gameStart, endGame)).endTime,
+      Vector(gameStart, endGame)
+        .map(_.createGameStateTransformer(gameState))
+        .foldLeft(
+          GameStateTransformer.identityTransformer
+        )(_ ++ _)(gameState)
+        .endTime
+    )
 
-    }
-  )
+  }
 
 }

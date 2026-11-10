@@ -1,18 +1,16 @@
 package services.localstorage
 
 import java.time.{LocalDateTime, ZoneOffset}
-import java.util.concurrent.TimeUnit
 
 import services.localstorage.LocalStorage.Key
 import io.circe.{Decoder, Encoder, Json}
-import zio.ZIO
 
 import scala.concurrent.duration.Duration
 
 trait LocalStorage {
 
-  private def nowLocalDateTimeFromSeconds(epochSeconds: Long): LocalDateTime =
-    LocalDateTime.ofEpochSecond(epochSeconds, 0, ZoneOffset.UTC)
+  private def now: LocalDateTime =
+    LocalDateTime.ofEpochSecond(java.lang.System.currentTimeMillis() / 1000, 0, ZoneOffset.UTC)
 
   protected case class StoredItem[A](a: A, expireAt: LocalDateTime)
 
@@ -37,16 +35,16 @@ trait LocalStorage {
     */
   protected def storeStoredItemAt[A](key: Key[A], storedItem: StoredItem[A])(using
       encoder: Encoder[A]
-  ): ZIO[Any, Throwable, Unit]
+  ): Unit
 
   /** Retrieves the element from the underlying storage system at position `key` and tries to
     * interpret it as an element of type `A`.
     *
-    * Fails with an [[io.circe.Error]] if decoding failed.
+    * Throws an [[io.circe.Error]] if decoding failed.
     */
   protected def retrieveStoredItemFrom[A](key: Key[A])(using
       decoder: Decoder[A]
-  ): ZIO[Any, Throwable, Option[StoredItem[A]]]
+  ): Option[StoredItem[A]]
 
   /** Store the given element at the given key, to be retrieved later.
     * @param key
@@ -58,20 +56,17 @@ trait LocalStorage {
     */
   final def storeAtFor[A](key: Key[A], element: A, duration: Duration)(using
       encoder: Encoder[A]
-  ): ZIO[Any, Throwable, Unit] =
-    for {
-      now <- zio.Clock.currentTime(TimeUnit.SECONDS)
-      dateTime =
-        if (duration.isFinite) nowLocalDateTimeFromSeconds(now).plusSeconds(duration.toSeconds)
-        else LocalDateTime.MAX
-      storedItem = StoredItem(element, dateTime)
-      _ <- storeStoredItemAt(key, storedItem)
-    } yield ()
+  ): Unit = {
+    val expireAt =
+      if (duration.isFinite) now.plusSeconds(duration.toSeconds)
+      else LocalDateTime.MAX
+    storeStoredItemAt(key, StoredItem(element, expireAt))
+  }
 
   /** Try to retrieve an element of type A from the local storage. If the element is expired as
     * specified when it was first inserted, returns None.
     *
-    * Fails with an [[io.circe.Error]] if the element at place `key` was not of type `A`.
+    * Throws an [[io.circe.Error]] if the element at place `key` was not of type `A`.
     *
     * @param key
     *   place to retrieve the element from
@@ -80,21 +75,10 @@ trait LocalStorage {
     */
   final def retrieveFrom[A](key: Key[A])(using
       decoder: Decoder[A]
-  ): ZIO[Any, Throwable, Option[A]] =
-    for {
-      maybeStoredElement <- retrieveStoredItemFrom[A](key)
-      now                <- zio.Clock.currentTime(TimeUnit.SECONDS)
-      maybeIsExpired = maybeStoredElement
-        .map(_.expireAt)
-        .map(_.isBefore(nowLocalDateTimeFromSeconds(now)))
-      maybeElement = for {
-        isExpired <- maybeIsExpired
-        if !isExpired
-        storedElement <- maybeStoredElement
-      } yield storedElement.a
-    } yield maybeElement
+  ): Option[A] =
+    retrieveStoredItemFrom[A](key).filterNot(_.expireAt.isBefore(now)).map(_.a)
 
-  def clearKey[T](key: Key[T]): ZIO[Any, Throwable, Unit]
+  def clearKey[T](key: Key[T]): Unit
 
 }
 
@@ -110,10 +94,6 @@ object LocalStorage {
   object Key {
     extension [T](key: Key[T]) {
       def value: String = key
-
-      def store(t: T)(using Encoder[T]): ZIO[LocalStorage, Throwable, Unit] = storeAt(key, t)
-
-      def retrieve(using Decoder[T]): ZIO[LocalStorage, Throwable, Option[T]] = retrieveFrom(key)
     }
   }
 }

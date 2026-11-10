@@ -1,35 +1,32 @@
 package gamelogic.gamestate.gameactions
 
 import gamelogic.gamestate.GameState
-import zio.ZIO
-import zio.test.ZIOSpecDefault
-import zio.test.*
 import gamelogic.utils.IdGeneratorContainer
+import org.scalacheck._
+import org.scalacheck.Prop._
 
-object EdgeGameActionsSpecs extends ZIOSpecDefault {
+object EdgeGameActionsSpecs extends Properties("Edge game actions") {
 
   val idGen = IdGeneratorContainer.initialIdGeneratorContainer
 
-  def spec = suite("Edge game actions")(
-    test("Game must be started after GameStart action") {
-      check(Gen.long(0, Long.MaxValue), Gen.long(0, Long.MaxValue)) { (time, startingTime) =>
-        val gameStart = GameStart(idGen.actionId(), startingTime)
-        val gameState = GameState.empty.copy(time = time)
-        ZIO.succeed(assertTrue(gameStart(gameState).started))
-      }
-    },
-    test("Game must be ended after EndGame action") {
-      val gameEnd   = EndGame(idGen.actionId(), 1)
-      val gameState = GameState.empty
-
-      ZIO.succeed(assertTrue(gameEnd(gameState).ended))
-    },
-    test("Applying a time update on a game state changes its time") {
-      check(Gen.long, Gen.long) { (time, updateTime) =>
-        val updateTimestamp = UpdateTimestamp(idGen.actionId(), updateTime)
-        val gameState       = GameState.empty.copy(time = time)
-        ZIO.succeed(assertTrue(updateTimestamp(gameState).time == updateTime))
-      }
+  property("Game must be started after GameStart action") =
+    forAll(Gen.choose(0L, Long.MaxValue), Gen.choose(0L, Long.MaxValue)) { (time, startingTime) =>
+      val gameStart = GameStart(idGen.actionId(), startingTime)
+      val gameState = GameState.empty.copy(time = time)
+      gameStart(gameState).started
     }
-  )
+
+  property("Game must be ended after EndGame action") = {
+    val gameEnd   = EndGame(idGen.actionId(), 1)
+    val gameState = GameState.empty
+
+    Prop(gameEnd(gameState).ended)
+  }
+
+  property("Applying a time update on a game state changes its time") =
+    forAll(Arbitrary.arbitrary[Long], Arbitrary.arbitrary[Long]) { (time, updateTime) =>
+      val updateTimestamp = UpdateTimestamp(idGen.actionId(), updateTime)
+      val gameState       = GameState.empty.copy(time = time)
+      updateTimestamp(gameState).time == updateTime
+    }
 }

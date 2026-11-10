@@ -1,11 +1,11 @@
 package programs
 
-import zio.*
-import services.*
 import services.events.Event
 import menus.data.{GameCredentialsWithGameInfo, User}
 import errors.ErrorADT
 import server.BackendEnv
+
+import scala.concurrent.duration.*
 
 /** How long the players have to send their candidacy to run the game server. */
 private val candidacyTimeout = 5.seconds
@@ -30,37 +30,36 @@ def launchGame(
     requester: User,
     gameId: String,
     rendezvousPort: Int
-): ZIO[BackendEnv, ErrorADT, Unit] = for {
-  credentials <- menugames.launchGame(requester, gameId).flatMap(ZIO.fromEither)
-  _           <- events.dispatchEvent(Event.GameStarted(gameId))
-  _           <- electHost(credentials, rendezvousPort).forkDaemon
-} yield ()
+)(using env: BackendEnv): Either[ErrorADT, Unit] =
+  env.menuGames.launchGame(requester, gameId).map { credentials =>
+    env.events.dispatchEvent(Event.GameStarted(gameId))
+    fork(s"host-election-$gameId")(electHost(credentials, rendezvousPort))
+  }
 
+/** Blocks until everyone sent their candidacy (or [[candidacyTimeout]]). */
 private def electHost(
     credentials: GameCredentialsWithGameInfo,
     rendezvousPort: Int
-): ZIO[BackendEnv, Nothing, Unit] = {
+)(using env: BackendEnv): Unit = {
   val game = credentials.gameInfo
-  for {
-    everyoneAnswered <- hostelections.open(
-      game.id,
-      credentials.secret,
-      game.game.gameCreator.name,
-      game.players.map(_.name).toSet
-    )
-    _ <- events.dispatchEvent(Event.HostCandidacyRequested(game.id))
-    _ <- everyoneAnswered.await.timeout(candidacyTimeout)
-    _ <- hostelections.close(game.id)
-    _ <- nextHost(game.id, rendezvousPort, lastFailure = None)
-  } yield ()
+  val everyoneAnswered = env.hostElections.open(
+    game.id,
+    credentials.secret,
+    game.game.gameCreator.name,
+    game.players.map(_.name).toSet
+  )
+  env.events.dispatchEvent(Event.HostCandidacyRequested(game.id))
+  everyoneAnswered.await(candidacyTimeout.toMillis, java.util.concurrent.TimeUnit.MILLISECONDS)
+  env.hostElections.close(game.id)
+  nextHost(game.id, rendezvousPort, lastFailure = None)
 }
 
 private def nextHost(
     gameId: String,
     rendezvousPort: Int,
     lastFailure: Option[String]
-): ZIO[BackendEnv, Nothing, Unit] =
-  hostelections.nextHost(gameId).flatMap {
+)(using env: BackendEnv): Unit =
+  env.hostElections.nextHost(gameId) match {
     case None =>
       launchFailed(
         gameId,
@@ -71,16 +70,12 @@ private def nextHost(
         )(failure => s"No player could run the game server ($failure).")
       )
     case Some((host, gameSecret)) =>
-      for {
-        _ <- Console.printLine(s"$host hosts the game $gameId").ignore
-        _ <- events.dispatchEvent(Event.HostElected(gameId, host, gameSecret, rendezvousPort))
-        _ <- (ZIO.sleep(gameServerReadyTimeout) *> hostFailed(
-          gameId,
-          host,
-          s"the game server of $host was not ready in time",
-          rendezvousPort
-        )).forkDaemon
-      } yield ()
+      println(s"$host hosts the game $gameId")
+      env.events.dispatchEvent(Event.HostElected(gameId, host, gameSecret, rendezvousPort))
+      fork(s"host-timeout-$gameId") {
+        Thread.sleep(gameServerReadyTimeout.toMillis)
+        hostFailed(gameId, host, s"the game server of $host was not ready in time", rendezvousPort)
+      }
   }
 
 /** The host could not run the game server: the next candidate takes over. Nothing happens if they
@@ -91,18 +86,16 @@ def hostFailed(
     host: String,
     reason: String,
     rendezvousPort: Int
-): ZIO[BackendEnv, Nothing, Unit] =
-  ZIO
-    .whenZIO(hostelections.isHost(gameId, host))(
-      Console.printLine(s"Host $host of $gameId failed: $reason").ignore *>
-        nextHost(gameId, rendezvousPort, Some(reason))
-    )
-    .unit
+)(using env: BackendEnv): Unit =
+  if env.hostElections.isHost(gameId, host) then {
+    println(s"Host $host of $gameId failed: $reason")
+    nextHost(gameId, rendezvousPort, Some(reason))
+  }
 
-private def launchFailed(gameId: String, reason: String): ZIO[BackendEnv, Nothing, Unit] = for {
-  _ <- Console.printLine(s"Game $gameId could not start: $reason").ignore
-  _ <- hostelections.over(gameId)
-  _ <- menugames.cancelLaunch(gameId)
-  _ <- events.dispatchEvent(Event.GameLaunchFailed(gameId, reason))
-  _ <- events.dispatchEvent(Event.GameDataRefreshed(Some(gameId)))
-} yield ()
+private def launchFailed(gameId: String, reason: String)(using env: BackendEnv): Unit = {
+  println(s"Game $gameId could not start: $reason")
+  env.hostElections.over(gameId)
+  env.menuGames.cancelLaunch(gameId)
+  env.events.dispatchEvent(Event.GameLaunchFailed(gameId, reason))
+  env.events.dispatchEvent(Event.GameDataRefreshed(Some(gameId)))
+}

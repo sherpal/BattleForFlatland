@@ -2,8 +2,7 @@ package server
 
 import communication.udp.{Hmac, Lobby, Peer, UDPSocket}
 import menus.data.{GameServerAddress, LobbyMessage, LobbySubscription, MenuGameComm, User}
-import services.events
-import zio.*
+import services.events.{Event, Events}
 
 import java.security.SecureRandom
 import java.util.concurrent.{Executors, TimeUnit}
@@ -18,13 +17,13 @@ import java.util.concurrent.{Executors, TimeUnit}
   *
   * @param socket
   *   the UDP socket of the menu server (shared with the rendezvous, see [[Lobby.SharedSocket]])
-  * @param run
-  *   runs an effect of the menu server (and waits for it)
+  * @param events
+  *   the events of the menu server, that the subscriptions are told of
   */
 final class LobbyServer(
     socket: UDPSocket,
     udpPort: => Int,
-    run: ZIO[BackendEnv, Nothing, Any] => Unit
+    events: Events
 ) {
   import LobbyServer.*
 
@@ -67,15 +66,12 @@ final class LobbyServer(
     val key          = randomToken()
     val subscription = Subscription(randomToken(), user, gameId, Hmac(key), now)
     lock.synchronized(subscriptions += subscription.id -> subscription)
-    run(
-      events.registerEvents[
-        events.Event.GameDataRefreshed | events.Event.GameStarted |
-          events.Event.HostCandidacyRequested | events.Event.HostElected |
-          events.Event.GameLaunchFailed | events.Event.GameCredentials
-      ](ZIO.succeed(!subscription.closed)) { event =>
-        ZIO.succeed(push(subscription, messagesFor(event, user, gameId)))
-      }
-    )
+    events.registerEvents[
+      Event.GameDataRefreshed | Event.GameStarted | Event.HostCandidacyRequested |
+        Event.HostElected | Event.GameLaunchFailed | Event.GameCredentials
+    ](!subscription.closed) { event =>
+      push(subscription, messagesFor(event, user, gameId))
+    }
     LobbySubscription(subscription.id, key, udpPort)
   }
 
@@ -110,7 +106,7 @@ final class LobbyServer(
       accepted.foreach { (subscription, first) =>
         if first then
           subscription.gameId.foreach(gameId =>
-            run(events.dispatchEvent(events.Event.UserConnectedSocket(subscription.user, gameId)))
+            events.dispatchEvent(Event.UserConnectedSocket(subscription.user, gameId))
           )
         poke(subscription)
       }
@@ -163,7 +159,7 @@ final class LobbyServer(
     }
     if wasConnected then
       subscription.gameId.foreach(gameId =>
-        run(events.dispatchEvent(events.Event.UserSocketDisconnected(subscription.user, gameId)))
+        events.dispatchEvent(Event.UserSocketDisconnected(subscription.user, gameId))
       )
   }
 
@@ -182,30 +178,30 @@ object LobbyServer {
   /** What a subscription is told of an event: whether it is about its game (or about the games, for
     * the list of games), and what its user may know.
     */
-  def messagesFor(event: events.Event, user: User, gameId: Option[String]): Vector[MenuGameComm] = {
+  def messagesFor(event: Event, user: User, gameId: Option[String]): Vector[MenuGameComm] = {
     def ours(eventGameId: String) = gameId.contains[String](eventGameId)
     event match {
       // we are interested in this event if
       // - gameId is None, because that means we are in the list-games ui
       // - maybeGameId is None, because then it could be any game, including the one we care about
       // - maybeGameId is the exact gameId I care about
-      case events.Event.GameDataRefreshed(maybeGameId)
+      case Event.GameDataRefreshed(maybeGameId)
           if gameId.forall(id => maybeGameId.forall(_ == id)) =>
         Vector(MenuGameComm.DataUpdated())
-      case events.Event.GameStarted(startedGameId) if ours(startedGameId) =>
+      case Event.GameStarted(startedGameId) if ours(startedGameId) =>
         Vector(MenuGameComm.GameStarted())
-      case events.Event.HostCandidacyRequested(electionGameId) if ours(electionGameId) =>
+      case Event.HostCandidacyRequested(electionGameId) if ours(electionGameId) =>
         Vector(MenuGameComm.HostCandidacyRequested())
-      case events.Event.HostElected(electedGameId, host, gameSecret, rendezvousPort)
+      case Event.HostElected(electedGameId, host, gameSecret, rendezvousPort)
           if ours(electedGameId) =>
         MenuGameComm.HostElected(host) +: Vector.from(
           Option.when(host == user.name)(
             MenuGameComm.SpawnGameServer(electedGameId, gameSecret, rendezvousPort)
           )
         )
-      case events.Event.GameLaunchFailed(failedGameId, reason) if ours(failedGameId) =>
+      case Event.GameLaunchFailed(failedGameId, reason) if ours(failedGameId) =>
         Vector(MenuGameComm.GameLaunchFailed(reason))
-      case events.Event.GameCredentials(creds, addresses, host, port, rendezvousPort)
+      case Event.GameCredentials(creds, addresses, host, port, rendezvousPort)
           if ours(creds.gameCredentials.gameId) =>
         creds.allGameUserCredentials.find(_.userName == user.name) match {
           case Some(userCreds) =>
