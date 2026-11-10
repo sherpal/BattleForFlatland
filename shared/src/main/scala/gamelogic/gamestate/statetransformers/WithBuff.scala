@@ -3,12 +3,15 @@ package gamelogic.gamestate.statetransformers
 import gamelogic.buffs.{Buff, PassiveBuff, TickerBuff}
 import gamelogic.gamestate.GameState
 
+/** Puts (or replaces) the buff on its bearer. The time of the game state never goes back: when a
+  * [[TickerBuff]] ticks, it is put again with its (old) appearance time.
+  */
 final class WithBuff(buff: Buff) extends GameStateTransformer {
   def apply(gameState: GameState): GameState = buff match {
     case buff: TickerBuff =>
       val newBuffMap = gameState.tickerBuffs.getOrElse(buff.bearerId, Map())
       gameState.copy(
-        time = buff.appearanceTime,
+        time = gameState.time max buff.appearanceTime,
         tickerBuffs =
           gameState.tickerBuffs + (buff.bearerId -> (newBuffMap + (buff.buffId -> buff)))
       )
@@ -16,7 +19,7 @@ final class WithBuff(buff: Buff) extends GameStateTransformer {
     case buff: PassiveBuff =>
       val newBuffMap = gameState.passiveBuffs.getOrElse(buff.bearerId, Map())
       gameState.copy(
-        time = buff.appearanceTime,
+        time = gameState.time max buff.appearanceTime,
         passiveBuffs =
           gameState.passiveBuffs + (buff.bearerId -> (newBuffMap + (buff.buffId -> buff)))
       )

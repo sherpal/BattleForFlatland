@@ -61,11 +61,12 @@ trait Buff extends IdsProducer {
     */
   def canBeDispelled: Boolean = false
 
+  /** The part of the duration that remains at `currentTime`, between 0 and 1. */
   final def remainingPercentage(currentTime: Long): Double = if isFinite then {
     val timeSinceAppeared = currentTime - appearanceTime
     val remainingTime     = duration - timeSinceAppeared
     val remainingPerc     = remainingTime.toDouble / duration
-    remainingPerc
+    remainingPerc max 0.0 min 1.0
   } else 1.0
 
 }
