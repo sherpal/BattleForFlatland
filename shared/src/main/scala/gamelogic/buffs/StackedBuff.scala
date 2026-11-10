@@ -13,12 +13,9 @@ import gamelogic.utils.IdGeneratorContainer
   * with more stacks, using [[gamelogic.gamestate.gameactions.PutStackedBuff]]. Its concrete type
   * must be registered in [[StackedBuffs]].
   */
-trait StackedBuff extends Buff {
+trait StackedBuff extends WithSourceId {
 
   def resourceIdentifier: Buff.StackedBuffIdentifier
-
-  /** Entity responsible for the stacks. */
-  def sourceId: Entity.Id
 
   /** Number of stacks of this buff. It is at least 1. */
   def stacks: PosInt

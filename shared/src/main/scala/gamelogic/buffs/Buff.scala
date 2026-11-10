@@ -8,6 +8,8 @@ import io.circe.Encoder
 import io.circe.Decoder
 import boopickle.Pickler
 
+import scala.collection.mutable
+
 /** A [[gamelogic.buffs.Buff]] is an effect that is tight to a particular entity, for a given amount
   * of time.
   *
@@ -27,6 +29,14 @@ trait Buff extends IdsProducer {
   /** Game Time at which the buff appeared. */
   def appearanceTime: Long
 
+  /** Id of the entity that put the buff, or [[scala.None]] when it comes from the game itself (the
+    * resources refilling, the zones ticking, the bosses' mechanics...).
+    *
+    * Every buff must say it, so that the frontend can show who put it (the border of its icon is in
+    * the colour of that player). Buffs having a `sourceId` get it from [[WithSourceId]].
+    */
+  def maybeSourceId: Option[Entity.Id]
+
   /** Never ending buffs have their durations set to -1. */
   def isFinite: Boolean = duration >= 0L
 
@@ -36,6 +46,11 @@ trait Buff extends IdsProducer {
     * frontend Asset file.
     */
   def resourceIdentifier: Buff.ResourceIdentifier
+
+  /** Name of the buff (in English), shown to the players (when they hover its icon). By default,
+    * the one given with its `resourceIdentifier`.
+    */
+  lazy val name: String = Buff.nameOf(resourceIdentifier)
 
   /** Actions that occur when the buff is removed.
     *
@@ -94,56 +109,72 @@ object Buff {
     given Pickler[StackedBuffIdentifier] = boopickle.Default.intPickler
   }
 
-  private var lastId: ResourceIdentifier                 = 0
-  private def nextId(): ResourceIdentifier               = { lastId += 1; lastId }
-  private def nextStackedBuffId(): StackedBuffIdentifier = { lastId += 1; lastId }
+  private var lastId: ResourceIdentifier = 0
 
-  // Each buff kind needs its own identifier here. It is what the frontend uses to pick the icon,
-  // via `assets.Asset.buffAssetMap`.
-  val hexagonHotIdentifier         = nextId()
-  val boss101BigDotIdentifier      = nextId()
-  val squareBrace                  = nextStackedBuffId()
-  val rageFiller                   = nextId()
-  val healingThreatAware           = nextId()
-  val damageThreatAware            = nextId()
-  val energyFiller                 = nextId()
-  val triangleUpgradeDirectHit     = nextId()
-  val triangleStun                 = nextId()
-  val silence                      = nextId()
-  val manaFiller                   = nextId()
-  val boss102DamageZoneBuff        = nextId()
-  val squareEnrage                 = nextId()
-  val entitiesPentagonZoneBuff     = nextId()
-  val entitiesHexagonZoneBuff      = nextId()
-  val boss102LivingDamageZone      = nextId()
-  val sirOfVicePunished            = nextId()
-  val sirOfVicePurified            = nextId()
-  val sirOfViceInflamed            = nextId()
-  val boss110BrokenArmor           = nextId()
-  val boss104TwinDebuff            = nextId()
-  val boss104BigGuyCurse           = nextId()
-  val boss105TwinBond              = nextId()
-  val boss105ShadeBond             = nextId()
-  val boss105Mourning              = nextId()
-  val boss105VolatileCharge        = nextId()
-  val boss105Yearning              = nextId()
-  val rageTrickle                  = nextId()
-  val squareGuarding               = nextId()
-  val squareGuarded                = nextId()
-  val pentagonFacets               = nextStackedBuffId()
-  val pentagonFractured            = nextId()
-  val spiritOfNaraChilled          = nextId()
-  val spiritOfNaraMassSlow         = nextId()
-  val spiritOfNaraPulled           = nextId()
-  val spiritOfNaraChained          = nextId()
-  val spiritOfNaraCounterspelled   = nextId()
-  val spiritOfNaraPolymorphed      = nextId()
-  val spiritOfNaraDrinking         = nextId()
-  val spiritOfNaraFireLockout      = nextId()
-  val spiritOfNaraFrostLockout     = nextId()
-  val spiritOfNaraArcaneLockout    = nextId()
-  val spiritOfNaraFlameWreathWatch = nextId()
-  val spiritOfNaraBlizzardTicks    = nextId()
-  val spiritOfNaraEphemeral        = nextId()
+  private val namesMap = mutable.Map.empty[ResourceIdentifier, String]
+
+  private def nextId(name: String): ResourceIdentifier = {
+    lastId += 1
+    namesMap(lastId) = name
+    lastId
+  }
+  private def nextStackedBuffId(name: String): StackedBuffIdentifier = nextId(name)
+
+  // Each buff kind needs its own identifier here, with its name (in English) for the players. The
+  // identifier is what the frontend uses to pick the icon, via `assets.Asset.buffAssetMap`.
+  val hexagonHotIdentifier         = nextId("Heal Over Time")
+  val boss101BigDotIdentifier      = nextId("Big Dot")
+  val squareBrace                  = nextStackedBuffId("Brace")
+  val rageFiller                   = nextId("Rage Filler")
+  val healingThreatAware           = nextId("Healing Threat")
+  val damageThreatAware            = nextId("Damage Threat")
+  val energyFiller                 = nextId("Energy Filler")
+  val triangleUpgradeDirectHit     = nextId("Upgrade Direct Hit")
+  val triangleStun                 = nextId("Stunned")
+  val silence                      = nextId("Silenced")
+  val manaFiller                   = nextId("Mana Filler")
+  val boss102DamageZoneBuff        = nextId("Damage Zone")
+  val squareEnrage                 = nextId("Enrage")
+  val entitiesPentagonZoneBuff     = nextId("Pentagon Zone")
+  val entitiesHexagonZoneBuff      = nextId("Hexagon Zone")
+  val boss102LivingDamageZone      = nextId("Living Damage Zone")
+  val sirOfVicePunished            = nextId("Punished")
+  val sirOfVicePurified            = nextId("Purified")
+  val sirOfViceInflamed            = nextId("Inflamed")
+  val boss110BrokenArmor           = nextId("Broken Armor")
+  val boss104TwinDebuff            = nextId("Twin Debuff")
+  val boss104BigGuyCurse           = nextId("Big Guy's Curse")
+  val boss105TwinBond              = nextId("Twin Bond")
+  val boss105ShadeBond             = nextId("Shade Bond")
+  val boss105Mourning              = nextId("Mourning")
+  val boss105VolatileCharge        = nextId("Volatile Charge")
+  val boss105Yearning              = nextId("Yearning")
+  val rageTrickle                  = nextId("Rage Trickle")
+  val squareGuarding               = nextId("Guarding")
+  val squareGuarded                = nextId("Guarded")
+  val pentagonFacets               = nextStackedBuffId("Facets")
+  val pentagonFractured            = nextId("Fractured")
+  val spiritOfNaraChilled          = nextId("Chilled")
+  val spiritOfNaraMassSlow         = nextId("Mass Slow")
+  val spiritOfNaraPulled           = nextId("Pulled")
+  val spiritOfNaraChained          = nextId("Chained")
+  val spiritOfNaraCounterspelled   = nextId("Counterspelled")
+  val spiritOfNaraPolymorphed      = nextId("Polymorphed")
+  val spiritOfNaraDrinking         = nextId("Drinking")
+  val spiritOfNaraFireLockout      = nextId("Fire Lockout")
+  val spiritOfNaraFrostLockout     = nextId("Frost Lockout")
+  val spiritOfNaraArcaneLockout    = nextId("Arcane Lockout")
+  val spiritOfNaraFlameWreathWatch = nextId("Flame Wreath")
+  val spiritOfNaraBlizzardTicks    = nextId("Blizzard")
+  val spiritOfNaraEphemeral        = nextId("Ephemeral")
+
+  private val names: Array[String] = {
+    val arr = new Array[String](lastId)
+    for (id, name) <- namesMap do arr(id - 1) = name
+    arr
+  }
+
+  /** The name of the buffs of this kind, given with their identifier below. */
+  def nameOf(identifier: ResourceIdentifier): String = names(identifier - 1)
 
 }

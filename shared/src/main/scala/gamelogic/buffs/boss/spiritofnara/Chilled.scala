@@ -20,6 +20,8 @@ final case class Chilled(buffId: Buff.Id, bearerId: Entity.Id, appearanceTime: L
 
   def resourceIdentifier: ResourceIdentifier = Buff.spiritOfNaraChilled
 
+  def maybeSourceId: Option[Entity.Id] = None
+
   def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer
   ): Vector[GameAction] = Vector(RefreshMovementSpeed(genActionId(), time, bearerId))

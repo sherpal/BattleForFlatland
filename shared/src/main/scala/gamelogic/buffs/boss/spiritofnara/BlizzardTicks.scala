@@ -54,6 +54,8 @@ final case class BlizzardTicks(
 
   def resourceIdentifier: ResourceIdentifier = Buff.spiritOfNaraBlizzardTicks
 
+  def maybeSourceId: Option[Entity.Id] = None
+
   def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer
   ): Vector[GameAction] = Vector(RemoveEntity(genActionId(), time, cloudId))

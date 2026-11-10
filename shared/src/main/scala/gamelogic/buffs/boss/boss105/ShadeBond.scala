@@ -1,7 +1,7 @@
 package gamelogic.buffs.boss.boss105
 
 import gamelogic.buffs.Buff.ResourceIdentifier
-import gamelogic.buffs.{Buff, PassiveBuff}
+import gamelogic.buffs.{Buff, PassiveBuff, WithSourceId}
 import gamelogic.entities.Entity
 import gamelogic.entities.boss.boss105.Shade
 import gamelogic.entities.boss.dawnoftime.Boss105
@@ -21,7 +21,8 @@ final case class ShadeBond(
     bearerId: Entity.Id,
     sourceId: Entity.Id,
     appearanceTime: Long
-) extends PassiveBuff {
+) extends PassiveBuff
+    with WithSourceId {
   def actionTransformer(gameAction: GameAction): Vector[GameAction] = Vector(gameAction)
 
   def duration: Long = -1L

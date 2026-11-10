@@ -1,7 +1,7 @@
 package gamelogic.buffs.abilities.classes
 
 import gamelogic.buffs.Buff.ResourceIdentifier
-import gamelogic.buffs.{Buff, PassiveBuff}
+import gamelogic.buffs.{Buff, PassiveBuff, WithSourceId}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.GameAction
 import gamelogic.gamestate.GameState
@@ -22,7 +22,8 @@ final case class Guarding(
     appearanceTime: Long,
     guardedId: Entity.Id,
     guardedBuffId: Buff.Id
-) extends PassiveBuff {
+) extends PassiveBuff
+    with WithSourceId {
 
   def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer

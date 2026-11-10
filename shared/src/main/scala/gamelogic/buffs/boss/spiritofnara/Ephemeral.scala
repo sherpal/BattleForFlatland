@@ -17,6 +17,8 @@ final case class Ephemeral(buffId: Buff.Id, bearerId: Entity.Id, appearanceTime:
 
   def resourceIdentifier: ResourceIdentifier = Buff.spiritOfNaraEphemeral
 
+  def maybeSourceId: Option[Entity.Id] = None
+
   def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer
   ): Vector[GameAction] = Vector(RemoveEntity(genActionId(), time, bearerId))

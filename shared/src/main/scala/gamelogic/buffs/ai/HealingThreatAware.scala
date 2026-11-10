@@ -1,7 +1,7 @@
 package gamelogic.buffs.ai
 
 import gamelogic.buffs.Buff.ResourceIdentifier
-import gamelogic.buffs.{Buff, PassiveBuff}
+import gamelogic.buffs.{Buff, PassiveBuff, WithSourceId}
 import gamelogic.entities.Entity
 import gamelogic.entities.WithThreat.ThreatAmount
 import gamelogic.gamestate.gameactions.{EntityGetsHealed, ThreatToEntityChange}
@@ -16,7 +16,8 @@ final case class HealingThreatAware(
     bearerId: Entity.Id,
     sourceId: Entity.Id,
     appearanceTime: Long
-) extends PassiveBuff {
+) extends PassiveBuff
+    with WithSourceId {
 
   def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer

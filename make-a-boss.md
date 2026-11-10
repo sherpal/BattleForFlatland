@@ -104,7 +104,7 @@ silently inert boss, not a compile error.
 | " | make an AI actually emit `EntityStartsCasting` for it | the relevant `AIController` | ability is legal but never used |
 | " | add an `AbilityDoc` for it to the boss' `abilitiesDoc` (with `.castBy("Add name")` if an add casts it) | your boss' companion | players don't see it in the lobby; `GameDocsSpecs` fails for the boss' own abilities |
 | a new **`GameAction`** | `.addConcreteType[bossXxx.YourAction]` on `gameActionPickler` | [`BFFPicklers.scala`](shared/src/main/scala/communication/BFFPicklers.scala) | **game crashes** on broadcast |
-| a new **`Buff`** | `val bossXxxYyy = nextId()` in `Buff`'s companion | [`gamelogic/buffs/Buff.scala`](shared/src/main/scala/gamelogic/buffs/Buff.scala) | no `resourceIdentifier` |
+| a new **`Buff`** | `val bossXxxYyy = nextId("Its Name")` in `Buff`'s companion | [`gamelogic/buffs/Buff.scala`](shared/src/main/scala/gamelogic/buffs/Buff.scala) | no `resourceIdentifier` |
 | " | a 32×32 PNG in `love-client/src/main/lua/assets/` + an entry in `buffIcons` | [`render/Sprites.scala`](love-client/src/main/scala/bffclient/render/Sprites.scala) | buff has no icon in player frames |
 | a new **boss** | add the factory to `factoriesByBossName` | [`entities/boss/BossFactory.scala`](shared/src/main/scala/gamelogic/entities/boss/BossFactory.scala) | boss not selectable in the lobby |
 | " | `case action: SpawnBoss if action.bossName == BossXxx.name =>` | [`AIManager.scala`](game-server/src/main/scala/application/ai/AIManager.scala) | boss spawns and stands still forever |
@@ -483,10 +483,14 @@ it was, and would move it back. Pin it with a `PassiveBuff` whose `actionTransfo
 `MovingBodyMoves` to the wanted position (`Punished`, `spiritofnara.Chained`, `spiritofnara.Pulled`).
 
 Every buff needs:
-- `resourceIdentifier` — a `Buff.nextId()` value from
+- `resourceIdentifier` — a `Buff.nextId("Its Name")` value from
   [`Buff.scala`](shared/src/main/scala/gamelogic/buffs/Buff.scala)'s companion. **This is what picks
-  the icon in the client** (`Sprites.buffIcons`).
+  the icon in the client** (`Sprites.buffIcons`), and the name (in English) is the buff's `name`,
+  shown when players hover its icon.
 - `duration` — ms, or `-1` for "never expires on its own".
+- `maybeSourceId` — who put it: mix in `WithSourceId` when the buff has a `sourceId: Entity.Id`
+  (`DoT`, `HoT` and `StackedBuff` already do), otherwise `None` when it comes from the game itself.
+  The client draws the icon's border in the colour of that player, when it is one.
 - `endingAction(gameState, time, maybeDispelledBy)` — what happens when it falls off.
   `maybeDispelledBy` is `Some(playerId)` when a player dispelled it, `None` on natural expiry. This
   is where dispel-mechanics live:
@@ -516,7 +520,7 @@ the damage and the heals by ability (`FightLog`), with the names of the `abiliti
   [`ManageDeadAIs`](shared/src/main/scala/gamelogic/gamestate/serveractions/ManageDeadAIs.scala) on a
   game state where the bearer is *still present* — so you can read its position.
 
-Then: `Buff.nextId()` entry + icon + `Sprites.buffIcons` (§3).
+Then: `Buff.nextId("Its Name")` entry + icon + `Sprites.buffIcons` (§3).
 
 ### Recipe C — A passive entity (ground marker, zone, circle)
 

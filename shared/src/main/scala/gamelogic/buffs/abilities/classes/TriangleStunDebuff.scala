@@ -1,7 +1,7 @@
 package gamelogic.buffs.abilities.classes
 
 import gamelogic.buffs.Buff.ResourceIdentifier
-import gamelogic.buffs.{Buff, PassiveBuff}
+import gamelogic.buffs.{Buff, PassiveBuff, WithSourceId}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions.EntityStartsCasting
 import gamelogic.gamestate.{GameAction, GameState}
@@ -18,7 +18,8 @@ final case class TriangleStunDebuff(
     sourceId: Entity.Id,
     appearanceTime: Long
 ) extends PassiveBuff
-    with ActionPreventerBuff {
+    with ActionPreventerBuff
+    with WithSourceId {
   def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer
   ): Vector[GameAction] = Vector.empty

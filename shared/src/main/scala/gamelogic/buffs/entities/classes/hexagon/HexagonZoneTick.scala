@@ -43,6 +43,8 @@ final case class HexagonZoneTick(
 
   def resourceIdentifier: ResourceIdentifier = Buff.entitiesHexagonZoneBuff
 
+  def maybeSourceId: Option[Entity.Id] = None
+
   def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer
   ): Vector[GameAction] =

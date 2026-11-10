@@ -44,6 +44,8 @@ final case class FlameWreathWatch(
 
   def resourceIdentifier: ResourceIdentifier = Buff.spiritOfNaraFlameWreathWatch
 
+  def maybeSourceId: Option[Entity.Id] = None
+
   def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer
   ): Vector[GameAction] = removeRings(gameState, time)

@@ -1,7 +1,7 @@
 package gamelogic.buffs.boss.sirofvice
 
 import gamelogic.buffs.Buff.ResourceIdentifier
-import gamelogic.buffs.{Buff, PassiveBuff}
+import gamelogic.buffs.{Buff, PassiveBuff, WithSourceId}
 import gamelogic.entities.{Entity, Resource}
 import gamelogic.gamestate.gameactions.EntityStartsCasting
 import gamelogic.gamestate.{GameAction, GameState}
@@ -18,7 +18,8 @@ final case class Purified(
     bearerId: Entity.Id,
     sourceId: Entity.Id,
     appearanceTime: Long
-) extends PassiveBuff {
+) extends PassiveBuff
+    with WithSourceId {
   def actionTransformer(gameAction: GameAction): Vector[GameAction] = gameAction match {
     case EntityStartsCasting(_, _, _, ability)
         if ability.resource == Resource.Mana && ability.casterId == bearerId =>

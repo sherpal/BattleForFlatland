@@ -163,6 +163,17 @@ final class Painter(
   private val iconBuffsByEntity =
     scala.collection.mutable.HashMap.empty[Entity.Id, Seq[(Buff, Sprite)]]
 
+  /** The colour of the player who put the buff, if a player did (alive or not): the border of its
+    * icon is in that colour.
+    */
+  def buffSourceColour(buff: Buff): Option[Paint] =
+    buff.maybeSourceId
+      .flatMap(id => gameState.players.get(id).orElse(gameState.deadPlayers.get(id)))
+      .map { player =>
+        val (r, g, b) = player.rgb
+        Paint.rgb(r, g, b)
+      }
+
   /** A row of the entity's buff icons above its life bar. Like the frontend, the icons of the buffs
     * that end are darkened from the top, by the part of their duration that remains.
     */
@@ -179,7 +190,7 @@ final class Painter(
   }
 
   /** The icon of the buff (on screen), darkened from the top by the part of its duration that
-    * remains.
+    * remains, with a border in the colour of the player who put it (see [[buffSourceColour]]).
     */
   def buffIcon(buff: Buff, icon: Sprite, left: Double, top: Double, size: Double): Unit = {
     Graphics.setColor(1, 1, 1)
@@ -188,8 +199,13 @@ final class Painter(
       Graphics.setColor(0, 0, 0, 0.5)
       Graphics.rectangle("fill", left, top, size, size * buff.remainingPercentage(gameState.time))
     }
-    // A thin dark border, like the ability icons'
-    HudStyle.roundedLine(Rect(left - 1, top - 1, size + 2, size + 2), 2, Paint(0, 0, 0, 0.85), 1)
+    // A thin dark border, like the ability icons', or in the colour of the player who put the buff
+    HudStyle.roundedLine(
+      Rect(left - 1, top - 1, size + 2, size + 2),
+      2,
+      buffSourceColour(buff).getOrElse(Paint(0, 0, 0, 0.85)),
+      1
+    )
   }
 
   /** Below the entity, in the colour of the ability, in the [[HudStyle]]. */

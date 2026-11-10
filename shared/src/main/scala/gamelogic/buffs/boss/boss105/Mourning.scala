@@ -32,6 +32,8 @@ final case class Mourning(
 
   def resourceIdentifier: ResourceIdentifier = Buff.boss105Mourning
 
+  def maybeSourceId: Option[Entity.Id] = None
+
   def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer
   ): Vector[GameAction] =

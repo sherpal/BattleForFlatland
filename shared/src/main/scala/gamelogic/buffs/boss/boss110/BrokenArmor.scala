@@ -1,7 +1,7 @@
 package gamelogic.buffs.boss.boss110
 
 import gamelogic.buffs.Buff.ResourceIdentifier
-import gamelogic.buffs.{Buff, PassiveBuff}
+import gamelogic.buffs.{Buff, PassiveBuff, WithSourceId}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions._
 import gamelogic.gamestate.{GameAction, GameState}
@@ -24,7 +24,8 @@ final case class BrokenArmor(
     bearerId: Entity.Id,
     sourceId: Entity.Id,
     appearanceTime: Long
-) extends PassiveBuff {
+) extends PassiveBuff
+    with WithSourceId {
 
   def duration: Long = BrokenArmor.duration
 

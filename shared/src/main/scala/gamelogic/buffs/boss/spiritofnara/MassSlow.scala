@@ -20,6 +20,8 @@ final case class MassSlow(buffId: Buff.Id, bearerId: Entity.Id, appearanceTime: 
 
   def resourceIdentifier: ResourceIdentifier = Buff.spiritOfNaraMassSlow
 
+  def maybeSourceId: Option[Entity.Id] = None
+
   def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer
   ): Vector[GameAction] = Vector(RefreshMovementSpeed(genActionId(), time, bearerId))

@@ -30,7 +30,7 @@ final class BossFrame(parent: Frame, client: HudClient) extends UnitButton {
   private val castBar = HudBar(frame, 290, 13)
   castBar.setPoint(Point.TopLeft, frame, Point.TopLeft, 5, 26)
   castBar.label.setJustifyH(JustifyH.Center)
-  private val buffs = BuffRow(frame, 14, 16, 18)
+  private val buffs = BuffRow(frame, frame, 14, 16, 18)
   // Lightens the frame under the mouse, over its bars
   private val overlay = Frame(frame)
   overlay.setAllPoints()
@@ -59,12 +59,12 @@ final class BossFrame(parent: Frame, client: HudClient) extends UnitButton {
         castBar.label.setText(Hud.abilityName(b, info.ability.abilityId))
       }
       val iconBuffs = p.iconBuffs(b.id)
-      buffs.update(iconBuffs, p.gameState.time)
+      buffs.update(iconBuffs, p)
       val buffsTop = if casting.isDefined then 42.0 else 26.0
       if buffs.frame.points.headOption.forall(_.y != buffsTop) then
         buffs.frame.setPoint(Point.TopLeft, frame, Point.TopLeft, 6, buffsTop)
       frame.setHeight(buffsTop + (if iconBuffs.nonEmpty then 19 else 2))
-      highlight.setShown(frame.gui.isHovered(frame))
+      highlight.setShown(frame.gui.isHoveredWithin(frame))
     }
   }
 }

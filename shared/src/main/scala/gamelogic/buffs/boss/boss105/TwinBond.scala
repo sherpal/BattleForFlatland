@@ -1,7 +1,7 @@
 package gamelogic.buffs.boss.boss105
 
 import gamelogic.buffs.Buff.ResourceIdentifier
-import gamelogic.buffs.{Buff, PassiveBuff}
+import gamelogic.buffs.{Buff, PassiveBuff, WithSourceId}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
@@ -19,7 +19,8 @@ final case class TwinBond(
     bearerId: Entity.Id,
     sourceId: Entity.Id,
     appearanceTime: Long
-) extends PassiveBuff {
+) extends PassiveBuff
+    with WithSourceId {
   def actionTransformer(gameAction: GameAction): Vector[GameAction] = gameAction match {
     case action: EntityTakesDamage if action.entityId == bearerId =>
       Vector(action.copy(amount = action.amount * TwinBond.damageMultiplier))

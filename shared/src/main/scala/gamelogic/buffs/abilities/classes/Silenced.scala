@@ -1,7 +1,7 @@
 package gamelogic.buffs.abilities.classes
 
 import gamelogic.buffs.Buff.ResourceIdentifier
-import gamelogic.buffs.{Buff, PassiveBuff, SilencingBuff}
+import gamelogic.buffs.{Buff, PassiveBuff, SilencingBuff, WithSourceId}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
@@ -12,7 +12,8 @@ case class Silenced(
     sourceId: Entity.Id,
     appearanceTime: Long
 ) extends PassiveBuff
-    with SilencingBuff {
+    with SilencingBuff
+    with WithSourceId {
   def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer
   ): Vector[GameAction] = Vector.empty

@@ -19,10 +19,11 @@ import gamelogic.entities.classes.PlayerClass
   * which are the window's once scaled): the frames of the team on the left
   * (`PlayerFrameContainer`), our frame, our target's and our cast bar above the action bar
   * (`PlayerFrame`, `TargetFrame`, `PlayerCastBar`) with the stacks of our shield on the left of our
-  * frame when we are the tank ([[BraceGauge]]), or our facets and steady aim when we are a pentagon
-  * ([[FacetsGauge]], [[SteadyAimGauge]]), the boss's frame on top (`BossFrame`), the cooldowns of
-  * the boss's abilities on the top right (`BossCooldownsContainer`), the threat meter on the bottom
-  * right (`BossThreadMeter`) and above it the damage meter (`DamageMeter`), in the [[HudStyle]].
+  * frame when we are the tank ([[BraceGauge]]), or our facets, steady aim and the fracture on our
+  * target when we are a pentagon ([[FacetsGauge]], [[SteadyAimGauge]], [[FractureGauge]]), the
+  * boss's frame on top (`BossFrame`), the cooldowns of the boss's abilities on the top right
+  * (`BossCooldownsContainer`), the threat meter on the bottom right (`BossThreadMeter`) and above
+  * it the damage meter (`DamageMeter`), in the [[HudStyle]].
   *
   * Like in the frontend, clicking the frame of a player or of the boss targets it. The frames show
   * the game state of the frame being drawn (the `painter`'s), in the `OnUpdate` of the HUD's frame.
@@ -48,6 +49,7 @@ final class Hud(
   private val brace     = BraceGauge(root)
   private val facets    = FacetsGauge(root)
   private val steadyAim = SteadyAimGauge(root)
+  private val fracture  = FractureGauge(root)
   private val boss      = BossFrame(root, client)
   private val actionBar = ActionBar(root, client)
 
@@ -59,6 +61,8 @@ final class Hud(
   // Our facets and steady aim when we are a pentagon, at the same place
   facets.frame.setPoint(Point.TopRight, myFrame.frame, Point.TopLeft, -4, 0)
   steadyAim.frame.setPoint(Point.TopRight, facets.frame, Point.TopLeft, -2, 0)
+  // and what remains of the fracture we put on our target
+  fracture.frame.setPoint(Point.TopRight, steadyAim.frame, Point.TopLeft, -2, 0)
 
   private val cooldowns = BossCooldowns(root, client.i18n)
   private val threat    = ThreatMeter(root, client.i18n)
@@ -130,11 +134,13 @@ final class Hud(
 
   root.setScript(Script.OnUpdate)(_ => painter().foreach(update))
 
-  /** The entity whose frame is under the mouse (for "mouse over" in the controls). */
+  /** The entity whose frame is under the mouse, possibly over one of its buffs (for "mouse over" in
+    * the controls).
+    */
   def hovered: Option[Entity.Id] =
-    gui.hovered.flatMap(frame =>
-      (team.iterator ++ Iterator(myFrame, target, boss)).find(_.frame eq frame).flatMap(_.unit)
-    )
+    (team.iterator ++ Iterator(myFrame, target, boss))
+      .find(unit => gui.isHoveredWithin(unit.frame))
+      .flatMap(_.unit)
 
   def draw(): Unit = gui.draw()
 
@@ -159,6 +165,7 @@ final class Hud(
     brace.update(p, client.myId)
     facets.update(p, client.myId)
     steadyAim.update(p, client.myId)
+    fracture.update(p, client.myId, client.currentTarget)
     target.update(p, client.currentTarget)
     boss.update(p)
     cooldowns.update(p)

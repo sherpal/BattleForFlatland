@@ -1,7 +1,7 @@
 package gamelogic.buffs.abilities.classes
 
 import gamelogic.buffs.Buff.ResourceIdentifier
-import gamelogic.buffs.{Buff, PassiveBuff}
+import gamelogic.buffs.{Buff, PassiveBuff, WithSourceId}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions.classes.pentagon.PutFractured
 import gamelogic.gamestate.gameactions.{EntityTakesDamage, RemoveBuff}
@@ -20,7 +20,8 @@ final case class Fractured(
     sourceId: Entity.Id,
     appearanceTime: Long,
     duration: Long
-) extends PassiveBuff {
+) extends PassiveBuff
+    with WithSourceId {
 
   def actionTransformer(gameAction: GameAction): Vector[GameAction] = Vector(gameAction match {
     case damage: EntityTakesDamage if damage.entityId == bearerId && damage.sourceId == sourceId =>

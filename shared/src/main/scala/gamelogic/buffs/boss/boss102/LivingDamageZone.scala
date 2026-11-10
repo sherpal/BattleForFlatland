@@ -2,7 +2,7 @@ package gamelogic.buffs.boss.boss102
 
 import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff.ResourceIdentifier
-import gamelogic.buffs.{Buff, TickerBuff}
+import gamelogic.buffs.{Buff, TickerBuff, WithSourceId}
 import gamelogic.entities.Entity
 import gamelogic.entities.classes.Constants
 import gamelogic.gamestate.gameactions.EntityTakesDamage
@@ -19,7 +19,8 @@ final case class LivingDamageZone(
     lastTickTime: Long,
     damage: Double,
     sourceId: Entity.Id
-) extends TickerBuff {
+) extends TickerBuff
+    with WithSourceId {
   def tickEffect(gameState: GameState, time: Long)(using IdGeneratorContainer): Vector[GameAction] =
     gameState.livingEntityAndMovingBodyById(bearerId).fold(Vector[GameAction]()) { bearer =>
       gameState.allLivingEntities

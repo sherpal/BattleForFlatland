@@ -34,6 +34,12 @@ final class Gui {
     case None => false
   }
 
+  /** Whether the hovered frame is this one or one of its descendants (e.g. an icon in it). */
+  def isHoveredWithin(frame: Frame): Boolean = {
+    def within(hovered: Frame): Boolean = (hovered eq frame) || hovered.parent.exists(within)
+    hoveredFrame.exists(within)
+  }
+
   /** The topmost frame under the mouse with the mouse enabled, as of the last frame. */
   def hovered: Option[Frame] = hoveredFrame
 

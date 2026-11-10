@@ -59,7 +59,7 @@ final class UnitFrame(
   private val resource = HudBar(body, frameWidth - 12, 9)
   place(resource, body, 6, 39, frameWidth - 12, 9)
   private val buffs =
-    BuffRow(body, 13, 15, if isTarget then 12 else ((frameWidth - 12) / 15).toInt)
+    BuffRow(body, frame, 13, 15, if isTarget then 12 else ((frameWidth - 12) / 15).toInt)
   buffs.frame.setPoint(Point.TopLeft, body, Point.TopLeft, 6, 50)
 
   // Over the rest, whatever its opacity
@@ -114,7 +114,7 @@ final class UnitFrame(
         tintBorder.setOutline(Some(colour), 2)
       }
       glow.foreach(_.setShown(!isTarget && client.currentTarget.contains(entityId)))
-      highlight.setShown(frame.gui.isHovered(frame))
+      highlight.setShown(frame.gui.isHoveredWithin(frame))
       lock.setShown(isTarget && client.lockInToTarget)
 
       val player = entity match {
@@ -152,7 +152,7 @@ final class UnitFrame(
         resource.value.setText(s"${math.round(amount)} / ${math.round(e.maxResourceAmount)}")
       }
 
-      buffs.update(p.iconBuffs(entityId), gameState.time)
+      buffs.update(p.iconBuffs(entityId), p)
 
       val casting =
         if isTarget then gameState.castingEntityInfo.get(entityId).filter(_.isCasting(p.now, 0L))

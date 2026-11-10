@@ -1,7 +1,7 @@
 package gamelogic.buffs.boss.boss104
 
 import gamelogic.buffs.Buff.ResourceIdentifier
-import gamelogic.buffs.{Buff, PassiveBuff}
+import gamelogic.buffs.{Buff, PassiveBuff, WithSourceId}
 import gamelogic.entities.Entity
 import gamelogic.entities.Entity.Id
 import gamelogic.entities.boss.boss104.{BigGuy, BigGuyDeathMark}
@@ -21,7 +21,8 @@ final case class BigGuyCurse(
     bearerId: Entity.Id,
     sourceId: Entity.Id,
     appearanceTime: Long
-) extends PassiveBuff {
+) extends PassiveBuff
+    with WithSourceId {
   override def actionTransformer(gameAction: GameAction): Vector[GameAction] = Vector(gameAction)
 
   override def duration: Long = -1

@@ -1,7 +1,7 @@
 package gamelogic.buffs.resourcebuffs
 
 import gamelogic.buffs.Buff.ResourceIdentifier
-import gamelogic.buffs.{Buff, PassiveBuff}
+import gamelogic.buffs.{Buff, PassiveBuff, WithSourceId}
 import gamelogic.entities.Entity
 import gamelogic.entities.Resource.Rage
 import gamelogic.gamestate.gameactions.{EntityResourceChanges, EntityTakesDamage}
@@ -13,7 +13,8 @@ final case class RageFiller(
     bearerId: Entity.Id,
     sourceId: Entity.Id,
     appearanceTime: Long
-) extends PassiveBuff {
+) extends PassiveBuff
+    with WithSourceId {
 
   def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer

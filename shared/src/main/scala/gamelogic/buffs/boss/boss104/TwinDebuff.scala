@@ -33,6 +33,8 @@ final case class TwinDebuff(
 
   override def resourceIdentifier: ResourceIdentifier = Buff.boss104TwinDebuff
 
+  override def maybeSourceId: Option[Entity.Id] = Some(bossId)
+
   override val tickRate: Long = TwinDebuff.tickRate
 
   override def duration: Long = TwinDebuff.duration

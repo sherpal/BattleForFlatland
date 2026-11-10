@@ -22,6 +22,8 @@ final case class Counterspelled(buffId: Buff.Id, bearerId: Entity.Id, appearance
 
   def resourceIdentifier: ResourceIdentifier = Buff.spiritOfNaraCounterspelled
 
+  def maybeSourceId: Option[Entity.Id] = None
+
   def endingAction(gameState: GameState, time: Long, maybeDispelledBy: Option[Entity.Id])(using
       IdGeneratorContainer
   ): Vector[GameAction] = Vector.empty

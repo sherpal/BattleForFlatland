@@ -2,7 +2,7 @@ package gamelogic.buffs.boss.boss105
 
 import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff.ResourceIdentifier
-import gamelogic.buffs.{Buff, PassiveBuff}
+import gamelogic.buffs.{Buff, PassiveBuff, WithSourceId}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
@@ -19,7 +19,8 @@ final case class VolatileCharge(
     bearerId: Entity.Id,
     sourceId: Entity.Id,
     appearanceTime: Long
-) extends PassiveBuff {
+) extends PassiveBuff
+    with WithSourceId {
   def actionTransformer(gameAction: GameAction): Vector[GameAction] = Vector(gameAction)
 
   def duration: Long = VolatileCharge.duration

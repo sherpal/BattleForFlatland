@@ -7,7 +7,7 @@ import gamelogic.gamestate.gameactions.EntityGetsHealed
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-trait HoT extends TickerBuff {
+trait HoT extends TickerBuff with WithSourceId {
 
   /** Entity responsible for putting the HoT on the target */
   val sourceId: Entity.Id

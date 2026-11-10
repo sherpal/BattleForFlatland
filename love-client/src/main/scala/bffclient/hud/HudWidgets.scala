@@ -4,7 +4,7 @@ import scala.collection.mutable
 
 import bffclient.gui.*
 import bffclient.hud.HudStyle.*
-import bffclient.render.Sprite
+import bffclient.render.{Painter, Sprite}
 import bffclient.ui.Colour as Paint
 import gamelogic.buffs.Buff
 import gamelogic.entities.classes.PlayerClass
@@ -98,30 +98,49 @@ final class HudBar(parentFrame: Frame, width: Double, height: Double)
 }
 
 /** The buffs' icons in a row, the ones that end darkened from the top by the part of their duration
-  * that remains (like the frontend).
+  * that remains (like the frontend), with a border in the colour of the player who put them (see
+  * [[Painter.buffSourceColour]]). Hovering an icon shows the name of its buff in a [[BuffTooltip]],
+  * in `tooltipParent` (which should not fade).
   */
-final class BuffRow(parent: Frame, iconSize: Double, spacing: Double, maxIcons: Int) {
+final class BuffRow(
+    parent: Frame,
+    tooltipParent: Frame,
+    iconSize: Double,
+    spacing: Double,
+    maxIcons: Int
+) {
   val frame: Frame = Frame(parent)
   frame.setSize(maxIcons * spacing, iconSize)
 
+  private val tooltip = BuffTooltip(tooltipParent)
+
   private final class Icon(index: Int) {
+    // Over the icon, for its tooltip only: the clicks go to the frame under it
+    val button = Frame(frame)
+    HudWidgets.place(button, frame, index * spacing, 0, iconSize, iconSize)
+    button.enableMouse(true)
+    button.registerForClicks()
+    button.setScript(Script.OnLeave)(() => tooltip.hide())
     val icon = frame.createTexture(Layer.Artwork)
-    HudWidgets.place(icon, frame, index * spacing, 0, iconSize, iconSize)
+    icon.setAllPoints(button)
     val shade = frame.createTexture(Paint(0, 0, 0, 0.5), Layer.Overlay)
     shade.setPoint(Point.TopLeft, icon, Point.TopLeft)
-    // A thin dark border, like the ability icons'
+    // A thin dark border, like the ability icons', or in the colour of the player who put the buff
     val border = frame.createTexture(Paint(0, 0, 0, 0), Layer.Overlay)
     border.setPoint(Point.TopLeft, icon, Point.TopLeft, -1, -1)
     border.setPoint(Point.BottomRight, icon, Point.BottomRight, 1, 1)
-    border.setOutline(Some(Paint(0, 0, 0, 0.85)))
     border.setCornerRadius(2)
     private var remaining = -1.0
 
-    def update(buff: Option[(Buff, Sprite)], time: Long): Unit = {
-      for t           <- Seq(icon, shade, border) do t.setShown(buff.isDefined)
+    def update(buff: Option[(Buff, Sprite)], p: Painter): Unit = {
+      for t <- Seq(icon, shade, border) do t.setShown(buff.isDefined)
+      button.setShown(buff.isDefined)
+      if frame.gui.isHovered(button) then
+        buff.fold(tooltip.hide())((b, _) => tooltip.show(b, p.buffSourceColour(b), button))
       for (b, sprite) <- buff do {
         HudWidgets.setSprite(icon, sprite)
-        val left = if b.isFinite then b.remainingPercentage(time) else 0.0
+        border.setOutline(Some(p.buffSourceColour(b).getOrElse(Paint(0, 0, 0, 0.85))))
+        val left = if b.isFinite then b.remainingPercentage(p.gameState.time) else 0.0
         shade.setShown(left > 0)
         if left != remaining then {
           remaining = left
@@ -133,11 +152,41 @@ final class BuffRow(parent: Frame, iconSize: Double, spacing: Double, maxIcons: 
 
   private val icons = mutable.ArrayBuffer.empty[Icon]
 
-  def update(buffs: Seq[(Buff, Sprite)], time: Long): Unit = {
+  def update(buffs: Seq[(Buff, Sprite)], p: Painter): Unit = {
     val shown = buffs.take(maxIcons)
     while icons.size < shown.size do icons += Icon(icons.size)
-    for (icon, i) <- icons.zipWithIndex do icon.update(shown.lift(i), time)
+    for (icon, i) <- icons.zipWithIndex do icon.update(shown.lift(i), p)
   }
+}
+
+/** The name of a buff, below its icon (over everything), bordered with the colour of the player who
+  * put it (like the icon).
+  */
+final class BuffTooltip(parent: Frame) {
+  private val padding = 6.0
+  private val height  = 22.0
+
+  private val frame = Frame(parent)
+  frame.setFrameStrata(Strata.Tooltip)
+  frame.hide()
+  private val name = HudWidgets.text(frame, justify = JustifyH.Center)
+  name.setAllPoints(frame)
+  private var anchor = Option.empty[Frame]
+
+  def show(buff: Buff, source: Option[Paint], icon: Frame): Unit = {
+    name.setText(buff.name)
+    frame.setSize(name.stringWidth + 2 * padding, height)
+    if !anchor.exists(_ eq icon) then {
+      anchor = Some(icon)
+      frame.setPoint(Point.TopLeft, icon, Point.BottomLeft, 0, 4)
+    }
+    frame.setBackdrop(
+      Backdrop(Paint.rgb(30, 34, 46).withAlpha(0.95), Some(source.getOrElse(borderColour)), 6)
+    )
+    frame.show()
+  }
+
+  def hide(): Unit = frame.hide()
 }
 
 /** The class of the player in a round badge, in their colour, centred where it is anchored. */

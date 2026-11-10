@@ -2,7 +2,7 @@ package gamelogic.buffs.boss.spiritofnara
 
 import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff.ResourceIdentifier
-import gamelogic.buffs.{Buff, PassiveBuff}
+import gamelogic.buffs.{Buff, PassiveBuff, WithSourceId}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions.{
   EntityGetsHealed,
@@ -23,7 +23,8 @@ final case class Polymorphed(
     sourceId: Entity.Id,
     appearanceTime: Long,
     position: Complex
-) extends PassiveBuff {
+) extends PassiveBuff
+    with WithSourceId {
 
   def actionTransformer(gameAction: GameAction): Vector[GameAction] = gameAction match {
     case action: MovingBodyMoves if action.entityId == bearerId =>

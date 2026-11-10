@@ -2,7 +2,7 @@ package gamelogic.buffs.boss.sirofvice
 
 import gamelogic.abilities.Ability
 import gamelogic.buffs.Buff.ResourceIdentifier
-import gamelogic.buffs.{Buff, TickerBuff}
+import gamelogic.buffs.{Buff, TickerBuff, WithSourceId}
 import gamelogic.entities.Entity
 import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
@@ -17,7 +17,8 @@ final case class Inflamed(
     appearanceTime: Long,
     lastTickTime: Long,
     sourceId: Entity.Id
-) extends TickerBuff {
+) extends TickerBuff
+    with WithSourceId {
   def tickEffect(gameState: GameState, time: Long)(using IdGeneratorContainer): Vector[GameAction] =
     Vector(
       EntityTakesDamage(

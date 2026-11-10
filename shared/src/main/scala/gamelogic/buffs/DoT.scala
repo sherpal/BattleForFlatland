@@ -7,7 +7,7 @@ import gamelogic.gamestate.gameactions.EntityTakesDamage
 import gamelogic.gamestate.{GameAction, GameState}
 import gamelogic.utils.IdGeneratorContainer
 
-trait DoT extends TickerBuff {
+trait DoT extends TickerBuff with WithSourceId {
 
   /** Entity responsible for putting the DoT on the target */
   val sourceId: Entity.Id
