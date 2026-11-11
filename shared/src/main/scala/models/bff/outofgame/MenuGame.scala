@@ -14,7 +14,7 @@ import models.bff.outofgame.gameconfig.PlayerInfo
 import models.bff.outofgame.gameconfig.PlayerType
 
 final case class MenuGame(
-    gameId: String,
+    gameId: Int,
     gameName: String,
     maybeHashedPassword: Option[String],
     gameCreator: User,

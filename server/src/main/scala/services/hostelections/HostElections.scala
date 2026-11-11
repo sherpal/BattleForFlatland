@@ -19,13 +19,13 @@ final class HostElections {
   println("Initializing HostElections service...")
 
   // by game id
-  private var elections = Map.empty[String, Election]
+  private var elections = Map.empty[Int, Election]
 
   /** Opens the election of the host of a game, among these players. The latch is released once they
     * all sent their candidacy.
     */
   def open(
-      gameId: String,
+      gameId: Int,
       gameSecret: String,
       gameCreator: String,
       players: Set[String]
@@ -58,7 +58,7 @@ final class HostElections {
   }
 
   /** No more candidacies: ranks the candidates. */
-  def close(gameId: String): Unit = synchronized {
+  def close(gameId: Int): Unit = synchronized {
     elections = elections.updatedWith(gameId)(_.map { election =>
       election.copy(remaining =
         Some(HostCandidacy.ranking(election.candidacies, election.gameCreator))
@@ -69,7 +69,7 @@ final class HostElections {
   /** The next candidate becomes the host (with the game secret, to give to them), if there is one
     * left.
     */
-  def nextHost(gameId: String): Option[(String, String)] = synchronized {
+  def nextHost(gameId: Int): Option[(String, String)] = synchronized {
     elections.get(gameId).flatMap(election => election.remaining.map(election -> _)) match {
       case Some((election, next +: others)) =>
         elections += gameId -> election.copy(remaining = Some(others), host = Some(next))
@@ -81,14 +81,14 @@ final class HostElections {
     }
   }
 
-  def isHost(gameId: String, userName: String): Boolean = synchronized {
+  def isHost(gameId: Int, userName: String): Boolean = synchronized {
     elections.get(gameId).flatMap(_.host).contains(userName)
   }
 
   /** The election is over (the game server is ready, or the game could not start). Returns who
     * hosts it.
     */
-  def over(gameId: String): Option[String] = synchronized {
+  def over(gameId: Int): Option[String] = synchronized {
     val host = elections.get(gameId).flatMap(_.host)
     elections -= gameId
     host

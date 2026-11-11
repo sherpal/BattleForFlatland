@@ -3,7 +3,7 @@ package menus.data
 import io.circe.Codec
 
 final case class JoinGameFormData(
-    gameId: String,
+    gameId: Int,
     maybePassword: Option[String]
 )
 

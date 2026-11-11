@@ -53,11 +53,11 @@ final class PlayerSessionsLoopbackTest extends munit.FunSuite {
     def send(packet: Packet) =
       clientSocket.send(Envelope.encode(packet), serverPeer.port, serverPeer.address)
 
-    send(Packet.Hello("alice", "g", Nonce.fresh(() => 1)))
+    send(Packet.Hello("alice", 1, Nonce.fresh(() => 1)))
     val challenge = await(packets).asInstanceOf[Packet.Challenge]
 
     // wrong secret
-    send(Envelope.proof("alice", "g", challenge, Hmac("nope")))
+    send(Envelope.proof("alice", 1, challenge, Hmac("nope")))
     assertEquals(await(packets), Packet.Rejected(Envelope.RejectReason.Unauthorized))
 
     // right secret
@@ -68,7 +68,7 @@ final class PlayerSessionsLoopbackTest extends munit.FunSuite {
       new TimersImpl,
       fromServer.put(_)
     )
-    send(Envelope.proof("alice", "g", challenge, Hmac("secret")))
+    send(Envelope.proof("alice", 1, challenge, Hmac("secret")))
     assert(keys.isAccepted(await(packets).asInstanceOf[Packet.Accepted]))
     assertEquals(await(events), "connected alice")
 

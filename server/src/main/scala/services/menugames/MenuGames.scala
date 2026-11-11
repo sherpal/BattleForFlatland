@@ -1,106 +1,107 @@
 package services.menugames
 
+import be.doeraene.utils.castorutils.ask
 import errors.ErrorADT
+import eventsourcing.{EventSourcingService, Projection}
 import models.bff.outofgame.MenuGameWithPlayers
-import menus.data.User
+import menus.data.{GameCreatedInfo, GameCredentialsWithGameInfo, User}
 
 import java.time.LocalDateTime
 import models.bff.outofgame.MenuGame
 import models.bff.outofgame.gameconfig.*
-import models.syntax.Pointed
-
-import scala.concurrent.duration.Duration
-import scala.util.Try
-import gamelogic.docs.BossMetadata
-import models.bff.outofgame.gameconfig.GameConfiguration.GameConfigMetadata
-import menus.data.GameCredentials
-import models.bff.ingame.GameUserCredentials
-import menus.data.AllGameCredentials
-import services.crypto.Crypto
-import services.localstorage.LocalStorage
-import menus.data.GameCredentialsWithGameInfo
 import models.bff.outofgame.PlayerClasses
-import utils.misc.RGBColour
+import models.bff.outofgame.gameconfig.GameConfiguration.GameConfigMetadata
+import gamelogic.docs.BossMetadata
+import scalasql.simple.{SimpleTable, SqliteDialect}
+import services.crypto.Crypto
+import services.database.DatabaseService
 
-/** The games of the menus, kept in memory and in the `storage`.
+import scala.concurrent.duration.*
+import scala.concurrent.{Await, Future}
+import scala.util.Try
+
+/** The games of the menus. Each game is a [[MenuGameEntity]], whose id is given by [[GameCreatedInfo]].
   *
-  * The changes to the games are made one at a time.
+  * The games that are not over are also kept in memory, for the checks that involve all of them (unique names,
+  * players in only one game). The changes to the games are made one at a time.
   */
-final class MenuGames(storage: LocalStorage) {
+final class MenuGames(eventSourcing: EventSourcingService, database: DatabaseService)(using castor.Context) {
+  import MenuGames.*
+  import MenuGameEntity.Command
 
   println("Initializing MenuGames Service...")
 
-  @volatile private var games: Vector[MenuGameWithPlayers] =
-    storage.retrieveFrom(MenuGames.storageKey).getOrElse(Vector.empty)
+  private val gameCreatedInfo = eventSourcing.entity(0, GameCreatedInfo.entityInfo)
+
+  private def entity(gameId: Int) = eventSourcing.entity(gameId, MenuGameEntity.entityInfo)
+
+  private val openGamesProjection = eventSourcing.registerProjection(MenuGameEntity.entityInfo, openGames(database))
+
+  @volatile private var games: Vector[MenuGameWithPlayers] = {
+    val deadline = timeout.fromNow
+    while !await(openGamesProjection.isUpToDate) do {
+      if deadline.isOverdue() then throw IllegalStateException("The open games could not be loaded in time")
+      Thread.sleep(50)
+    }
+    import SqliteDialect.*
+    database.db
+      .run(OpenMenuGame.select.sortBy(_.gameId).map(_.gameId))
+      .toVector
+      .flatMap(gameId => Try(await(entity(gameId).ask(Command.Get(_)))).toOption.flatMap(_.toOption))
+      .flatMap(_.maybeGame)
+  }
 
   def menuGames: Vector[MenuGameWithPlayers] = games
 
   /** Marks the game as started, and creates the credentials of its game server and its players. The
     * game server is then run by one of the players, see [[programs.launchGame]].
     */
-  def launchGame(
-      requester: User,
-      gameId: String
-  ): Either[ErrorADT, GameCredentialsWithGameInfo] = updateGames(currentGames =>
+  def launchGame(requester: User, gameId: Int): Either[ErrorADT, GameCredentialsWithGameInfo] = synchronized {
     for {
-      game <- gameWithId(gameId, currentGames)
-      _    <- Either.cond(!game.started, (), ErrorADT.GameAlreadyLaunched(gameId))
-      _ <- Either.cond(game.isGameCreator(requester), (), ErrorADT.YouAreNotCreator(requester.name))
-      gameCredentials = GameCredentials(gameId, java.util.UUID.randomUUID().toString)
-      userCredentials = game.players.map { user =>
-        GameUserCredentials(user.name, gameId, java.util.UUID.randomUUID().toString)
-      }
-      allGameCredentials  = AllGameCredentials(gameCredentials, userCredentials)
-      credentialsWithInfo = GameCredentialsWithGameInfo(allGameCredentials, game.start)
-      _ <- Try(
-        storage.storeAtFor(gameCredentialsStoringKey(gameId), credentialsWithInfo, Duration.Inf)
-      ).toEither.left.map { throwable =>
-        throwable.printStackTrace()
-        ErrorADT.RawInternalError(throwable.getMessage)
-      }
-      _ = setAndStoreGames(patchGame(game.start, currentGames))
-    } yield credentialsWithInfo
-  )
+      game        <- run(gameId)(Command.Launch(requester, _))
+      credentials <- game.maybeCredentials.toRight(ErrorADT.GameDoesNotExist(gameId))
+    } yield {
+      gameCreatedInfo.ask(GameCreatedInfo.Command.GameWasStarted(_))
+      credentials
+    }
+  }
 
   /** The game could not start after all: it can be launched again. */
-  def cancelLaunch(gameId: String): Unit =
-    updateAndStoreGames(_.map {
-      case game if game.id == gameId => game.copy(started = false)
-      case game => game
-    })
+  def cancelLaunch(gameId: Int): Unit = synchronized {
+    run(gameId)(Command.CancelLaunch(_))
+    ()
+  }
 
-  def gameCredentials(gameId: String): Option[GameCredentialsWithGameInfo] =
-    Try(storage.retrieveFrom(gameCredentialsStoringKey(gameId))).toOption.flatten
+  def gameCredentials(gameId: Int): Option[GameCredentialsWithGameInfo] =
+    Try(await(entity(gameId).ask(Command.Get(_)))).toOption
+      .flatMap(_.toOption)
+      .flatMap(_.maybeCredentials)
 
   def retrieveAllGameCredentials(
-      gameId: String,
+      gameId: Int,
       secret: String
   ): Either[ErrorADT, GameCredentialsWithGameInfo] = for {
     gameInfo <- gameCredentials(gameId).toRight(ErrorADT.CouldNotFetchTokenFromGameServer)
     _        <- Either.cond(secret == gameInfo.secret, (), ErrorADT.WrongGameCredentials)
   } yield gameInfo
 
-  def gameEnded(gameId: String, secret: String): Unit =
+  def gameEnded(gameId: Int, secret: String): Unit =
     if gameCredentials(gameId).exists(_.secret == secret) then deleteGame(gameId)
 
   def createGame(
       gameName: String,
       maybePassword: Option[String],
       gameCreator: User
-  ): Either[ErrorADT, MenuGameWithPlayers] = updateGames(currentGames =>
+  ): Either[ErrorADT, MenuGameWithPlayers] = synchronized {
     for {
       _ <- Either.cond(
-        !currentGames.exists(_.game.gameName == gameName),
+        !games.exists(_.game.gameName == gameName),
         (),
         ErrorADT.GameExists(gameName)
       )
-      _ <- Either.cond(
-        !currentGames.exists(_.containsPlayer(gameCreator)),
-        (),
-        ErrorADT.UserAlreadyPlaying(gameCreator.name)
-      )
+      _ <- playerIsAlreadyPlayingCheck(gameCreator)
       menuGame = MenuGame(
-        java.util.UUID.randomUUID().toString,
+        0, // the id is only taken once the game is valid
         gameName,
         maybePassword.map(Crypto.hashPassword(_).pw),
         gameCreator,
@@ -119,38 +120,27 @@ final class MenuGames(storage: LocalStorage) {
         )
       )
       validationErrors = MenuGame.validator.validate(menuGame)
-      _ <- Either.cond(validationErrors.isEmpty, (), ErrorADT.MultipleErrorsMap(validationErrors))
-      menuGameWithPlayers = MenuGameWithPlayers(menuGame, Vector(gameCreator), false)
-      _                   = updateAndStoreGames(_ :+ menuGameWithPlayers)
-    } yield menuGameWithPlayers
-  )
+      _      <- Either.cond(validationErrors.isEmpty, (), ErrorADT.MultipleErrorsMap(validationErrors))
+      gameId <- Try(await(gameCreatedInfo.ask(GameCreatedInfo.Command.NextId(_)))).toEither.left.map(internalError)
+      game   <- runOnGame(gameId)(Command.Create(MenuGameWithPlayers(menuGame.copy(gameId = gameId), Vector(gameCreator), false), _))
+    } yield game
+  }
 
-  def deleteGame(gameId: String): Unit = updateAndStoreGames(_.filterNot(_.id == gameId))
+  def deleteGame(gameId: Int): Unit = synchronized {
+    run(gameId)(Command.End(_))
+    ()
+  }
 
   def joinGame(
       user: User,
-      gameId: String,
+      gameId: Int,
       maybePassword: Option[String]
-  ): Either[ErrorADT, Vector[MenuGameWithPlayers]] = updateGames(currentGames =>
+  ): Either[ErrorADT, Vector[MenuGameWithPlayers]] = synchronized {
     for {
-      _    <- playerIsAlreadyPlayingCheck(currentGames, user)
-      game <- gameWithId(gameId, currentGames)
-      hashedPassword = maybePassword.map(Crypto.hashPassword)
-      _ <- Either.cond(
-        !game.game.maybeHashedPassword.fold(false)(pw =>
-          !hashedPassword.map(_.pw).contains[String](pw)
-        ),
-        (),
-        ErrorADT.PasswordsMismatch
-      )
-      gameUpdated = game.copy(
-        players = game.players :+ user,
-        game = game.game.withPlayer(emptyPlayer(user.name))
-      )
-      updatedGames = patchGame(gameUpdated, currentGames)
-      _            = setAndStoreGames(updatedGames)
-    } yield updatedGames
-  )
+      _ <- playerIsAlreadyPlayingCheck(user)
+      _ <- runOnGame(gameId)(Command.Join(user, maybePassword, _))
+    } yield games
+  }
 
   /** Adds the "next" AI to the game configuration.
     *
@@ -160,142 +150,84 @@ final class MenuGames(storage: LocalStorage) {
     *   maybe an error message if the AI could not be added (mostly because full, or boss has no ai
     *   implemented yet)
     */
-  def addAIToGame(gameId: String): Either[ErrorADT, Unit] = updateGames(currentGames =>
-    for {
-      game <- gameWithId(gameId, currentGames)
-      bossMetadata <- BossMetadata
-        .maybeMetadataByName(game.game.gameConfiguration.bossName)
-        .toRight(
-          ErrorADT.BossDoesNotExist(s"Boss ${game.game.gameConfiguration.bossName} does not exist")
-        )
-      _ <- bossMetadata.maybeAIComposition
-        .toRight(ErrorADT.BossDoesNotHaveAIImplemented(bossMetadata.name))
+  def addAIToGame(gameId: Int): Either[ErrorADT, Unit] = synchronized {
+    runOnGame(gameId)(Command.AddAI(_)).map(_ => ())
+  }
 
-      players        = game.game.gameConfiguration.playersInfo.values.toVector
-      currentClasses = players.flatMap(_.maybePlayerClass)
-      aiClass <- bossMetadata.nextAvailableAI(currentClasses).toRight(ErrorADT.NoMoreAIAvailable())
-      aiIndicesWithThisClass = players
-        .map(_.playerName)
-        .collect {
-          case PlayerName.AIPlayerName(cls, index) if cls == aiClass => index
-        }
-        .sorted
-      name = aiIndicesWithThisClass.zipWithIndex
-        .collectFirst {
-          case (aiIndex, indexInVector) if aiIndex != indexInVector => indexInVector
-        }
-        .map(PlayerName.AIPlayerName(aiClass, _))
-        .getOrElse(PlayerName.AIPlayerName(aiClass, aiIndicesWithThisClass.length))
-      updatedGame = game.withPlayer(
-        PlayerInfo(
-          name,
-          Some(aiClass),
-          Some(
-            RGBColour.someColours
-              .find(colour => !players.flatMap(_.maybePlayerColour).contains[RGBColour](colour))
-              .getOrElse(RGBColour.someColours.head)
-          ),
-          PlayerStatus.Ready,
-          PlayerType.ArtificialIntelligence
-        )
-      )
-    } yield setAndStoreGames(patchGame(updatedGame, currentGames))
-  )
+  def removeAIFromGame(gameId: Int, cls: PlayerClasses): Either[ErrorADT, Unit] = synchronized {
+    runOnGame(gameId)(Command.RemoveAI(cls, _)).map(_ => ())
+  }
 
-  def removeAIFromGame(gameId: String, cls: PlayerClasses): Either[ErrorADT, Unit] =
-    updateGames(currentGames =>
-      for {
-        game <- gameWithId(gameId, currentGames)
-        maybeFirstAI = game.game.gameConfiguration.playersInfo.values.collectFirst {
-          case PlayerInfo(playerName, _, _, _, PlayerType.ArtificialIntelligence) => playerName
-        }
-        updatedGame = maybeFirstAI.fold(game)(playerName => game.removePlayer(playerName.name))
-      } yield setAndStoreGames(patchGame(updatedGame, currentGames))
-    )
-
-  def removePlayer(requester: User, gameId: String): Either[ErrorADT, MenuGameWithPlayers] =
-    updateGames(currentGames =>
-      for {
-        game <- gameWithId(gameId, currentGames)
-        gameUpdated = game.removePlayer(requester.name)
-        _           = setAndStoreGames(patchGame(gameUpdated, currentGames))
-      } yield gameUpdated
-    )
+  def removePlayer(requester: User, gameId: Int): Either[ErrorADT, MenuGameWithPlayers] = synchronized {
+    runOnGame(gameId)(Command.RemovePlayer(requester.name, _))
+  }
 
   def changePlayerInfo(
       user: User,
-      gameId: String,
+      gameId: Int,
       newPlayerInfo: PlayerInfo
-  ): Either[ErrorADT, MenuGameWithPlayers] = updateGames(currentGames =>
-    for {
-      game <- gameWithId(gameId, currentGames)
-      _    <- Either.cond(game.containsPlayer(user), (), ErrorADT.YouAreNotInGame(gameId))
-      updatedGame = game.withPlayer(newPlayerInfo)
-      _           = setAndStoreGames(patchGame(updatedGame, currentGames))
-    } yield updatedGame
-  )
+  ): Either[ErrorADT, MenuGameWithPlayers] = synchronized {
+    runOnGame(gameId)(Command.ChangePlayerInfo(user, newPlayerInfo, _))
+  }
 
   def changeGameMetadata(
       requester: User,
-      gameId: String,
+      gameId: Int,
       gameMetadata: GameConfigMetadata
-  ): Either[ErrorADT, MenuGameWithPlayers] = updateGames(currentGames =>
-    for {
-      game <- gameWithId(gameId, currentGames)
-      _ <- Either.cond(
-        game.game.gameCreator == requester,
-        (),
-        ErrorADT.YouAreNotCreator(requester.name)
-      )
-      bossChanged = game.game.gameConfiguration.bossName != gameMetadata.bossName
-      updatedGame = game.copy(game =
-        game.game.copy(gameConfiguration = game.game.gameConfiguration.withMetadata(gameMetadata))
-      )
-      _ = updateAndStoreGames(
-        patchGame(if bossChanged then updatedGame.removeAllAIs else updatedGame, _)
-      )
-    } yield updatedGame
-  )
+  ): Either[ErrorADT, MenuGameWithPlayers] = synchronized {
+    runOnGame(gameId)(Command.ChangeMetadata(requester, gameMetadata, _))
+  }
 
-  /** Runs `update` on the current games, while no other update can happen. */
-  private def updateGames[A](update: Vector[MenuGameWithPlayers] => A): A =
-    synchronized(update(games))
+  /** Sends the command to the game, and keeps its new state in memory. Must be called while synchronized. */
+  private def run(gameId: Int)(command: MenuGameEntity.Reply => Command): Either[ErrorADT, MenuGameEntity] = {
+    val result = Try(await(entity(gameId).ask(command))).toEither.left.map(internalError).flatten
+    result.foreach { state =>
+      games = state.maybeGame match {
+        case Some(game) if games.exists(_.id == gameId) => games.map(existing => if existing.id == gameId then game else existing)
+        case Some(game) => games :+ game
+        case None       => games.filterNot(_.id == gameId)
+      }
+    }
+    result
+  }
 
-  private def playerIsAlreadyPlayingCheck(currentGames: Vector[MenuGameWithPlayers], player: User) =
+  private def runOnGame(gameId: Int)(command: MenuGameEntity.Reply => Command): Either[ErrorADT, MenuGameWithPlayers] =
+    run(gameId)(command).flatMap(_.maybeGame.toRight(ErrorADT.GameDoesNotExist(gameId)))
+
+  private def playerIsAlreadyPlayingCheck(player: User) =
     Either.cond(
-      !currentGames.exists(_.containsPlayer(player)),
+      !games.exists(_.containsPlayer(player)),
       (),
       ErrorADT.UserAlreadyPlaying(player.name)
     )
-
-  private def emptyPlayer(name: String): PlayerInfo =
-    Pointed[PlayerInfo].unit.withHumanName(name)
-
-  private def updateAndStoreGames(
-      f: Vector[MenuGameWithPlayers] => Vector[MenuGameWithPlayers]
-  ): Unit = synchronized {
-    games = f(games)
-    storage.storeAtFor(MenuGames.storageKey, games, Duration.Inf)
-  }
-
-  private def setAndStoreGames(games: Vector[MenuGameWithPlayers]): Unit =
-    updateAndStoreGames(_ => games)
-
-  private def patchGame(game: MenuGameWithPlayers, currentGames: Vector[MenuGameWithPlayers]) =
-    currentGames.map(existing => if existing.id == game.id then game else existing)
-
-  private def gameWithId(
-      gameId: String,
-      currentGames: Vector[MenuGameWithPlayers]
-  ): Either[ErrorADT, MenuGameWithPlayers] =
-    currentGames.find(_.id == gameId).toRight(ErrorADT.GameDoesNotExist(gameId))
-
-  private def gameCredentialsStoringKey(gameId: String) =
-    LocalStorage.key[GameCredentialsWithGameInfo](s"game-credentials-$gameId")
 
 }
 
 object MenuGames {
 
-  private val storageKey = LocalStorage.key[Vector[MenuGameWithPlayers]]("menu-games")
+  private val timeout = 10.seconds
+
+  private def await[A](future: Future[A]): A = Await.result(future, timeout)
+
+  private def internalError(throwable: Throwable): ErrorADT = {
+    throwable.printStackTrace()
+    ErrorADT.RawInternalError(throwable.getMessage)
+  }
+
+  private case class OpenMenuGame(gameId: Int)
+
+  private object OpenMenuGame extends SimpleTable[OpenMenuGame]
+
+  /** Keeps the ids of the games that are not over in the `open_menu_game` table. */
+  private def openGames(database: DatabaseService): Projection[MenuGameEntity.Event] =
+    Projection[MenuGameEntity.Event]("open-menu-games", Projection.Semantics.AtLeastOnce) { (gameId, envelope) =>
+      import SqliteDialect.*
+      envelope.event match {
+        case MenuGameEntity.Event.GameCreated(_) =>
+          database.db.run(OpenMenuGame.insert.values(OpenMenuGame(gameId)).onConflictIgnore(_.gameId))
+        case MenuGameEntity.Event.GameEnded() =>
+          database.db.run(OpenMenuGame.delete(_.gameId === gameId))
+        case _ => ()
+      }
+    }
 }

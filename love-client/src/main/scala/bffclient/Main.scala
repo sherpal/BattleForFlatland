@@ -78,7 +78,7 @@ object Main {
             Vector(Peer(env("BFF_HOST", "localhost"), env("BFF_PORT", "22222").toInt)),
             None,
             user,
-            env("BFF_GAME_ID", "game"),
+            env("BFF_GAME_ID", "1").toInt,
             env("BFF_SECRET", "secret")
           ),
           headless

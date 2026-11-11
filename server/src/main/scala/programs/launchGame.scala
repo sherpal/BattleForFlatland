@@ -28,7 +28,7 @@ private val gameServerReadyTimeout = 3.minutes
   */
 def launchGame(
     requester: User,
-    gameId: String,
+    gameId: Int,
     rendezvousPort: Int
 )(using env: BackendEnv): Either[ErrorADT, Unit] =
   env.menuGames.launchGame(requester, gameId).map { credentials =>
@@ -55,7 +55,7 @@ private def electHost(
 }
 
 private def nextHost(
-    gameId: String,
+    gameId: Int,
     rendezvousPort: Int,
     lastFailure: Option[String]
 )(using env: BackendEnv): Unit =
@@ -82,7 +82,7 @@ private def nextHost(
   * are not the host (anymore).
   */
 def hostFailed(
-    gameId: String,
+    gameId: Int,
     host: String,
     reason: String,
     rendezvousPort: Int
@@ -92,7 +92,7 @@ def hostFailed(
     nextHost(gameId, rendezvousPort, Some(reason))
   }
 
-private def launchFailed(gameId: String, reason: String)(using env: BackendEnv): Unit = {
+private def launchFailed(gameId: Int, reason: String)(using env: BackendEnv): Unit = {
   println(s"Game $gameId could not start: $reason")
   env.hostElections.over(gameId)
   env.menuGames.cancelLaunch(gameId)

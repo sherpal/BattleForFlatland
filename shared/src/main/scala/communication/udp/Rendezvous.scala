@@ -49,7 +49,7 @@ object Rendezvous {
       * @param publicAddress
       *   our public address, when the menu server sees us on a private network (see [[Stun]])
       */
-    case class ServerRegister(gameId: String, number: Long, publicAddress: Option[Peer])
+    case class ServerRegister(gameId: Int, number: Long, publicAddress: Option[Peer])
         extends Packet
 
     /** The players of the game, with the addresses the menu server knows them at (a player may have
@@ -64,7 +64,7 @@ object Rendezvous {
       */
     case class PlayerRegister(
         userName: String,
-        gameId: String,
+        gameId: Int,
         number: Long,
         publicAddress: Option[Peer]
     ) extends Packet
@@ -144,7 +144,7 @@ object Rendezvous {
     Try(signed.kind match {
       case ServerRegisterKind =>
         val (gameId, number, publicAddress) =
-          Unpickle[(String, Long, Option[Peer])].fromBytes(signed.payload)
+          Unpickle[(Int, Long, Option[Peer])].fromBytes(signed.payload)
         Packet.ServerRegister(gameId, number, publicAddress)
       case PlayersKind =>
         val (seenAs, publicAddress, players) =
@@ -152,7 +152,7 @@ object Rendezvous {
         Packet.Players(Packet.Registered(seenAs, publicAddress), players)
       case PlayerRegisterKind =>
         val (userName, gameId, number, publicAddress) =
-          Unpickle[(String, String, Long, Option[Peer])].fromBytes(signed.payload)
+          Unpickle[(String, Int, Long, Option[Peer])].fromBytes(signed.payload)
         Packet.PlayerRegister(userName, gameId, number, publicAddress)
       case RegisteredKind =>
         val (seenAs, publicAddress) = Unpickle[(Peer, Option[Peer])].fromBytes(signed.payload)

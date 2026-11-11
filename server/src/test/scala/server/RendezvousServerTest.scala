@@ -33,13 +33,13 @@ final class RendezvousServerTest extends munit.FunSuite {
   private val gameSecret = Hmac("game secret")
   private val aliceKey   = Hmac("alice secret")
   private val credentials = AllGameCredentials(
-    GameCredentials("g", "game secret"),
-    Vector(GameUserCredentials("alice", "g", "alice secret"))
+    GameCredentials(1, "game secret"),
+    Vector(GameUserCredentials("alice", 1, "alice secret"))
   )
 
   private def fixture() = {
     val socket = FakeSocket()
-    val server = RendezvousServer(socket, gameId => Option.when(gameId == "g")(credentials))
+    val server = RendezvousServer(socket, gameId => Option.when(gameId == 1)(credentials))
     server.start(9000, None)
     (socket, server)
   }
@@ -47,7 +47,7 @@ final class RendezvousServerTest extends munit.FunSuite {
   private val aliceAt  = Peer("81.12.34.56", 40000)
   private val serverAt = Peer("1.2.3.4", 50000)
 
-  private def register(number: Long) = Packet.PlayerRegister("alice", "g", number, None)
+  private def register(number: Long) = Packet.PlayerRegister("alice", 1, number, None)
 
   test("a player signed with their secret is registered, and told so in the same way") {
     val (socket, _) = fixture()
@@ -62,22 +62,22 @@ final class RendezvousServerTest extends munit.FunSuite {
   test("the game server learns where the players are") {
     val (socket, server) = fixture()
     socket.receive(Rendezvous.encode(register(10), aliceKey), aliceAt)
-    socket.receive(Rendezvous.encode(Packet.ServerRegister("g", 1, None), gameSecret), serverAt)
+    socket.receive(Rendezvous.encode(Packet.ServerRegister(1, 1, None), gameSecret), serverAt)
     assertEquals(
       socket.sent.lastOption.flatMap((bytes, _) => Rendezvous.parseSignedWith(bytes, gameSecret)),
       Some(Packet.Players(Packet.Registered(serverAt, None), Vector("alice" -> aliceAt)))
     )
-    assertEquals(server.gameServerAddresses("g"), Vector(serverAt))
+    assertEquals(server.gameServerAddresses(1), Vector(serverAt))
   }
 
   test("registers that are not signed with the right secret are ignored") {
     val (socket, server) = fixture()
     socket.receive(Rendezvous.encode(register(10), Hmac("guess")), aliceAt)
     socket.receive(Rendezvous.encode(register(10), gameSecret), aliceAt)
-    socket.receive(Rendezvous.encode(Packet.ServerRegister("g", 1, None), aliceKey), serverAt)
-    socket.receive(Rendezvous.encode(Packet.ServerRegister("other", 1, None), gameSecret), serverAt)
+    socket.receive(Rendezvous.encode(Packet.ServerRegister(1, 1, None), aliceKey), serverAt)
+    socket.receive(Rendezvous.encode(Packet.ServerRegister(2, 1, None), gameSecret), serverAt)
     assertEquals(socket.sent.toList, Nil)
-    assertEquals(server.gameServerAddresses("g"), Vector.empty)
+    assertEquals(server.gameServerAddresses(1), Vector.empty)
   }
 
   test("a register replayed from elsewhere does not divert the player") {
@@ -86,14 +86,14 @@ final class RendezvousServerTest extends munit.FunSuite {
     socket.receive(datagram, aliceAt)
     socket.receive(datagram, Peer("6.6.6.6", 666))
     socket.receive(Rendezvous.encode(register(9), aliceKey), Peer("6.6.6.6", 666))
-    socket.receive(Rendezvous.encode(Packet.ServerRegister("g", 1, None), gameSecret), serverAt)
+    socket.receive(Rendezvous.encode(Packet.ServerRegister(1, 1, None), gameSecret), serverAt)
     assertEquals(
       socket.sent.lastOption.flatMap((bytes, _) => Rendezvous.parseSignedWith(bytes, gameSecret)),
       Some(Packet.Players(Packet.Registered(serverAt, None), Vector("alice" -> aliceAt)))
     )
     // a newer one does: the player moved
     socket.receive(Rendezvous.encode(register(11), aliceKey), Peer("81.12.34.56", 40001))
-    socket.receive(Rendezvous.encode(Packet.ServerRegister("g", 2, None), gameSecret), serverAt)
+    socket.receive(Rendezvous.encode(Packet.ServerRegister(1, 2, None), gameSecret), serverAt)
     assertEquals(
       socket.sent.lastOption.flatMap((bytes, _) => Rendezvous.parseSignedWith(bytes, gameSecret)),
       Some(
@@ -123,7 +123,7 @@ final class LobbyServerTest extends munit.FunSuite {
   private def fixture(): (FakeSocket, LobbyServer, LobbySubscription) = {
     val socket = FakeSocket()
     val lobby  = LobbyServer(socket, 9000, Events())
-    (socket, lobby, lobby.subscribe(alice, Some("g")))
+    (socket, lobby, lobby.subscribe(alice, Some(1)))
   }
 
   private def hello(lobby: LobbyServer, subscription: LobbySubscription, number: Long, key: Hmac) =

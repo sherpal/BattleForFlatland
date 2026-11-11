@@ -6,7 +6,7 @@ import models.bff.outofgame.gameconfig.PlayerInfo
 
 final case class MenuGameWithPlayers(game: MenuGame, players: Vector[User], started: Boolean) {
 
-  def id: String = game.gameId
+  def id: Int = game.gameId
 
   def forgetPassword: MenuGameWithPlayers = copy(game = game.forgetPassword)
 

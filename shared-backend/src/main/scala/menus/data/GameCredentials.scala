@@ -9,7 +9,7 @@ import io.circe.Codec
   * @param gameSecret
   *   auto generated secret for the game server and the server to communicate.
   */
-final case class GameCredentials(gameId: String, gameSecret: String)
+final case class GameCredentials(gameId: Int, gameSecret: String)
 
 object GameCredentials {
   given Codec[GameCredentials] = io.circe.generic.semiauto.deriveCodec

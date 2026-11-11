@@ -19,7 +19,7 @@ import menus.data.AllGameCredentials
   */
 final class RendezvousServer(
     socket: UDPSocket,
-    credentials: String => Option[AllGameCredentials]
+    credentials: Int => Option[AllGameCredentials]
 ) {
   import RendezvousServer.*
 
@@ -29,9 +29,9 @@ final class RendezvousServer(
   private case class Seen(peers: Vector[Peer], at: Long, number: Long)
   private case class Game(server: Option[Seen], players: Map[String, Seen])
 
-  private val lock                                              = new Object
-  private var games                                             = Map.empty[String, Game]
-  private var knownCredentials: Map[String, AllGameCredentials] = Map.empty
+  private val lock                                           = new Object
+  private var games                                          = Map.empty[Int, Game]
+  private var knownCredentials: Map[Int, AllGameCredentials] = Map.empty
 
   def start(port: Int, address: Option[String]): Unit = {
     println(s"Starting rendezvous server on port $port")
@@ -44,10 +44,10 @@ final class RendezvousServer(
   /** Where the game server of this game was seen from (lately), and its public address if it gave
     * one, if it was seen.
     */
-  def gameServerAddresses(gameId: String): Vector[Peer] =
+  def gameServerAddresses(gameId: Int): Vector[Peer] =
     lock.synchronized(games.get(gameId).flatMap(_.server).fold(Vector.empty)(_.peers))
 
-  private def credentialsOf(gameId: String): Option[AllGameCredentials] =
+  private def credentialsOf(gameId: Int): Option[AllGameCredentials] =
     lock.synchronized(knownCredentials.get(gameId)).orElse {
       val found = credentials(gameId)
       found.foreach(creds => lock.synchronized(knownCredentials += gameId -> creds))
@@ -101,7 +101,7 @@ final class RendezvousServer(
   /** Updates the game (unless `update` gives nothing: then it is not changed, and nothing is
     * returned), and forgets what was not seen for too long.
     */
-  private def seen(gameId: String, update: Game => Option[Game]): Option[Game] =
+  private def seen(gameId: Int, update: Game => Option[Game]): Option[Game] =
     lock.synchronized {
       val limit   = now - Forget
       val updated = update(games.getOrElse(gameId, Game(None, Map.empty)))

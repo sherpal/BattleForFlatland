@@ -18,6 +18,9 @@ object Deploy {
   val image     = "battle-for-flatland"
   val container = "bff"
 
+  /** The volume of the menu server's data (its database, in `target/db` of its working directory, `/app`). */
+  val dataVolume = "bff-data"
+
   /** Caddy's image (2.10 at least, for the certificates of IP addresses), and its container. */
   val caddyImage     = "caddy:2.10.2"
   val caddyContainer = "bff-caddy"
@@ -132,7 +135,8 @@ object Deploy {
     // On the host's network: no docker NAT for the UDP datagrams, and the VM's firewall rules (opened by
     // oracle-vm-setup.sh) are the ones that count. --restart: the server comes back after a reboot.
     // The menu server's HTTP only listens on the loopback, for Caddy, which keeps its certificates in a
-    // volume (they outlive the deploys: Let's Encrypt limits how many it gives).
+    // volume (they outlive the deploys: Let's Encrypt limits how many it gives). The menu server's
+    // database is in a volume too, so that it outlives the deploys.
     // Then the previous image goes, from docker and from the registry (whose garbage collection removes the
     // layers that the new image does not have; the restart empties its cache of the layers it has).
     log.info(s"(Re)starting the server, behind Caddy for ${args.site}")
@@ -141,7 +145,8 @@ object Deploy {
         args.target,
         s"docker pull $imageInRegistry && " +
           s"{ docker rm -f $container $caddyContainer >/dev/null 2>&1 || true; } && " +
-          s"docker run -d --name $container --restart unless-stopped --network host -e HTTP_ADDRESS=127.0.0.1 $imageInRegistry && " +
+          s"docker run -d --name $container --restart unless-stopped --network host -e HTTP_ADDRESS=127.0.0.1 " +
+          s"-v $dataVolume:/app/target/db $imageInRegistry && " +
           s"docker run -d --name $caddyContainer --restart unless-stopped --network host -e BFF_SITE='${args.site}' " +
           "-v \"$HOME/Caddyfile:/etc/caddy/Caddyfile:ro\" -v bff-caddy-data:/data -v bff-caddy-config:/config " +
           s"$caddyImage && " +

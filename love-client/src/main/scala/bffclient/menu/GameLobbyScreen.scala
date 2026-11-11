@@ -23,7 +23,7 @@ import utils.misc.RGBColour
 final class GameLobbyScreen(
     app: MenuApp,
     user: User,
-    gameId: String,
+    gameId: Int,
     launchWhenReady: Boolean = false,
     reopening: Boolean = false
 )(using ExecutionContext)

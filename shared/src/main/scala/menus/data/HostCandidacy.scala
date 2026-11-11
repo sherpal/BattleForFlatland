@@ -23,7 +23,7 @@ import io.circe.Codec
   *   how long a request to the menu server took, a rough idea of how good the network is
   */
 final case class HostCandidacy(
-    gameId: String,
+    gameId: Int,
     willing: Boolean,
     javaVersion: Option[Int],
     bundledJava: Boolean,

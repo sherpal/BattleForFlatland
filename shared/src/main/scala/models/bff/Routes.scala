@@ -12,7 +12,7 @@ object Routes {
   final val newMenuGame = bff / "new-game" // post
 
   final val joinGame         = bff / "join-game" // post
-  final val joinGameParam    = param[String]("gameId")
+  final val joinGameParam    = param[Int]("gameId")
   final val gameJoined       = bff / "game-joined"
   final val amIPlaying       = bff / "am-i-playing" // get
   final val gameInfo         = bff / "game-info" // get
@@ -36,11 +36,11 @@ object Routes {
   final val inGameCancel        = inGame / "cancel-game" // post
   final val inGameSettings      = root / "game-settings" // route (get)
 
-  final val gameIdParam = param[String]("gameId")
+  final val gameIdParam = param[Int]("gameId")
   final val secretParam = param[String]("secret")
   final val gameUserCredentialsParam =
     (param[String]("userName") & gameIdParam & secretParam).as[GameUserCredentials](using
-      urldsl.vocabulary.Codec.factory[(String, String, String), GameUserCredentials](
+      urldsl.vocabulary.Codec.factory[(String, Int, String), GameUserCredentials](
         GameUserCredentials(_, _, _),
         creds => (creds.userName, creds.gameId, creds.userSecret)
       )

@@ -4,7 +4,7 @@ import io.circe.Codec
 import models.bff.outofgame.gameconfig.GameConfiguration
 
 final case class ChangeGameMetadataFormData(
-    gameId: String,
+    gameId: Int,
     gameMetadata: GameConfiguration.GameConfigMetadata
 )
 

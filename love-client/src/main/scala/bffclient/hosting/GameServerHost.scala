@@ -133,7 +133,7 @@ object GameServerHost {
     * @param ready
     *   whether we have what runs the game server already (see [[prepare]])
     */
-  def candidacy(api: MenuApi, gameId: String, willing: Boolean, ready: Boolean)(using
+  def candidacy(api: MenuApi, gameId: Int, willing: Boolean, ready: Boolean)(using
       ExecutionContext
   ): Future[HostCandidacy] = {
     val start = Timer.getTime()
@@ -171,13 +171,13 @@ object GameServerHost {
   def spawn(
       api: MenuApi,
       gameServer: Future[GameServer],
-      gameId: String,
+      gameId: Int,
       gameSecret: String,
       rendezvousPort: Int
   )(using ExecutionContext): Future[Unit] = for
     server <- gameServer
     log       = s"$directory/game-server.log"
-    arguments = Vector(api.url, rendezvousPort.toString, gameId, gameSecret)
+    arguments = Vector(api.url, rendezvousPort.toString, gameId.toString, gameSecret)
     command   = (Vector(server.java, "-jar", server.jar) ++ arguments).map(quote).mkString(" ")
     _ = println(s"[host] Running the game server (${server.java} -jar ${server.jar}), into $log")
     _ <- Processes.spawn(command, log)

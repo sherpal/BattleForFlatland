@@ -122,8 +122,11 @@ game, and the logs of the VM (`docker logs bff`) and of the clients (`client.log
   recreated: Oracle can *reserve* a public IP for you (free while it is attached to a VM), which then
   stays.
 - **Memory**: the JVM takes up to 75% of what the machine has.
-- **Data**: the server's data (`target/db` in the container) is lost when the container is
-  removed, i.e. at each `sbt deploy`.
+- **Data**: the server's database (`/app/target/db/database.db` in the container: the events of the
+  games, and their statistics) is in the volume `bff-data`, which outlives the deploys; do not remove
+  it. It is on the VM's disk: it does not outlive the VM. To back it up:
+  `ssh <vm> docker cp bff:/app/target/db/database.db - > database.db.tar` (the server is better stopped
+  first, `docker stop bff`, for a consistent copy).
 - **Logs and restarts**: `ssh <vm> docker logs -f bff`, `docker restart bff`.
 - **TLS**: the menus are in HTTPS (with LÖVE 12's HTTPS module, which checks the certificate against
   the system's: a self-signed one would not do). The UDP datagrams are authenticated with the secrets

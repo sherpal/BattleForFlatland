@@ -33,7 +33,8 @@ EXPOSE 9000/tcp 9000/udp
 # Caddy, which does the TLS (see deploy.md), so that the menu server is only reached in HTTPS.
 # RENDEZVOUS_ADDRESS, when set, is the address that the rendezvous' UDP socket binds to (all the
 # interfaces otherwise): on fly.io, `fly-global-services` (see fly.toml). It does not resolve elsewhere.
-# The server's data (target/db) is relative to the working directory: it does not outlive the container.
+# The server's data (its database, in /app/target/db) does not outlive the container, unless that folder is
+# a volume: `sbt deploy` mounts the volume bff-data there (`-v bff-data:/app/target/db` with docker run).
 CMD exec java \
     -XX:MaxRAMPercentage=75 \
     -DisProd=true \

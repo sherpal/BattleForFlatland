@@ -216,7 +216,7 @@ object DummyI18n extends I18n {
 
   def gameCouldNotStart(error: String): String = ""
 
-  def gameCreatedBy(creator: String, gameId: String): String = ""
+  def gameCreatedBy(creator: String, gameId: Int): String = ""
 
   def gameGoesOnMeanwhile: String = ""
 

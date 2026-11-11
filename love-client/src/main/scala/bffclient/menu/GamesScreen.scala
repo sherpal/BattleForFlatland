@@ -184,13 +184,13 @@ final class GamesScreen(app: MenuApp, user: User)(using ExecutionContext) extend
     )
   }
 
-  private def join(gameId: String): Unit = {
+  private def join(gameId: Int): Unit = {
     busy = true
     render()
     app.attempt(app.api.joinGame(gameId))(_ => enter(gameId), _ => { busy = false; render() })
   }
 
-  private def enter(gameId: String): Unit = app.show(new GameLobbyScreen(app, user, gameId))
+  private def enter(gameId: Int): Unit = app.show(new GameLobbyScreen(app, user, gameId))
 }
 
 object GamesScreen {

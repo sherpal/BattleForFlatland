@@ -1,24 +1,34 @@
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 import sbt.Def.settings
 import sbt._
-import sbt.Keys.libraryDependencies
+import sbt.Keys.{excludeDependencies, libraryDependencies}
 
 object SharedSettings {
 
   val circeVersion = "0.14.9"
   val catsVersion  = "2.1.2"
 
+  val flywayVersion = "13.6.0"
+
+  def databaseStuff = Seq(
+    "com.lihaoyi" %% "scalasql-simple" % "0.3.2",
+    "org.flywaydb" % "flyway-core" % flywayVersion,
+    "org.flywaydb" % "flyway-database-nc-sqlite" % flywayVersion,
+    "org.xerial" % "sqlite-jdbc" % "3.53.4.0"
+  )
+
   def apply(): Seq[Def.Setting[_]] = settings(
     libraryDependencies ++= Seq(
-      "be.doeraene"                  %%% "url-dsl"         % "0.6.2",
-      "io.github.cquiroz"            %%% "scala-java-time" % "2.6.0",
-      "com.lihaoyi"                  %%% "scalatags"       % "0.13.1",
-      "com.softwaremill.magnolia1_3" %%% "magnolia"        % "1.3.7",
-      //"org.scala-lang"                 % "scala-reflect"   % "2.13.1" % Provided,
-      "org.planet42"                 %%% "laika-core"      % "0.19.5",
-      "io.suzaku"                    %%% "boopickle"       % "1.5.0",
-      "org.scalacheck"               %%% "scalacheck"      % "1.18.0" % Test,
-      "org.scalameta"                %%% "munit"           % "1.0.1"  % Test
+      "be.doeraene" %%% "url-dsl" % "0.6.2",
+      "io.github.cquiroz" %%% "scala-java-time" % "2.6.0",
+      "com.lihaoyi" %%% "scalatags" % "0.13.1",
+      "com.lihaoyi" %%% "castor" % "0.3.2",
+      "com.softwaremill.magnolia1_3" %%% "magnolia" % "1.3.7",
+      // "org.scala-lang"                 % "scala-reflect"   % "2.13.1" % Provided,
+      "org.planet42" %%% "laika-core" % "0.19.5",
+      "io.suzaku" %%% "boopickle" % "1.5.0",
+      "org.scalacheck" %%% "scalacheck" % "1.18.0" % Test,
+      "org.scalameta" %%% "munit" % "1.0.1" % Test
     ) ++ Seq( // circe for json serialisation
       "io.circe" %%% "circe-core",
       "io.circe" %%% "circe-generic",
@@ -27,12 +37,22 @@ object SharedSettings {
   )
 
   def jvmSettings: Seq[Def.Setting[_]] = settings(
+    libraryDependencies ++= databaseStuff
+  )
+
+  /** For the projects that use the shared JVM code but never the database (the game server, whose jar
+    * the players download): its libraries (with sqlite's native ones for all the platforms) stay out.
+    */
+  def withoutDatabaseStuff: Seq[Def.Setting[_]] = settings(
+    excludeDependencies ++= databaseStuff.map(module =>
+      ExclusionRule(module.organization, module.name).withCrossVersion(module.crossVersion)
+    )
   )
 
   def jsSettings: Seq[Def.Setting[_]] = settings(
     libraryDependencies ++= Seq(
-      "io.github.cquiroz" %%% "scala-java-time-tzdb"      % "2.6.0",
-      ("org.scala-js"     %%% "scalajs-java-securerandom" % "1.0.0").cross(CrossVersion.for3Use2_13)
+      "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.6.0",
+      ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0").cross(CrossVersion.for3Use2_13)
     )
   )
 

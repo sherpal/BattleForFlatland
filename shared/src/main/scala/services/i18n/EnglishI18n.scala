@@ -103,7 +103,7 @@ object EnglishI18n extends I18n {
   // Lobby of a game
   override def loadingTheGame: String                 = "Loading the game"
   override def loggedInAs(playerName: String): String = s"Logged in as $playerName"
-  override def gameCreatedBy(creator: String, gameId: String): String =
+  override def gameCreatedBy(creator: String, gameId: Int): String =
     s"Created by $creator - game $gameId"
   override def kick: String                      = "Kick"
   override def you(playerName: String): String   = s"$playerName (you)"

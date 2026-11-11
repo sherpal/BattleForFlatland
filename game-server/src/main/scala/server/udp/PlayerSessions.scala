@@ -26,7 +26,7 @@ import models.bff.ingame.InGameWSProtocol
 final class PlayerSessions(
     socket: UDPSocket,
     timers: Timers,
-    secretOf: (String, String) => Either[Byte, String],
+    secretOf: (String, Int) => Either[Byte, String],
     listener: PlayerSessions.Listener,
     pingDelay: Int = 1000,
     challenges: Envelope.Challenges = Envelope.Challenges(PlayerSessions.randomKey())

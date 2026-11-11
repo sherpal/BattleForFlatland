@@ -8,19 +8,19 @@ object Event {
   case class Ping() extends Event
 
   // Some(gameId) for a specific game, None for all
-  case class GameDataRefreshed(maybeGameId: Option[String]) extends Event
-  case class UserConnectedSocket(user: User, gameId: String) extends Event
-  case class UserSocketDisconnected(user: User, gameId: String) extends Event
-  case class GameStarted(gameId: String) extends Event
+  case class GameDataRefreshed(maybeGameId: Option[Int]) extends Event
+  case class UserConnectedSocket(user: User, gameId: Int) extends Event
+  case class UserSocketDisconnected(user: User, gameId: Int) extends Event
+  case class GameStarted(gameId: Int) extends Event
 
   /** The players of the game must send their candidacy to run the game server. */
-  case class HostCandidacyRequested(gameId: String) extends Event
+  case class HostCandidacyRequested(gameId: Int) extends Event
 
   /** This player must run the game server (with these arguments). */
-  case class HostElected(gameId: String, host: String, gameSecret: String, rendezvousPort: Int)
+  case class HostElected(gameId: Int, host: String, gameSecret: String, rendezvousPort: Int)
       extends Event
 
-  case class GameLaunchFailed(gameId: String, reason: String) extends Event
+  case class GameLaunchFailed(gameId: Int, reason: String) extends Event
 
   /** Dispatched when the game server of a started game is ready.
     *

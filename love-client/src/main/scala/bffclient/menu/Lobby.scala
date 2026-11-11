@@ -18,7 +18,7 @@ import menus.data.{LobbyMessage, LobbySubscription, MenuGameComm}
   */
 final class Lobby private (
     api: MenuApi,
-    gameId: Option[String],
+    gameId: Option[Int],
     onMessage: MenuGameComm => Unit
 )(using ExecutionContext) {
   import Lobby.*
@@ -150,7 +150,7 @@ object Lobby {
   private val SilenceLimit = 3 * Protocol.HelloInterval + 1000
 
   /** Completes once subscribed (it fails if the menu server cannot be reached). */
-  def open(api: MenuApi, gameId: Option[String], onMessage: MenuGameComm => Unit)(using
+  def open(api: MenuApi, gameId: Option[Int], onMessage: MenuGameComm => Unit)(using
       ExecutionContext
   ): Future[Lobby] = {
     val lobby = new Lobby(api, gameId, onMessage)

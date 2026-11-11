@@ -129,7 +129,7 @@ object ErrorADT {
   }
 
   sealed trait MenuGameError extends BackendError
-  case class InconsistentMenuGameInDB(gameId: String, gameName: String) extends MenuGameError {
+  case class InconsistentMenuGameInDB(gameId: Int, gameName: String) extends MenuGameError {
     def httpErrorType: HTTPResultType = Internal
 
     def repr: String = s"Inconsistent Menu Game in DB for $gameId:$gameName"
@@ -139,7 +139,7 @@ object ErrorADT {
 
     def repr: String = s"Game '$gameName' already exists."
   }
-  case class GameDoesNotExist(gameId: String) extends MenuGameError {
+  case class GameDoesNotExist(gameId: Int) extends MenuGameError {
     def httpErrorType: HTTPResultType = BadRequest
 
     def repr: String = s"Game with id $gameId does not exist."
@@ -159,7 +159,7 @@ object ErrorADT {
 
     def repr: String = s"No AI available left"
   }
-  case class GameAlreadyLaunched(gameId: String) extends MenuGameError {
+  case class GameAlreadyLaunched(gameId: Int) extends MenuGameError {
     def httpErrorType: HTTPResultType = BadRequest
 
     def repr: String = s"Game with id $gameId is already launched."
@@ -184,7 +184,7 @@ object ErrorADT {
 
     def repr: String = "Wrong game password"
   }
-  case class YouAreNotInGame(gameId: String) extends MenuGameError {
+  case class YouAreNotInGame(gameId: Int) extends MenuGameError {
     def httpErrorType: HTTPResultType = Forbidden
 
     def repr: String = s"You are not in game $gameId"
@@ -201,7 +201,7 @@ object ErrorADT {
   }
 
   sealed trait GameAntiChamberError extends BackendError
-  case class GameHasBeenCancelled(gameId: String) extends GameAntiChamberError {
+  case class GameHasBeenCancelled(gameId: Int) extends GameAntiChamberError {
     def httpErrorType: HTTPResultType = BadRequest
 
     def repr: String = s"Game $gameId has been cancelled"

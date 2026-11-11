@@ -1,13 +1,15 @@
 package server
 
+import eventsourcing.{CastorScheduler, EventSourcingService, SqlEventStore}
+import services.database.DatabaseService
 import services.events.Events
 import services.hostelections.HostElections
-import services.localstorage.{BLocalStorage, LocalStorage}
 import services.menugames.MenuGames
 
 /** The services of the menu server. */
 final case class BackendEnv(
-    storage: LocalStorage,
+    database: DatabaseService,
+    eventSourcing: EventSourcingService,
     menuGames: MenuGames,
     events: Events,
     hostElections: HostElections
@@ -15,7 +17,14 @@ final case class BackendEnv(
 
 object BackendEnv {
   def live(): BackendEnv = {
-    val storage = BLocalStorage.live()
-    BackendEnv(storage, MenuGames(storage), Events(), HostElections())
+    given castor.Context = castor.Context.Simple.global
+    println("Initializing database...")
+    val database = DatabaseService((os.pwd / "target" / "db").toNIO)
+    val eventSourcing = EventSourcingService(
+      EventSourcingService.Config.default,
+      SqlEventStore(database.client),
+      CastorScheduler()
+    )
+    BackendEnv(database, eventSourcing, MenuGames(eventSourcing, database), Events(), HostElections())
   }
 }

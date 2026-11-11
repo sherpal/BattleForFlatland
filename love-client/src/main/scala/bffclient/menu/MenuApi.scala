@@ -46,7 +46,7 @@ final class MenuApi(val scheme: String, val host: String, val port: Int)(using E
   def games: Future[Vector[MenuGameWithPlayers]] =
     http.get[Vector[MenuGameWithPlayers]]("/api/bff/games")
 
-  def game(gameId: String): Future[Option[MenuGameWithPlayers]] = games.map(_.find(_.id == gameId))
+  def game(gameId: Int): Future[Option[MenuGameWithPlayers]] = games.map(_.find(_.id == gameId))
 
   def createGame(name: String): Future[MenuGameWithPlayers] =
     http.postApi[CreateGameFormData, MenuGameWithPlayers](
@@ -54,29 +54,29 @@ final class MenuApi(val scheme: String, val host: String, val port: Int)(using E
       CreateGameFormData(name)
     )
 
-  def joinGame(gameId: String): Future[Vector[MenuGameWithPlayers]] =
+  def joinGame(gameId: Int): Future[Vector[MenuGameWithPlayers]] =
     http.postApi[JoinGameFormData, Vector[MenuGameWithPlayers]](
       "/api/bff/join-game",
       JoinGameFormData(gameId, None)
     )
 
-  def leaveGame(gameId: String): Future[MenuGameWithPlayers] =
+  def leaveGame(gameId: Int): Future[MenuGameWithPlayers] =
     http.postApi[GameIdFormData, MenuGameWithPlayers]("/api/bff/leave-game", GameIdFormData(gameId))
 
-  def kickPlayer(gameId: String, playerName: String): Future[MenuGameWithPlayers] =
+  def kickPlayer(gameId: Int, playerName: String): Future[MenuGameWithPlayers] =
     http.postApi[KickPlayerFormData, MenuGameWithPlayers](
       "/api/bff/kick-player",
       KickPlayerFormData(gameId, playerName)
     )
 
-  def changePlayerInfo(gameId: String, info: PlayerInfo): Future[MenuGameWithPlayers] =
+  def changePlayerInfo(gameId: Int, info: PlayerInfo): Future[MenuGameWithPlayers] =
     http.postApi[ChangePlayerInfoFormData, MenuGameWithPlayers](
       "/api/bff/change-player-info",
       ChangePlayerInfoFormData(gameId, info)
     )
 
   def changeGameConfig(
-      gameId: String,
+      gameId: Int,
       metadata: GameConfiguration.GameConfigMetadata
   ): Future[MenuGameWithPlayers] =
     http.postApi[ChangeGameMetadataFormData, MenuGameWithPlayers](
@@ -84,10 +84,10 @@ final class MenuApi(val scheme: String, val host: String, val port: Int)(using E
       ChangeGameMetadataFormData(gameId, metadata)
     )
 
-  def addAI(gameId: String): Future[Boolean] =
+  def addAI(gameId: Int): Future[Boolean] =
     http.postApi[GameIdFormData, Boolean]("/api/bff/add-ai-to-game", GameIdFormData(gameId))
 
-  def startGame(gameId: String): Future[Boolean] =
+  def startGame(gameId: Int): Future[Boolean] =
     http.postApi[GameIdFormData, Boolean]("/api/bff/start-game", GameIdFormData(gameId))
 
   /** How to reach the game server, from what the lobby says. */
@@ -108,7 +108,7 @@ final class MenuApi(val scheme: String, val host: String, val port: Int)(using E
     http.postApi[HostCandidacy, Boolean]("/api/bff/host-candidacy", candidacy)
 
   /** We were chosen to run the game server, but we cannot: someone else will. */
-  def hostFailed(gameId: String, reason: String): Future[Boolean] =
+  def hostFailed(gameId: Int, reason: String): Future[Boolean] =
     http.postApi[HostFailedFormData, Boolean](
       "/api/bff/host-failed",
       HostFailedFormData(gameId, reason)
@@ -149,7 +149,7 @@ final class MenuApi(val scheme: String, val host: String, val port: Int)(using E
   /** Subscribes to the messages of the menu server, of the list of games or of the lobby of a game
     * (see [[Lobby]]).
     */
-  def subscribe(gameId: Option[String]): Future[LobbySubscription] =
+  def subscribe(gameId: Option[Int]): Future[LobbySubscription] =
     http.postApi[LobbySubscribeFormData, LobbySubscription](
       "/api/bff/lobby/subscribe",
       LobbySubscribeFormData(gameId)
@@ -169,7 +169,7 @@ final class MenuApi(val scheme: String, val host: String, val port: Int)(using E
     * With a game id, it must stay open (also during the game): the menu server kicks the players
     * who are not there.
     */
-  def lobby(gameId: Option[String])(onMessage: MenuGameComm => Unit): Future[Lobby] =
+  def lobby(gameId: Option[Int])(onMessage: MenuGameComm => Unit): Future[Lobby] =
     Lobby.open(this, gameId, onMessage)
 }
 

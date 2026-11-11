@@ -13,6 +13,6 @@ final case class GameAccess(
     addresses: Vector[Peer],
     rendezvous: Option[Peer],
     userName: String,
-    gameId: String,
+    gameId: Int,
     secret: String
 )

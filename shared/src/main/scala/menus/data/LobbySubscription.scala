@@ -19,7 +19,7 @@ object LobbySubscription {
   given Codec[LobbySubscription] = io.circe.generic.semiauto.deriveCodec
 }
 
-final case class LobbySubscribeFormData(gameId: Option[String])
+final case class LobbySubscribeFormData(gameId: Option[Int])
 
 object LobbySubscribeFormData {
   given Codec[LobbySubscribeFormData] = io.circe.generic.semiauto.deriveCodec

@@ -106,7 +106,7 @@ object GermanI18n extends I18n {
   // Lobby of a game
   override def loadingTheGame: String                 = "Spiel wird geladen"
   override def loggedInAs(playerName: String): String = s"Angemeldet als $playerName"
-  override def gameCreatedBy(creator: String, gameId: String): String =
+  override def gameCreatedBy(creator: String, gameId: Int): String =
     s"Erstellt von $creator - Spiel $gameId"
   override def kick: String                    = "Kicken"
   override def you(playerName: String): String = s"$playerName (du)"

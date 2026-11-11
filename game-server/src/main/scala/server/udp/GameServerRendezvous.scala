@@ -23,7 +23,7 @@ final class GameServerRendezvous(
     socket: UDPSocket,
     timers: Timers,
     menuServer: Peer,
-    gameId: String,
+    gameId: Int,
     gameSecret: String,
     isConnected: String => Boolean
 ) {

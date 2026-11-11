@@ -30,7 +30,7 @@ final class LobbyServer(
   private final class Subscription(
       val id: String,
       val user: User,
-      val gameId: Option[String],
+      val gameId: Option[Int],
       val key: Hmac,
       val createdAt: Long
   ) {
@@ -62,7 +62,7 @@ final class LobbyServer(
     java.util.Base64.getUrlEncoder.withoutPadding.encodeToString(bytes)
   }
 
-  def subscribe(user: User, gameId: Option[String]): LobbySubscription = {
+  def subscribe(user: User, gameId: Option[Int]): LobbySubscription = {
     val key          = randomToken()
     val subscription = Subscription(randomToken(), user, gameId, Hmac(key), now)
     lock.synchronized(subscriptions += subscription.id -> subscription)
@@ -178,8 +178,8 @@ object LobbyServer {
   /** What a subscription is told of an event: whether it is about its game (or about the games, for
     * the list of games), and what its user may know.
     */
-  def messagesFor(event: Event, user: User, gameId: Option[String]): Vector[MenuGameComm] = {
-    def ours(eventGameId: String) = gameId.contains[String](eventGameId)
+  def messagesFor(event: Event, user: User, gameId: Option[Int]): Vector[MenuGameComm] = {
+    def ours(eventGameId: Int) = gameId.contains[Int](eventGameId)
     event match {
       // we are interested in this event if
       // - gameId is None, because that means we are in the list-games ui

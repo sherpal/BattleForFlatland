@@ -104,7 +104,7 @@ object AlbanianI18n extends I18n {
   // Lobby of a game
   override def loadingTheGame: String                 = "Duke ngarkuar lojën"
   override def loggedInAs(playerName: String): String = s"Identifikuar si $playerName"
-  override def gameCreatedBy(creator: String, gameId: String): String =
+  override def gameCreatedBy(creator: String, gameId: Int): String =
     s"Krijuar nga $creator - loja $gameId"
   override def kick: String                      = "Përjashto"
   override def you(playerName: String): String   = s"$playerName (ti)"

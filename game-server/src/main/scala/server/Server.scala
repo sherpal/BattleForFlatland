@@ -121,7 +121,7 @@ object Server extends cask.MainRoutes {
     requests.get(
       s"$menuServerUrl/api/bff/internal/game-server-ready",
       params = Map(
-        "gameId"    -> allGameInfo.gameInfo.id,
+        "gameId"    -> allGameInfo.gameInfo.id.toString,
         "secret"    -> allGameInfo.secret,
         "port"      -> playerSessions.localPort.toString,
         "addresses" -> localAddresses.mkString(",")
@@ -152,7 +152,7 @@ object Server extends cask.MainRoutes {
   private def authorize(
       userName: String,
       secret: String,
-      gameId: String
+      gameId: Int
   ): Either[(Int, String), PlayerInfo] =
     if allGameInfo == null then Left((429, "nope"))
     else
@@ -176,7 +176,7 @@ object Server extends cask.MainRoutes {
   /** The secret of this player of this game (with which they prove who they are in UDP, see
     * [[PlayerSessions]]), otherwise the reason to give (see [[Envelope.RejectReason]]).
     */
-  private def secretOf(userName: String, gameId: String): Either[Byte, String] =
+  private def secretOf(userName: String, gameId: Int): Either[Byte, String] =
     if allGameInfo == null then Left(Envelope.RejectReason.NotReady)
     else
       allGameInfo.allGameCredentials.allGameUserCredentials
@@ -235,7 +235,7 @@ object Server extends cask.MainRoutes {
       ctx: cask.Request,
       userName: String,
       secret: String,
-      gameId: String
+      gameId: Int
   ): cask.WebsocketResult =
     authorize(userName, secret, gameId) match {
       case Left((statusCode, message)) => cask.Response(message, statusCode = statusCode)

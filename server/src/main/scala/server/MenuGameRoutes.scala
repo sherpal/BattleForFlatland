@@ -19,7 +19,7 @@ class MenuGameRoutes(rendezvousPort: Int, lobby: LobbyServer)(using env: Backend
 
   programs.userConnectedWatcher
 
-  private def gameDataRefreshed(gameId: String): Unit =
+  private def gameDataRefreshed(gameId: Int): Unit =
     events.dispatchEvent(Event.GameDataRefreshed(Some(gameId)))
 
   @getJ[Vector[MenuGameWithPlayers]]("api/bff/games")

@@ -22,7 +22,7 @@ object MenuGameComm {
   case class HostElected(userName: String) extends MenuGameComm
 
   /** You were chosen to run the game server (with these arguments). */
-  case class SpawnGameServer(gameId: String, gameSecret: String, rendezvousPort: Int)
+  case class SpawnGameServer(gameId: Int, gameSecret: String, rendezvousPort: Int)
       extends MenuGameComm
 
   /** The game could not start; it can be launched again. */
@@ -33,7 +33,7 @@ object MenuGameComm {
     * `communication.udp.Rendezvous`.
     */
   case class HereAreYourCredentials(
-      gameId: String,
+      gameId: Int,
       secret: String,
       gameServerAddresses: Vector[GameServerAddress],
       rendezvousPort: Int

@@ -23,13 +23,13 @@ private[programs] def fork(name: String)(body: => Unit): Unit = {
   * second chance first, see [[server.LobbyServer]] for how they are seen connected).
   */
 def userConnectedWatcher(using env: BackendEnv): Unit = {
-  case class UserData(user: User, gameId: String, howManyTimesWeSawThemDisconnected: Int = 0) {
+  case class UserData(user: User, gameId: Int, howManyTimesWeSawThemDisconnected: Int = 0) {
     def isConnected: Boolean = howManyTimesWeSawThemDisconnected == 0
 
     def againSeenDisconnected: UserData =
       copy(howManyTimesWeSawThemDisconnected = howManyTimesWeSawThemDisconnected + 1)
   }
-  val connectedUserRef = AtomicReference(Map.empty[(User, String), UserData])
+  val connectedUserRef = AtomicReference(Map.empty[(User, Int), UserData])
   env.events.registerEvents[Event.UserConnectedSocket](true) {
     case Event.UserConnectedSocket(user, gameId) =>
       connectedUserRef.updateAndGet(_ + ((user, gameId) -> UserData(user, gameId)))

@@ -46,12 +46,8 @@ lazy val `shared` = crossProject(JSPlatform, JVMPlatform)
   .settings(
     SharedSettings()
   )
-  .jvmSettings(
-    SharedSettings.jvmSettings
-  )
-  .jsSettings(
-    SharedSettings.jsSettings
-  )
+  .jvmSettings(SharedSettings.jvmSettings)
+  .jsSettings(SharedSettings.jsSettings)
 
 lazy val `shared-backend` = project
   .in(file("./shared-backend"))
@@ -64,12 +60,13 @@ lazy val server = project
   .in(file("./server"))
   .settings(
     libraryDependencies ++= List(
-      "com.lihaoyi"   %% "cask"      % "0.9.1",
-      "com.lihaoyi"   %% "scalatags" % "0.13.1",
-      "org.scalameta" %% "munit"     % "1.0.1" % Test
+      "com.lihaoyi" %% "cask" % "0.9.1",
+      "com.lihaoyi" %% "scalatags" % "0.13.1",
+      "org.scalameta" %% "munit" % "1.0.1" % Test
     ),
     assembly / mainClass := Some("server.Server"),
-    assembly / assemblyJarName := "app.jar"
+    assembly / assemblyJarName := "app.jar",
+    discardModuleInfos
   )
   .dependsOn(`shared-backend`)
 
@@ -79,6 +76,20 @@ lazy val server = project
   */
 def stableAssemblyOutputPath = Def.settings(
   assembly / assemblyOutputPath := target.value / (assembly / assemblyJarName).value
+)
+
+/** Drops the `module-info.class` of the dependencies (Flyway's Jackson ones have different ones at the
+  * root of the jar), which only the module system reads: a fat jar runs on the classpath.
+  */
+def discardModuleInfos = Def.settings(
+  assembly / assemblyMergeStrategy := {
+    val previous = (assembly / assemblyMergeStrategy).value
+
+    {
+      case PathList(path @ _*) if path.last == "module-info.class" => MergeStrategy.discard
+      case path                                                   => previous(path)
+    }
+  }
 )
 
 val gameServerRuntimes = taskKey[Seq[File]](
@@ -94,6 +105,8 @@ lazy val `game-server` = project
     assembly / mainClass := Some("server.Server"),
     assembly / assemblyJarName := "game-server.jar",
     stableAssemblyOutputPath,
+    discardModuleInfos,
+    SharedSettings.withoutDatabaseStuff,
     // the JDKs (one per platform) are downloaded once, in the root's target directory
     gameServerRuntimes := JavaRuntimes(
       assembly.value,
@@ -127,7 +140,10 @@ lazy val `love-client` = project
   .settings(
     LuaSettings(`lua-linker`),
     LuaSettings.luaPackageTitle := "Battle for Flatland",
-    packagedMenuServer := sys.env.get("BFF_MENU_SERVER").filter(_.nonEmpty).getOrElse("battle-for-flatland.eu"),
+    packagedMenuServer := sys.env
+      .get("BFF_MENU_SERVER")
+      .filter(_.nonEmpty)
+      .getOrElse("battle-for-flatland.eu"),
     // read by `bffclient.lua.BuildConfig`: in dev, the player types the menu server's address (it
     // runs locally, in plain HTTP)
     LuaSettings.luaConfig := Map("menuServerScheme" -> "http"),
@@ -162,9 +178,9 @@ val deploy = inputKey[Unit](
 deploy := {
   val args = Def.spaceDelimited(Deploy.Args.usage).parsed
   // everything that the Docker image copies
-  val menuServerJar   = packageApplication.value
-  val gameServerJar   = (`game-server` / assembly).value
-  val runtimes        = (`game-server` / gameServerRuntimes).value
-  val clientPackages  = (`love-client` / LuaSettings.luaPackage).value
+  val menuServerJar  = packageApplication.value
+  val gameServerJar  = (`game-server` / assembly).value
+  val runtimes       = (`game-server` / gameServerRuntimes).value
+  val clientPackages = (`love-client` / LuaSettings.luaPackage).value
   Deploy(baseDirectory.value, target.value / "deploy", Deploy.Args.parse(args), streams.value.log)
 }

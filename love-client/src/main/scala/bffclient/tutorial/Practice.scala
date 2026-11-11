@@ -18,7 +18,7 @@ object Practice {
   val bossName: String = Boss101.name
 
   /** Creates the game (named, or failing, in the language of `i18n`): its id, once we are in it. */
-  def create(api: MenuApi, user: User, i18n: I18n)(using ExecutionContext): Future[String] = for
+  def create(api: MenuApi, user: User, i18n: I18n)(using ExecutionContext): Future[Int] = for
     games <- api.games
     _ <-
       if games.exists(game => !game.started && game.containsPlayer(user)) then
@@ -35,7 +35,7 @@ object Practice {
   def setUp(
       api: MenuApi,
       user: User,
-      gameId: String,
+      gameId: Int,
       playerClass: PlayerClasses,
       colour: RGBColour
   )(using ExecutionContext): Future[Unit] = {

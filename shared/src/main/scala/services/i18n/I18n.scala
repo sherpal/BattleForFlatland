@@ -109,7 +109,7 @@ trait I18n {
   // Lobby of a game
   def loadingTheGame: String
   def loggedInAs(playerName: String): String
-  def gameCreatedBy(creator: String, gameId: String): String
+  def gameCreatedBy(creator: String, gameId: Int): String
   def kick: String
   def you(playerName: String): String
   def ai(playerName: String): String

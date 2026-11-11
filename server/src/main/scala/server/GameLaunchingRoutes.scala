@@ -24,7 +24,7 @@ class GameLaunchingRoutes(
     with JsonEndpoints {
 
   @getJ[APIResponse[GameCredentialsWithGameInfo]]("api/bff/internal/get-all-credentials")
-  def retrieveAllGameCredentials(gameId: String, secret: String) = {
+  def retrieveAllGameCredentials(gameId: Int, secret: String) = {
     println(s"Request to provide credentials for $gameId")
     APIResponse.fromEither(env.menuGames.retrieveAllGameCredentials(gameId, secret))
   }
@@ -36,7 +36,7 @@ class GameLaunchingRoutes(
   @getJ[APIResponse[Boolean]]("api/bff/internal/game-server-ready")
   def gameServerReady(
       ctx: cask.Request,
-      gameId: String,
+      gameId: Int,
       secret: String,
       port: Int,
       addresses: String = ""

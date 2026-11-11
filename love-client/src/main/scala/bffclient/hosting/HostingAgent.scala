@@ -24,7 +24,7 @@ import services.i18n.I18n
   */
 final class HostingAgent(
     api: MenuApi,
-    gameId: String,
+    gameId: Int,
     userName: String,
     i18n: I18n,
     log: String => Unit

@@ -173,7 +173,7 @@ final class MenuApp(
     */
   private def backToMenus(
       user: User,
-      gameId: String,
+      gameId: Int,
       lobby: Option[Lobby],
       exit: GameExit
   ): Unit = {

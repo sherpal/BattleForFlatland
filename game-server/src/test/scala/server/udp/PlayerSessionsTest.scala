@@ -110,7 +110,7 @@ final class PlayerSessionsTest extends munit.FunSuite {
     /** The handshake: hello, and the proof when challenged. Whether it was accepted (by the game
       * server: it knows the secret).
       */
-    def hello(userName: String, secret: String, gameId: String = "g"): Boolean = {
+    def hello(userName: String, secret: String, gameId: Int = 1): Boolean = {
       nonces += 1
       sendRaw(Envelope.encode(Packet.Hello(userName, gameId, Nonce.fresh(() => nonces))))
       lastPacket match {
@@ -155,7 +155,7 @@ final class PlayerSessionsTest extends munit.FunSuite {
       timers,
       (userName, gameId) =>
         if !ready then Left(RejectReason.NotReady)
-        else secrets.get(userName).filter(_ => gameId == "g").toRight(RejectReason.Unauthorized),
+        else secrets.get(userName).filter(_ => gameId == 1).toRight(RejectReason.Unauthorized),
       new PlayerSessions.Listener {
         def connected(userName: String): Unit = events += s"connected $userName"
         def message(userName: String, message: InGameWSProtocol): Unit =
@@ -189,7 +189,7 @@ final class PlayerSessionsTest extends munit.FunSuite {
     assertEquals(eve.lastPacket, Some(Packet.Rejected(RejectReason.Unauthorized)))
     assert(!eve.hello("nobody", "a-secret"))
     assertEquals(eve.lastPacket, Some(Packet.Rejected(RejectReason.Unauthorized)))
-    assert(!eve.hello("alice", "a-secret", gameId = "another game"))
+    assert(!eve.hello("alice", "a-secret", gameId = 2))
     assertEquals(eve.lastPacket, Some(Packet.Rejected(RejectReason.Unauthorized)))
 
     assertEquals(f.events.toList, Nil)
@@ -223,7 +223,7 @@ final class PlayerSessionsTest extends munit.FunSuite {
   test("a challenge creates nothing") {
     val f   = new Fixture
     val eve = f.client("eve-machine", 1000)
-    eve.sendRaw(Envelope.encode(Packet.Hello("alice", "g", Nonce.fresh(() => 3))))
+    eve.sendRaw(Envelope.encode(Packet.Hello("alice", 1, Nonce.fresh(() => 3))))
     assert(eve.lastPacket.exists(_.isInstanceOf[Packet.Challenge]))
     assertEquals(f.events.toList, Nil)
     assert(!f.sessions.isConnected("alice"))

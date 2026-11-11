@@ -38,9 +38,9 @@ object Envelope {
 
   sealed trait Packet
   object Packet {
-    case class Hello(userName: String, gameId: String, clientNonce: Nonce) extends Packet
+    case class Hello(userName: String, gameId: Int, clientNonce: Nonce) extends Packet
     case class Challenge(clientNonce: Nonce, serverNonce: Nonce) extends Packet
-    case class Proof(userName: String, gameId: String, nonces: Challenge, tag: Tag) extends Packet
+    case class Proof(userName: String, gameId: Int, nonces: Challenge, tag: Tag) extends Packet
 
     /** `tag`: of [[AcceptedLabel]], with the key of the session towards the player. */
     case class Accepted(tag: Tag) extends Packet
@@ -136,7 +136,7 @@ object Envelope {
         case HelloKind =>
           handshake {
             val (userName, gameId, nonce) =
-              Unpickle[(String, String, Vector[Byte])].fromBytes(payload)
+              Unpickle[(String, Int, Vector[Byte])].fromBytes(payload)
             Packet.Hello(userName, gameId, Nonce(nonce))
           }
         case ChallengeKind if datagram.length == 1 + 2 * Nonce.Size =>
@@ -149,7 +149,7 @@ object Envelope {
         case ProofKind =>
           handshake {
             val (userName, gameId, client, server, tag) =
-              Unpickle[(String, String, Vector[Byte], Vector[Byte], Vector[Byte])]
+              Unpickle[(String, Int, Vector[Byte], Vector[Byte], Vector[Byte])]
                 .fromBytes(payload)
             Packet.Proof(
               userName,
@@ -165,7 +165,7 @@ object Envelope {
   /** What the player proves with: the tag of the nonces (and of who they are) with their secret. */
   def proof(
       userName: String,
-      gameId: String,
+      gameId: Int,
       nonces: Packet.Challenge,
       secret: Hmac
   ): Packet.Proof =
@@ -174,7 +174,7 @@ object Envelope {
   def isProven(proof: Packet.Proof, secret: Hmac): Boolean =
     Hmac.sameBytes(proofTag(proof.userName, proof.gameId, proof.nonces, secret), proof.tag.toArray)
 
-  private def proofTag(userName: String, gameId: String, nonces: Packet.Challenge, secret: Hmac) =
+  private def proofTag(userName: String, gameId: Int, nonces: Packet.Challenge, secret: Hmac) =
     secret.tag(
       Array(ProofKind),
       Hmac.utf8(s"$userName\u0000$gameId\u0000"),
