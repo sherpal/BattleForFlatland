@@ -11,7 +11,10 @@ import scala.util.Try
 import scala.util.chaining.*
 import scala.util.control.NonFatal
 
-/** @param callback
+/** Messages bigger than [[Connection.MaxDatagramSize]] once pickled are sent in several datagrams,
+  * its fragments, which the peer puts back together.
+  *
+  * @param callback
   *   called with every message received (see [[Connection.Delivery]]). If it throws, the error is
   *   printed, and the message counts as delivered: the next ones are not held up by it.
   * @param onLost
@@ -39,6 +42,10 @@ class Connection[Message](
     case class Reliable(msg: Message, id: Int) extends InternalMessage
     case class Ordered(msg: Message, id: Int) extends InternalMessage
     case class OrderedReliable(msg: Message, id: Int) extends InternalMessage
+
+    /** The `index`-th of the `count` pieces of the pickled message of the `group`. */
+    case class Fragment(group: Int, index: Int, count: Int, bytes: Array[Byte])
+        extends InternalMessage
   }
   import InternalMessage.*
 
@@ -53,6 +60,7 @@ class Connection[Message](
       .addConcreteType[Reliable]
       .addConcreteType[Ordered]
       .addConcreteType[OrderedReliable]
+      .addConcreteType[Fragment]
 
   private val latencyHistory = AtomicReference(Queue(100))
 
@@ -83,6 +91,13 @@ class Connection[Message](
   private val receivedOrderedReliableIds: ReceivedIdSet = new ReceivedIdSet
   private val queuedMessages               = AtomicReference(List.empty[(Int, Message)])
   private val lastDeliveredOrderedReliable = AtomicReference(-1)
+
+  private val nextFragmentGroup = AtomicReference(0)
+
+  /** The fragments received of the messages not complete yet: by group, their count, and the ones
+    * received by index.
+    */
+  private val partialMessages = AtomicReference(Map.empty[Int, (Int, Map[Int, Array[Byte]])])
 
   /** Starts monitoring the connection: the peer is pinged every `pingDelay` ms, and deemed lost
     * (see [[connected]]) if nothing is received from it for a while, which also stops the pings and
@@ -151,8 +166,38 @@ class Connection[Message](
           receivedPong(time, newTime)
           sendInternal(PongPong(newTime, timers.now()))
         case PongPong(time, newTime) => receivedPong(time, newTime)
+        case fragment: Fragment => reassembled(fragment).foreach(onMessage)
       }
     }
+
+  /** The whole message, once `fragment` is the last of its group to arrive. A group is complete
+    * again when its fragments are sent again (e.g., the acknowledgement of a reliable message was
+    * lost): the message is then handled again, as if received again.
+    */
+  private def reassembled(fragment: Fragment): Option[Array[Byte]] = {
+    import fragment.*
+    @tailrec
+    def add(): Option[Array[Byte]] = {
+      val partials        = partialMessages.get()
+      val (known, pieces) = partials.getOrElse(group, (count, Map.empty[Int, Array[Byte]]))
+      if known != count then None
+      else {
+        val withThis = pieces + (index -> bytes)
+        val complete = withThis.size == count
+        val updated =
+          if complete then partials - group
+          else {
+            val withGroup = partials + (group -> (count, withThis))
+            // the oldest ones are given up on
+            if withGroup.size > MaxPartialMessages then withGroup - withGroup.keys.min
+            else withGroup
+          }
+        if !partialMessages.compareAndSet(partials, updated) then add()
+        else Option.when(complete)(Array.concat((0 until count).map(withThis)*))
+      }
+    }
+    if count < 1 || count > MaxFragments || index < 0 || index >= count then None else add()
+  }
 
   private def ping(): Unit =
     sendInternal(Ping(timers.now()))
@@ -246,11 +291,30 @@ class Connection[Message](
   private def sendInternal(msg: InternalMessage): Unit =
     sendInternal(msg, peer)
 
-  private def sendInternal(msg: InternalMessage, specialPeer: Peer): Unit = {
+  private def sendInternal(msg: InternalMessage, specialPeer: Peer): Unit =
+    send(datagramsOf(msg), specialPeer)
+
+  private def send(datagrams: Vector[Array[Byte]], to: Peer): Unit =
+    datagrams.foreach(socket.send(_, to.port, to.address))
+
+  /** The datagrams that carry `msg`: itself, or its fragments when it is too big. */
+  private def datagramsOf(msg: InternalMessage): Vector[Array[Byte]] = {
+    val whole = pickle(msg)
+    if whole.length <= MaxDatagramSize then Vector(whole)
+    else {
+      val group  = nextFragmentGroup.getAndUpdate(_ + 1)
+      val pieces = whole.grouped(FragmentSize).toVector
+      pieces.zipWithIndex.map((piece, index) =>
+        pickle(Fragment(group, index, pieces.length, piece))
+      )
+    }
+  }
+
+  private def pickle(msg: InternalMessage): Array[Byte] = {
     val bb    = Pickle.intoBytes(msg)
     val array = new Array[Byte](bb.remaining())
     bb.get(array)
-    socket.send(array, specialPeer.port, specialPeer.address)
+    array
   }
 
   def send(msg: Message, delivery: Delivery): Unit = delivery match {
@@ -270,9 +334,9 @@ class Connection[Message](
 
     sentReliableIds.updateAndGet(_ + id)
 
-    retransmitUntil(sentReliableIds.get().contains(id))(
-      sendInternal(Reliable(msg, id), specialPeer)
-    )
+    // the same datagrams every time, so that the fragments of different sends complete each other
+    val datagrams = datagramsOf(Reliable(msg, id))
+    retransmitUntil(sentReliableIds.get().contains(id))(send(datagrams, specialPeer))
   }
 
   def sendOrderedReliable(msg: Message): Unit = {
@@ -280,9 +344,8 @@ class Connection[Message](
 
     sentOrderedReliableIds.updateAndGet(_ + id)
 
-    retransmitUntil(sentOrderedReliableIds.get().contains(id))(
-      sendInternal(OrderedReliable(msg, id))
-    )
+    val datagrams = datagramsOf(OrderedReliable(msg, id))
+    retransmitUntil(sentOrderedReliableIds.get().contains(id))(send(datagrams, peer))
   }
 
   /** Sends once, then again every few latencies for as long as `pending` holds and the peer is not
@@ -391,6 +454,26 @@ object Connection {
     * the measured latency is (close to) zero.
     */
   private val MinRetransmitDelay = 20
+
+  /** The biggest datagram (a pickled message) sent as is; bigger ones are sent in fragments. A
+    * datagram bigger than what the network path carries in one packet (1500 bytes on most networks,
+    * minus the headers, and as low as 1280 for IPv6) is fragmented by IP, and many NATs drop such
+    * fragments (e.g., routers sending back to their local network what is sent to their public
+    * address). With the envelope (see [[Envelope.DataSocket]]) and the IPv6 and UDP headers, the
+    * datagrams stay below 1280 bytes.
+    */
+  private[udp] val MaxDatagramSize = 1150
+
+  /** How many bytes of the message a fragment carries: with what says which fragment it is, the
+    * fragment stays below [[MaxDatagramSize]].
+    */
+  private val FragmentSize = 1100
+
+  /** At most so many fragments by message (about a megabyte), and so many messages put back
+    * together at a time, so that the memory used by the fragments stays bounded.
+    */
+  private val MaxFragments       = 1024
+  private val MaxPartialMessages = 32
 
   private class ReceivedIdSet {
     private val upToValueAndOutOfOrder =

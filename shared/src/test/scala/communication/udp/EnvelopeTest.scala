@@ -13,9 +13,9 @@ final class EnvelopeTest extends munit.FunSuite {
 
   test("the handshake packets go through") {
     for packet <- List(
-        Packet.Hello("some user", "game-id", clientNonce),
+        Packet.Hello("some user", 42, clientNonce),
         nonces,
-        Envelope.proof("some user", "game-id", nonces, secret),
+        Envelope.proof("some user", 42, nonces, secret),
         Packet.Rejected(Envelope.RejectReason.NotReady),
         Packet.Rejected(Envelope.RejectReason.Unauthorized),
         Packet.Rejected(Envelope.RejectReason.NoSession)
@@ -24,12 +24,12 @@ final class EnvelopeTest extends munit.FunSuite {
   }
 
   test("the secret never travels") {
-    val datagram = Envelope.encode(Envelope.proof("some user", "game-id", nonces, secret))
+    val datagram = Envelope.encode(Envelope.proof("some user", 42, nonces, secret))
     assert(!datagram.toSeq.containsSlice(Hmac.utf8("s3cr3t-é").toSeq))
   }
 
   test("a proof is only good with the secret, for the same nonces and player") {
-    val proof = Envelope.proof("some user", "game-id", nonces, secret)
+    val proof = Envelope.proof("some user", 42, nonces, secret)
     assert(Envelope.isProven(proof, secret))
     assert(!Envelope.isProven(proof, Hmac("another secret")))
     assert(!Envelope.isProven(proof.copy(userName = "someone else"), secret))
@@ -40,9 +40,9 @@ final class EnvelopeTest extends munit.FunSuite {
     var now        = 1_000_000_000L
     val challenges = Envelope.Challenges(Hmac("server key"), () => now)
     val from       = Peer("81.12.34.56", 40000)
-    val hello      = Packet.Hello("some user", "game-id", clientNonce)
+    val hello      = Packet.Hello("some user", 42, clientNonce)
     val challenge  = challenges.challenge(hello, from)
-    val proof      = Envelope.proof("some user", "game-id", challenge, secret)
+    val proof      = Envelope.proof("some user", 42, challenge, secret)
     assert(challenges.isOurs(proof, from))
     assert(!challenges.isOurs(proof, Peer("81.12.34.56", 40001)), "another port")
     assert(!challenges.isOurs(proof, Peer("1.2.3.4", 40000)), "another address")
@@ -113,7 +113,7 @@ final class EnvelopeTest extends munit.FunSuite {
   }
 
   test("a hello too big to be one is ignored") {
-    val huge = Packet.Hello("a" * 1000, "b", clientNonce)
+    val huge = Packet.Hello("a" * 1000, 1, clientNonce)
     assertEquals(Envelope.parse(Envelope.encode(huge)), None)
   }
 

@@ -34,6 +34,16 @@ final class ConnectionSimulationTest extends munit.FunSuite {
     assertEquals(net.receivedByA.toList, Nil)
   }
 
+  test("big ordered reliable messages, sent in fragments, arrive in order on a lossy network") {
+    val net = new Pair(oneWay = 20, lossPercent = 20, jitter = 50)
+    val big = (0 until 5).map(i => Text(s"m$i " + "y" * 4000)).toList
+
+    big.foreach(net.a.sendOrderedReliable)
+    net.sim.advance(60000)
+
+    assertEquals(net.receivedByB.toList, big)
+  }
+
   test("ordered messages never go back in time on a reordering network") {
     val net = new Pair(oneWay = 20, jitter = 200)
 

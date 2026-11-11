@@ -8,15 +8,15 @@ final class RendezvousTest extends munit.FunSuite {
 
   test("every packet goes through, signed") {
     for packet <- List(
-        Packet.ServerRegister("game-id", 1, None),
-        Packet.ServerRegister("game-id", 1730000000000L, Some(Peer("81.12.34.56", 40000))),
+        Packet.ServerRegister(42, 1, None),
+        Packet.ServerRegister(42, 1730000000000L, Some(Peer("81.12.34.56", 40000))),
         Packet.Players(
           Packet.Registered(Peer("127.0.0.1", 22222), Some(Peer("81.12.34.56", 40000))),
           Vector("alice" -> Peer("81.12.34.56", 40000), "bob" -> Peer("::1", 1))
         ),
         Packet.Players(Packet.Registered(Peer("81.12.34.56", 40000), None), Vector.empty),
-        Packet.PlayerRegister("some user", "game-id", 2, None),
-        Packet.PlayerRegister("some user", "game-id", 3, Some(Peer("81.12.34.56", 40000))),
+        Packet.PlayerRegister("some user", 42, 2, None),
+        Packet.PlayerRegister("some user", 42, 3, Some(Peer("81.12.34.56", 40000))),
         Packet.Registered(Peer("81.12.34.56", 40000), None),
         Packet.Registered(Peer("192.168.1.12", 40000), Some(Peer("81.12.34.56", 40001)))
       )
@@ -45,7 +45,7 @@ final class RendezvousTest extends munit.FunSuite {
   }
 
   test("a tampered register is not signed anymore") {
-    val datagram = Rendezvous.encode(Packet.PlayerRegister("some user", "game-id", 2, None), key)
+    val datagram = Rendezvous.encode(Packet.PlayerRegister("some user", 42, 2, None), key)
     datagram(3) = (datagram(3) ^ 1).toByte
     assert(!Rendezvous.parse(datagram).exists(_.signedWith(key)))
   }
@@ -60,7 +60,7 @@ final class RendezvousTest extends munit.FunSuite {
   test("rendezvous and envelope datagrams are told apart") {
     val nonce = Envelope.Nonce(Array.fill[Byte](Envelope.Nonce.Size)(1))
     for datagram <- List(
-        Envelope.encode(Envelope.Packet.Hello("some user", "game-id", nonce)),
+        Envelope.encode(Envelope.Packet.Hello("some user", 42, nonce)),
         Envelope.encode(Envelope.Packet.Challenge(nonce, nonce)),
         Envelope.encode(Envelope.Packet.Rejected(Envelope.RejectReason.NoSession)),
         Envelope.SessionKeys(key, Envelope.Packet.Challenge(nonce, nonce), true).seal(Array(16, 17))

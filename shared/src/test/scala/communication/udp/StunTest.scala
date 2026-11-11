@@ -46,11 +46,11 @@ final class StunTest extends munit.FunSuite {
     val nonces = Envelope.Packet.Challenge(nonce, nonce)
     val keys   = Envelope.SessionKeys(key, nonces, towardsServer = true)
     for datagram <- List(
-        Envelope.encode(Envelope.Packet.Hello("some user", "game-id", nonce)),
+        Envelope.encode(Envelope.Packet.Hello("some user", 42, nonce)),
         Envelope.encode(nonces),
         Envelope.encode(keys.accepted),
         keys.seal(Array.fill[Byte](40)(0)),
-        Rendezvous.encode(Rendezvous.Packet.PlayerRegister("some user", "game-id", 1, None), key),
+        Rendezvous.encode(Rendezvous.Packet.PlayerRegister("some user", 42, 1, None), key),
         Rendezvous.punch,
         Lobby.encode(Lobby.Packet.Hello("abc", 1), key)
       )

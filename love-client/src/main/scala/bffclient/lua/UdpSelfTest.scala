@@ -204,14 +204,16 @@ object UdpSelfTest {
     client.connect()
     server.connect()
 
+    // too big for a datagram: sent in fragments
+    val two = Text((0 until 3000).map(i => ('a' + i % 26).toChar).mkString)
     client.send(Text("one"), Delivery.OrderedReliable)
-    client.send(Text("two"), Delivery.OrderedReliable)
+    client.send(two, Delivery.OrderedReliable)
     client.send(Text("three"), Delivery.Reliable)
     within("the messages")(serverGot.future)
       .flatMap { _ =>
         check(
-          received.take(2).toList == List(Text("one"), Text("two")),
-          "ordered reliable messages arrive in order"
+          received.take(2).toList == List(Text("one"), two),
+          "ordered reliable messages arrive in order, the big one put back together"
         )
         server.send(Text("back"), Delivery.OrderedReliable)
         within("the answer")(clientGot.future)

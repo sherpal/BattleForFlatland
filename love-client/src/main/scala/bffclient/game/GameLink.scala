@@ -20,10 +20,13 @@ import services.i18n.I18n
   * at the rendezvous meanwhile, so that it can open its NAT to us (see [[Rendezvous]]), with our
   * public address if it sees us on a private network (see [[Stun]]). The first of its addresses
   * that answers is the one we say hello to, and prove who we are to (with our secret, which never
-  * travels, see [[Envelope]]), until it accepts us, proving that it is the game server. Then we
-  * synchronize our clock with its clock. Then messages can be sent, and the ones received are
-  * collected until they are [[poll]]ed, so none is lost while the game is being set up. The
-  * connection is deemed lost (see [[isOpen]]) when the server does not talk for a while.
+  * travels, see [[Envelope]]), until it accepts us, proving that it is the game server. Its
+  * addresses on a private network go first: when its public address answers first, we wait a bit
+  * for them (on the same network as the game server, its public address goes through the router and
+  * back, which some routers do poorly). Then we synchronize our clock with its clock. Then messages
+  * can be sent, and the ones received are collected until they are [[poll]]ed, so none is lost
+  * while the game is being set up. The connection is deemed lost (see [[isOpen]]) when the server
+  * does not talk for a while.
   */
 final class GameLink private (access: GameAccess, i18n: I18n, lag: Double, lossPercent: Int) {
   import GameLink.*
@@ -45,6 +48,11 @@ final class GameLink private (access: GameAccess, i18n: I18n, lag: Double, lossP
 
   /** The first address of the game server that answered our punches. */
   private var server = Option.empty[Peer]
+
+  /** The first public address of the game server that answered our punches, while we wait for its
+    * private ones (see [[PublicAnswerDelay]]).
+    */
+  private var publicAnswer = Option.empty[Peer]
 
   /** Once the game server accepted us. */
   private var connection = Option.empty[Connection[InGameWSProtocol]]
@@ -100,9 +108,11 @@ final class GameLink private (access: GameAccess, i18n: I18n, lag: Double, lossP
             )
         case Rendezvous.Packet.Punch
             if server.isEmpty && access.addresses.exists(isFrom(_, from)) =>
-          println(s"The game server answers at $from")
-          server = Some(from)
-          sendHello()
+          if from.onPrivateNetwork then answers(from)
+          else if publicAnswer.isEmpty then {
+            publicAnswer = Some(from)
+            timers.setTimeout(PublicAnswerDelay)(answers(from))
+          }
         case _ => ()
       }
     else if Stun.isStun(datagram) then stun.received(datagram)
@@ -131,6 +141,13 @@ final class GameLink private (access: GameAccess, i18n: I18n, lag: Double, lossP
             else accepted.tryFailure(new IOException(rejection(reason, i18n)))
         case _ => ()
       }
+
+  /** Says hello to `address`, unless we already chose another address. */
+  private def answers(address: Peer): Unit = if server.isEmpty && !closed then {
+    println(s"The game server answers at $address")
+    server = Some(address)
+    sendHello()
+  }
 
   private val hello = Envelope.encode(
     Envelope.Packet.Hello(access.userName, access.gameId, clientNonce)
@@ -224,6 +241,8 @@ final class GameLink private (access: GameAccess, i18n: I18n, lag: Double, lossP
 
 object GameLink {
   private val HelloInterval = 500
+  // longer than HelloInterval, so that the private addresses are punched again meanwhile
+  private val PublicAnswerDelay = 600
   // the game server may need a moment to open its NAT to us (see Rendezvous)
   private val HandshakeTimeout  = 15000
   private val ClockSyncInterval = 50

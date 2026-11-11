@@ -10,7 +10,7 @@ final class HostCandidacyTest extends munit.FunSuite {
       ready: Boolean = true,
       willing: Boolean = true
   ) =
-    HostCandidacy("game", willing, java, bundledJava, ready, processors, "Linux", roundTrip)
+    HostCandidacy(1, willing, java, bundledJava, ready, processors, "Linux", roundTrip)
 
   test("only the players with a recent enough java, or the menu server's one, can host") {
     val ranking = HostCandidacy.ranking(

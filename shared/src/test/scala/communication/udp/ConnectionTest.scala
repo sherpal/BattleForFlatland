@@ -118,6 +118,47 @@ final class ConnectionTest extends munit.FunSuite {
     assertEquals(receiver.received.toList, texts("persistent"))
   }
 
+  /** A text whose message does not fit in a datagram. */
+  private val big = Text((0 until 3000).map(i => ('a' + i % 26).toChar).mkString)
+
+  test("messages too big for a datagram are sent in fragments, put back together in any order") {
+    val sender   = new Harness
+    val receiver = new Harness
+
+    sender.conn.sendOrderedReliable(big)
+    val fragments = sender.socket.sent.map(_.bytes).toList
+    assert(fragments.size > 1, s"expected fragments, got ${fragments.size} datagram")
+    assert(fragments.forall(_.length <= Connection.MaxDatagramSize), "every fragment fits")
+
+    fragments.reverse.foreach(receiver.conn.onMessage)
+    assertEquals(receiver.received.toList, List(big))
+    sender.conn.sendOrderedReliable(Text("small"))
+    receiver.conn.onMessage(sender.socket.sent.last.bytes)
+    assertEquals(receiver.received.toList, List(big, Text("small")))
+  }
+
+  test("the fragments of a message sent again complete the ones received before") {
+    val sender   = new Harness
+    val receiver = new Harness
+
+    sender.conn.sendReliable(big)
+    val first = sender.socket.sent.map(_.bytes).toList
+    sender.socket.sent.clear()
+    first.init.foreach(receiver.conn.onMessage) // the last one is lost
+    assertEquals(receiver.received.toList, Nil)
+
+    sender.sim.advance(1000)
+    val again = sender.socket.sent.map(_.bytes).toList.take(first.size)
+    receiver.conn.onMessage(again.last)
+    assertEquals(receiver.received.toList, List(big))
+    assertEquals(receiver.socket.sent.size, 1, "acknowledged")
+
+    // e.g., the acknowledgement was lost
+    again.foreach(receiver.conn.onMessage)
+    assertEquals(receiver.received.toList, List(big), "delivered once")
+    assertEquals(receiver.socket.sent.size, 2, "acknowledged again")
+  }
+
   test("ordered reliable messages wait for gaps and then drain in order") {
     val sender   = new Harness
     val receiver = new Harness

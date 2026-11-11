@@ -26,7 +26,7 @@ final class LobbyTest extends munit.FunSuite {
     assert(!Rendezvous.isRendezvous(hello))
     assert(!Stun.isStun(hello))
     assert(!Lobby.isLobby(Rendezvous.punch))
-    assert(!Lobby.isLobby(Rendezvous.encode(Rendezvous.Packet.ServerRegister("g", 1, None), key)))
+    assert(!Lobby.isLobby(Rendezvous.encode(Rendezvous.Packet.ServerRegister(1, 1, None), key)))
   }
 
   test("the shared socket gives the lobby its datagrams, and the others to the rest") {

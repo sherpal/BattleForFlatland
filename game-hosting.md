@@ -78,7 +78,8 @@ player ─────── PlayerRegister ─────▶ rendezvous ──
 game server ── Punch ──▶ every player without a session      (opens the game server's NAT to them)
 player ─────── Punch ──▶ every address of the game server    (opens the player's NAT to it)
 game server ── Punch ──▶ player, in answer to theirs
-player ─────── Hello ──▶ the first address that answered, then the game as before (Envelope, Connection)
+player ─────── Hello ──▶ the first address that answered (a private one, if any answers within 600 ms
+                         of a public one), then the game as before (Envelope, Connection)
 ```
 
 The players punch before saying hello because a hello creates a session for the address it comes
@@ -117,8 +118,20 @@ The datagrams are not encrypted: who is on the way sees the game (not the secret
 datagrams, or send `Rejected` or punches in the name of the game server.
 
 * **Players on the host's local network** reach it at its local address (their NAT is not involved),
-  the host itself at the loopback.
+  the host itself at the loopback. Its public address answers them too, the router sending back to its
+  network what is sent to its public address ("hairpin NAT"): they wait a bit for a private address
+  to answer before taking the public one, which some routers handle poorly.
 * **Other players** reach it at its public address, once both NATs are open.
+
+### Big messages
+
+A datagram bigger than what the network carries in one packet (1500 bytes on most networks, headers
+included) is cut by IP into fragments, which many NATs drop, e.g. on the hairpin path above. A message
+lost for good holds up the ones sent after it (in order, reliably) forever: the game never starts,
+although the connection is alive. So `Connection` cuts the messages bigger than 1150 bytes once
+pickled (e.g. the first actions of the game, with the boss's arena) into fragments of its own, that
+the peer puts back together; with the envelope and the IP and UDP headers, no datagram is bigger
+than 1280 bytes (the minimum of IPv6).
 
 ### Peers on the menu server's network
 
