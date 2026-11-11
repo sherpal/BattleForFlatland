@@ -3,7 +3,7 @@ package bffclient.lua
 import scala.scalajs.js
 import scala.scalajs.js.annotation.*
 
-import bffclient.love.Image
+import bffclient.love.{Image, ImageData}
 
 /** Non-blocking HTTP and HTTPS (src/main/lua/http.lua). */
 @js.native @JSImport("http", JSImport.Namespace)
@@ -180,4 +180,7 @@ object Images extends js.Object {
 
   /** The image at this path of the game directory, or null if there is none. */
   def load(path: String): Image = js.native
+
+  /** The pixels of the image at this path of the game directory, or null if there is none. */
+  def loadData(path: String): js.UndefOr[ImageData] = js.native
 }

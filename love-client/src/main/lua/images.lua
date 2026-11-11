@@ -5,13 +5,24 @@ local M = {}
 
 local here = debug.getinfo(1, "S").source:match("^@(.*[/\\])") or ""
 
-function M.load(path)
-  if love.filesystem.getInfo(path) then return love.graphics.newImage(path) end
+local function fileData(path)
+  if love.filesystem.getInfo(path) then return love.filesystem.newFileData(path) end
   local file = io.open(here .. path, "rb")
   if not file then return nil end
   local data = file:read("*a")
   file:close()
-  return love.graphics.newImage(love.filesystem.newFileData(data, path))
+  return love.filesystem.newFileData(data, path)
+end
+
+function M.load(path)
+  local data = fileData(path)
+  return data and love.graphics.newImage(data)
+end
+
+-- Its pixels (an ImageData, e.g. for love.window.setIcon), or nil if it does not exist.
+function M.loadData(path)
+  local data = fileData(path)
+  return data and love.image.newImageData(data)
 end
 
 return M

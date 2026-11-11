@@ -137,6 +137,10 @@ trait Image extends js.Object {
   def getHeight(): Double = js.native
 }
 
+/** The pixels of an image, in memory (not drawable). */
+@js.native
+trait ImageData extends js.Object
+
 /** A part of an image. */
 @js.native
 trait Quad extends js.Object
@@ -175,6 +179,9 @@ object Window extends js.Object {
   /** `fullscreenType`: "desktop" (at the desktop's resolution) or "exclusive". */
   def setFullscreen(fullscreen: Boolean, fullscreenType: String): Boolean = js.native
   def getFullscreen(): (fullscreen: Boolean, fullscreenType: String)      = js.native
+
+  /** The icon of the window (in the title bar, the taskbar, ...). */
+  def setIcon(imageData: ImageData): Boolean = js.native
 }
 
 @js.native @JSGlobal("love.timer")

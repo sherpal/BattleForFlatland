@@ -7,8 +7,8 @@ import scala.util.control.NonFatal
 import bffclient.controls.{ClientSettings, ControlsFile}
 import bffclient.game.{GameAccess, GameClient, GameExit, GameLink}
 import bffclient.hud.{EndOfGame, GameMenu}
-import bffclient.love.{Event, Fullscreen, Love}
-import bffclient.lua.Os
+import bffclient.love.{Event, Fullscreen, Love, Window}
+import bffclient.lua.{Images, Os}
 import bffclient.menu.{MenuApi, MenuApp, MenuSession}
 import bffclient.render.Renderer
 import gamelogic.physics.Complex
@@ -49,6 +49,7 @@ object Main {
     val user     = env("BFF_USER", "alice")
     val headless = Os.getenv("BFF_HEADLESS") != null
     val menuUrl  = Option(Os.getenv("BFF_MENU_URL"))
+    if !headless then Images.loadData("assets/icon.png").foreach(Window.setIcon)
     menuUrl match {
       case Some(url) if scripted =>
         val (scheme, host, port) =
