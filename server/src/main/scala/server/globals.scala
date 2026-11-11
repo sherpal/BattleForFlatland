@@ -25,6 +25,12 @@ object BackendEnv {
       SqlEventStore(database.client),
       CastorScheduler()
     )
-    BackendEnv(database, eventSourcing, MenuGames(eventSourcing, database), Events(), HostElections())
+    BackendEnv(
+      database,
+      eventSourcing,
+      MenuGames(eventSourcing, database),
+      Events(),
+      HostElections()
+    )
   }
 }

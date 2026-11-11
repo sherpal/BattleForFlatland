@@ -15,7 +15,8 @@ enum Effect[Event, State] {
   case Ignore[E, S]() extends Effect[E, S]
 
   /** Stateless effect that simply replies to the specified actor. */
-  case ReplyTo[E, S, Message](replyTo: castor.Actor[Message], message: S => Message) extends Effect[E, S]
+  case ReplyTo[E, S, Message](replyTo: castor.Actor[Message], message: S => Message)
+      extends Effect[E, S]
 
   /** Will first apply this effect, then will run the side effect on the new state.
     * @param f
@@ -24,7 +25,9 @@ enum Effect[Event, State] {
   def thenRun(f: State => Unit): Effect[Event, State] = WithSideEffect(this, f)
 
   /** Will first apply this effect, then will send a message to the specified actor. */
-  def thenReply[Message](to: castor.Actor[Message])(message: State => Message): Effect[Event, State] =
+  def thenReply[Message](to: castor.Actor[Message])(
+      message: State => Message
+  ): Effect[Event, State] =
     thenRun(state => to.send(message(state)))
 
 }

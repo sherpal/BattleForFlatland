@@ -13,9 +13,11 @@ import models.syntax.Pointed
 import services.crypto.{Crypto, HashedPassword}
 import utils.misc.RGBColour
 
-/** A game of the menus, from its creation until it ends. Its id is given by [[menus.data.GameCreatedInfo]].
+/** A game of the menus, from its creation until it ends. Its id is given by
+  * [[menus.data.GameCreatedInfo]].
   *
-  * The checks that involve the other games (unique names, players in only one game) are made by [[MenuGames]].
+  * The checks that involve the other games (unique names, players in only one game) are made by
+  * [[MenuGames]].
   */
 enum MenuGameEntity {
   case NotCreated
@@ -23,18 +25,20 @@ enum MenuGameEntity {
   /** `credentials`: since it was last launched. */
   case Open(game: MenuGameWithPlayers, credentials: Option[GameCredentialsWithGameInfo])
 
-  /** The game server of a game can still be running (and need its credentials) after it ended in the menus. */
+  /** The game server of a game can still be running (and need its credentials) after it ended in
+    * the menus.
+    */
   case Over(credentials: Option[GameCredentialsWithGameInfo])
 
   def maybeGame: Option[MenuGameWithPlayers] = this match {
     case Open(game, _) => Some(game)
-    case _             => None
+    case _ => None
   }
 
   def maybeCredentials: Option[GameCredentialsWithGameInfo] = this match {
-    case NotCreated              => None
-    case Open(_, credentials)    => credentials
-    case Over(credentials)       => credentials
+    case NotCreated => None
+    case Open(_, credentials) => credentials
+    case Over(credentials) => credentials
   }
 }
 
@@ -60,60 +64,76 @@ object MenuGameEntity {
 
     def handle(state: MenuGameEntity, id: Int): Effect[Event, MenuGameEntity] =
       decide(state, id) match {
-        case Left(error)        => Effect.Ignore[Event, MenuGameEntity]().thenReply(replyTo)(_ => Left(error))
-        case Right(None)        => Effect.Ignore[Event, MenuGameEntity]().thenReply(replyTo)(Right(_))
-        case Right(Some(event)) => Effect.Persist[Event, MenuGameEntity](event).thenReply(replyTo)(Right(_))
+        case Left(error) =>
+          Effect.Ignore[Event, MenuGameEntity]().thenReply(replyTo)(_ => Left(error))
+        case Right(None) => Effect.Ignore[Event, MenuGameEntity]().thenReply(replyTo)(Right(_))
+        case Right(Some(event)) =>
+          Effect.Persist[Event, MenuGameEntity](event).thenReply(replyTo)(Right(_))
       }
 
     /** The event to persist, if any. */
-    private def decide(state: MenuGameEntity, id: Int): Either[ErrorADT, Option[Event]] = (this, state) match {
-      case (Get(_), _)                   => Right(None)
-      case (Create(game, _), NotCreated) => Right(Some(Event.GameCreated(game)))
-      case (Create(_, _), _)             => Left(ErrorADT.RawInternalError(s"Game $id was already created"))
-      case (RemoveAI(_, _), Open(game, _)) =>
-        // todo: remove an AI of class `cls`
-        Right(game.game.gameConfiguration.playersInfo.values.collectFirst {
-          case PlayerInfo(playerName, _, _, _, PlayerType.ArtificialIntelligence) =>
-            Event.PlayerRemoved(playerName.name)
-        })
-      case (_, Open(game, _)) => decideWhenOpen(game, id).map(Some(_))
-      case _                             => Left(ErrorADT.GameDoesNotExist(id))
-    }
+    private def decide(state: MenuGameEntity, id: Int): Either[ErrorADT, Option[Event]] =
+      (this, state) match {
+        case (Get(_), _) => Right(None)
+        case (Create(game, _), NotCreated) => Right(Some(Event.GameCreated(game)))
+        case (Create(_, _), _) => Left(ErrorADT.RawInternalError(s"Game $id was already created"))
+        case (RemoveAI(_, _), Open(game, _)) =>
+          // todo: remove an AI of class `cls`
+          Right(game.game.gameConfiguration.playersInfo.values.collectFirst {
+            case PlayerInfo(playerName, _, _, _, PlayerType.ArtificialIntelligence) =>
+              Event.PlayerRemoved(playerName.name)
+          })
+        case (_, Open(game, _)) => decideWhenOpen(game, id).map(Some(_))
+        case _ => Left(ErrorADT.GameDoesNotExist(id))
+      }
 
-    private def decideWhenOpen(game: MenuGameWithPlayers, id: Int): Either[ErrorADT, Event] = this match {
-      case Join(user, maybePassword, _) =>
-        Either.cond(
-          game.game.maybeHashedPassword.forall(hashed =>
-            maybePassword.exists(Crypto.checkPassword(_, HashedPassword(hashed)))
-          ),
-          Event.PlayerJoined(user),
-          ErrorADT.PasswordsMismatch
-        )
-      case RemovePlayer(playerName, _) => Right(Event.PlayerRemoved(playerName))
-      case ChangePlayerInfo(user, playerInfo, _) =>
-        Either.cond(game.containsPlayer(user), Event.PlayerInfoChanged(playerInfo), ErrorADT.YouAreNotInGame(id))
-      case ChangeMetadata(requester, metadata, _) =>
-        Either.cond(
-          game.isGameCreator(requester),
-          Event.MetadataChanged(metadata),
-          ErrorADT.YouAreNotCreator(requester.name)
-        )
-      case AddAI(_) => nextAI(game).map(Event.AIAdded(_))
-      case Launch(requester, _) =>
-        for {
-          _ <- Either.cond(!game.started, (), ErrorADT.GameAlreadyLaunched(id))
-          _ <- Either.cond(game.isGameCreator(requester), (), ErrorADT.YouAreNotCreator(requester.name))
-          gameCredentials = GameCredentials(id, java.util.UUID.randomUUID().toString)
-          userCredentials = game.players.map { user =>
-            GameUserCredentials(user.name, id, java.util.UUID.randomUUID().toString)
-          }
-        } yield Event.GameLaunched(
-          GameCredentialsWithGameInfo(AllGameCredentials(gameCredentials, userCredentials), game.start)
-        )
-      case CancelLaunch(_)             => Right(Event.LaunchCancelled())
-      case End(_)                      => Right(Event.GameEnded())
-      case Create(_, _) | Get(_) | RemoveAI(_, _) => Left(ErrorADT.RawInternalError("unreachable"))
-    }
+    private def decideWhenOpen(game: MenuGameWithPlayers, id: Int): Either[ErrorADT, Event] =
+      this match {
+        case Join(user, maybePassword, _) =>
+          Either.cond(
+            game.game.maybeHashedPassword.forall(hashed =>
+              maybePassword.exists(Crypto.checkPassword(_, HashedPassword(hashed)))
+            ),
+            Event.PlayerJoined(user),
+            ErrorADT.PasswordsMismatch
+          )
+        case RemovePlayer(playerName, _) => Right(Event.PlayerRemoved(playerName))
+        case ChangePlayerInfo(user, playerInfo, _) =>
+          Either.cond(
+            game.containsPlayer(user),
+            Event.PlayerInfoChanged(playerInfo),
+            ErrorADT.YouAreNotInGame(id)
+          )
+        case ChangeMetadata(requester, metadata, _) =>
+          Either.cond(
+            game.isGameCreator(requester),
+            Event.MetadataChanged(metadata),
+            ErrorADT.YouAreNotCreator(requester.name)
+          )
+        case AddAI(_) => nextAI(game).map(Event.AIAdded(_))
+        case Launch(requester, _) =>
+          for {
+            _ <- Either.cond(!game.started, (), ErrorADT.GameAlreadyLaunched(id))
+            _ <- Either.cond(
+              game.isGameCreator(requester),
+              (),
+              ErrorADT.YouAreNotCreator(requester.name)
+            )
+            gameCredentials = GameCredentials(id, java.util.UUID.randomUUID().toString)
+            userCredentials = game.players.map { user =>
+              GameUserCredentials(user.name, id, java.util.UUID.randomUUID().toString)
+            }
+          } yield Event.GameLaunched(
+            GameCredentialsWithGameInfo(
+              AllGameCredentials(gameCredentials, userCredentials),
+              game.start
+            )
+          )
+        case CancelLaunch(_) => Right(Event.LaunchCancelled())
+        case End(_) => Right(Event.GameEnded())
+        case Create(_, _) | Get(_) | RemoveAI(_, _) =>
+          Left(ErrorADT.RawInternalError("unreachable"))
+      }
 
   enum Event derives Codec:
     case GameCreated(game: MenuGameWithPlayers)
@@ -127,10 +147,10 @@ object MenuGameEntity {
     case GameEnded()
 
     def apply(state: MenuGameEntity): MenuGameEntity = (this, state) match {
-      case (GameCreated(game), _)                => Open(game, None)
-      case (GameEnded(), _)                      => Over(state.maybeCredentials)
-      case (event, Open(game, credentials))      => event.applyWhenOpen(game, credentials)
-      case _                                     => state
+      case (GameCreated(game), _) => Open(game, None)
+      case (GameEnded(), _) => Over(state.maybeCredentials)
+      case (event, Open(game, credentials)) => event.applyWhenOpen(game, credentials)
+      case _ => state
     }
 
     private def applyWhenOpen(
@@ -145,9 +165,9 @@ object MenuGameEntity {
           ),
           credentials
         )
-      case PlayerRemoved(playerName)     => Open(game.removePlayer(playerName), credentials)
+      case PlayerRemoved(playerName) => Open(game.removePlayer(playerName), credentials)
       case PlayerInfoChanged(playerInfo) => Open(game.withPlayer(playerInfo), credentials)
-      case AIAdded(playerInfo)           => Open(game.withPlayer(playerInfo), credentials)
+      case AIAdded(playerInfo) => Open(game.withPlayer(playerInfo), credentials)
       case MetadataChanged(metadata) =>
         val bossChanged = game.game.gameConfiguration.bossName != metadata.bossName
         val updatedGame = game.copy(game =
@@ -155,14 +175,15 @@ object MenuGameEntity {
         )
         Open(if bossChanged then updatedGame.removeAllAIs else updatedGame, credentials)
       case GameLaunched(newCredentials) => Open(game.start, Some(newCredentials))
-      case LaunchCancelled()            => Open(game.copy(started = false), credentials)
+      case LaunchCancelled() => Open(game.copy(started = false), credentials)
       case GameCreated(_) | GameEnded() => Open(game, credentials) // handled in `apply`
     }
 
   /** The "next" AI of the game's boss.
     *
     * @return
-    *   an error if the AI could not be added (mostly because full, or boss has no ai implemented yet)
+    *   an error if the AI could not be added (mostly because full, or boss has no ai implemented
+    *   yet)
     */
   private def nextAI(game: MenuGameWithPlayers): Either[ErrorADT, PlayerInfo] = for {
     bossMetadata <- BossMetadata

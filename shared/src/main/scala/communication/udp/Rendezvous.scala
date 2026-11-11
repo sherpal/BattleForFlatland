@@ -49,8 +49,7 @@ object Rendezvous {
       * @param publicAddress
       *   our public address, when the menu server sees us on a private network (see [[Stun]])
       */
-    case class ServerRegister(gameId: Int, number: Long, publicAddress: Option[Peer])
-        extends Packet
+    case class ServerRegister(gameId: Int, number: Long, publicAddress: Option[Peer]) extends Packet
 
     /** The players of the game, with the addresses the menu server knows them at (a player may have
       * two, see [[Stun]]), and where it sees the game server from (see [[Registered]]).

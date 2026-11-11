@@ -20,12 +20,15 @@ import scala.concurrent.duration.*
 import scala.concurrent.{Await, Future}
 import scala.util.Try
 
-/** The games of the menus. Each game is a [[MenuGameEntity]], whose id is given by [[GameCreatedInfo]].
+/** The games of the menus. Each game is a [[MenuGameEntity]], whose id is given by
+  * [[GameCreatedInfo]].
   *
-  * The games that are not over are also kept in memory, for the checks that involve all of them (unique names,
-  * players in only one game). The changes to the games are made one at a time.
+  * The games that are not over are also kept in memory, for the checks that involve all of them
+  * (unique names, players in only one game). The changes to the games are made one at a time.
   */
-final class MenuGames(eventSourcing: EventSourcingService, database: DatabaseService)(using castor.Context) {
+final class MenuGames(eventSourcing: EventSourcingService, database: DatabaseService)(using
+    castor.Context
+) {
   import MenuGames.*
   import MenuGameEntity.Command
 
@@ -35,19 +38,23 @@ final class MenuGames(eventSourcing: EventSourcingService, database: DatabaseSer
 
   private def entity(gameId: Int) = eventSourcing.entity(gameId, MenuGameEntity.entityInfo)
 
-  private val openGamesProjection = eventSourcing.registerProjection(MenuGameEntity.entityInfo, openGames(database))
+  private val openGamesProjection =
+    eventSourcing.registerProjection(MenuGameEntity.entityInfo, openGames(database))
 
   @volatile private var games: Vector[MenuGameWithPlayers] = {
     val deadline = timeout.fromNow
     while !await(openGamesProjection.isUpToDate) do {
-      if deadline.isOverdue() then throw IllegalStateException("The open games could not be loaded in time")
+      if deadline.isOverdue() then
+        throw IllegalStateException("The open games could not be loaded in time")
       Thread.sleep(50)
     }
     import SqliteDialect.*
     database.db
       .run(OpenMenuGame.select.sortBy(_.gameId).map(_.gameId))
       .toVector
-      .flatMap(gameId => Try(await(entity(gameId).ask(Command.Get(_)))).toOption.flatMap(_.toOption))
+      .flatMap(gameId =>
+        Try(await(entity(gameId).ask(Command.Get(_)))).toOption.flatMap(_.toOption)
+      )
       .flatMap(_.maybeGame)
   }
 
@@ -56,15 +63,16 @@ final class MenuGames(eventSourcing: EventSourcingService, database: DatabaseSer
   /** Marks the game as started, and creates the credentials of its game server and its players. The
     * game server is then run by one of the players, see [[programs.launchGame]].
     */
-  def launchGame(requester: User, gameId: Int): Either[ErrorADT, GameCredentialsWithGameInfo] = synchronized {
-    for {
-      game        <- run(gameId)(Command.Launch(requester, _))
-      credentials <- game.maybeCredentials.toRight(ErrorADT.GameDoesNotExist(gameId))
-    } yield {
-      gameCreatedInfo.ask(GameCreatedInfo.Command.GameWasStarted(_))
-      credentials
+  def launchGame(requester: User, gameId: Int): Either[ErrorADT, GameCredentialsWithGameInfo] =
+    synchronized {
+      for {
+        game        <- run(gameId)(Command.Launch(requester, _))
+        credentials <- game.maybeCredentials.toRight(ErrorADT.GameDoesNotExist(gameId))
+      } yield {
+        gameCreatedInfo.ask(GameCreatedInfo.Command.GameWasStarted(_))
+        credentials
+      }
     }
-  }
 
   /** The game could not start after all: it can be launched again. */
   def cancelLaunch(gameId: Int): Unit = synchronized {
@@ -120,9 +128,15 @@ final class MenuGames(eventSourcing: EventSourcingService, database: DatabaseSer
         )
       )
       validationErrors = MenuGame.validator.validate(menuGame)
-      _      <- Either.cond(validationErrors.isEmpty, (), ErrorADT.MultipleErrorsMap(validationErrors))
-      gameId <- Try(await(gameCreatedInfo.ask(GameCreatedInfo.Command.NextId(_)))).toEither.left.map(internalError)
-      game   <- runOnGame(gameId)(Command.Create(MenuGameWithPlayers(menuGame.copy(gameId = gameId), Vector(gameCreator), false), _))
+      _ <- Either.cond(validationErrors.isEmpty, (), ErrorADT.MultipleErrorsMap(validationErrors))
+      gameId <- Try(await(gameCreatedInfo.ask(GameCreatedInfo.Command.NextId(_)))).toEither.left
+        .map(internalError)
+      game <- runOnGame(gameId)(
+        Command.Create(
+          MenuGameWithPlayers(menuGame.copy(gameId = gameId), Vector(gameCreator), false),
+          _
+        )
+      )
     } yield game
   }
 
@@ -158,9 +172,10 @@ final class MenuGames(eventSourcing: EventSourcingService, database: DatabaseSer
     runOnGame(gameId)(Command.RemoveAI(cls, _)).map(_ => ())
   }
 
-  def removePlayer(requester: User, gameId: Int): Either[ErrorADT, MenuGameWithPlayers] = synchronized {
-    runOnGame(gameId)(Command.RemovePlayer(requester.name, _))
-  }
+  def removePlayer(requester: User, gameId: Int): Either[ErrorADT, MenuGameWithPlayers] =
+    synchronized {
+      runOnGame(gameId)(Command.RemovePlayer(requester.name, _))
+    }
 
   def changePlayerInfo(
       user: User,
@@ -178,20 +193,27 @@ final class MenuGames(eventSourcing: EventSourcingService, database: DatabaseSer
     runOnGame(gameId)(Command.ChangeMetadata(requester, gameMetadata, _))
   }
 
-  /** Sends the command to the game, and keeps its new state in memory. Must be called while synchronized. */
-  private def run(gameId: Int)(command: MenuGameEntity.Reply => Command): Either[ErrorADT, MenuGameEntity] = {
+  /** Sends the command to the game, and keeps its new state in memory. Must be called while
+    * synchronized.
+    */
+  private def run(
+      gameId: Int
+  )(command: MenuGameEntity.Reply => Command): Either[ErrorADT, MenuGameEntity] = {
     val result = Try(await(entity(gameId).ask(command))).toEither.left.map(internalError).flatten
     result.foreach { state =>
       games = state.maybeGame match {
-        case Some(game) if games.exists(_.id == gameId) => games.map(existing => if existing.id == gameId then game else existing)
+        case Some(game) if games.exists(_.id == gameId) =>
+          games.map(existing => if existing.id == gameId then game else existing)
         case Some(game) => games :+ game
-        case None       => games.filterNot(_.id == gameId)
+        case None => games.filterNot(_.id == gameId)
       }
     }
     result
   }
 
-  private def runOnGame(gameId: Int)(command: MenuGameEntity.Reply => Command): Either[ErrorADT, MenuGameWithPlayers] =
+  private def runOnGame(gameId: Int)(
+      command: MenuGameEntity.Reply => Command
+  ): Either[ErrorADT, MenuGameWithPlayers] =
     run(gameId)(command).flatMap(_.maybeGame.toRight(ErrorADT.GameDoesNotExist(gameId)))
 
   private def playerIsAlreadyPlayingCheck(player: User) =
@@ -220,14 +242,17 @@ object MenuGames {
 
   /** Keeps the ids of the games that are not over in the `open_menu_game` table. */
   private def openGames(database: DatabaseService): Projection[MenuGameEntity.Event] =
-    Projection[MenuGameEntity.Event]("open-menu-games", Projection.Semantics.AtLeastOnce) { (gameId, envelope) =>
-      import SqliteDialect.*
-      envelope.event match {
-        case MenuGameEntity.Event.GameCreated(_) =>
-          database.db.run(OpenMenuGame.insert.values(OpenMenuGame(gameId)).onConflictIgnore(_.gameId))
-        case MenuGameEntity.Event.GameEnded() =>
-          database.db.run(OpenMenuGame.delete(_.gameId === gameId))
-        case _ => ()
-      }
+    Projection[MenuGameEntity.Event]("open-menu-games", Projection.Semantics.AtLeastOnce) {
+      (gameId, envelope) =>
+        import SqliteDialect.*
+        envelope.event match {
+          case MenuGameEntity.Event.GameCreated(_) =>
+            database.db.run(
+              OpenMenuGame.insert.values(OpenMenuGame(gameId)).onConflictIgnore(_.gameId)
+            )
+          case MenuGameEntity.Event.GameEnded() =>
+            database.db.run(OpenMenuGame.delete(_.gameId === gameId))
+          case _ => ()
+        }
     }
 }

@@ -15,7 +15,9 @@ import scala.reflect.ClassTag
   */
 trait EntityInformation[Command, Event, State] {
 
-  /** Unique identifier for the kind of entities (typically: name of the class, if that's unique enough) */
+  /** Unique identifier for the kind of entities (typically: name of the class, if that's unique
+    * enough)
+    */
   def entityKind: EntityKind[Command, State]
 
   /** Initial empty state for a fresh entity */
@@ -33,7 +35,9 @@ trait EntityInformation[Command, Event, State] {
   /** Describes how to decode an event from the event store */
   def deserializeEvent(payload: String): Event
 
-  private[eventsourcing] def decodeEnvelope(envelope: RawEventEnvelope): EventEnvelope[Event, State] = {
+  private[eventsourcing] def decodeEnvelope(
+      envelope: RawEventEnvelope
+  ): EventEnvelope[Event, State] = {
     import envelope.*
     EventEnvelope(
       entityId = entityId,
@@ -43,7 +47,9 @@ trait EntityInformation[Command, Event, State] {
     )
   }
 
-  private[eventsourcing] def encodeEnvelope(envelope: EventEnvelope[Event, State]): RawEventEnvelope = {
+  private[eventsourcing] def encodeEnvelope(
+      envelope: EventEnvelope[Event, State]
+  ): RawEventEnvelope = {
     import envelope.*
     RawEventEnvelope(
       offset = 0, // ignored: the insert skips this column, the database assigns it
@@ -78,12 +84,17 @@ object EntityInformation {
 
       override def eventHandler(event: Event, state: State): State = eventHandler0(event, state)
 
-      override def commandHandler(command: Command, state: State, entityId: Int): Effect[Event, State] =
+      override def commandHandler(
+          command: Command,
+          state: State,
+          entityId: Int
+      ): Effect[Event, State] =
         commandHandler0(command, state, entityId)
 
       override def serializeEvent(event: Event): String = encoder(event).noSpaces
 
-      override def deserializeEvent(payload: String): Event = io.circe.parser.decode[Event](payload).toTry.get
+      override def deserializeEvent(payload: String): Event =
+        io.circe.parser.decode[Event](payload).toTry.get
     }
 
 }

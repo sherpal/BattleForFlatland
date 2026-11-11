@@ -19,9 +19,11 @@ private[eventsourcing] class Supervisor(
 
     def send(update: EntityUpdateNotification[?]): Unit = update.state match {
       case t: T => ref.send(EntityUpdateNotification(t, update.sequenceNumber))
-      case _    =>
+      case _ =>
         // todo: better logging
-        println(s"Subscription was asked to send update of state ${update.state.getClass.getName}, which is weird.")
+        println(
+          s"Subscription was asked to send update of state ${update.state.getClass.getName}, which is weird."
+        )
         ()
     }
   }
@@ -33,7 +35,10 @@ private[eventsourcing] class Supervisor(
     def poke(entityId: Int): Unit = ref.send(entityId)
   }
 
-  private def handleCommandEnvelope(commandEnvelope: EntityCommand[?, ?, ?], currentState: TheState): TheState = {
+  private def handleCommandEnvelope(
+      commandEnvelope: EntityCommand[?, ?, ?],
+      currentState: TheState
+  ): TheState = {
     val id         = commandEnvelope.id
     val entityInfo = commandEnvelope.entityInfo
     val command    = commandEnvelope.command
@@ -55,7 +60,9 @@ private[eventsourcing] class Supervisor(
         actor.send(EventSourcedActor.ActorCommand.Wrapper(command))
 
         val trimmedEntities = if entities.size >= config.maxInMemoryEntities then {
-          val liveEntities = entities.toVector.collect { case (value, slot: EntitySlot.Live) => (value, slot) }
+          val liveEntities = entities.toVector.collect { case (value, slot: EntitySlot.Live) =>
+            (value, slot)
+          }
           liveEntities.minByOption(_._2.lastAccessed) match {
             case Some(toPassivate) =>
               toPassivate._2.actor.send(EventSourcedActor.ActorCommand.Passivate())
@@ -66,7 +73,8 @@ private[eventsourcing] class Supervisor(
 
         TheState(
           trimmedEntities + ((id = id, entityType = entityType) -> EntitySlot.Live(
-            actor = actor.asInstanceOf[castor.Actor[eventsourcing.EventSourcedActor.ActorCommand[?]]],
+            actor =
+              actor.asInstanceOf[castor.Actor[eventsourcing.EventSourcedActor.ActorCommand[?]]],
             lastAccessed = System.currentTimeMillis()
           )),
           subscriptions,
@@ -95,11 +103,14 @@ private[eventsourcing] class Supervisor(
       projectionSubscriptions: Map[String, Vector[ProjectionSubscription]]
   ) extends State({
         case commandEnvelope @ EntityCommand(_, _, _) =>
-          handleCommandEnvelope(commandEnvelope, TheState(entities, subscriptions, projectionSubscriptions))
+          handleCommandEnvelope(
+            commandEnvelope,
+            TheState(entities, subscriptions, projectionSubscriptions)
+          )
         case EntityIsNowPassive(id, entityType) =>
           val commandsToHandle = entities.get((id, entityType)) match {
-            case None                                   => Vector.empty
-            case Some(EntitySlot.Live(_, _))            => Vector.empty
+            case None => Vector.empty
+            case Some(EntitySlot.Live(_, _)) => Vector.empty
             case Some(EntitySlot.Passivating(commands)) => commands
           }
 
@@ -115,7 +126,7 @@ private[eventsourcing] class Supervisor(
           TheState(
             entities,
             subscriptions.updatedWith((id, entityType.name)) {
-              case None           => Some(Vector(Subscription(name, ref, tp)))
+              case None => Some(Vector(Subscription(name, ref, tp)))
               case Some(existing) => Some(existing :+ Subscription(name, ref, tp))
             },
             projectionSubscriptions
@@ -124,7 +135,7 @@ private[eventsourcing] class Supervisor(
           TheState(
             entities,
             subscriptions.updatedWith((id, entityType.name)) {
-              case None           => None
+              case None => None
               case Some(existing) =>
                 val filtered = existing.filterNot(_.name == name)
                 Option.when(filtered.nonEmpty)(filtered)
@@ -133,10 +144,11 @@ private[eventsourcing] class Supervisor(
           )
         case CheckIdleEntities() =>
           val (idleEntities, activeEntities) = entities.partitionMap {
-            case (id, passivating: EntitySlot.Passivating)     => Right((id, passivating))
+            case (id, passivating: EntitySlot.Passivating) => Right((id, passivating))
             case (id, live @ EntitySlot.Live(_, lastAccessed)) =>
               Either.cond(
-                (System.currentTimeMillis() - lastAccessed) <= config.entityIdleShutdownTime.toMillis,
+                (System
+                  .currentTimeMillis() - lastAccessed) <= config.entityIdleShutdownTime.toMillis,
                 (id, live),
                 (id, live)
               )
@@ -145,14 +157,16 @@ private[eventsourcing] class Supervisor(
           idleEntities.map(_._2.actor).foreach(_.send(EventSourcedActor.ActorCommand.Passivate()))
           scheduleCheckIdleEntities()
           TheState(
-            activeEntities.toMap ++ idleEntities.map((id, _) => (id, EntitySlot.Passivating(Vector.empty))),
+            activeEntities.toMap ++ idleEntities.map((id, _) =>
+              (id, EntitySlot.Passivating(Vector.empty))
+            ),
             subscriptions,
             projectionSubscriptions
           )
         case ClearMemory() =>
           val newEntities = entities.map {
             case (id, passivating: EntitySlot.Passivating) => id -> passivating
-            case (id, active: EntitySlot.Live)             =>
+            case (id, active: EntitySlot.Live) =>
               active.actor.send(EventSourcedActor.ActorCommand.Passivate())
               id -> EntitySlot.Passivating(Vector.empty)
           }
@@ -163,7 +177,7 @@ private[eventsourcing] class Supervisor(
             entities,
             subscriptions,
             projectionSubscriptions.updatedWith(projName) {
-              case None       => Some(Vector(ProjectionSubscription(name, ref)))
+              case None => Some(Vector(ProjectionSubscription(name, ref)))
               case Some(subs) => Some(subs :+ ProjectionSubscription(name, ref))
             }
           )
@@ -184,7 +198,9 @@ private[eventsourcing] class Supervisor(
   override def initialState: State = TheState(Map.empty, Map.empty, Map.empty)
 
   private def scheduleCheckIdleEntities(): Unit =
-    scheduler.scheduleOnce(config.entityIdleShutdownTime / 2)(() => send(Supervisor.CheckIdleEntities()))
+    scheduler.scheduleOnce(config.entityIdleShutdownTime / 2)(() =>
+      send(Supervisor.CheckIdleEntities())
+    )
 
   if config.removeIdleEntities then {
     println(s"Launching idle entities routine.")
@@ -220,7 +236,8 @@ private[eventsourcing] object Supervisor {
       tp: scala.reflect.Typeable[State]
   ) extends SupervisorMessage
 
-  case class Unsubscribe[State](id: Int, entityType: EntityKind[?, State], name: String) extends SupervisorMessage
+  case class Unsubscribe[State](id: Int, entityType: EntityKind[?, State], name: String)
+      extends SupervisorMessage
 
   case class SubscribeToProjection(
       subscriptionName: String,
@@ -233,6 +250,6 @@ private[eventsourcing] object Supervisor {
   case class ProjectionUpdate(name: String, entityId: Int) extends SupervisorMessage
 
   private case class CheckIdleEntities() extends SupervisorMessage
-  case class ClearMemory()               extends SupervisorMessage
+  case class ClearMemory() extends SupervisorMessage
 
 }
