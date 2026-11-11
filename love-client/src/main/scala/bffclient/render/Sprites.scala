@@ -58,7 +58,7 @@ final class Sprite(val image: Image, rows: Int = 1, columns: Int = 1) {
 /** The frontend's images (copied from the BFF checkout by `bffClient/luaLink`), when they exist. */
 object Sprites {
   private def load(path: String, rows: Int = 1, columns: Int = 1): Option[Sprite] =
-    Option(Images.load(s"assets/$path")).map(Sprite(_, rows, columns))
+    Images.load(s"assets/$path").toOption.map(Sprite(_, rows, columns))
 
   /** By class name (`PlayerClasses.value`): white shapes, tinted with the player's colour. */
   lazy val playerClasses: Map[String, Sprite] =

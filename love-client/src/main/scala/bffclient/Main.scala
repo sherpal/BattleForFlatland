@@ -29,12 +29,11 @@ object Main {
   /** The language of the texts, chosen in the settings (when the game starts, for the game). */
   private def i18n: I18n = ClientSettings.current.i18n
 
-  private def env(name: String, default: String): String =
-    Option(Os.getenv(name)).getOrElse(default)
+  private def env(name: String, default: String): String = Os.getenv(name).getOrElse(default)
 
   /** Headless, or BFF_SCRIPTED: the menus and the game play by themselves. */
   private def scripted: Boolean =
-    Os.getenv("BFF_HEADLESS") != null || Os.getenv("BFF_SCRIPTED") != null
+    Os.getenv("BFF_HEADLESS").isDefined || Os.getenv("BFF_SCRIPTED").isDefined
 
   /** In a window, starts with the menus' UI, with the build's menu server (in dev, the player types
     * its address), or BFF_MENU_URL's (e.g. http://127.0.0.1:9000). Headless, plays the menus with a
@@ -47,8 +46,8 @@ object Main {
     */
   def main(args: Array[String]): Unit = {
     val user     = env("BFF_USER", "alice")
-    val headless = Os.getenv("BFF_HEADLESS") != null
-    val menuUrl  = Option(Os.getenv("BFF_MENU_URL"))
+    val headless = Os.getenv("BFF_HEADLESS").isDefined
+    val menuUrl  = Os.getenv("BFF_MENU_URL").toOption
     if !headless then Images.loadData("assets/icon.png").foreach(Window.setIcon)
     menuUrl match {
       case Some(url) if scripted =>
@@ -65,7 +64,7 @@ object Main {
           user,
           playerClass,
           env("BFF_BOSS", "Boss 101"),
-          fillWithAIs = Os.getenv("BFF_FILL_AIS") != null
+          fillWithAIs = Os.getenv("BFF_FILL_AIS").isDefined
         )
         menu.run().onComplete {
           case Success(access) => startGame(access, headless)
@@ -73,7 +72,7 @@ object Main {
             menu.info(s"ERROR: ${error.getMessage}")
             Event.quit(1)
         }
-      case None if headless || Os.getenv("BFF_HOST") != null =>
+      case None if headless || Os.getenv("BFF_HOST").isDefined =>
         startGame(
           GameAccess(
             Vector(Peer(env("BFF_HOST", "localhost"), env("BFF_PORT", "22222").toInt)),

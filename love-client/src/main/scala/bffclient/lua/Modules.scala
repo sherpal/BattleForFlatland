@@ -171,7 +171,7 @@ object BuildConfig extends js.Object {
 
 @js.native @JSGlobal("os")
 object Os extends js.Object {
-  def getenv(name: String): String = js.native
+  def getenv(name: String): js.UndefOr[String] = js.native
 }
 
 /** Images, from src/main/lua/images.lua. */
@@ -179,7 +179,7 @@ object Os extends js.Object {
 object Images extends js.Object {
 
   /** The image at this path of the game directory, or null if there is none. */
-  def load(path: String): Image = js.native
+  def load(path: String): js.UndefOr[Image] = js.native
 
   /** The pixels of the image at this path of the game directory, or null if there is none. */
   def loadData(path: String): js.UndefOr[ImageData] = js.native

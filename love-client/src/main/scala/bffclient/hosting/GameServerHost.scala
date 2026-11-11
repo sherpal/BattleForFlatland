@@ -25,7 +25,7 @@ import menus.data.{GameServerFile, HostCandidacy}
 object GameServerHost {
   private val windows = LoveSystem.getOS() == "Windows"
 
-  private val javaOverride = Option(Os.getenv("BFF_JAVA"))
+  private val javaOverride = Os.getenv("BFF_JAVA").toOption
 
   /** The `java` of the computer. */
   private val systemJava = javaOverride.getOrElse("java")
@@ -286,7 +286,7 @@ object GameServerHost {
 
   /** The path of the jar of the menu server's game server, once it is there and checked. */
   private def gameServerJar(api: MenuApi)(using ExecutionContext): Future[String] =
-    Option(Os.getenv("BFF_GAME_SERVER_JAR")) match {
+    Os.getenv("BFF_GAME_SERVER_JAR").toOption match {
       case Some(jar) => Future.successful(jar)
       case None =>
         api.gameServerVersion.flatMap { case GameServerFile(version, size) =>
